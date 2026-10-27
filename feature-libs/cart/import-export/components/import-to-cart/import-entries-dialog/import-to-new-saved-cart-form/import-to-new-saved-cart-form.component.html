@@ -1,0 +1,107 @@
+<form
+  *ngIf="form"
+  [formGroup]="form"
+  (submit)="formSubmitSubject$.next(undefined)"
+>
+  <ng-container *cxFeature="'a11yCartImportConfirmationMessage'">
+    <div aria-live="assertive" aria-atomic="true">
+      <cx-message
+        *ngIf="form.get('file')?.value && form.get('file')?.valid"
+        [text]="'importEntriesDialog.selectedSuccessfully' | cxTranslate"
+        [type]="globalMessageType.MSG_TYPE_CONFIRMATION"
+        [isVisibleCloseButton]="false"
+        [cxFocus]="{ autofocus: '.cx-message' }"
+      ></cx-message>
+    </div>
+  </ng-container>
+  <p *cxFeature="'a11yRequiredAsterisks'" class="form-legend">
+    {{ 'formLegend.required' | cxTranslate }}
+  </p>
+  <p class="cx-import-entries-subtitle">
+    {{ 'importEntriesDialog.importProductsNewSavedCartSubtitle' | cxTranslate }}
+  </p>
+  <p>
+    {{ 'importEntriesDialog.importProductFileDetails' | cxTranslate }}
+    <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+  </p>
+  <label>
+    <cx-file-upload
+      [formControl]="form.get('file')"
+      (update)="updateCartName()"
+      [accept]="allowedTypes"
+    >
+      {{ 'importEntriesDialog.selectFile' | cxTranslate }}
+    </cx-file-upload>
+    <cx-form-errors
+      [control]="form.get('file')"
+      prefix="formErrors.file"
+    ></cx-form-errors>
+  </label>
+  <div class="cx-import-entries-row">
+    <label>
+      <span class="cx-import-entries-label label-content">
+        {{ 'importEntriesDialog.savedCartName' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <input
+        [maxLength]="nameMaxLength"
+        class="form-control"
+        formControlName="name"
+        required
+        type="text"
+      />
+      <cx-form-errors [control]="form.get('name')"></cx-form-errors>
+    </label>
+  </div>
+
+  <div class="cx-import-entries-row">
+    <label>
+      <span class="cx-import-entries-label label-content">
+        {{ 'importEntriesDialog.savedCartDescription' | cxTranslate }}
+        <span class="cx-import-entries-label-optional">
+          ({{ 'importEntriesDialog.optional' | cxTranslate }})
+        </span></span
+      >
+      <textarea
+        [maxLength]="descriptionMaxLength"
+        class="form-control"
+        formControlName="description"
+        rows="5"
+      ></textarea>
+      <cx-form-errors [control]="form.get('description')"></cx-form-errors>
+
+      <p class="cx-import-entries-input-hint">
+        {{
+          'importEntriesDialog.charactersLeft'
+            | cxTranslate: { count: descriptionsCharacterLeft }
+        }}
+      </p>
+    </label>
+  </div>
+  <div class="cx-import-entries-footer">
+    <button
+      (click)="close('Close Import Products Dialog')"
+      class="btn btn-secondary"
+      type="button"
+    >
+      {{ 'importEntriesDialog.cancel' | cxTranslate }}
+    </button>
+    <button
+      class="btn btn-primary"
+      type="submit"
+      [disabled]="form.get('file')?.status === 'PENDING'"
+    >
+      {{ 'importEntriesDialog.upload' | cxTranslate }}
+    </button>
+  </div>
+</form>
+
+<ng-template #requiredAsterisk>
+  <abbr
+    *cxFeature="'a11yRequiredAsterisks'"
+    class="text-decoration-none required-asterisk"
+    aria-hidden="true"
+    title="{{ 'common.required' | cxTranslate }}"
+    >*</abbr
+  >
+</ng-template>

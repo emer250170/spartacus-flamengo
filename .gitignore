@@ -1,0 +1,74 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+/dist
+/tmp
+/temp
+/out-tsc
+/documentation
+
+# test output
+test-results.xml
+
+# docs archives
+docs.tar.gz
+docs.zip
+
+# spartacussampledataaddon
+*spartacussampledataaddon*
+*spartacussampledata*
+
+# dependencies
+node_modules/
+yarn.lock
+
+# verdaccio storage
+scripts/install/storage
+scripts/install/htpasswd
+
+# Environment config file
+scripts/install/config.sh
+
+# IDEs and editors
+/.idea
+*.iml
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.swp
+
+# IDE - VSCode
+.vscode/settings.json
+
+# Coverage reports
+**/coverage
+
+# Unit test reports
+**/unit-tests-reports
+
+# misc
+/.angular/cache
+.lighthouseci/
+/.sass-cache
+/connect.lock
+/libpeerconnection.log
+/typings
+
+# Logs
+npm-debug.log
+yarn-error.log
+testem.log
+debug.log
+prettier.log
+
+# System Files
+.DS_Store
+Thumbs.db
+
+**/git-ignore
+
+.nx/cache
+

@@ -1,0 +1,45 @@
+@import './progress-bar';
+
+%cx-storefront {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  &:focus {
+    outline: none;
+  }
+
+  &.start-navigating {
+    @extend %progress-bar, %progress-bar-loading !optional;
+  }
+  &.stop-navigating {
+    @extend %progress-bar, %progress-bar-loaded !optional;
+  }
+
+  > footer {
+    margin-top: auto;
+
+    cx-paragraph {
+      p {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  // prevents visible focus when the UI is not used by keyboard.
+  .mouse-focus {
+    :focus,
+    .ng-select-focused {
+      --cx-visual-focus-width: 0;
+      @include forFeature('a11yImproveContrast') {
+        // this change is not kicking-in, minor issue, it does work work when unwraping, unwrap in next major
+        box-shadow: 0 0 0 0;
+      }
+    }
+  }
+
+  main {
+    @include cx-highContrastTheme {
+      background-color: var(--cx-color-background);
+    }
+  }
+}

@@ -1,0 +1,16 @@
+%cx-register {
+  form {
+    a {
+      text-decoration: underline;
+    }
+    .cx-login-link {
+      margin: 1rem 0 0;
+    }
+
+    .input-hint {
+      font-size: 0.875rem;
+      color: var(--cx-color-secondary);
+      margin-bottom: 0;
+    }
+  }
+}

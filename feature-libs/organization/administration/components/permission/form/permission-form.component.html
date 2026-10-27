@@ -1,0 +1,210 @@
+<cx-org-form i18nRoot="orgPurchaseLimit">
+  <ng-container *ngIf="form" [formGroup]="form" main>
+    <p *cxFeature="'a11yRequiredAsterisks'" class="form-legend">
+      {{ 'formLegend.required' | cxTranslate }}
+    </p>
+    <label>
+      <span class="label-content required">
+        {{ 'orgPurchaseLimit.code' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <input
+        class="form-control"
+        type="text"
+        required
+        placeholder="{{ 'orgPurchaseLimit.code' | cxTranslate }}"
+        formControlName="code"
+      />
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{ label: 'orgPurchaseLimit.code' | cxTranslate }"
+        [control]="form.get('code')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('code')"
+      ></cx-form-errors>
+    </label>
+
+    <label
+      *ngIf="(types$ | async)?.length"
+      [formGroup]="$any(form.get('orderApprovalPermissionType'))"
+    >
+      <span class="label-content required">
+        {{ 'orgPurchaseLimit.orderApprovalPermissionType' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <ng-select
+        [inputAttrs]="{ required: 'true' }"
+        formControlName="code"
+        [searchable]="false"
+        [clearable]="false"
+        [items]="(types$ | async) ?? null"
+        bindLabel="name"
+        bindValue="code"
+        [readonly]="form.disabled"
+        appendTo="cx-org-list"
+        [placeholder]="
+          'orgPurchaseLimit.orderApprovalPermissionType' | cxTranslate
+        "
+      >
+      </ng-select>
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgPurchaseLimit.orderApprovalPermissionType' | cxTranslate,
+        }"
+        [control]="form.get('orderApprovalPermissionType.code')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('orderApprovalPermissionType.code')"
+      ></cx-form-errors>
+    </label>
+
+    <label *ngIf="form.get('periodRange')">
+      <span class="label-content required">
+        {{ 'orgPurchaseLimit.periodRange' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <ng-select
+        [inputAttrs]="{ required: 'true' }"
+        formControlName="periodRange"
+        [searchable]="false"
+        [clearable]="false"
+        [items]="periods"
+        appendTo="cx-org-list"
+        [placeholder]="'orgPurchaseLimit.periodRange' | cxTranslate"
+      >
+      </ng-select>
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgPurchaseLimit.periodRange' | cxTranslate,
+        }"
+        [control]="form.get('periodRange')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('periodRange')"
+      ></cx-form-errors>
+    </label>
+
+    <label
+      *ngIf="form.get('currency')"
+      [formGroup]="$any(form.get('currency'))"
+    >
+      <span class="label-content required">
+        {{ 'orgPurchaseLimit.currency' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <ng-select
+        *ngIf="currencies$ | async as currencies"
+        [inputAttrs]="{ required: 'true' }"
+        formControlName="isocode"
+        [searchable]="false"
+        [clearable]="false"
+        [items]="currencies"
+        bindLabel="name"
+        bindValue="isocode"
+        [placeholder]="'orgPurchaseLimit.currency' | cxTranslate"
+      >
+      </ng-select>
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgPurchaseLimit.currency' | cxTranslate,
+        }"
+        [control]="form.get('currency.isocode')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('currency.isocode')"
+      ></cx-form-errors>
+    </label>
+
+    <label *ngIf="form.get('threshold')">
+      <span class="label-content required">
+        {{ 'orgPurchaseLimit.threshold' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <input
+        class="form-control"
+        type="number"
+        required
+        placeholder="{{ 'orgPurchaseLimit.threshold' | cxTranslate }}"
+        formControlName="threshold"
+      />
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgPurchaseLimit.threshold' | cxTranslate,
+        }"
+        [control]="form.get('threshold')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('threshold')"
+      ></cx-form-errors>
+    </label>
+
+    <label [formGroup]="$any(form.get('orgUnit'))">
+      <span class="label-content required">
+        {{ 'orgPurchaseLimit.orgUnit' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <ng-select
+        [inputAttrs]="{ required: 'true' }"
+        formControlName="uid"
+        [searchable]="true"
+        [clearable]="false"
+        [items]="(units$ | async) ?? null"
+        bindLabel="name"
+        bindValue="id"
+        [readonly]="form.get('orgUnit')?.disabled ?? false"
+        appendTo="cx-org-list"
+        [placeholder]="'orgPurchaseLimit.orgUnit' | cxTranslate"
+      >
+      </ng-select>
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgPurchaseLimit.orgUnit' | cxTranslate,
+        }"
+        [control]="form.get('orgUnit.uid')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('orgUnit.uid')"
+      ></cx-form-errors>
+    </label>
+  </ng-container>
+</cx-org-form>
+
+<ng-template #requiredAsterisk>
+  <abbr
+    *cxFeature="'a11yRequiredAsterisks'"
+    class="text-decoration-none required-asterisk"
+    aria-hidden="true"
+    title="{{ 'common.required' | cxTranslate }}"
+    >*</abbr
+  >
+</ng-template>

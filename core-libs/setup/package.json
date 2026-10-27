@@ -1,0 +1,36 @@
+{
+  "name": "@spartacus/setup",
+  "version": "2211.32.1",
+  "description": "Includes features that makes Spartacus and it's setup easier and streamlined.",
+  "keywords": [
+    "spartacus",
+    "framework",
+    "storefront",
+    "setup",
+    "recipe"
+  ],
+  "homepage": "https://github.com/SAP/spartacus",
+  "repository": "https://github.com/SAP/spartacus/tree/develop/core-libs/setup",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "../../node_modules/.bin/jest --config ./jest.config.js"
+  },
+  "dependencies": {
+    "tslib": "^2.6.2"
+  },
+  "peerDependencies": {
+    "@angular/core": "^17.0.5",
+    "@angular/ssr": "^17.0.5",
+    "@spartacus/cart": "2211.32.1",
+    "@spartacus/core": "2211.32.1",
+    "@spartacus/order": "2211.32.1",
+    "@spartacus/user": "2211.32.1"
+  },
+  "optionalDependencies": {
+    "@angular/platform-server": "^17.0.5",
+    "express": "^4.21.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

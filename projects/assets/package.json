@@ -1,0 +1,18 @@
+{
+  "name": "@spartacus/assets",
+  "version": "2211.32.1",
+  "homepage": "https://github.com/SAP/spartacus",
+  "repository": "https://github.com/SAP/spartacus/tree/develop/projects/assets",
+  "scripts": {
+    "build": "nx build assets --configuration production && npm run generate:translations:ts-2-json",
+    "generate:translations:properties-2-ts": "ts-node ./generate-translations-properties-2-ts && cd ../.. && npx prettier \"./projects/assets/src/translations/**/*.ts\" --write",
+    "generate:translations:ts-2-json": "ts-node ./generate-translations-ts-2-json",
+    "generate:translations:ts-2-properties": "ts-node ./generate-translations-ts-2-properties"
+  },
+  "dependencies": {
+    "tslib": "^2.6.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,100 @@
+<div class="register-guest">
+  <div class="col-md-6 col-lg-4">
+    <h3>{{ 'checkoutOrderConfirmation.createAccount' | cxTranslate }}</h3>
+    <p>
+      {{
+        'checkoutOrderConfirmation.createAccountForNext'
+          | cxTranslate: { email: email }
+      }}
+    </p>
+
+    <form (ngSubmit)="submit()" [formGroup]="guestRegisterForm">
+      <p *cxFeature="'a11yRequiredAsterisks'" class="form-legend">
+        {{ 'formLegend.required' | cxTranslate }}
+      </p>
+      <div class="form-group">
+        <label>
+          <span class="label-content">
+            {{ 'register.password.label' | cxTranslate }}
+            <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+          </span>
+          <input
+            required="true"
+            class="form-control"
+            type="password"
+            name="password"
+            placeholder="{{ 'register.password.placeholder' | cxTranslate }}"
+            formControlName="password"
+            [attr.aria-label]="'register.password.placeholder' | cxTranslate"
+            cxPasswordVisibilitySwitch
+          />
+
+          <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+          <cx-form-errors
+            *cxFeature="'formErrorsDescriptiveMessages'"
+            [translationParams]="{
+              label: 'register.password.label' | cxTranslate,
+            }"
+            [control]="guestRegisterForm.get('password')"
+          ></cx-form-errors>
+
+          <cx-form-errors
+            *cxFeature="'!formErrorsDescriptiveMessages'"
+            [control]="guestRegisterForm.get('password')"
+          ></cx-form-errors>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <span class="label-content">
+            {{ 'register.confirmPassword.label' | cxTranslate }}
+            <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+          </span>
+          <input
+            required="true"
+            class="form-control"
+            type="password"
+            name="passwordconf"
+            placeholder="{{
+              'register.confirmPassword.placeholder' | cxTranslate
+            }}"
+            formControlName="passwordconf"
+            [attr.aria-label]="
+              'register.confirmPassword.placeholder' | cxTranslate
+            "
+            cxPasswordVisibilitySwitch
+          />
+
+          <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+          <cx-form-errors
+            *cxFeature="'formErrorsDescriptiveMessages'"
+            [translationParams]="{
+              label: 'register.confirmPassword.label' | cxTranslate,
+            }"
+            [control]="guestRegisterForm.get('passwordconf')"
+          ></cx-form-errors>
+
+          <cx-form-errors
+            *cxFeature="'!formErrorsDescriptiveMessages'"
+            [control]="guestRegisterForm.get('passwordconf')"
+          ></cx-form-errors>
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-block btn-primary">
+        {{ 'common.submit' | cxTranslate }}
+      </button>
+    </form>
+  </div>
+</div>
+
+<ng-template #requiredAsterisk>
+  <abbr
+    *cxFeature="'a11yRequiredAsterisks'"
+    class="text-decoration-none required-asterisk"
+    aria-hidden="true"
+    title="{{ 'common.required' | cxTranslate }}"
+    >*</abbr
+  >
+</ng-template>

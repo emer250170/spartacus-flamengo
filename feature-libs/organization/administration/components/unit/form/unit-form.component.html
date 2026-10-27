@@ -1,0 +1,172 @@
+<cx-org-form [i18nRoot]="i18nRoot">
+  <ng-container *ngIf="form" [formGroup]="form" main>
+    <p *cxFeature="'a11yRequiredAsterisks'" class="form-legend">
+      {{ 'formLegend.required' | cxTranslate }}
+    </p>
+    <label>
+      <span class="label-content required">
+        <span>{{ 'orgUnit.name' | cxTranslate }}</span>
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <input
+        type="text"
+        class="form-control"
+        required
+        placeholder="{{ 'orgUnit.name' | cxTranslate }}"
+        formControlName="name"
+        (blur)="createUidWithName(form.get('name'), form.get('uid'))"
+      />
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgUnit.name' | cxTranslate,
+        }"
+        [control]="form.get('name')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('name')"
+      ></cx-form-errors>
+    </label>
+
+    <label>
+      <span class="label-content required">
+        <span>{{ 'orgUnit.uid' | cxTranslate }}</span>
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <input
+        class="form-control"
+        type="text"
+        required
+        placeholder="{{ 'orgUnit.uid' | cxTranslate }}"
+        formControlName="uid"
+      />
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgUnit.uid' | cxTranslate,
+        }"
+        [control]="form.get('uid')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('uid')"
+      ></cx-form-errors>
+    </label>
+
+    <label formGroupName="approvalProcess" class="full-width">
+      <span class="label-content required">{{
+        'orgUnit.approvalProcess' | cxTranslate
+      }}</span>
+      <ng-select
+        *cxFeature="'a11yApprovalProcessWithNoClearable'"
+        [inputAttrs]="{ required: 'true' }"
+        formControlName="code"
+        [searchable]="false"
+        [clearable]="false"
+        [items]="approvalProcess$ | async"
+        bindLabel="name"
+        bindValue="code"
+        appendTo="cx-org-list"
+        [placeholder]="'orgUnit.approvalProcess' | cxTranslate"
+        [cxNgSelectA11y]="{}"
+      >
+      </ng-select>
+      <ng-select
+        *cxFeature="'!a11yApprovalProcessWithNoClearable'"
+        [inputAttrs]="{ required: 'true' }"
+        formControlName="code"
+        [searchable]="false"
+        [items]="approvalProcess$ | async"
+        bindLabel="name"
+        bindValue="code"
+        appendTo="cx-org-list"
+        [placeholder]="'orgUnit.approvalProcess' | cxTranslate"
+      >
+      </ng-select>
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'orgUnit.approvalProcess' | cxTranslate,
+        }"
+        [control]="form.get('approvalProcess.code')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="form.get('approvalProcess.code')"
+      ></cx-form-errors>
+    </label>
+    <ng-container *ngIf="form.get('parentOrgUnit'); else parentOrgUnitNotes">
+      <label formGroupName="parentOrgUnit">
+        <span class="label-content required">
+          {{ 'orgUnit.form.parentOrgUnit' | cxTranslate }}
+          <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+        </span>
+        <ng-select
+          *cxFeature="'a11yApprovalProcessWithNoClearable'"
+          [inputAttrs]="{ required: 'true' }"
+          formControlName="uid"
+          [searchable]="true"
+          [clearable]="false"
+          [items]="(units$ | async) ?? null"
+          bindLabel="name"
+          bindValue="id"
+          appendTo="cx-org-list"
+          [placeholder]="'orgUnit.form.parentOrgUnit' | cxTranslate"
+          [cxNgSelectA11y]="{}"
+        >
+        </ng-select>
+        <ng-select
+          *cxFeature="'!a11yApprovalProcessWithNoClearable'"
+          [inputAttrs]="{ required: 'true' }"
+          formControlName="uid"
+          [searchable]="true"
+          [clearable]="false"
+          [items]="(units$ | async) ?? null"
+          bindLabel="name"
+          bindValue="id"
+          appendTo="cx-org-list"
+          [placeholder]="'orgUnit.form.parentOrgUnit' | cxTranslate"
+        >
+        </ng-select>
+
+        <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+        <cx-form-errors
+          *cxFeature="'formErrorsDescriptiveMessages'"
+          [translationParams]="{
+            label: 'orgUnit.form.parentOrgUnit' | cxTranslate,
+          }"
+          [control]="form.get('parentOrgUnit.uid')"
+        ></cx-form-errors>
+
+        <cx-form-errors
+          *cxFeature="'!formErrorsDescriptiveMessages'"
+          [control]="form.get('parentOrgUnit.uid')"
+        ></cx-form-errors>
+      </label>
+    </ng-container>
+    <ng-template #parentOrgUnitNotes>
+      <span class="notes-content">{{
+        'orgUnit.form.parentOrgUnitNotes' | cxTranslate
+      }}</span>
+    </ng-template>
+  </ng-container>
+</cx-org-form>
+
+<ng-template #requiredAsterisk>
+  <abbr
+    *cxFeature="'a11yRequiredAsterisks'"
+    class="text-decoration-none required-asterisk"
+    aria-hidden="true"
+    title="{{ 'common.required' | cxTranslate }}"
+    >*</abbr
+  >
+</ng-template>

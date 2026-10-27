@@ -1,0 +1,84 @@
+<form (ngSubmit)="onSubmit()" [formGroup]="checkoutLoginForm">
+  <p *cxFeature="'a11yRequiredAsterisks'" class="form-legend">
+    {{ 'formLegend.required' | cxTranslate }}
+  </p>
+  <div class="form-group">
+    <label>
+      <span class="label-content">
+        {{ 'checkoutLogin.emailAddress.label' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <input
+        required="true"
+        type="email"
+        name="email"
+        class="form-control"
+        formControlName="email"
+        placeholder="{{
+          'checkoutLogin.emailAddress.placeholder' | cxTranslate
+        }}"
+      />
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'checkoutLogin.emailAddress.label' | cxTranslate,
+        }"
+        [control]="checkoutLoginForm.get('email')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="checkoutLoginForm.get('email')"
+      ></cx-form-errors>
+    </label>
+  </div>
+
+  <div class="form-group">
+    <label>
+      <span class="label-content">
+        {{ 'checkoutLogin.confirmEmail.label' | cxTranslate }}
+        <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template>
+      </span>
+      <input
+        required="true"
+        type="email"
+        name="emailConfirmation"
+        class="form-control"
+        formControlName="emailConfirmation"
+        placeholder="{{
+          'checkoutLogin.confirmEmail.placeholder' | cxTranslate
+        }}"
+      />
+
+      <!-- TODO: (CXSPA-7315) Remove feature toggle in the next major -->
+      <cx-form-errors
+        *cxFeature="'formErrorsDescriptiveMessages'"
+        [translationParams]="{
+          label: 'checkoutLogin.confirmEmail.label' | cxTranslate,
+        }"
+        [control]="checkoutLoginForm.get('emailConfirmation')"
+      ></cx-form-errors>
+
+      <cx-form-errors
+        *cxFeature="'!formErrorsDescriptiveMessages'"
+        [control]="checkoutLoginForm.get('emailConfirmation')"
+      ></cx-form-errors>
+    </label>
+  </div>
+
+  <button type="submit" class="btn btn-block btn-primary">
+    {{ 'checkoutLogin.continue' | cxTranslate }}
+  </button>
+</form>
+
+<ng-template #requiredAsterisk>
+  <abbr
+    *cxFeature="'a11yRequiredAsterisks'"
+    class="text-decoration-none required-asterisk"
+    aria-hidden="true"
+    title="{{ 'common.required' | cxTranslate }}"
+    >*</abbr
+  >
+</ng-template>

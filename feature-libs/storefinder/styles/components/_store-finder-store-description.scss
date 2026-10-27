@@ -1,0 +1,101 @@
+%cx-store-finder-store-description {
+  // TODO: (CXSPA-5916) Remove feature flags and redundant styles next major
+  .container {
+    margin-bottom: 1rem;
+  }
+
+  .cx-store {
+    text-align: start;
+  }
+
+  @include forFeature('a11yStoreFinderOverflow') {
+    .container {
+      margin-bottom: unset;
+    }
+
+    .cx-container {
+      text-align: start;
+      display: flex;
+      margin-bottom: 1rem;
+
+      @include media-breakpoint-down(md) {
+        flex-direction: column;
+      }
+    }
+
+    .cx-store {
+      text-align: unset;
+      padding-inline-start: 1rem;
+      padding-inline-end: 1rem;
+      flex: 1;
+    }
+  }
+
+  .cx-store-description-address {
+    margin-bottom: 1.5rem;
+  }
+
+  .cx-contact {
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  .cx-list {
+    padding: 0;
+    list-style: none;
+  }
+
+  .cx-link {
+    color: var(--cx-color-text);
+  }
+
+  .cx-schedule {
+    margin-bottom: 1.5rem;
+  }
+
+  .cx-store-hours {
+    padding: 0;
+  }
+
+  .cx-hours {
+    text-align: end;
+    &.closed {
+      color: var(--cx-color-primary);
+    }
+  }
+
+  .cx-features {
+    margin-bottom: 10px;
+  }
+
+  .cx-features-header {
+    text-align: start;
+  }
+
+  // TODO: (CXSPA-5916) Remove feature flags and redundant styles next major
+  .cx-storeMap {
+    height: 70vh;
+  }
+
+  @include forFeature('a11yStoreFinderOverflow') {
+    .cx-storeMap {
+      height: unset;
+      flex: 2;
+      padding-inline-start: 1rem;
+      padding-inline-end: 1rem;
+    }
+
+    .cx-feature-item {
+      color: var(--cx-color-primary);
+    }
+  }
+
+  .cx-feature-value {
+    color: var(--cx-color-primary);
+  }
+
+  .cx-feature-item {
+    text-align: start;
+  }
+}

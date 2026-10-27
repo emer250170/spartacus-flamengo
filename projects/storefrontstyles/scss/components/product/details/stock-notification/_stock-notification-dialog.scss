@@ -1,0 +1,34 @@
+%cx-stock-notification-dialog {
+  .cx-stock-notification-dialog {
+    @extend .modal-dialog;
+    @extend .modal-dialog-centered;
+    @extend .modal-lg;
+  }
+
+  .cx-dialog-title {
+    @include type('3');
+  }
+
+  .channels {
+    span {
+      @include type('6');
+    }
+  }
+
+  .cx-stock-notification-container {
+    @extend .modal-content;
+  }
+
+  .cx-stock-notification-text {
+    margin: 0;
+  }
+
+  .cx-stock-notification-link {
+    display: inline;
+    @include type('6');
+    color: var(--cx-color-dark);
+    &:hover {
+      color: var(--cx-color-primary);
+    }
+  }
+}
