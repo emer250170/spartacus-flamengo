@@ -58,13 +58,14 @@
 	</context>
 
 	<!-- Cadastro de jogo novo: 3 passos -->
-	<context merge-by="type" type="MatchdayGame" component="create-wizard">
+	<!-- sem merge-by: não herda o assistente genérico do GenericItem -->
+	<context type="MatchdayGame" component="create-wizard">
 		<wz:flow id="MatchdayGameWizard" title="create.title(ctx.TYPE_CODE)">
 			<wz:prepare id="matchdayGamePrepare">
 				<wz:initialize property="newGame" type="ctx.TYPE_CODE"/>
 			</wz:prepare>
 
-			<wz:step id="step1" label="matchday.wizard.step1" sublabel="matchday.wizard.step1.sub">
+			<wz:step id="matchdayStep1" label="matchday.wizard.step1" sublabel="matchday.wizard.step1.sub">
 				<wz:content id="step1.content">
 					<wz:property-list root="newGame">
 						<wz:property qualifier="opponent" type="java.lang.String"/>
@@ -80,7 +81,7 @@
 				</wz:navigation>
 			</wz:step>
 
-			<wz:step id="step2" label="matchday.wizard.step2" sublabel="matchday.wizard.step2.sub">
+			<wz:step id="matchdayStep2" label="matchday.wizard.step2" sublabel="matchday.wizard.step2.sub">
 				<wz:content id="step2.content">
 					<wz:property-list root="newGame">
 						<wz:property qualifier="priceNorte" type="java.lang.Double"/>
@@ -96,7 +97,7 @@
 				</wz:navigation>
 			</wz:step>
 
-			<wz:step id="step3" label="matchday.wizard.step3" sublabel="matchday.wizard.step3.sub">
+			<wz:step id="matchdayStep3" label="matchday.wizard.step3" sublabel="matchday.wizard.step3.sub">
 				<wz:content id="step3.content">
 					<wz:property-list root="newGame">
 						<wz:property qualifier="status" editor="com.hybris.cockpitng.editor.nonoptionalenum"/>
