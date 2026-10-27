@@ -192,3 +192,27 @@ necessário quando o `flamengomatchday-items.xml` mudar.
 Para remover: tirar a linha do `localextensions.xml`, `ant all`, reiniciar e
 desativar o gatilho do `seatHoldExpiryCronJob`; a reserva volta a acontecer só na
 conclusão do pedido.
+
+## Tela "Jogos" no Backoffice (cadastro de jogo sem script)
+
+Menu **Matchday Flamengo › Jogos** (Backoffice em português: Configurações › Idioma › UI Locale = Portuguese).
+
+| Ação do usuário | O que acontece na loja |
+|---|---|
+| **+ Criar Jogo** (3 passos: Partida, Preços por setor, Publicação) com situação **À venda** | gera o código `JOGO-aaaammdd-ADV`, cria o produto do jogo + 384 poltronas com preço e estoque, entra na categoria da loja e reindexa (~10 s) |
+| Criar com **Rascunho** | só guarda o cadastro; nada vai para a loja até mudar para À venda |
+| Mudar **À venda → Rascunho** | pausa a venda (produto reprovado, sai da loja) |
+| Mudar **Rascunho → À venda** | retoma a venda |
+| Editar adversário, data, competição, pré-venda ou preços e **Salvar** | atualiza nome, descrição e preços na loja; estoque e poltronas vendidas não mudam |
+| Mudar para **Encerrado** | tira da loja, apaga poltronas não vendidas e o produto (mantém as vendidas e os pedidos) |
+| Apagar | só permitido para jogo Encerrado (ou rascunho que nunca foi para a loja) |
+
+O campo **Último resultado** na ficha mostra o que foi feito no último salvamento. Erros (ex.: jogo encerrado não volta à venda) aparecem como mensagem do Backoffice e nada é gravado.
+A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
+
+### Deploy da tela (além do deploy da extensão)
+1. `ant all` + start (como hybris).
+2. HAC › Platform › Update só com **Update running system** + **Localize types** (cria a tabela de jogos).
+3. **Restart** do servidor (as regras do jogo só se ligam ao tipo na subida, depois que ele existe).
+4. Backoffice › F4 › menu ☰ › *Show cockpit-config.xml › Reset to Defaults* (o Backoffice guarda a configuração da tela no banco; sem isso ele não lê mudanças no `flamengomatchday-backoffice-config.xml`). F4 de novo para sair.
+5. Jogos criados antes da tela por `abrir-jogo.groovy`: cadastrar com `product` preenchido (o cadastro não reabre o jogo).
