@@ -41,6 +41,7 @@ interface OccProduct {
   code: string;
   name?: string;
   summary?: string;
+  description?: string;
   price?: OccPrice;
   stock?: OccStock;
   variantMatrix?: OccVariantMatrixElement[];
@@ -196,7 +197,11 @@ export class MatchdayDataService {
       minPrice,
       tag: lowStock
         ? 'Últimos ingressos'
-        : /pré-venda/i.test(this.clean(p.summary) + this.clean(p.name))
+        : /pré-venda/i.test(
+              [p.name, p.summary, p.description]
+                .map((t) => this.clean(t))
+                .join(' ')
+            )
           ? 'Pré-venda sócio'
           : 'Vendas abertas',
       sectors,

@@ -94,7 +94,7 @@ header cx-navigation-ui.flyout > nav > ul > li > cx-generic-link > a,
 header cx-navigation-ui.flyout > nav > ul > li > span,
 header cx-navigation-ui.flyout > nav > ul > li > button {
   font-family: var(--fla-fonte) !important;
-  font-size: 1.15rem !important;
+  font-size: 1.05rem !important; // 1.15rem quebrava o 8o item (Ingressos) em 2 linhas
   font-weight: 600 !important;
   text-transform: uppercase;
   color: #fff !important;
