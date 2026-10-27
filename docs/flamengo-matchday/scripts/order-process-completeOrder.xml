@@ -1,0 +1,35 @@
+<!--
+  Matchday demo: substitui o passo completeOrder do order-process (versão dinâmica).
+  O CompleteOrderAction do OMS marca o pedido como CANCELLED quando não há
+  consignações (e a demo pula a separação no depósito). Este passo conclui o
+  pedido, baixa o estoque de cada item no warehouse_s (poltrona vendida = 0,
+  aparece ocupada no mapa) e marca o pedido para a rotina de reserva não
+  baixar de novo.
+-->
+<scriptAction id='completeOrder'>
+    <script type='groovy'><![CDATA[
+import de.hybris.platform.core.Registry
+import de.hybris.platform.core.enums.OrderStatus
+import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
+def ctx = Registry.applicationContext
+def fs = ctx.getBean('flexibleSearchService')
+def ms = ctx.getBean('modelService')
+def o = process.order
+if (o.statusInfo != 'matchday:estoque-baixado') {
+  o.entries.each { e ->
+    def niveis = fs.search(new FlexibleSearchQuery(
+      "SELECT {pk} FROM {StockLevel} WHERE {productCode}=?c", [c: e.product.code])).result
+    def nivel = niveis.find { it.warehouse?.code == 'warehouse_s' } ?: (niveis ? niveis[0] : null)
+    if (nivel) {
+      nivel.available = Math.max(0, nivel.available - (e.quantity as int))
+      ms.save(nivel)
+    }
+  }
+  o.statusInfo = 'matchday:estoque-baixado'
+}
+o.status = OrderStatus.COMPLETED
+ms.save(o)
+return 'OK'
+]]></script>
+    <transition name='OK' to='success'/>
+</scriptAction>

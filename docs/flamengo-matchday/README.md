@@ -68,10 +68,45 @@ HAC › Console › ImpEx Import:
    (equivale a rodar `scripts/criar-template.groovy`)
 2. `02-servicos-e-camisa.impex` — categorias, estacionamento, comidas, Camisa Jogo 2, personalização
 3. `03-cms.impex` — página `/matchday`, banner da home, bloco da confirmação, item "Ingressos" no menu
+4. `04-entrega-brasil.impex` — Brasil como país de entrega e o modo "Ingresso digital e retirada no estádio"
 
 HAC › Console › Scripting Languages (Groovy, modo commit):
 
-4. `scripts/abrir-jogo.groovy` — uma vez por jogo, ajustando o bloco `JOGO`
-5. `scripts/fechar-jogo.groovy` — depois da partida
+5. `scripts/abrir-jogo.groovy` — uma vez por jogo, ajustando o bloco `JOGO`
+6. `scripts/fechar-jogo.groovy` — depois da partida
 
 Loja: site `electronics-spa`, catálogo `flamengoProductCatalog`, BRL, estoque no `warehouse_s`.
+
+## Pedido concluído = poltrona ocupada
+
+O `order-process` padrão (OMS) manda o pedido para separação no depósito
+(`sourceOrder`), que na demo falha porque os operadores de depósito de exemplo
+estão com login bloqueado. Sem essa etapa nada baixa o estoque, e a poltrona
+vendida continuaria livre no mapa. Na demo o processo foi ajustado pela versão
+dinâmica (Backoffice › Sistema › Processos de negócio › Definições de processo
+dinâmicas, código `order-process`):
+
+| Versão | Situação |
+|---|---|
+| 0 | original do OMS (inativa) |
+| 1 | `geocodeShippingAddress` vai direto para `postTaxes`, sem `sourceOrder` (inativa) |
+| 2 (ativa) | igual à 1, e o passo `completeOrder` vira um `scriptAction` (`scripts/order-process-completeOrder.xml`) |
+
+O `completeOrder` original do OMS marca como CANCELLED o pedido sem
+consignação. O novo passo conclui o pedido (COMPLETED), baixa no `warehouse_s`
+a quantidade de cada item (poltrona vendida fica com estoque 0) e grava
+`statusInfo = matchday:estoque-baixado`. Fluxo de um pedido novo:
+`checkOrder → fraudCheck → sendOrderPlacedNotification → geocodeShippingAddress → postTaxes → takePayment → completeOrder → success`.
+
+Rede de segurança: o CronJob `matchdayBaixaEstoqueCronJob` (ScriptingJob
+`matchdayBaixaEstoqueJob`, script `scripts/matchday-baixa-estoque.groovy`,
+gatilho a cada minuto) baixa o estoque de qualquer pedido COMPLETED ainda sem a
+marca, por exemplo um pedido concluído à mão no Backoffice.
+
+Observações:
+- Uma instância de processo fica presa à versão em que nasceu; reiniciar um
+  pedido antigo roda a definição antiga. Para esses, basta pôr o pedido em
+  COMPLETED que a rotina baixa o estoque.
+- Para voltar ao fluxo padrão: ativar a versão 0 da definição `order-process`
+  e desativar o gatilho do `matchdayBaixaEstoqueCronJob`. O caminho definitivo
+  é liberar os operadores de depósito e usar a separação do OMS.
