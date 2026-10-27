@@ -127,6 +127,15 @@ header cx-navigation-ui.flyout > nav > ul > li > button {
   }
 }
 
+// MEDIDO: no Spartacus o menu suspenso só abre com o mouse sobre a setinha
+// (button:hover + .wrapper) e o painel (85px) começa à esquerda dela — ao
+// descer da seta o mouse saía dos dois e o menu fechava. Agora abre passando
+// o mouse em qualquer parte do item e o painel cobre o item inteiro.
+@media (min-width: 992px) {
+  header cx-navigation-ui.flyout > nav > ul > li:hover > button + .wrapper { display: initial; }
+  header cx-navigation-ui.flyout > nav > ul > li > button + .wrapper { min-width: 200px; }
+}
+
 // hamburguer (mobile) sobre fundo vermelho
 header .hamburger-inner, header .hamburger-inner::before, header .hamburger-inner::after,
 header .cx-hamburger.is-active .hamburger-inner,
