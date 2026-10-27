@@ -1,7 +1,105 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <items xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="items.xsd">
 
+	<enumtypes>
+		<enumtype code="MatchdayGameStatus" autocreate="true" generate="true" dynamic="false">
+			<description>Situação do jogo na loja</description>
+			<value code="DRAFT"/>
+			<value code="ON_SALE"/>
+			<value code="CLOSED"/>
+		</enumtype>
+	</enumtypes>
+
 	<itemtypes>
+
+		<!--
+			Jogo em casa cadastrado pelo time de negócio na tela "Jogos" do
+			Backoffice. Ao ficar "À venda", copia o template do Maracanã para o
+			produto do jogo (uma variante por poltrona, com preço e estoque);
+			ao ficar "Encerrado", tira o jogo da loja e apaga as poltronas não vendidas.
+		-->
+		<itemtype code="MatchdayGame" extends="GenericItem" autocreate="true" generate="true">
+			<description>Jogo em casa (matchday)</description>
+			<deployment table="matchdaygames" typecode="25902"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>JOGO-aaaammdd-ADV, gerado a partir da data e do adversário</description>
+					<modifiers unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="opponent" type="java.lang.String">
+					<description>Adversário</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="kickoff" type="java.util.Date">
+					<description>Data e hora da partida</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="competition" type="java.lang.String">
+					<description>Competição e rodada</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="venue" type="java.lang.String">
+					<description>Estádio</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="presale" type="java.lang.Boolean">
+					<description>Pré-venda para sócios</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="priceNorte" type="java.lang.Double">
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="priceSul" type="java.lang.Double">
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="priceLeste" type="java.lang.Double">
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="priceOeste" type="java.lang.Double">
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="simulatedSoldPercent" type="java.lang.Integer">
+					<description>Demonstração: % de poltronas que já abrem vendidas</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="status" type="MatchdayGameStatus">
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="product" type="Product">
+					<description>Produto do jogo na loja (criado ao colocar à venda)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="statusMessage" type="java.lang.String">
+					<description>Resultado da última operação</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="seatsTotal" type="java.lang.Integer">
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="matchdayGameSeatsTotalHandler"/>
+				</attribute>
+				<attribute qualifier="seatsAvailable" type="java.lang.Integer">
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="matchdayGameSeatsAvailableHandler"/>
+				</attribute>
+				<attribute qualifier="seatsSold" type="java.lang.Integer">
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="matchdayGameSeatsSoldHandler"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="matchdayGameCode" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
 
 		<!--
 			Reserva temporária de uma poltrona para um carrinho.

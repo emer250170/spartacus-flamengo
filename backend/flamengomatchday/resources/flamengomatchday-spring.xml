@@ -49,6 +49,38 @@
 		<property name="seatHoldService" ref="seatHoldService"/>
 	</bean>
 
+	<!-- Jogos: tela "Jogos" do Backoffice -->
+	<bean id="matchdayGameService" class="br.com.flamengo.matchday.game.impl.DefaultMatchdayGameService">
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
+		<property name="importService" ref="importService"/>
+		<property name="mediaService" ref="mediaService"/>
+		<property name="cronJobService" ref="cronJobService"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+
+	<bean id="matchdayGameInterceptor" class="br.com.flamengo.matchday.interceptor.MatchdayGameInterceptor">
+		<property name="matchdayGameService" ref="matchdayGameService"/>
+	</bean>
+	<bean id="matchdayGameInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="matchdayGameInterceptor"/>
+		<property name="typeCode" value="MatchdayGame"/>
+	</bean>
+
+	<bean id="matchdayGameSeatsTotalHandler" class="br.com.flamengo.matchday.attribute.MatchdayGameSeatsAttributeHandler">
+		<property name="matchdayGameService" ref="matchdayGameService"/>
+		<property name="mode" value="TOTAL"/>
+	</bean>
+	<bean id="matchdayGameSeatsAvailableHandler" class="br.com.flamengo.matchday.attribute.MatchdayGameSeatsAttributeHandler">
+		<property name="matchdayGameService" ref="matchdayGameService"/>
+		<property name="mode" value="AVAILABLE"/>
+	</bean>
+	<bean id="matchdayGameSeatsSoldHandler" class="br.com.flamengo.matchday.attribute.MatchdayGameSeatsAttributeHandler">
+		<property name="matchdayGameService" ref="matchdayGameService"/>
+		<property name="mode" value="SOLD"/>
+	</bean>
+
 	<!-- Rotina que libera reservas vencidas (CronJob seatHoldExpiryCronJob) -->
 	<bean id="seatHoldExpiryJob" class="br.com.flamengo.matchday.job.SeatHoldExpiryJob" parent="abstractJobPerformable">
 		<property name="seatHoldService" ref="seatHoldService"/>

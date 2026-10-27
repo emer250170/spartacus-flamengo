@@ -6,14 +6,18 @@
 -->
 <extensioninfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="extensioninfo.xsd">
 
-    <extension abstractclassprefix="Generated" classprefix="Flamengomatchday" description="Matchday Flamengo: reserva de poltrona"
+    <extension abstractclassprefix="Generated" classprefix="Flamengomatchday" description="Matchday Flamengo: jogos e reserva de poltrona"
                jaloLogicFree="true" name="flamengomatchday" usemaven="false">
 
         <requires-extension name="commerceservices"/>
+        <!-- tela "Jogos" no Backoffice (só configuração, sem Java de Backoffice) -->
+        <requires-extension name="backoffice"/>
         <!-- a validação de carrinho da loja vem da b2bacceleratorservices; carregar depois dela -->
         <requires-extension name="b2bacceleratorservices"/>
 
         <coremodule generated="true" manager="de.hybris.platform.jalo.extension.GenericManager" packageroot="br.com.flamengo.matchday"/>
+
+        <meta key="backoffice-module" value="true"/>
 
     </extension>
 
