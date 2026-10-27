@@ -216,3 +216,14 @@ A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
 3. **Restart** do servidor (as regras do jogo só se ligam ao tipo na subida, depois que ele existe).
 4. Backoffice › F4 › menu ☰ › *Show cockpit-config.xml › Reset to Defaults* (o Backoffice guarda a configuração da tela no banco; sem isso ele não lê mudanças no `flamengomatchday-backoffice-config.xml`). F4 de novo para sair.
 5. Jogos criados antes da tela por `abrir-jogo.groovy`: cadastrar com `product` preenchido (o cadastro não reabre o jogo).
+
+### Papel "Gestor de jogos" (usuário que só cria jogos)
+- Papel `matchdaygamemanagerrole` (BackofficeRole) em `resources/impex/essentialdata-flamengomatchday-role.impex`:
+  criar/editar/apagar Jogo, ler Reservas de poltrona e leitura de Produto/Catálogo/Usuário; leitura e escrita no
+  `flamengoProductCatalog` (a tela grava produtos, preços e estoque dos jogos em nome do usuário).
+- Menu reduzido: contexto `explorer-tree` com `principal="matchdaygamemanagerrole"` (sem merge-by) no
+  `flamengomatchday-backoffice-config.xml` — o usuário só vê Matchday Flamengo › Jogos / Reservas de poltrona.
+- Novo usuário: Backoffice › Usuário › Funcionários › criar, grupo `matchdaygamemanagerrole`, definir senha.
+  Usuário de demonstração já criado no servidor: `gestor.jogos` (senha fora do repositório).
+- Deploy: importar o impex (HAC › Console › ImpEx Import, ou Update com *Create essential data*) e
+  Backoffice › F4 › *cockpit-config.xml › Reset to Defaults*.
