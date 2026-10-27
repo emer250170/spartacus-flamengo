@@ -44,9 +44,45 @@ export class MatchdayOrderConfirmationComponent {
     if (!order || !selection || !ticket || !codes.includes(ticket)) {
       return undefined;
     }
+    // vaga, comida e camisa vêm dos itens do pedido (fonte da verdade);
+    // do navegador só os detalhes que a linha de pedido não guarda
+    // (placa, forma de entrega, nome e número da camisa)
+    const entries = order.entries ?? [];
+    const parking = entries.find((e) =>
+      e.product?.code?.startsWith('FLA-EST-')
+    );
+    const shirt = entries.find((e) =>
+      e.product?.code?.startsWith('FLA-CAMISA-J2-')
+    );
+    const merged: MatchdaySelection = {
+      ...selection,
+      parkingCode: parking?.product?.code,
+      parkingName: parking?.product?.name,
+      plate:
+        parking && parking.product?.code === selection.parkingCode
+          ? selection.plate
+          : undefined,
+      food: entries
+        .filter((e) => e.product?.code?.startsWith('FLA-FOOD-'))
+        .map((e) => ({
+          code: e.product?.code ?? '',
+          name: e.product?.name ?? '',
+          quantity: e.quantity ?? 1,
+        })),
+      shirtCode: shirt?.product?.code,
+      shirtSize: shirt?.product?.code?.split('-').pop(),
+      shirtName:
+        shirt && shirt.product?.code === selection.shirtCode
+          ? selection.shirtName
+          : undefined,
+      shirtNumber:
+        shirt && shirt.product?.code === selection.shirtCode
+          ? selection.shirtNumber
+          : undefined,
+    };
     return {
       orderCode: order.code,
-      selection,
+      selection: merged,
       qr: this.qrPattern(`${order.code}-${ticket}`),
     };
   }

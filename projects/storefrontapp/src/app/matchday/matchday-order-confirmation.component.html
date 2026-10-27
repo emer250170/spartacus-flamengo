@@ -46,7 +46,11 @@
       <ng-container *ngIf="c.selection.parkingName; else noPark">
         <p class="mdc-name">{{ c.selection.parkingName }}</p>
         <p class="mdc-detail">
-          Placa {{ c.selection.plate }} · liberada na entrada
+          {{
+            c.selection.plate
+              ? 'Placa ' + c.selection.plate + ' · liberada na entrada'
+              : 'Vaga garantida · liberada na entrada'
+          }}
         </p>
       </ng-container>
       <ng-template #noPark
