@@ -52,7 +52,7 @@ Três componentes ligados ao CMS por `CMSFlexComponent` (`flexType`):
 
 | flexType | Onde aparece | O que faz |
 |---|---|---|
-| `MatchdayJourneyComponent` | página `/matchday` | stepper de 6 etapas com resumo lateral; o mapa lê as poltronas reais do jogo (livre = com estoque); no fim põe tudo no carrinho e segue para o checkout padrão |
+| `MatchdayJourneyComponent` | página `/matchday` | stepper de 6 etapas com resumo lateral; o mapa lê as poltronas reais do jogo (livre = com estoque); a poltrona entra no carrinho, reservada, assim que é escolhida (ver "Reserva de poltrona"); no fim põe o resto no carrinho e segue para o checkout padrão |
 | `MatchdayHomeBannerComponent` | topo da home | faixa "Próximo jogo em casa" com acesso à jornada |
 | `MatchdayOrderConfirmationComponent` | confirmação do pedido | cartões de ingresso (QR ilustrativo), vaga, comida e camisa |
 
@@ -110,3 +110,85 @@ Observações:
 - Para voltar ao fluxo padrão: ativar a versão 0 da definição `order-process`
   e desativar o gatilho do `matchdayBaixaEstoqueCronJob`. O caminho definitivo
   é liberar os operadores de depósito e usar a separação do OMS.
+
+## Reserva de poltrona (extensão `flamengomatchday`)
+
+Garante que duas pessoas não comprem a mesma poltrona.
+
+| Momento | O que acontece |
+|---|---|
+| Torcedor clica na poltrona | a jornada já põe a poltrona no carrinho; o servidor reserva a unidade (`StockLevel.reserved`). A reserva é atômica no banco: se duas pessoas clicarem juntas, só uma consegue, a outra recebe "acabou de ser reservada" e o mapa se atualiza |
+| Durante a compra | a poltrona aparece ocupada para todo mundo; a jornada mostra "reservada por 14:59" |
+| Troca de poltrona, setor ou jogo | a anterior sai do carrinho e é liberada na hora |
+| Carrinho abandonado | depois de 15 min o CronJob `seatHoldExpiryCronJob` (a cada minuto) libera a poltrona |
+| Pagamento | o servidor confere a reserva (se venceu e a poltrona continua livre, reserva de novo; se outra pessoa pegou, recusa) e, antes de o processo do pedido começar, converte a reserva em venda e baixa o estoque de todos os itens |
+
+Reservar exige login (ingresso é nominal): sem login a jornada pede para entrar e
+volta para a mesma página. As reservas ativas aparecem no Backoffice como
+**Reserva de poltrona** (`SeatHold`).
+
+Peças da extensão (`backend/flamengomatchday`):
+
+| Peça | Papel |
+|---|---|
+| `SeatHold` (items.xml) | poltrona, carrinho, torcedor e quando vence; uma reserva por poltrona (índice único) |
+| `SeatHoldAddToCartMethodHook` | reserva ao adicionar; recusa sem login; desfaz no empate |
+| `SeatHoldUpdateCartEntryHook` | libera ao tirar do carrinho |
+| `SeatHoldCartValidationStrategy` | para o carrinho dono, a poltrona reservada continua válida (para os outros está esgotada) |
+| `SeatHoldPlaceOrderMethodHook` | confere a reserva e converte em venda ao fechar o pedido |
+| `SeatHoldExpiryJob` | libera reservas vencidas |
+
+Configuração em `project.properties` (dá para sobrescrever no `local.properties`):
+`flamengomatchday.seathold.minutes=15` (o front usa o mesmo valor em
+`MATCHDAY_HOLD_MINUTES`), `flamengomatchday.seat.codeprefix=JOGO-`,
+`flamengomatchday.warehouse=warehouse_s`.
+
+Com a extensão, o pedido já sai com o estoque baixado (`statusInfo =
+matchday:estoque-baixado`), então o passo `completeOrder` do `order-process` e o
+`matchdayBaixaEstoqueCronJob` não baixam de novo; eles continuam como rede de
+segurança.
+
+### Deploy da extensão
+
+No servidor (host do Docker), com o repositório atualizado na branch `matchday`:
+
+```bash
+cd <pasta do repositório>
+git fetch origin && git checkout matchday && git pull
+./backend/deploy-flamengomatchday.sh          # container "flamengo"
+```
+
+O script copia a extensão para `/opt/sap/hybris/bin/custom/flamengomatchday`
+dentro do container, registra no `config/localextensions.xml` (guarda um
+`.bak-antes-flamengomatchday`), para o servidor, roda `ant all` e sobe de novo.
+O mesmo passo a passo, à mão:
+
+```bash
+docker cp backend/flamengomatchday flamengo:/opt/sap/hybris/bin/custom/
+docker exec -u root flamengo chown -R hybris:hybris /opt/sap/hybris/bin/custom/flamengomatchday
+docker exec -it -u hybris flamengo bash
+  # dentro do container:
+  vi /opt/sap/hybris/config/localextensions.xml   # adicionar <extension name='flamengomatchday' />
+  cd /opt/sap/hybris/bin/platform
+  ./hybrisserver.sh stop
+  . ./setantenv.sh && ant all
+  ./hybrisserver.sh start
+```
+
+Quando o HAC voltar:
+
+1. **HAC › Platform › Update**: marcar só **Update running system** e
+   **Localize types** (sem dados essenciais/de projeto de outras extensões) e
+   clicar em **Update**. Isso cria a tabela `matchdayseatholds`.
+2. **HAC › Console › ImpEx Import**: importar
+   `backend/flamengomatchday/resources/impex/essentialdata-flamengomatchday.impex`
+   (cria o CronJob que libera reservas vencidas).
+3. Conferir: em **HAC › Console › FlexibleSearch**, `SELECT {code} FROM
+   {CronJob} WHERE {code}='seatHoldExpiryCronJob'` devolve uma linha.
+
+Para atualizar depois: rodar o script de novo e reiniciar; o Update só é
+necessário quando o `flamengomatchday-items.xml` mudar.
+
+Para remover: tirar a linha do `localextensions.xml`, `ant all`, reiniciar e
+desativar o gatilho do `seatHoldExpiryCronJob`; a reserva volta a acontecer só na
+conclusão do pedido.

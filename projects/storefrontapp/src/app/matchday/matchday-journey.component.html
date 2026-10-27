@@ -95,32 +95,38 @@
                 class="md-card md-sector"
                 [class.is-selected]="sector?.code === s.code"
                 [attr.aria-pressed]="sector?.code === s.code"
-                [disabled]="s.stock === 0"
+                [disabled]="sectorStock(s) === 0"
                 (click)="selectSector(s)"
               >
                 <span class="md-sector-name">{{ s.name }}</span>
                 <span class="md-small">{{ s.description }}</span>
                 <span class="md-price">{{ brl(s.price) }}</span>
-                <span *ngIf="s.stock === 0" class="md-small md-warn">
+                <span *ngIf="sectorStock(s) === 0" class="md-small md-warn">
                   Esgotado
                 </span>
                 <span
-                  *ngIf="s.stock !== undefined && s.stock > 0 && s.stock < 20"
+                  *ngIf="
+                    sectorStock(s) !== undefined &&
+                    (sectorStock(s) ?? 0) > 0 &&
+                    (sectorStock(s) ?? 0) < 20
+                  "
                   class="md-small md-warn"
                 >
                   {{
-                    s.stock === 1
+                    sectorStock(s) === 1
                       ? 'Resta 1 lugar'
-                      : 'Restam ' + s.stock + ' lugares'
+                      : 'Restam ' + sectorStock(s) + ' lugares'
                   }}
                 </span>
                 <span
                   *ngIf="
-                    s.seats.length && s.stock !== undefined && s.stock >= 20
+                    s.seats.length &&
+                    sectorStock(s) !== undefined &&
+                    (sectorStock(s) ?? 0) >= 20
                   "
                   class="md-small"
                 >
-                  {{ s.stock }} lugares livres
+                  {{ sectorStock(s) }} lugares livres
                 </span>
               </button>
             </div>
@@ -142,7 +148,7 @@
                     class="md-seat"
                     [class.is-occupied]="c.occupied"
                     [class.is-mine]="seat === c.id"
-                    [disabled]="c.occupied"
+                    [disabled]="c.occupied || holding"
                     [attr.aria-pressed]="seat === c.id"
                     [attr.aria-label]="
                       'Fileira ' +
@@ -166,6 +172,39 @@
                 <li><span class="md-dot is-mine"></span> Sua poltrona</li>
                 <li><span class="md-dot is-occupied"></span> Ocupada</li>
               </ul>
+              <p *ngIf="holding" class="md-hold" role="status">
+                Reservando a poltrona…
+              </p>
+              <p
+                *ngIf="!holding && held && seat && !holdExpired"
+                class="md-hold"
+                role="status"
+              >
+                Poltrona {{ seat }} reservada para você<ng-container
+                  *ngIf="held.expiresAt"
+                >
+                  por <strong>{{ remainingLabel }}</strong></ng-container
+                >. Ela já está no seu carrinho.
+              </p>
+              <p
+                *ngIf="!holding && held && holdExpired"
+                class="md-hold is-warn"
+                role="alert"
+              >
+                A reserva da poltrona {{ seat }} venceu.
+                <button type="button" class="md-link" (click)="renewHold()">
+                  Reservar de novo
+                </button>
+              </p>
+              <p *ngIf="holdMessage" class="md-hold is-warn" role="alert">
+                {{ holdMessage }}
+              </p>
+              <p *ngIf="needLogin" class="md-hold" role="alert">
+                Para reservar a poltrona, entre na sua conta.
+                <button type="button" class="md-link" (click)="login()">
+                  Entrar
+                </button>
+              </p>
             </div>
           </section>
 
@@ -457,6 +496,12 @@
           <p class="md-small">
             {{ itemCount }} {{ itemCount === 1 ? 'item' : 'itens' }} · um só
             pagamento
+          </p>
+          <p
+            *ngIf="held?.expiresAt && !holdExpired"
+            class="md-small md-sum-hold"
+          >
+            Poltrona reservada por {{ remainingLabel }}
           </p>
         </aside>
       </div>

@@ -94,3 +94,17 @@ export interface MatchdaySelection {
 }
 
 export const MATCHDAY_STORAGE_KEY = 'fla-matchday-selection';
+
+/**
+ * Poltrona segura no carrinho do torcedor. O servidor (extensão
+ * flamengomatchday) mantém a reserva pelo mesmo prazo e depois a libera.
+ */
+export interface MatchdayHold {
+  code: string;
+  /** Instante (ms) em que a reserva vence; ausente quando não se sabe */
+  expiresAt?: number;
+}
+
+export const MATCHDAY_HOLD_KEY = 'fla-matchday-hold';
+/** Igual a flamengomatchday.seathold.minutes no servidor */
+export const MATCHDAY_HOLD_MINUTES = 15;

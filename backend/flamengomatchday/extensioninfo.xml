@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  flamengomatchday: reserva de poltrona da jornada de matchday do Flamengo.
+  Segura a poltrona quando o torcedor a coloca no carrinho, libera quando ele
+  desiste ou o prazo vence e converte a reserva em venda ao fechar o pedido.
+-->
+<extensioninfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="extensioninfo.xsd">
+
+    <extension abstractclassprefix="Generated" classprefix="Flamengomatchday" description="Matchday Flamengo: reserva de poltrona"
+               jaloLogicFree="true" name="flamengomatchday" usemaven="false">
+
+        <requires-extension name="commerceservices"/>
+        <!-- a validação de carrinho da loja vem da b2bacceleratorservices; carregar depois dela -->
+        <requires-extension name="b2bacceleratorservices"/>
+
+        <coremodule generated="true" manager="de.hybris.platform.jalo.extension.GenericManager" packageroot="br.com.flamengo.matchday"/>
+
+    </extension>
+
+</extensioninfo>

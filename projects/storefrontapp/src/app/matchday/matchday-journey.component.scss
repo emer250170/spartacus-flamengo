@@ -641,3 +641,33 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.md-hold {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--md-line);
+  border-left: 3px solid var(--md-red);
+  border-radius: 8px;
+  background: #1c1c20;
+  color: #fff;
+  font-size: 14px;
+
+  &.is-warn {
+    border-left-color: #f59e0b;
+    color: #fde68a;
+  }
+}
+.md-link {
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.md-sum-hold {
+  margin-top: 6px;
+  color: #fca5a5;
+}

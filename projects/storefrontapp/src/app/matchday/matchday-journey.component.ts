@@ -5,18 +5,23 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { ActiveCartFacade, OrderEntry } from '@spartacus/cart/base/root';
 import {
+  AuthRedirectService,
+  AuthService,
   GlobalMessageService,
   GlobalMessageType,
   RoutingService,
   WindowRef,
 } from '@spartacus/core';
-import { Subscription, raceWith, timer } from 'rxjs';
-import { filter, switchMap, take } from 'rxjs/operators';
+import { Observable, Subscription, interval, raceWith, timer } from 'rxjs';
+import { filter, map, switchMap, take } from 'rxjs/operators';
 import { MatchdayDataService } from './matchday-data.service';
 import {
+  MATCHDAY_HOLD_MINUTES,
   MatchdayCatalog,
+  MatchdayHold,
   MatchdayMatch,
   MatchdayProduct,
   MatchdaySector,
@@ -86,6 +91,17 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   shirtName = '';
   shirtNumber = '';
 
+  // reserva da poltrona: ela entra no carrinho assim que é escolhida
+  loggedIn = false;
+  /** Poltrona segura no carrinho */
+  held?: MatchdayHold;
+  holding = false;
+  holdExpired = false;
+  /** Segundos que faltam para a reserva vencer */
+  remaining = 0;
+  needLogin = false;
+  holdMessage?: string;
+
   private subscription = new Subscription();
 
   constructor(
@@ -94,7 +110,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     protected routing: RoutingService,
     protected globalMessages: GlobalMessageService,
     protected cd: ChangeDetectorRef,
-    protected winRef: WindowRef
+    protected winRef: WindowRef,
+    protected auth: AuthService,
+    protected authRedirect: AuthRedirectService,
+    protected router: Router
   ) {}
 
   ngOnInit(): void {
@@ -118,6 +137,22 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         },
       })
     );
+    this.subscription.add(
+      this.auth.isUserLoggedIn().subscribe((loggedIn) => {
+        this.loggedIn = loggedIn;
+        if (loggedIn) {
+          this.needLogin = false;
+        }
+        this.cd.markForCheck();
+      })
+    );
+    // volta para a jornada com a poltrona que já está no carrinho
+    this.subscription.add(
+      this.activeCart
+        .getEntries()
+        .subscribe((entries) => this.restoreHold(entries))
+    );
+    this.subscription.add(interval(1000).subscribe(() => this.tick()));
   }
 
   ngOnDestroy(): void {
@@ -162,7 +197,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       return !this.match;
     }
     if (this.step === 1) {
-      return !(this.sector && this.seat);
+      return this.holding || !(this.sector && this.seat);
     }
     if (this.step === 2) {
       return this.parking !== NO_PARKING && !this.plateValid;
@@ -178,6 +213,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   selectMatch(match: MatchdayMatch): void {
     if (this.match?.code !== match.code) {
+      this.releaseHeld();
       this.match = match;
       this.sector = undefined;
       this.seat = undefined;
@@ -190,6 +226,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   selectSector(sector: MatchdaySector): void {
     if (this.sector?.code !== sector.code) {
+      this.releaseHeld();
       this.sector = sector;
       this.seat = undefined;
       this.ticketCode = undefined;
@@ -198,24 +235,230 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   }
 
   selectSeat(cell: SeatCell): void {
-    if (!cell.occupied) {
-      this.seat = cell.id;
-      this.ticketCode = cell.code ?? this.sector?.code;
+    if (cell.occupied || this.holding || !this.sector) {
+      return;
     }
+    this.holdMessage = undefined;
+    if (!cell.code) {
+      // modelo antigo (só setor): não há poltrona para reservar
+      this.seat = cell.id;
+      this.ticketCode = this.sector.code;
+      return;
+    }
+    if (this.held?.code === cell.code && !this.holdExpired) {
+      return;
+    }
+    if (!this.loggedIn) {
+      this.needLogin = true;
+      return;
+    }
+    this.holdSeat(cell);
+  }
+
+  /** Entrar e voltar para esta mesma página */
+  login(): void {
+    this.authRedirect.setRedirectUrl(this.router.url);
+    this.routing.go({ cxRoute: 'login' });
+  }
+
+  /** Reserva vencida: tenta segurar a mesma poltrona de novo */
+  renewHold(): void {
+    const cell = this.seatMap
+      .flatMap((r) => r.seats)
+      .find((c) => c.code === this.held?.code);
+    if (cell) {
+      this.holdSeat(cell);
+    }
+  }
+
+  get remainingLabel(): string {
+    const m = Math.floor(this.remaining / 60);
+    const s = this.remaining % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  /** Lugares livres no setor, contando a poltrona que já é sua */
+  sectorStock(s: MatchdaySector): number | undefined {
+    if (s.stock === undefined) {
+      return undefined;
+    }
+    const mine = s.seats.some(
+      (x) => x.code === this.held?.code && !x.available
+    );
+    return s.stock + (mine ? 1 : 0);
+  }
+
+  /**
+   * Põe a poltrona no carrinho na hora: o servidor a reserva para este
+   * carrinho e, para todo o resto, ela passa a aparecer ocupada.
+   */
+  protected holdSeat(cell: SeatCell): void {
+    const code = cell.code;
+    if (!code) {
+      return;
+    }
+    this.holding = true;
+    this.needLogin = false;
+    this.cd.markForCheck();
+    const previousCode = this.held?.code;
+    this.subscription.add(
+      this.activeCart
+        .getEntries()
+        .pipe(
+          take(1),
+          switchMap((entries) => {
+            entries
+              .filter(
+                (e) =>
+                  e.product?.code === code ||
+                  (previousCode && e.product?.code === previousCode)
+              )
+              .forEach((e) => this.activeCart.removeEntry(e));
+            this.activeCart.addEntry(code, 1);
+            return this.cartSettled();
+          }),
+          switchMap(() => this.activeCart.getEntries().pipe(take(1)))
+        )
+        .subscribe((entries) => {
+          this.holding = false;
+          if (entries.some((e) => e.product?.code === code)) {
+            this.held = {
+              code,
+              expiresAt: Date.now() + MATCHDAY_HOLD_MINUTES * 60_000,
+            };
+            this.data.saveHold(this.held);
+            this.seat = cell.id;
+            this.ticketCode = code;
+            this.holdExpired = false;
+            this.tick();
+          } else {
+            this.clearHeld();
+            this.holdMessage =
+              'Essa poltrona acabou de ser reservada por outra pessoa. Escolha outra.';
+            this.refreshSeats();
+          }
+          this.cd.markForCheck();
+        })
+    );
+  }
+
+  /** Solta a poltrona segura (troca de jogo ou de setor) */
+  protected releaseHeld(): void {
+    const code = this.held?.code;
+    if (!code) {
+      return;
+    }
+    this.clearHeld();
+    this.subscription.add(
+      this.activeCart
+        .getEntries()
+        .pipe(take(1))
+        .subscribe((entries) =>
+          entries
+            .filter((e) => e.product?.code === code)
+            .forEach((e) => this.activeCart.removeEntry(e))
+        )
+    );
+  }
+
+  protected clearHeld(): void {
+    this.held = undefined;
+    this.holdExpired = false;
+    this.remaining = 0;
+    this.seat = undefined;
+    this.ticketCode = undefined;
+    this.data.clearHold();
+    if (this.sector) {
+      this.seatMap = this.buildSeatMap(this.sector);
+    }
+  }
+
+  /** Recarrega a ocupação do setor aberto */
+  protected refreshSeats(): void {
+    const matchCode = this.match?.code;
+    const sectorCode = this.sector?.code;
+    this.subscription.add(
+      this.data.getCatalog(true).subscribe((catalog) => {
+        this.catalog = catalog;
+        this.match = catalog.matches.find((m) => m.code === matchCode);
+        this.sector = this.match?.sectors.find((s) => s.code === sectorCode);
+        this.seatMap = this.sector ? this.buildSeatMap(this.sector) : [];
+        this.cd.markForCheck();
+      })
+    );
+  }
+
+  /** Se o carrinho já tem uma poltrona de jogo, retoma a jornada com ela */
+  protected restoreHold(entries: OrderEntry[]): void {
+    if (!this.catalog || this.held || this.holding || this.match) {
+      return;
+    }
+    for (const match of this.catalog.matches) {
+      for (const sector of match.sectors) {
+        const seat = sector.seats.find((s) =>
+          entries.some((e) => e.product?.code === s.code)
+        );
+        if (seat) {
+          const saved = this.data.readHold();
+          this.held = {
+            code: seat.code,
+            expiresAt: saved?.code === seat.code ? saved.expiresAt : undefined,
+          };
+          this.match = match;
+          this.sector = sector;
+          this.seat = seat.label;
+          this.ticketCode = seat.code;
+          this.seatMap = this.buildSeatMap(sector);
+          this.tick();
+          this.cd.markForCheck();
+          return;
+        }
+      }
+    }
+  }
+
+  protected tick(): void {
+    const expiresAt = this.held?.expiresAt;
+    if (!expiresAt) {
+      return;
+    }
+    const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+    if (
+      remaining !== this.remaining ||
+      (remaining === 0 && !this.holdExpired)
+    ) {
+      this.remaining = remaining;
+      this.holdExpired = remaining === 0;
+      this.cd.markForCheck();
+    }
+  }
+
+  /** Espera o carrinho processar as alterações (com limite de 15 s) */
+  protected cartSettled(): Observable<unknown> {
+    return this.activeCart.isStable().pipe(
+      filter((stable) => !stable),
+      take(1),
+      switchMap(() =>
+        this.activeCart.isStable().pipe(filter(Boolean), take(1))
+      ),
+      raceWith(timer(15000)),
+      take(1),
+      map(() => undefined)
+    );
   }
 
   protected buildSeatMap(
     sector: MatchdaySector
   ): { row: string; seats: SeatCell[] }[] {
     if (sector.seats.length) {
-      // poltronas reais do catálogo: livre = tem estoque
+      // poltronas reais do catálogo: livre = tem estoque (a sua conta como livre)
       const rows = new Map<string, SeatCell[]>();
       for (const s of sector.seats) {
         const cells = rows.get(s.row) ?? [];
         cells.push({
           id: s.label,
           number: s.number,
-          occupied: !s.available,
+          occupied: !s.available && s.code !== this.held?.code,
           code: s.code,
         });
         rows.set(s.row, cells);
@@ -381,9 +624,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     ) {
       return;
     }
-    const entries: OrderEntry[] = [
-      { product: { code: this.ticketCode }, quantity: 1 },
-    ];
+    // a poltrona já está no carrinho desde que foi escolhida
+    const entries: OrderEntry[] =
+      this.held?.code === this.ticketCode
+        ? []
+        : [{ product: { code: this.ticketCode }, quantity: 1 }];
     const parking = this.parkingProduct;
     if (parking) {
       entries.push({ product: { code: parking.code }, quantity: 1 });
@@ -428,16 +673,15 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     });
 
     this.submitting = true;
+    if (!entries.length) {
+      this.routing.go({ cxRoute: 'checkout' });
+      return;
+    }
     this.activeCart.addEntries(entries);
 
     // espera o carrinho processar as inclusões antes de seguir para o checkout
-    const stable$ = this.activeCart.isStable().pipe(
-      filter((stable) => !stable),
-      take(1),
-      switchMap(() => this.activeCart.isStable().pipe(filter(Boolean), take(1)))
-    );
     this.subscription.add(
-      stable$.pipe(raceWith(timer(15000)), take(1)).subscribe({
+      this.cartSettled().subscribe({
         next: () => this.routing.go({ cxRoute: 'checkout' }),
         error: () => {
           this.submitting = false;

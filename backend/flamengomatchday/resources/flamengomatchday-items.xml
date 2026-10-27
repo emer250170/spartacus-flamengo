@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<items xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="items.xsd">
+
+	<itemtypes>
+
+		<!--
+			Reserva temporária de uma poltrona para um carrinho.
+			Enquanto existe, a unidade da poltrona fica em StockLevel.reserved,
+			então a loja a mostra ocupada para todo mundo.
+		-->
+		<itemtype code="SeatHold" extends="GenericItem" autocreate="true" generate="true">
+			<description>Reserva temporária de poltrona (matchday)</description>
+			<deployment table="matchdayseatholds" typecode="25901"/>
+			<attributes>
+				<attribute qualifier="product" type="Product">
+					<description>Poltrona reservada</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="warehouse" type="Warehouse">
+					<description>Depósito onde a unidade foi reservada</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cartCode" type="java.lang.String">
+					<description>Carrinho que segura a poltrona</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="user" type="User">
+					<description>Torcedor dono do carrinho</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="expiresAt" type="java.util.Date">
+					<description>Quando a reserva vence</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="matchdaySeatHoldProduct" unique="true">
+					<key attribute="product"/>
+				</index>
+				<index name="matchdaySeatHoldExpires">
+					<key attribute="expiresAt"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+	</itemtypes>
+</items>

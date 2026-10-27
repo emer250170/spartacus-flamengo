@@ -4,8 +4,10 @@ import { OccEndpointsService, WindowRef } from '@spartacus/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
 import {
+  MATCHDAY_HOLD_KEY,
   MATCHDAY_STORAGE_KEY,
   MatchdayCatalog,
+  MatchdayHold,
   MatchdayMatch,
   MatchdayProduct,
   MatchdaySeat,
@@ -107,6 +109,34 @@ export class MatchdayDataService {
       return raw ? (JSON.parse(raw) as MatchdaySelection) : undefined;
     } catch {
       return undefined;
+    }
+  }
+
+  saveHold(hold: MatchdayHold): void {
+    try {
+      this.winRef.localStorage?.setItem(
+        MATCHDAY_HOLD_KEY,
+        JSON.stringify(hold)
+      );
+    } catch {
+      // sem armazenamento o contador só não sobrevive a um recarregamento
+    }
+  }
+
+  readHold(): MatchdayHold | undefined {
+    try {
+      const raw = this.winRef.localStorage?.getItem(MATCHDAY_HOLD_KEY);
+      return raw ? (JSON.parse(raw) as MatchdayHold) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  clearHold(): void {
+    try {
+      this.winRef.localStorage?.removeItem(MATCHDAY_HOLD_KEY);
+    } catch {
+      // nada a limpar
     }
   }
 

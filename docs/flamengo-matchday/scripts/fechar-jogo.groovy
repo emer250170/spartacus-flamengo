@@ -25,6 +25,13 @@ def ms = spring.getBean('modelService')
 def cvs = spring.getBean('catalogVersionService')
 def q = { String fsq, Map p -> fs.search(new FlexibleSearchQuery(fsq, p)).result }
 
+// reservas de poltrona (extensão flamengomatchday); se a extensão não
+// estiver instalada o tipo SeatHold não existe e não há o que apagar
+def removeReservas = { poltrona ->
+  try { ms.removeAll(q("SELECT {pk} FROM {SeatHold} WHERE {product}=?p", [p: poltrona])) }
+  catch (de.hybris.platform.servicelayer.search.exceptions.FlexibleSearchException e) { }
+}
+
 def removeDadosDoProduto = { String code ->
   ms.removeAll(q("SELECT {pk} FROM {PriceRow} WHERE {productId}=?c", [c: code]))
   ms.removeAll(q("SELECT {pk} FROM {StockLevel} WHERE {productCode}=?c", [c: code]))
@@ -57,6 +64,7 @@ VERSOES.each { versao ->
         ms.save(cart)
         carrinhos++
       }
+      removeReservas(poltrona)
       removeDadosDoProduto(poltrona.code)
       ms.remove(poltrona)
       apagadas++
