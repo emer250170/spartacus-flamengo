@@ -8,6 +8,7 @@ import {
   MatchdayCatalog,
   MatchdayMatch,
   MatchdayProduct,
+  MatchdaySeat,
   MatchdaySector,
   MatchdaySelection,
   MatchdayShirt,
@@ -69,9 +70,12 @@ export class MatchdayDataService {
     protected winRef: WindowRef
   ) {}
 
-  /** Carrega jogos, setores, estacionamento, comidas e camisa (uma vez por sessão) */
-  getCatalog(): Observable<MatchdayCatalog> {
-    if (!this.catalog$) {
+  /**
+   * Carrega jogos, setores e poltronas, estacionamento, comidas e camisa.
+   * `refresh` busca de novo (a ocupação das poltronas muda a cada venda).
+   */
+  getCatalog(refresh = false): Observable<MatchdayCatalog> {
+    if (!this.catalog$ || refresh) {
       this.catalog$ = forkJoin({
         matches: this.loadMatches(),
         services: this.search(SERVICES_CATEGORY),
@@ -161,14 +165,49 @@ export class MatchdayDataService {
     const venue = summaryParts.length > 1 ? (summaryParts.pop() ?? '') : '';
     const competition = summaryParts.join(' · ');
 
+    const bySequence = (
+      a: OccVariantMatrixElement,
+      b: OccVariantMatrixElement
+    ) =>
+      (a.variantValueCategory?.sequence ?? 0) -
+      (b.variantValueCategory?.sequence ?? 0);
+
     const sectors: MatchdaySector[] = (p.variantMatrix ?? [])
       .filter((el) => !!el.variantOption?.code)
-      .sort(
-        (a, b) =>
-          (a.variantValueCategory?.sequence ?? 0) -
-          (b.variantValueCategory?.sequence ?? 0)
-      )
+      .sort(bySequence)
       .map((el) => {
+        const children = (el.elements ?? []).filter(
+          (c) => !!c.variantOption?.code
+        );
+        if (children.length) {
+          // modelo "poltrona como produto": Setor > Poltrona
+          const seats: MatchdaySeat[] = children.sort(bySequence).map((c) => {
+            const label = c.variantValueCategory?.name ?? '';
+            const m = /^([A-Z]+)(\d+)$/i.exec(label);
+            return {
+              code: c.variantOption?.code ?? '',
+              label,
+              row: m ? m[1].toUpperCase() : label,
+              number: m ? Number(m[2]) : 0,
+              available: this.inStock(c.variantOption?.stock),
+            };
+          });
+          // ...-LESTE-D04 -> LESTE
+          const parts = seats[0].code.split('-');
+          const key = parts[parts.length - 2] ?? '';
+          return {
+            code: key,
+            name: el.variantValueCategory?.name ?? key,
+            description: SECTOR_DESCRIPTIONS[key] ?? '',
+            price:
+              children[0].variantOption?.priceData?.value ??
+              p.price?.value ??
+              0,
+            stock: seats.filter((st) => st.available).length,
+            seats,
+          };
+        }
+        // modelo antigo: o setor é o item vendido
         const code = el.variantOption?.code ?? '';
         const key = code.split('-').pop() ?? '';
         return {
@@ -177,6 +216,7 @@ export class MatchdayDataService {
           description: SECTOR_DESCRIPTIONS[key] ?? '',
           price: el.variantOption?.priceData?.value ?? p.price?.value ?? 0,
           stock: el.variantOption?.stock?.stockLevel,
+          seats: [],
         };
       });
 
@@ -278,6 +318,12 @@ export class MatchdayDataService {
     }
     const date = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
     return WEEKDAYS[date.getDay()] ?? '';
+  }
+
+  protected inStock(stock?: OccStock): boolean {
+    return (
+      stock?.stockLevelStatus !== 'outOfStock' && (stock?.stockLevel ?? 1) > 0
+    );
   }
 
   /** Remove o destaque de busca (<em>) que o Solr pode devolver */

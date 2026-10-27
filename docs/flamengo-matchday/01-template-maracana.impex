@@ -1,0 +1,1005 @@
+# =====================================================================
+#  Template de jogo no Maracana (poltrona como produto)
+#  - dimensoes de variante: Setor > Poltrona (a poltrona e a variante final)
+#  - produto FLA-TEMPLATE-MARACANA com 4 setores x 8 fileiras x 12 poltronas
+#    = 384 poltronas, preco por setor; fica SO na versao Staged e nao
+#    aprovado: nunca aparece na loja. O script abrir-jogo.groovy copia o
+#    template para cada jogo novo, direto na versao Online.
+#  Escala real: o mesmo modelo serve para ~78 mil lugares (ver README).
+# =====================================================================
+$productCatalog=flamengoProductCatalog
+$currency=BRL
+
+
+#### ---------- dimensoes de variante (Staged) ----------
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code,$catalogVersion)
+
+INSERT_UPDATE VariantCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;hasImage;allowedPrincipals(uid)[default='customergroup']
+;setor;;Setor;Sector;;false
+;poltrona;;Poltrona;Seat;setor;false
+
+INSERT_UPDATE VariantValueCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;sequence;allowedPrincipals(uid)[default='customergroup']
+;poltrona-A01;;A1;A1;poltrona;1
+;poltrona-A02;;A2;A2;poltrona;2
+;poltrona-A03;;A3;A3;poltrona;3
+;poltrona-A04;;A4;A4;poltrona;4
+;poltrona-A05;;A5;A5;poltrona;5
+;poltrona-A06;;A6;A6;poltrona;6
+;poltrona-A07;;A7;A7;poltrona;7
+;poltrona-A08;;A8;A8;poltrona;8
+;poltrona-A09;;A9;A9;poltrona;9
+;poltrona-A10;;A10;A10;poltrona;10
+;poltrona-A11;;A11;A11;poltrona;11
+;poltrona-A12;;A12;A12;poltrona;12
+;poltrona-B01;;B1;B1;poltrona;13
+;poltrona-B02;;B2;B2;poltrona;14
+;poltrona-B03;;B3;B3;poltrona;15
+;poltrona-B04;;B4;B4;poltrona;16
+;poltrona-B05;;B5;B5;poltrona;17
+;poltrona-B06;;B6;B6;poltrona;18
+;poltrona-B07;;B7;B7;poltrona;19
+;poltrona-B08;;B8;B8;poltrona;20
+;poltrona-B09;;B9;B9;poltrona;21
+;poltrona-B10;;B10;B10;poltrona;22
+;poltrona-B11;;B11;B11;poltrona;23
+;poltrona-B12;;B12;B12;poltrona;24
+;poltrona-C01;;C1;C1;poltrona;25
+;poltrona-C02;;C2;C2;poltrona;26
+;poltrona-C03;;C3;C3;poltrona;27
+;poltrona-C04;;C4;C4;poltrona;28
+;poltrona-C05;;C5;C5;poltrona;29
+;poltrona-C06;;C6;C6;poltrona;30
+;poltrona-C07;;C7;C7;poltrona;31
+;poltrona-C08;;C8;C8;poltrona;32
+;poltrona-C09;;C9;C9;poltrona;33
+;poltrona-C10;;C10;C10;poltrona;34
+;poltrona-C11;;C11;C11;poltrona;35
+;poltrona-C12;;C12;C12;poltrona;36
+;poltrona-D01;;D1;D1;poltrona;37
+;poltrona-D02;;D2;D2;poltrona;38
+;poltrona-D03;;D3;D3;poltrona;39
+;poltrona-D04;;D4;D4;poltrona;40
+;poltrona-D05;;D5;D5;poltrona;41
+;poltrona-D06;;D6;D6;poltrona;42
+;poltrona-D07;;D7;D7;poltrona;43
+;poltrona-D08;;D8;D8;poltrona;44
+;poltrona-D09;;D9;D9;poltrona;45
+;poltrona-D10;;D10;D10;poltrona;46
+;poltrona-D11;;D11;D11;poltrona;47
+;poltrona-D12;;D12;D12;poltrona;48
+;poltrona-E01;;E1;E1;poltrona;49
+;poltrona-E02;;E2;E2;poltrona;50
+;poltrona-E03;;E3;E3;poltrona;51
+;poltrona-E04;;E4;E4;poltrona;52
+;poltrona-E05;;E5;E5;poltrona;53
+;poltrona-E06;;E6;E6;poltrona;54
+;poltrona-E07;;E7;E7;poltrona;55
+;poltrona-E08;;E8;E8;poltrona;56
+;poltrona-E09;;E9;E9;poltrona;57
+;poltrona-E10;;E10;E10;poltrona;58
+;poltrona-E11;;E11;E11;poltrona;59
+;poltrona-E12;;E12;E12;poltrona;60
+;poltrona-F01;;F1;F1;poltrona;61
+;poltrona-F02;;F2;F2;poltrona;62
+;poltrona-F03;;F3;F3;poltrona;63
+;poltrona-F04;;F4;F4;poltrona;64
+;poltrona-F05;;F5;F5;poltrona;65
+;poltrona-F06;;F6;F6;poltrona;66
+;poltrona-F07;;F7;F7;poltrona;67
+;poltrona-F08;;F8;F8;poltrona;68
+;poltrona-F09;;F9;F9;poltrona;69
+;poltrona-F10;;F10;F10;poltrona;70
+;poltrona-F11;;F11;F11;poltrona;71
+;poltrona-F12;;F12;F12;poltrona;72
+;poltrona-G01;;G1;G1;poltrona;73
+;poltrona-G02;;G2;G2;poltrona;74
+;poltrona-G03;;G3;G3;poltrona;75
+;poltrona-G04;;G4;G4;poltrona;76
+;poltrona-G05;;G5;G5;poltrona;77
+;poltrona-G06;;G6;G6;poltrona;78
+;poltrona-G07;;G7;G7;poltrona;79
+;poltrona-G08;;G8;G8;poltrona;80
+;poltrona-G09;;G9;G9;poltrona;81
+;poltrona-G10;;G10;G10;poltrona;82
+;poltrona-G11;;G11;G11;poltrona;83
+;poltrona-G12;;G12;G12;poltrona;84
+;poltrona-H01;;H1;H1;poltrona;85
+;poltrona-H02;;H2;H2;poltrona;86
+;poltrona-H03;;H3;H3;poltrona;87
+;poltrona-H04;;H4;H4;poltrona;88
+;poltrona-H05;;H5;H5;poltrona;89
+;poltrona-H06;;H6;H6;poltrona;90
+;poltrona-H07;;H7;H7;poltrona;91
+;poltrona-H08;;H8;H8;poltrona;92
+;poltrona-H09;;H9;H9;poltrona;93
+;poltrona-H10;;H10;H10;poltrona;94
+;poltrona-H11;;H11;H11;poltrona;95
+;poltrona-H12;;H12;H12;poltrona;96
+
+#### ---------- dimensoes de variante (Online) ----------
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Online'])[unique=true,default=$productCatalog:Online]
+$supercategories=supercategories(code,$catalogVersion)
+
+INSERT_UPDATE VariantCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;hasImage;allowedPrincipals(uid)[default='customergroup']
+;setor;;Setor;Sector;;false
+;poltrona;;Poltrona;Seat;setor;false
+
+INSERT_UPDATE VariantValueCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;sequence;allowedPrincipals(uid)[default='customergroup']
+;poltrona-A01;;A1;A1;poltrona;1
+;poltrona-A02;;A2;A2;poltrona;2
+;poltrona-A03;;A3;A3;poltrona;3
+;poltrona-A04;;A4;A4;poltrona;4
+;poltrona-A05;;A5;A5;poltrona;5
+;poltrona-A06;;A6;A6;poltrona;6
+;poltrona-A07;;A7;A7;poltrona;7
+;poltrona-A08;;A8;A8;poltrona;8
+;poltrona-A09;;A9;A9;poltrona;9
+;poltrona-A10;;A10;A10;poltrona;10
+;poltrona-A11;;A11;A11;poltrona;11
+;poltrona-A12;;A12;A12;poltrona;12
+;poltrona-B01;;B1;B1;poltrona;13
+;poltrona-B02;;B2;B2;poltrona;14
+;poltrona-B03;;B3;B3;poltrona;15
+;poltrona-B04;;B4;B4;poltrona;16
+;poltrona-B05;;B5;B5;poltrona;17
+;poltrona-B06;;B6;B6;poltrona;18
+;poltrona-B07;;B7;B7;poltrona;19
+;poltrona-B08;;B8;B8;poltrona;20
+;poltrona-B09;;B9;B9;poltrona;21
+;poltrona-B10;;B10;B10;poltrona;22
+;poltrona-B11;;B11;B11;poltrona;23
+;poltrona-B12;;B12;B12;poltrona;24
+;poltrona-C01;;C1;C1;poltrona;25
+;poltrona-C02;;C2;C2;poltrona;26
+;poltrona-C03;;C3;C3;poltrona;27
+;poltrona-C04;;C4;C4;poltrona;28
+;poltrona-C05;;C5;C5;poltrona;29
+;poltrona-C06;;C6;C6;poltrona;30
+;poltrona-C07;;C7;C7;poltrona;31
+;poltrona-C08;;C8;C8;poltrona;32
+;poltrona-C09;;C9;C9;poltrona;33
+;poltrona-C10;;C10;C10;poltrona;34
+;poltrona-C11;;C11;C11;poltrona;35
+;poltrona-C12;;C12;C12;poltrona;36
+;poltrona-D01;;D1;D1;poltrona;37
+;poltrona-D02;;D2;D2;poltrona;38
+;poltrona-D03;;D3;D3;poltrona;39
+;poltrona-D04;;D4;D4;poltrona;40
+;poltrona-D05;;D5;D5;poltrona;41
+;poltrona-D06;;D6;D6;poltrona;42
+;poltrona-D07;;D7;D7;poltrona;43
+;poltrona-D08;;D8;D8;poltrona;44
+;poltrona-D09;;D9;D9;poltrona;45
+;poltrona-D10;;D10;D10;poltrona;46
+;poltrona-D11;;D11;D11;poltrona;47
+;poltrona-D12;;D12;D12;poltrona;48
+;poltrona-E01;;E1;E1;poltrona;49
+;poltrona-E02;;E2;E2;poltrona;50
+;poltrona-E03;;E3;E3;poltrona;51
+;poltrona-E04;;E4;E4;poltrona;52
+;poltrona-E05;;E5;E5;poltrona;53
+;poltrona-E06;;E6;E6;poltrona;54
+;poltrona-E07;;E7;E7;poltrona;55
+;poltrona-E08;;E8;E8;poltrona;56
+;poltrona-E09;;E9;E9;poltrona;57
+;poltrona-E10;;E10;E10;poltrona;58
+;poltrona-E11;;E11;E11;poltrona;59
+;poltrona-E12;;E12;E12;poltrona;60
+;poltrona-F01;;F1;F1;poltrona;61
+;poltrona-F02;;F2;F2;poltrona;62
+;poltrona-F03;;F3;F3;poltrona;63
+;poltrona-F04;;F4;F4;poltrona;64
+;poltrona-F05;;F5;F5;poltrona;65
+;poltrona-F06;;F6;F6;poltrona;66
+;poltrona-F07;;F7;F7;poltrona;67
+;poltrona-F08;;F8;F8;poltrona;68
+;poltrona-F09;;F9;F9;poltrona;69
+;poltrona-F10;;F10;F10;poltrona;70
+;poltrona-F11;;F11;F11;poltrona;71
+;poltrona-F12;;F12;F12;poltrona;72
+;poltrona-G01;;G1;G1;poltrona;73
+;poltrona-G02;;G2;G2;poltrona;74
+;poltrona-G03;;G3;G3;poltrona;75
+;poltrona-G04;;G4;G4;poltrona;76
+;poltrona-G05;;G5;G5;poltrona;77
+;poltrona-G06;;G6;G6;poltrona;78
+;poltrona-G07;;G7;G7;poltrona;79
+;poltrona-G08;;G8;G8;poltrona;80
+;poltrona-G09;;G9;G9;poltrona;81
+;poltrona-G10;;G10;G10;poltrona;82
+;poltrona-G11;;G11;G11;poltrona;83
+;poltrona-G12;;G12;G12;poltrona;84
+;poltrona-H01;;H1;H1;poltrona;85
+;poltrona-H02;;H2;H2;poltrona;86
+;poltrona-H03;;H3;H3;poltrona;87
+;poltrona-H04;;H4;H4;poltrona;88
+;poltrona-H05;;H5;H5;poltrona;89
+;poltrona-H06;;H6;H6;poltrona;90
+;poltrona-H07;;H7;H7;poltrona;91
+;poltrona-H08;;H8;H8;poltrona;92
+;poltrona-H09;;H9;H9;poltrona;93
+;poltrona-H10;;H10;H10;poltrona;94
+;poltrona-H11;;H11;H11;poltrona;95
+;poltrona-H12;;H12;H12;poltrona;96
+
+#### ---------- template (somente Staged, nao aprovado) ----------
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code,$catalogVersion)
+$baseProduct=baseProduct(code,$catalogVersion)
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];summary[lang=pt];description[lang=pt];$supercategories;variantType(code);unit(code)[default=pieces];approvalstatus(code)
+;FLA-TEMPLATE-MARACANA;;Template de jogo · Maracanã (não vender);Template · Maracanã;Template com o mapa de setores e poltronas do Maracanã e o preço base de cada setor. Usado pelo script abrir-jogo para criar cada partida.;setor,poltrona;GenericVariantProduct;;check
+
+INSERT_UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;$baseProduct;name[lang=pt];$supercategories;unit(code)[default=pieces];approvalstatus(code)
+;FLA-TEMPLATE-MARACANA-NORTE-A01;;FLA-TEMPLATE-MARACANA;Template · Norte · A1;setor-norte,poltrona-A01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A02;;FLA-TEMPLATE-MARACANA;Template · Norte · A2;setor-norte,poltrona-A02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A03;;FLA-TEMPLATE-MARACANA;Template · Norte · A3;setor-norte,poltrona-A03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A04;;FLA-TEMPLATE-MARACANA;Template · Norte · A4;setor-norte,poltrona-A04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A05;;FLA-TEMPLATE-MARACANA;Template · Norte · A5;setor-norte,poltrona-A05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A06;;FLA-TEMPLATE-MARACANA;Template · Norte · A6;setor-norte,poltrona-A06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A07;;FLA-TEMPLATE-MARACANA;Template · Norte · A7;setor-norte,poltrona-A07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A08;;FLA-TEMPLATE-MARACANA;Template · Norte · A8;setor-norte,poltrona-A08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A09;;FLA-TEMPLATE-MARACANA;Template · Norte · A9;setor-norte,poltrona-A09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A10;;FLA-TEMPLATE-MARACANA;Template · Norte · A10;setor-norte,poltrona-A10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A11;;FLA-TEMPLATE-MARACANA;Template · Norte · A11;setor-norte,poltrona-A11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-A12;;FLA-TEMPLATE-MARACANA;Template · Norte · A12;setor-norte,poltrona-A12;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B01;;FLA-TEMPLATE-MARACANA;Template · Norte · B1;setor-norte,poltrona-B01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B02;;FLA-TEMPLATE-MARACANA;Template · Norte · B2;setor-norte,poltrona-B02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B03;;FLA-TEMPLATE-MARACANA;Template · Norte · B3;setor-norte,poltrona-B03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B04;;FLA-TEMPLATE-MARACANA;Template · Norte · B4;setor-norte,poltrona-B04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B05;;FLA-TEMPLATE-MARACANA;Template · Norte · B5;setor-norte,poltrona-B05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B06;;FLA-TEMPLATE-MARACANA;Template · Norte · B6;setor-norte,poltrona-B06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B07;;FLA-TEMPLATE-MARACANA;Template · Norte · B7;setor-norte,poltrona-B07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B08;;FLA-TEMPLATE-MARACANA;Template · Norte · B8;setor-norte,poltrona-B08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B09;;FLA-TEMPLATE-MARACANA;Template · Norte · B9;setor-norte,poltrona-B09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B10;;FLA-TEMPLATE-MARACANA;Template · Norte · B10;setor-norte,poltrona-B10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B11;;FLA-TEMPLATE-MARACANA;Template · Norte · B11;setor-norte,poltrona-B11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-B12;;FLA-TEMPLATE-MARACANA;Template · Norte · B12;setor-norte,poltrona-B12;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C01;;FLA-TEMPLATE-MARACANA;Template · Norte · C1;setor-norte,poltrona-C01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C02;;FLA-TEMPLATE-MARACANA;Template · Norte · C2;setor-norte,poltrona-C02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C03;;FLA-TEMPLATE-MARACANA;Template · Norte · C3;setor-norte,poltrona-C03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C04;;FLA-TEMPLATE-MARACANA;Template · Norte · C4;setor-norte,poltrona-C04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C05;;FLA-TEMPLATE-MARACANA;Template · Norte · C5;setor-norte,poltrona-C05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C06;;FLA-TEMPLATE-MARACANA;Template · Norte · C6;setor-norte,poltrona-C06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C07;;FLA-TEMPLATE-MARACANA;Template · Norte · C7;setor-norte,poltrona-C07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C08;;FLA-TEMPLATE-MARACANA;Template · Norte · C8;setor-norte,poltrona-C08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C09;;FLA-TEMPLATE-MARACANA;Template · Norte · C9;setor-norte,poltrona-C09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C10;;FLA-TEMPLATE-MARACANA;Template · Norte · C10;setor-norte,poltrona-C10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C11;;FLA-TEMPLATE-MARACANA;Template · Norte · C11;setor-norte,poltrona-C11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-C12;;FLA-TEMPLATE-MARACANA;Template · Norte · C12;setor-norte,poltrona-C12;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D01;;FLA-TEMPLATE-MARACANA;Template · Norte · D1;setor-norte,poltrona-D01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D02;;FLA-TEMPLATE-MARACANA;Template · Norte · D2;setor-norte,poltrona-D02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D03;;FLA-TEMPLATE-MARACANA;Template · Norte · D3;setor-norte,poltrona-D03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D04;;FLA-TEMPLATE-MARACANA;Template · Norte · D4;setor-norte,poltrona-D04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D05;;FLA-TEMPLATE-MARACANA;Template · Norte · D5;setor-norte,poltrona-D05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D06;;FLA-TEMPLATE-MARACANA;Template · Norte · D6;setor-norte,poltrona-D06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D07;;FLA-TEMPLATE-MARACANA;Template · Norte · D7;setor-norte,poltrona-D07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D08;;FLA-TEMPLATE-MARACANA;Template · Norte · D8;setor-norte,poltrona-D08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D09;;FLA-TEMPLATE-MARACANA;Template · Norte · D9;setor-norte,poltrona-D09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D10;;FLA-TEMPLATE-MARACANA;Template · Norte · D10;setor-norte,poltrona-D10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D11;;FLA-TEMPLATE-MARACANA;Template · Norte · D11;setor-norte,poltrona-D11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-D12;;FLA-TEMPLATE-MARACANA;Template · Norte · D12;setor-norte,poltrona-D12;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E01;;FLA-TEMPLATE-MARACANA;Template · Norte · E1;setor-norte,poltrona-E01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E02;;FLA-TEMPLATE-MARACANA;Template · Norte · E2;setor-norte,poltrona-E02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E03;;FLA-TEMPLATE-MARACANA;Template · Norte · E3;setor-norte,poltrona-E03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E04;;FLA-TEMPLATE-MARACANA;Template · Norte · E4;setor-norte,poltrona-E04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E05;;FLA-TEMPLATE-MARACANA;Template · Norte · E5;setor-norte,poltrona-E05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E06;;FLA-TEMPLATE-MARACANA;Template · Norte · E6;setor-norte,poltrona-E06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E07;;FLA-TEMPLATE-MARACANA;Template · Norte · E7;setor-norte,poltrona-E07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E08;;FLA-TEMPLATE-MARACANA;Template · Norte · E8;setor-norte,poltrona-E08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E09;;FLA-TEMPLATE-MARACANA;Template · Norte · E9;setor-norte,poltrona-E09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E10;;FLA-TEMPLATE-MARACANA;Template · Norte · E10;setor-norte,poltrona-E10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E11;;FLA-TEMPLATE-MARACANA;Template · Norte · E11;setor-norte,poltrona-E11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-E12;;FLA-TEMPLATE-MARACANA;Template · Norte · E12;setor-norte,poltrona-E12;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F01;;FLA-TEMPLATE-MARACANA;Template · Norte · F1;setor-norte,poltrona-F01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F02;;FLA-TEMPLATE-MARACANA;Template · Norte · F2;setor-norte,poltrona-F02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F03;;FLA-TEMPLATE-MARACANA;Template · Norte · F3;setor-norte,poltrona-F03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F04;;FLA-TEMPLATE-MARACANA;Template · Norte · F4;setor-norte,poltrona-F04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F05;;FLA-TEMPLATE-MARACANA;Template · Norte · F5;setor-norte,poltrona-F05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F06;;FLA-TEMPLATE-MARACANA;Template · Norte · F6;setor-norte,poltrona-F06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F07;;FLA-TEMPLATE-MARACANA;Template · Norte · F7;setor-norte,poltrona-F07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F08;;FLA-TEMPLATE-MARACANA;Template · Norte · F8;setor-norte,poltrona-F08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F09;;FLA-TEMPLATE-MARACANA;Template · Norte · F9;setor-norte,poltrona-F09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F10;;FLA-TEMPLATE-MARACANA;Template · Norte · F10;setor-norte,poltrona-F10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F11;;FLA-TEMPLATE-MARACANA;Template · Norte · F11;setor-norte,poltrona-F11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-F12;;FLA-TEMPLATE-MARACANA;Template · Norte · F12;setor-norte,poltrona-F12;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G01;;FLA-TEMPLATE-MARACANA;Template · Norte · G1;setor-norte,poltrona-G01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G02;;FLA-TEMPLATE-MARACANA;Template · Norte · G2;setor-norte,poltrona-G02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G03;;FLA-TEMPLATE-MARACANA;Template · Norte · G3;setor-norte,poltrona-G03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G04;;FLA-TEMPLATE-MARACANA;Template · Norte · G4;setor-norte,poltrona-G04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G05;;FLA-TEMPLATE-MARACANA;Template · Norte · G5;setor-norte,poltrona-G05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G06;;FLA-TEMPLATE-MARACANA;Template · Norte · G6;setor-norte,poltrona-G06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G07;;FLA-TEMPLATE-MARACANA;Template · Norte · G7;setor-norte,poltrona-G07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G08;;FLA-TEMPLATE-MARACANA;Template · Norte · G8;setor-norte,poltrona-G08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G09;;FLA-TEMPLATE-MARACANA;Template · Norte · G9;setor-norte,poltrona-G09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G10;;FLA-TEMPLATE-MARACANA;Template · Norte · G10;setor-norte,poltrona-G10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G11;;FLA-TEMPLATE-MARACANA;Template · Norte · G11;setor-norte,poltrona-G11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-G12;;FLA-TEMPLATE-MARACANA;Template · Norte · G12;setor-norte,poltrona-G12;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H01;;FLA-TEMPLATE-MARACANA;Template · Norte · H1;setor-norte,poltrona-H01;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H02;;FLA-TEMPLATE-MARACANA;Template · Norte · H2;setor-norte,poltrona-H02;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H03;;FLA-TEMPLATE-MARACANA;Template · Norte · H3;setor-norte,poltrona-H03;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H04;;FLA-TEMPLATE-MARACANA;Template · Norte · H4;setor-norte,poltrona-H04;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H05;;FLA-TEMPLATE-MARACANA;Template · Norte · H5;setor-norte,poltrona-H05;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H06;;FLA-TEMPLATE-MARACANA;Template · Norte · H6;setor-norte,poltrona-H06;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H07;;FLA-TEMPLATE-MARACANA;Template · Norte · H7;setor-norte,poltrona-H07;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H08;;FLA-TEMPLATE-MARACANA;Template · Norte · H8;setor-norte,poltrona-H08;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H09;;FLA-TEMPLATE-MARACANA;Template · Norte · H9;setor-norte,poltrona-H09;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H10;;FLA-TEMPLATE-MARACANA;Template · Norte · H10;setor-norte,poltrona-H10;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H11;;FLA-TEMPLATE-MARACANA;Template · Norte · H11;setor-norte,poltrona-H11;;check
+;FLA-TEMPLATE-MARACANA-NORTE-H12;;FLA-TEMPLATE-MARACANA;Template · Norte · H12;setor-norte,poltrona-H12;;check
+;FLA-TEMPLATE-MARACANA-SUL-A01;;FLA-TEMPLATE-MARACANA;Template · Sul · A1;setor-sul,poltrona-A01;;check
+;FLA-TEMPLATE-MARACANA-SUL-A02;;FLA-TEMPLATE-MARACANA;Template · Sul · A2;setor-sul,poltrona-A02;;check
+;FLA-TEMPLATE-MARACANA-SUL-A03;;FLA-TEMPLATE-MARACANA;Template · Sul · A3;setor-sul,poltrona-A03;;check
+;FLA-TEMPLATE-MARACANA-SUL-A04;;FLA-TEMPLATE-MARACANA;Template · Sul · A4;setor-sul,poltrona-A04;;check
+;FLA-TEMPLATE-MARACANA-SUL-A05;;FLA-TEMPLATE-MARACANA;Template · Sul · A5;setor-sul,poltrona-A05;;check
+;FLA-TEMPLATE-MARACANA-SUL-A06;;FLA-TEMPLATE-MARACANA;Template · Sul · A6;setor-sul,poltrona-A06;;check
+;FLA-TEMPLATE-MARACANA-SUL-A07;;FLA-TEMPLATE-MARACANA;Template · Sul · A7;setor-sul,poltrona-A07;;check
+;FLA-TEMPLATE-MARACANA-SUL-A08;;FLA-TEMPLATE-MARACANA;Template · Sul · A8;setor-sul,poltrona-A08;;check
+;FLA-TEMPLATE-MARACANA-SUL-A09;;FLA-TEMPLATE-MARACANA;Template · Sul · A9;setor-sul,poltrona-A09;;check
+;FLA-TEMPLATE-MARACANA-SUL-A10;;FLA-TEMPLATE-MARACANA;Template · Sul · A10;setor-sul,poltrona-A10;;check
+;FLA-TEMPLATE-MARACANA-SUL-A11;;FLA-TEMPLATE-MARACANA;Template · Sul · A11;setor-sul,poltrona-A11;;check
+;FLA-TEMPLATE-MARACANA-SUL-A12;;FLA-TEMPLATE-MARACANA;Template · Sul · A12;setor-sul,poltrona-A12;;check
+;FLA-TEMPLATE-MARACANA-SUL-B01;;FLA-TEMPLATE-MARACANA;Template · Sul · B1;setor-sul,poltrona-B01;;check
+;FLA-TEMPLATE-MARACANA-SUL-B02;;FLA-TEMPLATE-MARACANA;Template · Sul · B2;setor-sul,poltrona-B02;;check
+;FLA-TEMPLATE-MARACANA-SUL-B03;;FLA-TEMPLATE-MARACANA;Template · Sul · B3;setor-sul,poltrona-B03;;check
+;FLA-TEMPLATE-MARACANA-SUL-B04;;FLA-TEMPLATE-MARACANA;Template · Sul · B4;setor-sul,poltrona-B04;;check
+;FLA-TEMPLATE-MARACANA-SUL-B05;;FLA-TEMPLATE-MARACANA;Template · Sul · B5;setor-sul,poltrona-B05;;check
+;FLA-TEMPLATE-MARACANA-SUL-B06;;FLA-TEMPLATE-MARACANA;Template · Sul · B6;setor-sul,poltrona-B06;;check
+;FLA-TEMPLATE-MARACANA-SUL-B07;;FLA-TEMPLATE-MARACANA;Template · Sul · B7;setor-sul,poltrona-B07;;check
+;FLA-TEMPLATE-MARACANA-SUL-B08;;FLA-TEMPLATE-MARACANA;Template · Sul · B8;setor-sul,poltrona-B08;;check
+;FLA-TEMPLATE-MARACANA-SUL-B09;;FLA-TEMPLATE-MARACANA;Template · Sul · B9;setor-sul,poltrona-B09;;check
+;FLA-TEMPLATE-MARACANA-SUL-B10;;FLA-TEMPLATE-MARACANA;Template · Sul · B10;setor-sul,poltrona-B10;;check
+;FLA-TEMPLATE-MARACANA-SUL-B11;;FLA-TEMPLATE-MARACANA;Template · Sul · B11;setor-sul,poltrona-B11;;check
+;FLA-TEMPLATE-MARACANA-SUL-B12;;FLA-TEMPLATE-MARACANA;Template · Sul · B12;setor-sul,poltrona-B12;;check
+;FLA-TEMPLATE-MARACANA-SUL-C01;;FLA-TEMPLATE-MARACANA;Template · Sul · C1;setor-sul,poltrona-C01;;check
+;FLA-TEMPLATE-MARACANA-SUL-C02;;FLA-TEMPLATE-MARACANA;Template · Sul · C2;setor-sul,poltrona-C02;;check
+;FLA-TEMPLATE-MARACANA-SUL-C03;;FLA-TEMPLATE-MARACANA;Template · Sul · C3;setor-sul,poltrona-C03;;check
+;FLA-TEMPLATE-MARACANA-SUL-C04;;FLA-TEMPLATE-MARACANA;Template · Sul · C4;setor-sul,poltrona-C04;;check
+;FLA-TEMPLATE-MARACANA-SUL-C05;;FLA-TEMPLATE-MARACANA;Template · Sul · C5;setor-sul,poltrona-C05;;check
+;FLA-TEMPLATE-MARACANA-SUL-C06;;FLA-TEMPLATE-MARACANA;Template · Sul · C6;setor-sul,poltrona-C06;;check
+;FLA-TEMPLATE-MARACANA-SUL-C07;;FLA-TEMPLATE-MARACANA;Template · Sul · C7;setor-sul,poltrona-C07;;check
+;FLA-TEMPLATE-MARACANA-SUL-C08;;FLA-TEMPLATE-MARACANA;Template · Sul · C8;setor-sul,poltrona-C08;;check
+;FLA-TEMPLATE-MARACANA-SUL-C09;;FLA-TEMPLATE-MARACANA;Template · Sul · C9;setor-sul,poltrona-C09;;check
+;FLA-TEMPLATE-MARACANA-SUL-C10;;FLA-TEMPLATE-MARACANA;Template · Sul · C10;setor-sul,poltrona-C10;;check
+;FLA-TEMPLATE-MARACANA-SUL-C11;;FLA-TEMPLATE-MARACANA;Template · Sul · C11;setor-sul,poltrona-C11;;check
+;FLA-TEMPLATE-MARACANA-SUL-C12;;FLA-TEMPLATE-MARACANA;Template · Sul · C12;setor-sul,poltrona-C12;;check
+;FLA-TEMPLATE-MARACANA-SUL-D01;;FLA-TEMPLATE-MARACANA;Template · Sul · D1;setor-sul,poltrona-D01;;check
+;FLA-TEMPLATE-MARACANA-SUL-D02;;FLA-TEMPLATE-MARACANA;Template · Sul · D2;setor-sul,poltrona-D02;;check
+;FLA-TEMPLATE-MARACANA-SUL-D03;;FLA-TEMPLATE-MARACANA;Template · Sul · D3;setor-sul,poltrona-D03;;check
+;FLA-TEMPLATE-MARACANA-SUL-D04;;FLA-TEMPLATE-MARACANA;Template · Sul · D4;setor-sul,poltrona-D04;;check
+;FLA-TEMPLATE-MARACANA-SUL-D05;;FLA-TEMPLATE-MARACANA;Template · Sul · D5;setor-sul,poltrona-D05;;check
+;FLA-TEMPLATE-MARACANA-SUL-D06;;FLA-TEMPLATE-MARACANA;Template · Sul · D6;setor-sul,poltrona-D06;;check
+;FLA-TEMPLATE-MARACANA-SUL-D07;;FLA-TEMPLATE-MARACANA;Template · Sul · D7;setor-sul,poltrona-D07;;check
+;FLA-TEMPLATE-MARACANA-SUL-D08;;FLA-TEMPLATE-MARACANA;Template · Sul · D8;setor-sul,poltrona-D08;;check
+;FLA-TEMPLATE-MARACANA-SUL-D09;;FLA-TEMPLATE-MARACANA;Template · Sul · D9;setor-sul,poltrona-D09;;check
+;FLA-TEMPLATE-MARACANA-SUL-D10;;FLA-TEMPLATE-MARACANA;Template · Sul · D10;setor-sul,poltrona-D10;;check
+;FLA-TEMPLATE-MARACANA-SUL-D11;;FLA-TEMPLATE-MARACANA;Template · Sul · D11;setor-sul,poltrona-D11;;check
+;FLA-TEMPLATE-MARACANA-SUL-D12;;FLA-TEMPLATE-MARACANA;Template · Sul · D12;setor-sul,poltrona-D12;;check
+;FLA-TEMPLATE-MARACANA-SUL-E01;;FLA-TEMPLATE-MARACANA;Template · Sul · E1;setor-sul,poltrona-E01;;check
+;FLA-TEMPLATE-MARACANA-SUL-E02;;FLA-TEMPLATE-MARACANA;Template · Sul · E2;setor-sul,poltrona-E02;;check
+;FLA-TEMPLATE-MARACANA-SUL-E03;;FLA-TEMPLATE-MARACANA;Template · Sul · E3;setor-sul,poltrona-E03;;check
+;FLA-TEMPLATE-MARACANA-SUL-E04;;FLA-TEMPLATE-MARACANA;Template · Sul · E4;setor-sul,poltrona-E04;;check
+;FLA-TEMPLATE-MARACANA-SUL-E05;;FLA-TEMPLATE-MARACANA;Template · Sul · E5;setor-sul,poltrona-E05;;check
+;FLA-TEMPLATE-MARACANA-SUL-E06;;FLA-TEMPLATE-MARACANA;Template · Sul · E6;setor-sul,poltrona-E06;;check
+;FLA-TEMPLATE-MARACANA-SUL-E07;;FLA-TEMPLATE-MARACANA;Template · Sul · E7;setor-sul,poltrona-E07;;check
+;FLA-TEMPLATE-MARACANA-SUL-E08;;FLA-TEMPLATE-MARACANA;Template · Sul · E8;setor-sul,poltrona-E08;;check
+;FLA-TEMPLATE-MARACANA-SUL-E09;;FLA-TEMPLATE-MARACANA;Template · Sul · E9;setor-sul,poltrona-E09;;check
+;FLA-TEMPLATE-MARACANA-SUL-E10;;FLA-TEMPLATE-MARACANA;Template · Sul · E10;setor-sul,poltrona-E10;;check
+;FLA-TEMPLATE-MARACANA-SUL-E11;;FLA-TEMPLATE-MARACANA;Template · Sul · E11;setor-sul,poltrona-E11;;check
+;FLA-TEMPLATE-MARACANA-SUL-E12;;FLA-TEMPLATE-MARACANA;Template · Sul · E12;setor-sul,poltrona-E12;;check
+;FLA-TEMPLATE-MARACANA-SUL-F01;;FLA-TEMPLATE-MARACANA;Template · Sul · F1;setor-sul,poltrona-F01;;check
+;FLA-TEMPLATE-MARACANA-SUL-F02;;FLA-TEMPLATE-MARACANA;Template · Sul · F2;setor-sul,poltrona-F02;;check
+;FLA-TEMPLATE-MARACANA-SUL-F03;;FLA-TEMPLATE-MARACANA;Template · Sul · F3;setor-sul,poltrona-F03;;check
+;FLA-TEMPLATE-MARACANA-SUL-F04;;FLA-TEMPLATE-MARACANA;Template · Sul · F4;setor-sul,poltrona-F04;;check
+;FLA-TEMPLATE-MARACANA-SUL-F05;;FLA-TEMPLATE-MARACANA;Template · Sul · F5;setor-sul,poltrona-F05;;check
+;FLA-TEMPLATE-MARACANA-SUL-F06;;FLA-TEMPLATE-MARACANA;Template · Sul · F6;setor-sul,poltrona-F06;;check
+;FLA-TEMPLATE-MARACANA-SUL-F07;;FLA-TEMPLATE-MARACANA;Template · Sul · F7;setor-sul,poltrona-F07;;check
+;FLA-TEMPLATE-MARACANA-SUL-F08;;FLA-TEMPLATE-MARACANA;Template · Sul · F8;setor-sul,poltrona-F08;;check
+;FLA-TEMPLATE-MARACANA-SUL-F09;;FLA-TEMPLATE-MARACANA;Template · Sul · F9;setor-sul,poltrona-F09;;check
+;FLA-TEMPLATE-MARACANA-SUL-F10;;FLA-TEMPLATE-MARACANA;Template · Sul · F10;setor-sul,poltrona-F10;;check
+;FLA-TEMPLATE-MARACANA-SUL-F11;;FLA-TEMPLATE-MARACANA;Template · Sul · F11;setor-sul,poltrona-F11;;check
+;FLA-TEMPLATE-MARACANA-SUL-F12;;FLA-TEMPLATE-MARACANA;Template · Sul · F12;setor-sul,poltrona-F12;;check
+;FLA-TEMPLATE-MARACANA-SUL-G01;;FLA-TEMPLATE-MARACANA;Template · Sul · G1;setor-sul,poltrona-G01;;check
+;FLA-TEMPLATE-MARACANA-SUL-G02;;FLA-TEMPLATE-MARACANA;Template · Sul · G2;setor-sul,poltrona-G02;;check
+;FLA-TEMPLATE-MARACANA-SUL-G03;;FLA-TEMPLATE-MARACANA;Template · Sul · G3;setor-sul,poltrona-G03;;check
+;FLA-TEMPLATE-MARACANA-SUL-G04;;FLA-TEMPLATE-MARACANA;Template · Sul · G4;setor-sul,poltrona-G04;;check
+;FLA-TEMPLATE-MARACANA-SUL-G05;;FLA-TEMPLATE-MARACANA;Template · Sul · G5;setor-sul,poltrona-G05;;check
+;FLA-TEMPLATE-MARACANA-SUL-G06;;FLA-TEMPLATE-MARACANA;Template · Sul · G6;setor-sul,poltrona-G06;;check
+;FLA-TEMPLATE-MARACANA-SUL-G07;;FLA-TEMPLATE-MARACANA;Template · Sul · G7;setor-sul,poltrona-G07;;check
+;FLA-TEMPLATE-MARACANA-SUL-G08;;FLA-TEMPLATE-MARACANA;Template · Sul · G8;setor-sul,poltrona-G08;;check
+;FLA-TEMPLATE-MARACANA-SUL-G09;;FLA-TEMPLATE-MARACANA;Template · Sul · G9;setor-sul,poltrona-G09;;check
+;FLA-TEMPLATE-MARACANA-SUL-G10;;FLA-TEMPLATE-MARACANA;Template · Sul · G10;setor-sul,poltrona-G10;;check
+;FLA-TEMPLATE-MARACANA-SUL-G11;;FLA-TEMPLATE-MARACANA;Template · Sul · G11;setor-sul,poltrona-G11;;check
+;FLA-TEMPLATE-MARACANA-SUL-G12;;FLA-TEMPLATE-MARACANA;Template · Sul · G12;setor-sul,poltrona-G12;;check
+;FLA-TEMPLATE-MARACANA-SUL-H01;;FLA-TEMPLATE-MARACANA;Template · Sul · H1;setor-sul,poltrona-H01;;check
+;FLA-TEMPLATE-MARACANA-SUL-H02;;FLA-TEMPLATE-MARACANA;Template · Sul · H2;setor-sul,poltrona-H02;;check
+;FLA-TEMPLATE-MARACANA-SUL-H03;;FLA-TEMPLATE-MARACANA;Template · Sul · H3;setor-sul,poltrona-H03;;check
+;FLA-TEMPLATE-MARACANA-SUL-H04;;FLA-TEMPLATE-MARACANA;Template · Sul · H4;setor-sul,poltrona-H04;;check
+;FLA-TEMPLATE-MARACANA-SUL-H05;;FLA-TEMPLATE-MARACANA;Template · Sul · H5;setor-sul,poltrona-H05;;check
+;FLA-TEMPLATE-MARACANA-SUL-H06;;FLA-TEMPLATE-MARACANA;Template · Sul · H6;setor-sul,poltrona-H06;;check
+;FLA-TEMPLATE-MARACANA-SUL-H07;;FLA-TEMPLATE-MARACANA;Template · Sul · H7;setor-sul,poltrona-H07;;check
+;FLA-TEMPLATE-MARACANA-SUL-H08;;FLA-TEMPLATE-MARACANA;Template · Sul · H8;setor-sul,poltrona-H08;;check
+;FLA-TEMPLATE-MARACANA-SUL-H09;;FLA-TEMPLATE-MARACANA;Template · Sul · H9;setor-sul,poltrona-H09;;check
+;FLA-TEMPLATE-MARACANA-SUL-H10;;FLA-TEMPLATE-MARACANA;Template · Sul · H10;setor-sul,poltrona-H10;;check
+;FLA-TEMPLATE-MARACANA-SUL-H11;;FLA-TEMPLATE-MARACANA;Template · Sul · H11;setor-sul,poltrona-H11;;check
+;FLA-TEMPLATE-MARACANA-SUL-H12;;FLA-TEMPLATE-MARACANA;Template · Sul · H12;setor-sul,poltrona-H12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A1;setor-leste-inf,poltrona-A01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A2;setor-leste-inf,poltrona-A02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A3;setor-leste-inf,poltrona-A03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A4;setor-leste-inf,poltrona-A04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A5;setor-leste-inf,poltrona-A05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A6;setor-leste-inf,poltrona-A06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A7;setor-leste-inf,poltrona-A07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A8;setor-leste-inf,poltrona-A08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A9;setor-leste-inf,poltrona-A09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A10;setor-leste-inf,poltrona-A10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A11;setor-leste-inf,poltrona-A11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-A12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · A12;setor-leste-inf,poltrona-A12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B1;setor-leste-inf,poltrona-B01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B2;setor-leste-inf,poltrona-B02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B3;setor-leste-inf,poltrona-B03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B4;setor-leste-inf,poltrona-B04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B5;setor-leste-inf,poltrona-B05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B6;setor-leste-inf,poltrona-B06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B7;setor-leste-inf,poltrona-B07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B8;setor-leste-inf,poltrona-B08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B9;setor-leste-inf,poltrona-B09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B10;setor-leste-inf,poltrona-B10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B11;setor-leste-inf,poltrona-B11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-B12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · B12;setor-leste-inf,poltrona-B12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C1;setor-leste-inf,poltrona-C01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C2;setor-leste-inf,poltrona-C02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C3;setor-leste-inf,poltrona-C03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C4;setor-leste-inf,poltrona-C04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C5;setor-leste-inf,poltrona-C05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C6;setor-leste-inf,poltrona-C06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C7;setor-leste-inf,poltrona-C07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C8;setor-leste-inf,poltrona-C08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C9;setor-leste-inf,poltrona-C09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C10;setor-leste-inf,poltrona-C10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C11;setor-leste-inf,poltrona-C11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-C12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · C12;setor-leste-inf,poltrona-C12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D1;setor-leste-inf,poltrona-D01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D2;setor-leste-inf,poltrona-D02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D3;setor-leste-inf,poltrona-D03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D4;setor-leste-inf,poltrona-D04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D5;setor-leste-inf,poltrona-D05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D6;setor-leste-inf,poltrona-D06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D7;setor-leste-inf,poltrona-D07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D8;setor-leste-inf,poltrona-D08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D9;setor-leste-inf,poltrona-D09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D10;setor-leste-inf,poltrona-D10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D11;setor-leste-inf,poltrona-D11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-D12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · D12;setor-leste-inf,poltrona-D12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E1;setor-leste-inf,poltrona-E01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E2;setor-leste-inf,poltrona-E02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E3;setor-leste-inf,poltrona-E03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E4;setor-leste-inf,poltrona-E04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E5;setor-leste-inf,poltrona-E05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E6;setor-leste-inf,poltrona-E06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E7;setor-leste-inf,poltrona-E07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E8;setor-leste-inf,poltrona-E08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E9;setor-leste-inf,poltrona-E09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E10;setor-leste-inf,poltrona-E10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E11;setor-leste-inf,poltrona-E11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-E12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · E12;setor-leste-inf,poltrona-E12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F1;setor-leste-inf,poltrona-F01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F2;setor-leste-inf,poltrona-F02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F3;setor-leste-inf,poltrona-F03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F4;setor-leste-inf,poltrona-F04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F5;setor-leste-inf,poltrona-F05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F6;setor-leste-inf,poltrona-F06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F7;setor-leste-inf,poltrona-F07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F8;setor-leste-inf,poltrona-F08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F9;setor-leste-inf,poltrona-F09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F10;setor-leste-inf,poltrona-F10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F11;setor-leste-inf,poltrona-F11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-F12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · F12;setor-leste-inf,poltrona-F12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G1;setor-leste-inf,poltrona-G01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G2;setor-leste-inf,poltrona-G02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G3;setor-leste-inf,poltrona-G03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G4;setor-leste-inf,poltrona-G04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G5;setor-leste-inf,poltrona-G05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G6;setor-leste-inf,poltrona-G06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G7;setor-leste-inf,poltrona-G07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G8;setor-leste-inf,poltrona-G08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G9;setor-leste-inf,poltrona-G09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G10;setor-leste-inf,poltrona-G10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G11;setor-leste-inf,poltrona-G11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-G12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · G12;setor-leste-inf,poltrona-G12;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H01;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H1;setor-leste-inf,poltrona-H01;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H02;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H2;setor-leste-inf,poltrona-H02;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H03;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H3;setor-leste-inf,poltrona-H03;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H04;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H4;setor-leste-inf,poltrona-H04;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H05;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H5;setor-leste-inf,poltrona-H05;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H06;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H6;setor-leste-inf,poltrona-H06;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H07;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H7;setor-leste-inf,poltrona-H07;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H08;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H8;setor-leste-inf,poltrona-H08;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H09;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H9;setor-leste-inf,poltrona-H09;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H10;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H10;setor-leste-inf,poltrona-H10;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H11;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H11;setor-leste-inf,poltrona-H11;;check
+;FLA-TEMPLATE-MARACANA-LESTE-H12;;FLA-TEMPLATE-MARACANA;Template · Leste Inferior · H12;setor-leste-inf,poltrona-H12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A1;setor-oeste-sup,poltrona-A01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A2;setor-oeste-sup,poltrona-A02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A3;setor-oeste-sup,poltrona-A03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A4;setor-oeste-sup,poltrona-A04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A5;setor-oeste-sup,poltrona-A05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A6;setor-oeste-sup,poltrona-A06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A7;setor-oeste-sup,poltrona-A07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A8;setor-oeste-sup,poltrona-A08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A9;setor-oeste-sup,poltrona-A09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A10;setor-oeste-sup,poltrona-A10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A11;setor-oeste-sup,poltrona-A11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-A12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · A12;setor-oeste-sup,poltrona-A12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B1;setor-oeste-sup,poltrona-B01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B2;setor-oeste-sup,poltrona-B02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B3;setor-oeste-sup,poltrona-B03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B4;setor-oeste-sup,poltrona-B04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B5;setor-oeste-sup,poltrona-B05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B6;setor-oeste-sup,poltrona-B06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B7;setor-oeste-sup,poltrona-B07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B8;setor-oeste-sup,poltrona-B08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B9;setor-oeste-sup,poltrona-B09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B10;setor-oeste-sup,poltrona-B10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B11;setor-oeste-sup,poltrona-B11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-B12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · B12;setor-oeste-sup,poltrona-B12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C1;setor-oeste-sup,poltrona-C01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C2;setor-oeste-sup,poltrona-C02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C3;setor-oeste-sup,poltrona-C03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C4;setor-oeste-sup,poltrona-C04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C5;setor-oeste-sup,poltrona-C05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C6;setor-oeste-sup,poltrona-C06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C7;setor-oeste-sup,poltrona-C07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C8;setor-oeste-sup,poltrona-C08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C9;setor-oeste-sup,poltrona-C09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C10;setor-oeste-sup,poltrona-C10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C11;setor-oeste-sup,poltrona-C11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-C12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · C12;setor-oeste-sup,poltrona-C12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D1;setor-oeste-sup,poltrona-D01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D2;setor-oeste-sup,poltrona-D02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D3;setor-oeste-sup,poltrona-D03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D4;setor-oeste-sup,poltrona-D04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D5;setor-oeste-sup,poltrona-D05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D6;setor-oeste-sup,poltrona-D06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D7;setor-oeste-sup,poltrona-D07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D8;setor-oeste-sup,poltrona-D08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D9;setor-oeste-sup,poltrona-D09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D10;setor-oeste-sup,poltrona-D10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D11;setor-oeste-sup,poltrona-D11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-D12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · D12;setor-oeste-sup,poltrona-D12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E1;setor-oeste-sup,poltrona-E01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E2;setor-oeste-sup,poltrona-E02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E3;setor-oeste-sup,poltrona-E03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E4;setor-oeste-sup,poltrona-E04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E5;setor-oeste-sup,poltrona-E05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E6;setor-oeste-sup,poltrona-E06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E7;setor-oeste-sup,poltrona-E07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E8;setor-oeste-sup,poltrona-E08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E9;setor-oeste-sup,poltrona-E09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E10;setor-oeste-sup,poltrona-E10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E11;setor-oeste-sup,poltrona-E11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-E12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · E12;setor-oeste-sup,poltrona-E12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F1;setor-oeste-sup,poltrona-F01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F2;setor-oeste-sup,poltrona-F02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F3;setor-oeste-sup,poltrona-F03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F4;setor-oeste-sup,poltrona-F04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F5;setor-oeste-sup,poltrona-F05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F6;setor-oeste-sup,poltrona-F06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F7;setor-oeste-sup,poltrona-F07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F8;setor-oeste-sup,poltrona-F08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F9;setor-oeste-sup,poltrona-F09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F10;setor-oeste-sup,poltrona-F10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F11;setor-oeste-sup,poltrona-F11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-F12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · F12;setor-oeste-sup,poltrona-F12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G1;setor-oeste-sup,poltrona-G01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G2;setor-oeste-sup,poltrona-G02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G3;setor-oeste-sup,poltrona-G03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G4;setor-oeste-sup,poltrona-G04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G5;setor-oeste-sup,poltrona-G05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G6;setor-oeste-sup,poltrona-G06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G7;setor-oeste-sup,poltrona-G07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G8;setor-oeste-sup,poltrona-G08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G9;setor-oeste-sup,poltrona-G09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G10;setor-oeste-sup,poltrona-G10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G11;setor-oeste-sup,poltrona-G11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-G12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · G12;setor-oeste-sup,poltrona-G12;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H01;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H1;setor-oeste-sup,poltrona-H01;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H02;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H2;setor-oeste-sup,poltrona-H02;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H03;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H3;setor-oeste-sup,poltrona-H03;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H04;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H4;setor-oeste-sup,poltrona-H04;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H05;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H5;setor-oeste-sup,poltrona-H05;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H06;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H6;setor-oeste-sup,poltrona-H06;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H07;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H7;setor-oeste-sup,poltrona-H07;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H08;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H8;setor-oeste-sup,poltrona-H08;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H09;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H9;setor-oeste-sup,poltrona-H09;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H10;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H10;setor-oeste-sup,poltrona-H10;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H11;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H11;setor-oeste-sup,poltrona-H11;;check
+;FLA-TEMPLATE-MARACANA-OESTE-H12;;FLA-TEMPLATE-MARACANA;Template · Oeste Superior · H12;setor-oeste-sup,poltrona-H12;;check
+
+# preco base por setor (o script copia daqui; pode ser sobrescrito ao abrir o jogo)
+INSERT_UPDATE PriceRow;productId[unique=true];unit(code[unique=true,default=pieces]);currency(isocode)[unique=true];price;minqtd;unitFactor;net
+;FLA-TEMPLATE-MARACANA-NORTE-A01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-A12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-B12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-C12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-D12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-E12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-F12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-G12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-NORTE-H12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-A12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-B12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-C12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-D12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-E12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-F12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-G12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H01;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H02;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H03;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H04;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H05;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H06;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H07;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H08;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H09;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H10;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H11;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-SUL-H12;;$currency;80;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-A12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-B12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-C12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-D12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-E12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-F12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-G12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H01;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H02;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H03;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H04;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H05;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H06;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H07;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H08;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H09;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H10;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H11;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-LESTE-H12;;$currency;160;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-A12;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-B12;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-C12;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-D12;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-E12;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-F12;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-G12;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H01;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H02;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H03;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H04;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H05;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H06;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H07;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H08;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H09;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H10;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H11;;$currency;220;1;1;false
+;FLA-TEMPLATE-MARACANA-OESTE-H12;;$currency;220;1;1;false

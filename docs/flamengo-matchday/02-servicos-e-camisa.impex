@@ -1,6 +1,5 @@
 # =====================================================================
 #  Matchday Flamengo - estacionamento, comidas e bebidas, Camisa Jogo 2
-#  + ajustes nos jogos (nome em ingles, preco "a partir de", estoque no card)
 #  Catalogo: flamengoProductCatalog (Staged e Online), loja electronics-spa
 # =====================================================================
 $productCatalog=flamengoProductCatalog
@@ -34,11 +33,6 @@ INSERT_UPDATE VariantValueCategory;code[unique=true];$catalogVersion;name[lang=p
 ;tam-g;;G;L;tamanho-camisa;3
 ;tam-gg;;GG;XL;tamanho-camisa;4
 
-UPDATE Product;code[unique=true];$catalogVersion;name[lang=en];summary[lang=en]
-;FLA-PAL-20261019;;Flamengo x Palmeiras · 19 OCT · 8pm;Brasileirão · Round 31 · Maracanã
-;FLA-RAC-20261022;;Flamengo x Racing · 22 OCT · 9:30pm;Copa · Semifinal · Maracanã
-;FLA-FLU-20261101;;Flamengo x Fluminense · 1 NOV · 4pm;Brasileirão · Round 33 · Maracanã
-
 INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];description[lang=pt];$supercategories;unit(code)[default=pieces];$approved
 ;FLA-EST-MARACANA;;Estacionamento Maracanã;Maracanã parking;A 300 m do portão · vaga garantida;Vaga garantida no estacionamento do Maracanã no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
 ;FLA-EST-UERJ;;Estacionamento UERJ;UERJ parking;A 600 m do portão · saída rápida;Vaga garantida no estacionamento da UERJ no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
@@ -58,20 +52,6 @@ INSERT_UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;$baseProdu
 ;FLA-CAMISA-J2-2026-M;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · M;Away jersey 2026 · M;tam-m
 ;FLA-CAMISA-J2-2026-G;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · G;Away jersey 2026 · L;tam-g
 ;FLA-CAMISA-J2-2026-GG;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · GG;Away jersey 2026 · XL;tam-gg
-
-UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;name[lang=en]
-;FLA-PAL-20261019-NORTE;;Flamengo x Palmeiras · North
-;FLA-PAL-20261019-SUL;;Flamengo x Palmeiras · South
-;FLA-PAL-20261019-LESTE;;Flamengo x Palmeiras · East Lower
-;FLA-PAL-20261019-OESTE;;Flamengo x Palmeiras · West Upper
-;FLA-RAC-20261022-NORTE;;Flamengo x Racing · North
-;FLA-RAC-20261022-SUL;;Flamengo x Racing · South
-;FLA-RAC-20261022-LESTE;;Flamengo x Racing · East Lower
-;FLA-RAC-20261022-OESTE;;Flamengo x Racing · West Upper
-;FLA-FLU-20261101-NORTE;;Flamengo x Fluminense · North
-;FLA-FLU-20261101-SUL;;Flamengo x Fluminense · South
-;FLA-FLU-20261101-LESTE;;Flamengo x Fluminense · East Lower
-;FLA-FLU-20261101-OESTE;;Flamengo x Fluminense · West Upper
 
 #### ---------- mesmo bloco na versao Online ----------
 $catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Online'])[unique=true,default=$productCatalog:Online]
@@ -99,11 +79,6 @@ INSERT_UPDATE VariantValueCategory;code[unique=true];$catalogVersion;name[lang=p
 ;tam-g;;G;L;tamanho-camisa;3
 ;tam-gg;;GG;XL;tamanho-camisa;4
 
-UPDATE Product;code[unique=true];$catalogVersion;name[lang=en];summary[lang=en]
-;FLA-PAL-20261019;;Flamengo x Palmeiras · 19 OCT · 8pm;Brasileirão · Round 31 · Maracanã
-;FLA-RAC-20261022;;Flamengo x Racing · 22 OCT · 9:30pm;Copa · Semifinal · Maracanã
-;FLA-FLU-20261101;;Flamengo x Fluminense · 1 NOV · 4pm;Brasileirão · Round 33 · Maracanã
-
 INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];description[lang=pt];$supercategories;unit(code)[default=pieces];$approved
 ;FLA-EST-MARACANA;;Estacionamento Maracanã;Maracanã parking;A 300 m do portão · vaga garantida;Vaga garantida no estacionamento do Maracanã no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
 ;FLA-EST-UERJ;;Estacionamento UERJ;UERJ parking;A 600 m do portão · saída rápida;Vaga garantida no estacionamento da UERJ no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
@@ -124,26 +99,8 @@ INSERT_UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;$baseProdu
 ;FLA-CAMISA-J2-2026-G;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · G;Away jersey 2026 · L;tam-g
 ;FLA-CAMISA-J2-2026-GG;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · GG;Away jersey 2026 · XL;tam-gg
 
-UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;name[lang=en]
-;FLA-PAL-20261019-NORTE;;Flamengo x Palmeiras · North
-;FLA-PAL-20261019-SUL;;Flamengo x Palmeiras · South
-;FLA-PAL-20261019-LESTE;;Flamengo x Palmeiras · East Lower
-;FLA-PAL-20261019-OESTE;;Flamengo x Palmeiras · West Upper
-;FLA-RAC-20261022-NORTE;;Flamengo x Racing · North
-;FLA-RAC-20261022-SUL;;Flamengo x Racing · South
-;FLA-RAC-20261022-LESTE;;Flamengo x Racing · East Lower
-;FLA-RAC-20261022-OESTE;;Flamengo x Racing · West Upper
-;FLA-FLU-20261101-NORTE;;Flamengo x Fluminense · North
-;FLA-FLU-20261101-SUL;;Flamengo x Fluminense · South
-;FLA-FLU-20261101-LESTE;;Flamengo x Fluminense · East Lower
-;FLA-FLU-20261101-OESTE;;Flamengo x Fluminense · West Upper
-
 #### ---------- precos e estoque (valem para as duas versoes) ----------
-# Base dos jogos ganha preco "a partir de" e estoque so para o card da lista
 INSERT_UPDATE PriceRow;productId[unique=true];unit(code[unique=true,default=pieces]);currency(isocode)[unique=true];price;minqtd;unitFactor;net
-;FLA-PAL-20261019;;$currency;80;1;1;false
-;FLA-RAC-20261022;;$currency;80;1;1;false
-;FLA-FLU-20261101;;$currency;80;1;1;false
 ;FLA-EST-MARACANA;;$currency;60;1;1;false
 ;FLA-EST-UERJ;;$currency;45;1;1;false
 ;FLA-EST-MOTO;;$currency;25;1;1;false
@@ -160,9 +117,6 @@ INSERT_UPDATE PriceRow;productId[unique=true];unit(code[unique=true,default=piec
 ;FLA-CAMISA-J2-2026-GG;;$currency;349.90;1;1;false
 
 INSERT_UPDATE StockLevel;productCode[unique=true];warehouse(code)[unique=true,default=$warehouse];available;reserved;preOrder;maxPreOrder;maxStockLevelHistoryCount;inStockStatus(code)
-;FLA-PAL-20261019;;1000;0;0;0;0;notSpecified
-;FLA-RAC-20261022;;1000;0;0;0;0;notSpecified
-;FLA-FLU-20261101;;1000;0;0;0;0;notSpecified
 ;FLA-EST-MARACANA;;400;0;0;0;0;notSpecified
 ;FLA-EST-UERJ;;300;0;0;0;0;notSpecified
 ;FLA-EST-MOTO;;150;0;0;0;0;notSpecified

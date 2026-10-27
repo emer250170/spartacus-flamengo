@@ -3,13 +3,27 @@
  * Os dados vêm do catálogo flamengoProductCatalog pelas APIs OCC da loja.
  */
 
+export interface MatchdaySeat {
+  /** Código da variante da poltrona (ex.: JOGO-20261019-PAL-LESTE-D04) — vai para o carrinho */
+  code: string;
+  /** Rótulo da poltrona (ex.: D4) */
+  label: string;
+  row: string;
+  number: number;
+  /** Tem estoque (1) = livre; sem estoque = vendida */
+  available: boolean;
+}
+
 export interface MatchdaySector {
-  /** Código da variante (ex.: FLA-PAL-20261019-NORTE) — é o que vai para o carrinho */
+  /** Chave do setor (ex.: LESTE) ou, no modelo antigo por setor, o código da variante */
   code: string;
   name: string;
   description: string;
   price: number;
+  /** Lugares livres no setor */
   stock?: number;
+  /** Poltronas do setor (modelo "poltrona como produto"); vazio no modelo por setor */
+  seats: MatchdaySeat[];
 }
 
 export interface MatchdayMatch {
@@ -65,6 +79,8 @@ export interface MatchdaySelection {
   sectorCode: string;
   sectorName: string;
   seat: string;
+  /** Código do item de ingresso que foi para o carrinho (poltrona ou setor) */
+  ticketCode?: string;
   parkingCode?: string;
   parkingName?: string;
   plate?: string;

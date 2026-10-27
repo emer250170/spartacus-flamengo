@@ -40,15 +40,14 @@ export class MatchdayOrderConfirmationComponent {
   protected build(order: Order | undefined): MatchdayConfirmation | undefined {
     const selection = this.data.readSelection();
     const codes = (order?.entries ?? []).map((e) => e.product?.code);
-    if (!order || !selection || !codes.includes(selection.sectorCode)) {
+    const ticket = selection?.ticketCode ?? selection?.sectorCode;
+    if (!order || !selection || !ticket || !codes.includes(ticket)) {
       return undefined;
     }
     return {
       orderCode: order.code,
       selection,
-      qr: this.qrPattern(
-        `${order.code}-${selection.sectorCode}-${selection.seat}`
-      ),
+      qr: this.qrPattern(`${order.code}-${ticket}`),
     };
   }
 

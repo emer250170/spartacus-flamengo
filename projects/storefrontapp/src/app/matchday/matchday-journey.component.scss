@@ -635,3 +635,9 @@
 .md-sum-price {
   white-space: nowrap;
 }
+
+// setor esgotado
+.md-sector:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

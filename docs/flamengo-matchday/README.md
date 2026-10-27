@@ -4,6 +4,47 @@ Protótipo da jornada "Monte o seu dia de jogo": ingresso com setor e poltrona,
 estacionamento, comidas e bebidas e a Camisa Jogo 2 personalizada num só
 carrinho e num só pagamento, no SAP Commerce Cloud com Composable Storefront.
 
+## Modelo do ingresso: poltrona como produto
+
+Cada jogo é um produto com variantes em duas dimensões, **Setor > Poltrona**.
+A poltrona é a variante final, o item que vai para o carrinho, com estoque 1:
+
+```
+JOGO-20261019-PAL                     Flamengo x Palmeiras · 19 OUT · 20h00
+├── Setor Norte
+│   ├── JOGO-20261019-PAL-NORTE-A01   poltrona A1   R$ 80    estoque 1 (livre) / 0 (vendida)
+│   └── ...
+├── Setor Leste Inferior
+│   ├── JOGO-20261019-PAL-LESTE-D04   poltrona D4   R$ 160
+│   └── ...
+```
+
+O mapa do estádio fica num **template** (`FLA-TEMPLATE-MARACANA`, só na versão
+Staged e não aprovado, nunca aparece na loja). Ciclo de cada partida:
+
+1. **Abrir jogo** (`scripts/abrir-jogo.groovy`): copia o template para o jogo
+   novo, direto na versão Online, com adversário, data, preço por setor e
+   estoque 1 por poltrona; reindexa a busca (só o produto do jogo vai para o
+   índice, as poltronas não).
+2. **Vender**: a poltrona vendida fica sem estoque e aparece ocupada no mapa;
+   o pedido no Backoffice mostra o código da poltrona.
+3. **Fechar jogo** (`scripts/fechar-jogo.groovy`): tira o jogo da loja, apaga as
+   poltronas **não vendidas** (e as tira de carrinhos abandonados) e mantém as
+   **vendidas**, porque os pedidos apontam para elas (histórico, reembolso,
+   atendimento). Elas saem depois, com os pedidos antigos, pela política de
+   retenção de dados.
+
+Demo: 4 setores × 8 fileiras × 12 poltronas = 384 por jogo. Mesmo modelo para o
+Maracanã inteiro (~78 mil lugares), com três cuidados de produção:
+
+- **Reserva temporária**: o Commerce só baixa estoque no fechamento do pedido;
+  para jogos disputados é preciso segurar a poltrona por alguns minutos no
+  carrinho (desenvolvimento ou bilheteria).
+- **Estoque único** com bilheteria física, sócio e cortesias.
+- **Mapa por endpoint próprio**: a matriz de variantes da API OCC traz todas as
+  poltronas numa resposta (~380 KB para 384 lugares); para 78 mil lugares, o
+  mapa deve vir por setor, num endpoint dedicado.
+
 ## Front (este repositório)
 
 Código em `projects/storefrontapp/src/app/matchday/`, importado no `AppModule`.
@@ -11,21 +52,26 @@ Três componentes ligados ao CMS por `CMSFlexComponent` (`flexType`):
 
 | flexType | Onde aparece | O que faz |
 |---|---|---|
-| `MatchdayJourneyComponent` | página `/matchday` | stepper de 6 etapas com resumo lateral; no fim põe tudo no carrinho ativo e segue para o checkout padrão |
+| `MatchdayJourneyComponent` | página `/matchday` | stepper de 6 etapas com resumo lateral; o mapa lê as poltronas reais do jogo (livre = com estoque); no fim põe tudo no carrinho e segue para o checkout padrão |
 | `MatchdayHomeBannerComponent` | topo da home | faixa "Próximo jogo em casa" com acesso à jornada |
 | `MatchdayOrderConfirmationComponent` | confirmação do pedido | cartões de ingresso (QR ilustrativo), vaga, comida e camisa |
 
-Os dados (jogos, setores, preços, estoque) vêm das APIs OCC da loja. Poltrona,
-placa, forma de entrega da comida e nome/número da camisa não têm campo na
-linha de carrinho padrão: no protótipo ficam no `localStorage` do navegador e
-aparecem na confirmação. Em projeto, viram atributos da entrada do carrinho
-(extensão OCC) e integração com o sistema de ingressos.
+Placa do carro, forma de entrega da comida e nome/número da camisa não têm campo
+na linha de carrinho padrão: no protótipo ficam no `localStorage` do navegador e
+aparecem na confirmação.
 
-## Backend (HAC › Console › ImpEx Import, nesta ordem)
+## Backend (ordem para recriar o ambiente)
 
-1. `01-jogos.impex` — 3 jogos × 4 setores (variantes), Staged e Online
-2. `02-servicos-e-camisa.impex` — estacionamento, comidas, Camisa Jogo 2, personalização
+HAC › Console › ImpEx Import:
+
+1. `01-template-maracana.impex` — dimensões Setor > Poltrona e o template
+   (equivale a rodar `scripts/criar-template.groovy`)
+2. `02-servicos-e-camisa.impex` — categorias, estacionamento, comidas, Camisa Jogo 2, personalização
 3. `03-cms.impex` — página `/matchday`, banner da home, bloco da confirmação, item "Ingressos" no menu
-4. Rodar o `full-electronicsIndex-cronJob` para reindexar a busca
+
+HAC › Console › Scripting Languages (Groovy, modo commit):
+
+4. `scripts/abrir-jogo.groovy` — uma vez por jogo, ajustando o bloco `JOGO`
+5. `scripts/fechar-jogo.groovy` — depois da partida
 
 Loja: site `electronics-spa`, catálogo `flamengoProductCatalog`, BRL, estoque no `warehouse_s`.

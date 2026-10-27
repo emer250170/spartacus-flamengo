@@ -32,6 +32,8 @@ interface SeatCell {
   id: string;
   number: number;
   occupied: boolean;
+  /** Código da poltrona no catálogo (modelo poltrona como produto) */
+  code?: string;
 }
 
 const STEPS = [
@@ -72,6 +74,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   match?: MatchdayMatch;
   sector?: MatchdaySector;
   seat?: string;
+  /** Item de ingresso que vai para o carrinho: a poltrona (ou o setor, no modelo antigo) */
+  ticketCode?: string;
   seatMap: { row: string; seats: SeatCell[] }[] = [];
   parking = NO_PARKING;
   plate = '';
@@ -95,7 +99,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscription.add(
-      this.data.getCatalog().subscribe({
+      // recarrega a cada visita: a ocupação das poltronas muda a cada venda
+      this.data.getCatalog(true).subscribe({
         next: (catalog) => {
           this.catalog = catalog;
           this.loading = false;
@@ -176,6 +181,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       this.match = match;
       this.sector = undefined;
       this.seat = undefined;
+      this.ticketCode = undefined;
       this.seatMap = [];
     }
   }
@@ -186,21 +192,41 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (this.sector?.code !== sector.code) {
       this.sector = sector;
       this.seat = undefined;
-      this.seatMap = this.buildSeatMap(sector.code);
+      this.ticketCode = undefined;
+      this.seatMap = this.buildSeatMap(sector);
     }
   }
 
   selectSeat(cell: SeatCell): void {
     if (!cell.occupied) {
       this.seat = cell.id;
+      this.ticketCode = cell.code ?? this.sector?.code;
     }
   }
 
-  /** Ocupação ilustrativa e estável por setor (no projeto real vem do sistema de ingressos) */
   protected buildSeatMap(
-    sectorCode: string
+    sector: MatchdaySector
   ): { row: string; seats: SeatCell[] }[] {
-    const seed = Array.from(sectorCode).reduce(
+    if (sector.seats.length) {
+      // poltronas reais do catálogo: livre = tem estoque
+      const rows = new Map<string, SeatCell[]>();
+      for (const s of sector.seats) {
+        const cells = rows.get(s.row) ?? [];
+        cells.push({
+          id: s.label,
+          number: s.number,
+          occupied: !s.available,
+          code: s.code,
+        });
+        rows.set(s.row, cells);
+      }
+      return Array.from(rows.entries()).map(([row, seats]) => ({
+        row,
+        seats: seats.sort((a, b) => a.number - b.number),
+      }));
+    }
+    // modelo antigo (só setor): ocupação ilustrativa e estável
+    const seed = Array.from(sector.code).reduce(
       (a, c) => a + c.charCodeAt(0),
       0
     );
@@ -346,11 +372,17 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   // ---------- fechamento: tudo num carrinho só ----------
 
   checkout(): void {
-    if (!this.match || !this.sector || !this.seat || this.submitting) {
+    if (
+      !this.match ||
+      !this.sector ||
+      !this.seat ||
+      !this.ticketCode ||
+      this.submitting
+    ) {
       return;
     }
     const entries: OrderEntry[] = [
-      { product: { code: this.sector.code }, quantity: 1 },
+      { product: { code: this.ticketCode }, quantity: 1 },
     ];
     const parking = this.parkingProduct;
     if (parking) {
@@ -378,6 +410,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       sectorCode: this.sector.code,
       sectorName: this.sector.name,
       seat: this.seat,
+      ticketCode: this.ticketCode,
       parkingCode: parking?.code,
       parkingName: parking?.name,
       plate: parking ? this.plate : undefined,
