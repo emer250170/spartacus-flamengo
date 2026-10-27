@@ -1,0 +1,195 @@
+// Tema Flamengo — identidade de https://www.flamengo.com.br (medida em 26/10/2026)
+// NAO clona o layout: o Spartacus monta a pagina via templates CMS do backend.
+//
+// MEDIDO no site de referencia (estilos computados, puppeteer):
+//   cabecalho e topbar  bg rgb(215,0,0) = #d70000 (token --color-primary-strong)
+//   hover/escuro        #b40000 (--color-primary-strongest)
+//   preto da marca      #1b1b1b (--color-neutral-00); rodape de apoio #111
+//   corpo               Archivo Narrow 16px; titulos Zalando Sans Expanded 600, CAIXA ALTA
+//   botao "Ingressos"   fundo preto, raio 4px; menu em caixa alta 600
+//   rodape              vermelho, com faixa listrada rubro-negra em cima
+//
+// Quase tudo leva !important: os CSS de feature (chunks lazy) entram no <head>
+// depois do styles.scss e ganham nos empates de especificidade.
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&family=Zalando+Sans+Expanded:wght@600;700&display=swap');
+
+:root {
+  --cx-color-primary: #d70000;
+  --cx-color-primary-accent: #b40000;
+  --cx-color-secondary: #1b1b1b;
+  --cx-color-text: #1b1b1b;
+  --cx-color-background-dark: #1b1b1b;
+  --cx-color-border-focus: #d70000;
+  --cx-color-visual-focus: #d70000;
+
+  --fla-vermelho: #d70000;
+  --fla-vermelho-escuro: #b40000;
+  --fla-preto: #1b1b1b;
+  --fla-fonte: 'Archivo Narrow', 'Open Sans', system-ui, sans-serif;
+  --fla-fonte-titulo: 'Zalando Sans Expanded', 'Archivo Narrow', system-ui, sans-serif;
+}
+
+html body, html body cx-storefront {
+  font-family: var(--fla-fonte) !important;
+  color: var(--fla-preto);
+}
+
+h1, h2, h3:not(.cx-product-name), .cx-page-title, cx-carousel h2, .cx-section-title {
+  font-family: var(--fla-fonte-titulo) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+}
+// nome de produto em card fica na fonte do corpo, como no site deles
+cx-product-carousel-item h3, cx-product-grid-item h2, cx-product-list-item h2 {
+  font-family: var(--fla-fonte) !important;
+  text-transform: none !important;
+}
+
+// --- cabecalho --------------------------------------------------------------
+// MEDIDO: o Spartacus pinta o header com um gradiente (--cx-color-light em cima,
+// --cx-color-background-dark nos 67px da navegacao). Trocamos o gradiente
+// direto em vez de mexer em --cx-color-light, que e usado em outros lugares.
+// A faixa preta da navegacao NAO vai no gradiente: a altura dela muda com a
+// fonte (MEDIDO: 67px com Open Sans, 71px com Archivo Narrow — sobrava um fio
+// vermelho). O slot NavigationBar se pinta e estende o preto ate as bordas.
+html header {
+  background: var(--fla-vermelho) !important;
+}
+@media (min-width: 992px) {
+  html header cx-page-slot.NavigationBar {
+    background: var(--fla-preto);
+    box-shadow: 0 0 0 100vmax var(--fla-preto);
+    clip-path: inset(0 -100vmax);
+  }
+}
+// MEDIDO: o <select> de idioma/moeda tem fundo #f1f1f1 — com texto branco some
+header .SiteContext select {
+  background-color: transparent !important;
+}
+header .SiteContext, header .SiteLinks,
+header .SiteContext label, header .SiteContext select, header .SiteContext cx-icon,
+header .SiteLinks a, header cx-login a, header cx-login .cx-login-greet {
+  color: #fff !important;
+}
+header .SiteLinks a { text-decoration: none !important; text-transform: uppercase; font-weight: 600; }
+header .SiteContext select option { color: var(--fla-preto); }
+
+// mini cart: no Spartacus e um bloco da cor primaria — sobre o header vermelho
+// sumiria; fica preto como o botao "Ingressos" do site deles.
+header cx-mini-cart a {
+  background: var(--fla-preto) !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+}
+
+header cx-searchbox > div, header cx-searchbox label, header cx-searchbox input {
+  border-radius: 0 !important;
+}
+header cx-searchbox label { border: none !important; background: #fff !important; }
+
+// navegacao: faixa preta, itens em caixa alta, sublinhado vermelho no hover
+html header cx-navigation-ui.flyout { background: var(--fla-preto) !important; }
+header cx-navigation-ui.flyout > nav > ul > li > cx-generic-link > a,
+header cx-navigation-ui.flyout > nav > ul > li > span,
+header cx-navigation-ui.flyout > nav > ul > li > button {
+  font-family: var(--fla-fonte) !important;
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  color: #fff !important;
+}
+@media (min-width: 992px) {
+  header cx-navigation-ui.flyout > nav > ul > li:hover > cx-generic-link > a,
+  header cx-navigation-ui.flyout > nav > ul > li:hover > span,
+  header cx-navigation-ui.flyout > nav > ul > li:hover > button {
+    color: #fff !important;
+    box-shadow: inset 0 -3px 0 var(--fla-vermelho);
+  }
+}
+
+// hamburguer (mobile) sobre fundo vermelho
+header .hamburger-inner, header .hamburger-inner::before, header .hamburger-inner::after,
+header .cx-hamburger.is-active .hamburger-inner,
+header .cx-hamburger.is-active .hamburger-inner::before,
+header .cx-hamburger.is-active .hamburger-inner::after {
+  background-color: #fff !important;
+}
+
+// --- logo -------------------------------------------------------------------
+// DOM medido: cx-page-slot.SiteLogo > cx-banner > cx-media > img; slot com 90px
+// fixos, que cortariam o lockup (125x60). O SVG deles e branco, feito para o
+// cabecalho vermelho — vai sem filtro.
+cx-page-slot.SiteLogo { width: auto !important; min-width: 110px !important; }
+cx-page-slot.SiteLogo cx-media, cx-page-slot.SiteLogo cx-banner { width: auto !important; }
+cx-page-slot.SiteLogo cx-media img,
+cx-page-slot.SiteLogo img {
+  content: url('/assets/logo-flamengo.svg') !important;
+  width: 100px !important;
+  height: 48px !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain;
+}
+
+// --- botoes: cantos quase retos (4px), caixa alta ----------------------------
+.btn, button.btn {
+  border-radius: 4px !important;
+  text-transform: uppercase !important;
+  font-family: var(--fla-fonte) !important;
+  font-weight: 700 !important;
+  letter-spacing: .02em;
+}
+.btn-primary, button.btn-primary, .btn.btn-primary {
+  background: var(--fla-vermelho) !important;
+  border-color: var(--fla-vermelho) !important;
+  color: #fff !important;
+}
+.btn-primary:hover, .btn.btn-primary:hover, .btn-primary:focus {
+  background: var(--fla-vermelho-escuro) !important;
+  border-color: var(--fla-vermelho-escuro) !important;
+}
+.btn-secondary, .btn.btn-secondary {
+  background: #fff !important;
+  border: 1px solid var(--fla-preto) !important;
+  color: var(--fla-preto) !important;
+}
+.btn-secondary:hover, .btn.btn-secondary:hover {
+  background: var(--fla-preto) !important;
+  color: #fff !important;
+}
+a { color: var(--fla-vermelho); }
+
+// --- produto ----------------------------------------------------------------
+.cx-product-price, .cx-price, cx-product-carousel-item .price {
+  color: var(--fla-preto) !important;
+  font-weight: 700 !important;
+}
+
+// --- rodape: vermelho com a faixa rubro-negra do site deles -----------------
+html cx-page-layout.footer {
+  background-color: var(--fla-vermelho) !important;
+  color: #fff !important;
+  border-top: 32px solid transparent;
+  border-image: linear-gradient(to bottom,
+    #000 0 6px, var(--fla-vermelho) 6px 10px, #000 10px 24px,
+    var(--fla-vermelho) 24px 26px, #000 26px 32px) 32 0 0 0 / 32px 0 0 0;
+}
+html cx-page-layout.footer a, html cx-page-layout.footer h5,
+html cx-page-layout.footer span, html cx-page-layout.footer p {
+  color: #fff !important;
+}
+html cx-page-layout.footer h5 {
+  font-family: var(--fla-fonte-titulo) !important;
+  text-transform: uppercase;
+}
+// MEDIDO: os links do rodape ficam num bloco com --cx-color-background-dark
+// (preto); no site deles o rodape e todo vermelho.
+html cx-page-layout.footer cx-footer-navigation,
+html cx-page-layout.footer cx-navigation-ui {
+  background: transparent !important;
+}
+html cx-page-layout.footer cx-paragraph, html cx-page-layout.footer .notice {
+  background: transparent !important;
+  color: #fff !important;
+}
