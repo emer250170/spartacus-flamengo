@@ -1,0 +1,179 @@
+# =====================================================================
+#  Matchday Flamengo - estacionamento, comidas e bebidas, Camisa Jogo 2
+#  + ajustes nos jogos (nome em ingles, preco "a partir de", estoque no card)
+#  Catalogo: flamengoProductCatalog (Staged e Online), loja electronics-spa
+# =====================================================================
+$productCatalog=flamengoProductCatalog
+$warehouse=warehouse_s
+$currency=BRL
+
+#### ---------- bloco repetido para Staged e Online ----------
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code,$catalogVersion)
+$baseProduct=baseProduct(code,$catalogVersion)
+$approved=approvalstatus(code)[default='approved']
+
+INSERT_UPDATE Category;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;allowedPrincipals(uid)[default='customergroup']
+;flamengo_ingressos;;Ingressos;Tickets;
+;flamengo_jogos_casa;;Jogos em casa;Home matches;flamengo_ingressos
+;flamengo_matchday;;Dia de jogo;Matchday;flamengo_ingressos
+;flamengo_md_estacionamento;;Estacionamento;Parking;flamengo_matchday
+;flamengo_md_comidas;;Comidas e bebidas;Food and drinks;flamengo_matchday
+
+INSERT_UPDATE VariantCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];hasImage;allowedPrincipals(uid)[default='customergroup']
+;setor;;Setor;Sector;false
+;tamanho-camisa;;Tamanho;Size;false
+
+INSERT_UPDATE VariantValueCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;sequence;allowedPrincipals(uid)[default='customergroup']
+;setor-norte;;Norte;North;setor;1
+;setor-sul;;Sul;South;setor;2
+;setor-leste-inf;;Leste Inferior;East Lower;setor;3
+;setor-oeste-sup;;Oeste Superior;West Upper;setor;4
+;tam-p;;P;S;tamanho-camisa;1
+;tam-m;;M;M;tamanho-camisa;2
+;tam-g;;G;L;tamanho-camisa;3
+;tam-gg;;GG;XL;tamanho-camisa;4
+
+UPDATE Product;code[unique=true];$catalogVersion;name[lang=en];summary[lang=en]
+;FLA-PAL-20261019;;Flamengo x Palmeiras · 19 OCT · 8pm;Brasileirão · Round 31 · Maracanã
+;FLA-RAC-20261022;;Flamengo x Racing · 22 OCT · 9:30pm;Copa · Semifinal · Maracanã
+;FLA-FLU-20261101;;Flamengo x Fluminense · 1 NOV · 4pm;Brasileirão · Round 33 · Maracanã
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];description[lang=pt];$supercategories;unit(code)[default=pieces];$approved
+;FLA-EST-MARACANA;;Estacionamento Maracanã;Maracanã parking;A 300 m do portão · vaga garantida;Vaga garantida no estacionamento do Maracanã no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
+;FLA-EST-UERJ;;Estacionamento UERJ;UERJ parking;A 600 m do portão · saída rápida;Vaga garantida no estacionamento da UERJ no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
+;FLA-EST-MOTO;;Estacionamento Moto;Motorcycle parking;Bolsão de motos ao lado do portão 18;Vaga para moto ao lado do portão 18 no dia do jogo.;flamengo_md_estacionamento
+;FLA-FOOD-COMBO;;Combo Burger + refrigerante;Burger combo + soda;Entrega na poltrona ou retirada no quiosque;Hambúrguer artesanal com refrigerante lata.;flamengo_md_comidas
+;FLA-FOOD-CERVEJA;;Cerveja 473 ml;Beer 473 ml;Entrega na poltrona ou retirada no quiosque;Cerveja lata 473 ml, venda proibida para menores de 18 anos.;flamengo_md_comidas
+;FLA-FOOD-AGUA;;Água mineral 500 ml;Still water 500 ml;Entrega na poltrona ou retirada no quiosque;Água mineral sem gás 500 ml.;flamengo_md_comidas
+;FLA-FOOD-PIPOCA;;Pipoca grande;Large popcorn;Entrega na poltrona ou retirada no quiosque;Pipoca salgada, balde grande.;flamengo_md_comidas
+;FLA-FOOD-PAOQUEIJO;;Pão de queijo (6 un.);Cheese bread (6 pcs);Entrega na poltrona ou retirada no quiosque;Seis pães de queijo quentinhos.;flamengo_md_comidas
+;FLA-PERSONALIZACAO;;Personalização nome e número;Name and number print;Nome e número nas costas;Personalização oficial da camisa com nome e número, retirada no estádio no dia do jogo.;flamengo_matchday
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];description[lang=pt];$supercategories;variantType(code);unit(code)[default=pieces];$approved
+;FLA-CAMISA-J2-2026;;Camisa Jogo 2 · 2026;Away jersey 2026;Personalize e retire no estádio no dia do jogo;Nova Camisa Jogo 2 da temporada 2026. Personalize com nome e número e retire no estádio, no dia do jogo.;flamengo_matchday,flamengo_c117,tamanho-camisa;GenericVariantProduct
+
+INSERT_UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;$baseProduct;name[lang=pt];name[lang=en];$supercategories;unit(code)[default=pieces];$approved
+;FLA-CAMISA-J2-2026-P;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · P;Away jersey 2026 · S;tam-p
+;FLA-CAMISA-J2-2026-M;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · M;Away jersey 2026 · M;tam-m
+;FLA-CAMISA-J2-2026-G;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · G;Away jersey 2026 · L;tam-g
+;FLA-CAMISA-J2-2026-GG;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · GG;Away jersey 2026 · XL;tam-gg
+
+UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;name[lang=en]
+;FLA-PAL-20261019-NORTE;;Flamengo x Palmeiras · North
+;FLA-PAL-20261019-SUL;;Flamengo x Palmeiras · South
+;FLA-PAL-20261019-LESTE;;Flamengo x Palmeiras · East Lower
+;FLA-PAL-20261019-OESTE;;Flamengo x Palmeiras · West Upper
+;FLA-RAC-20261022-NORTE;;Flamengo x Racing · North
+;FLA-RAC-20261022-SUL;;Flamengo x Racing · South
+;FLA-RAC-20261022-LESTE;;Flamengo x Racing · East Lower
+;FLA-RAC-20261022-OESTE;;Flamengo x Racing · West Upper
+;FLA-FLU-20261101-NORTE;;Flamengo x Fluminense · North
+;FLA-FLU-20261101-SUL;;Flamengo x Fluminense · South
+;FLA-FLU-20261101-LESTE;;Flamengo x Fluminense · East Lower
+;FLA-FLU-20261101-OESTE;;Flamengo x Fluminense · West Upper
+
+#### ---------- mesmo bloco na versao Online ----------
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Online'])[unique=true,default=$productCatalog:Online]
+$supercategories=supercategories(code,$catalogVersion)
+$baseProduct=baseProduct(code,$catalogVersion)
+
+INSERT_UPDATE Category;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;allowedPrincipals(uid)[default='customergroup']
+;flamengo_ingressos;;Ingressos;Tickets;
+;flamengo_jogos_casa;;Jogos em casa;Home matches;flamengo_ingressos
+;flamengo_matchday;;Dia de jogo;Matchday;flamengo_ingressos
+;flamengo_md_estacionamento;;Estacionamento;Parking;flamengo_matchday
+;flamengo_md_comidas;;Comidas e bebidas;Food and drinks;flamengo_matchday
+
+INSERT_UPDATE VariantCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];hasImage;allowedPrincipals(uid)[default='customergroup']
+;setor;;Setor;Sector;false
+;tamanho-camisa;;Tamanho;Size;false
+
+INSERT_UPDATE VariantValueCategory;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];$supercategories;sequence;allowedPrincipals(uid)[default='customergroup']
+;setor-norte;;Norte;North;setor;1
+;setor-sul;;Sul;South;setor;2
+;setor-leste-inf;;Leste Inferior;East Lower;setor;3
+;setor-oeste-sup;;Oeste Superior;West Upper;setor;4
+;tam-p;;P;S;tamanho-camisa;1
+;tam-m;;M;M;tamanho-camisa;2
+;tam-g;;G;L;tamanho-camisa;3
+;tam-gg;;GG;XL;tamanho-camisa;4
+
+UPDATE Product;code[unique=true];$catalogVersion;name[lang=en];summary[lang=en]
+;FLA-PAL-20261019;;Flamengo x Palmeiras · 19 OCT · 8pm;Brasileirão · Round 31 · Maracanã
+;FLA-RAC-20261022;;Flamengo x Racing · 22 OCT · 9:30pm;Copa · Semifinal · Maracanã
+;FLA-FLU-20261101;;Flamengo x Fluminense · 1 NOV · 4pm;Brasileirão · Round 33 · Maracanã
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];description[lang=pt];$supercategories;unit(code)[default=pieces];$approved
+;FLA-EST-MARACANA;;Estacionamento Maracanã;Maracanã parking;A 300 m do portão · vaga garantida;Vaga garantida no estacionamento do Maracanã no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
+;FLA-EST-UERJ;;Estacionamento UERJ;UERJ parking;A 600 m do portão · saída rápida;Vaga garantida no estacionamento da UERJ no dia do jogo. A placa é lida na entrada, sem papel.;flamengo_md_estacionamento
+;FLA-EST-MOTO;;Estacionamento Moto;Motorcycle parking;Bolsão de motos ao lado do portão 18;Vaga para moto ao lado do portão 18 no dia do jogo.;flamengo_md_estacionamento
+;FLA-FOOD-COMBO;;Combo Burger + refrigerante;Burger combo + soda;Entrega na poltrona ou retirada no quiosque;Hambúrguer artesanal com refrigerante lata.;flamengo_md_comidas
+;FLA-FOOD-CERVEJA;;Cerveja 473 ml;Beer 473 ml;Entrega na poltrona ou retirada no quiosque;Cerveja lata 473 ml, venda proibida para menores de 18 anos.;flamengo_md_comidas
+;FLA-FOOD-AGUA;;Água mineral 500 ml;Still water 500 ml;Entrega na poltrona ou retirada no quiosque;Água mineral sem gás 500 ml.;flamengo_md_comidas
+;FLA-FOOD-PIPOCA;;Pipoca grande;Large popcorn;Entrega na poltrona ou retirada no quiosque;Pipoca salgada, balde grande.;flamengo_md_comidas
+;FLA-FOOD-PAOQUEIJO;;Pão de queijo (6 un.);Cheese bread (6 pcs);Entrega na poltrona ou retirada no quiosque;Seis pães de queijo quentinhos.;flamengo_md_comidas
+;FLA-PERSONALIZACAO;;Personalização nome e número;Name and number print;Nome e número nas costas;Personalização oficial da camisa com nome e número, retirada no estádio no dia do jogo.;flamengo_matchday
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];description[lang=pt];$supercategories;variantType(code);unit(code)[default=pieces];$approved
+;FLA-CAMISA-J2-2026;;Camisa Jogo 2 · 2026;Away jersey 2026;Personalize e retire no estádio no dia do jogo;Nova Camisa Jogo 2 da temporada 2026. Personalize com nome e número e retire no estádio, no dia do jogo.;flamengo_matchday,flamengo_c117,tamanho-camisa;GenericVariantProduct
+
+INSERT_UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;$baseProduct;name[lang=pt];name[lang=en];$supercategories;unit(code)[default=pieces];$approved
+;FLA-CAMISA-J2-2026-P;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · P;Away jersey 2026 · S;tam-p
+;FLA-CAMISA-J2-2026-M;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · M;Away jersey 2026 · M;tam-m
+;FLA-CAMISA-J2-2026-G;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · G;Away jersey 2026 · L;tam-g
+;FLA-CAMISA-J2-2026-GG;;FLA-CAMISA-J2-2026;Camisa Jogo 2 · 2026 · GG;Away jersey 2026 · XL;tam-gg
+
+UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;name[lang=en]
+;FLA-PAL-20261019-NORTE;;Flamengo x Palmeiras · North
+;FLA-PAL-20261019-SUL;;Flamengo x Palmeiras · South
+;FLA-PAL-20261019-LESTE;;Flamengo x Palmeiras · East Lower
+;FLA-PAL-20261019-OESTE;;Flamengo x Palmeiras · West Upper
+;FLA-RAC-20261022-NORTE;;Flamengo x Racing · North
+;FLA-RAC-20261022-SUL;;Flamengo x Racing · South
+;FLA-RAC-20261022-LESTE;;Flamengo x Racing · East Lower
+;FLA-RAC-20261022-OESTE;;Flamengo x Racing · West Upper
+;FLA-FLU-20261101-NORTE;;Flamengo x Fluminense · North
+;FLA-FLU-20261101-SUL;;Flamengo x Fluminense · South
+;FLA-FLU-20261101-LESTE;;Flamengo x Fluminense · East Lower
+;FLA-FLU-20261101-OESTE;;Flamengo x Fluminense · West Upper
+
+#### ---------- precos e estoque (valem para as duas versoes) ----------
+# Base dos jogos ganha preco "a partir de" e estoque so para o card da lista
+INSERT_UPDATE PriceRow;productId[unique=true];unit(code[unique=true,default=pieces]);currency(isocode)[unique=true];price;minqtd;unitFactor;net
+;FLA-PAL-20261019;;$currency;80;1;1;false
+;FLA-RAC-20261022;;$currency;80;1;1;false
+;FLA-FLU-20261101;;$currency;80;1;1;false
+;FLA-EST-MARACANA;;$currency;60;1;1;false
+;FLA-EST-UERJ;;$currency;45;1;1;false
+;FLA-EST-MOTO;;$currency;25;1;1;false
+;FLA-FOOD-COMBO;;$currency;38;1;1;false
+;FLA-FOOD-CERVEJA;;$currency;18;1;1;false
+;FLA-FOOD-AGUA;;$currency;7;1;1;false
+;FLA-FOOD-PIPOCA;;$currency;15;1;1;false
+;FLA-FOOD-PAOQUEIJO;;$currency;12;1;1;false
+;FLA-PERSONALIZACAO;;$currency;40;1;1;false
+;FLA-CAMISA-J2-2026;;$currency;349.90;1;1;false
+;FLA-CAMISA-J2-2026-P;;$currency;349.90;1;1;false
+;FLA-CAMISA-J2-2026-M;;$currency;349.90;1;1;false
+;FLA-CAMISA-J2-2026-G;;$currency;349.90;1;1;false
+;FLA-CAMISA-J2-2026-GG;;$currency;349.90;1;1;false
+
+INSERT_UPDATE StockLevel;productCode[unique=true];warehouse(code)[unique=true,default=$warehouse];available;reserved;preOrder;maxPreOrder;maxStockLevelHistoryCount;inStockStatus(code)
+;FLA-PAL-20261019;;1000;0;0;0;0;notSpecified
+;FLA-RAC-20261022;;1000;0;0;0;0;notSpecified
+;FLA-FLU-20261101;;1000;0;0;0;0;notSpecified
+;FLA-EST-MARACANA;;400;0;0;0;0;notSpecified
+;FLA-EST-UERJ;;300;0;0;0;0;notSpecified
+;FLA-EST-MOTO;;150;0;0;0;0;notSpecified
+;FLA-FOOD-COMBO;;5000;0;0;0;0;notSpecified
+;FLA-FOOD-CERVEJA;;5000;0;0;0;0;notSpecified
+;FLA-FOOD-AGUA;;5000;0;0;0;0;notSpecified
+;FLA-FOOD-PIPOCA;;5000;0;0;0;0;notSpecified
+;FLA-FOOD-PAOQUEIJO;;5000;0;0;0;0;notSpecified
+;FLA-PERSONALIZACAO;;5000;0;0;0;0;notSpecified
+;FLA-CAMISA-J2-2026;;500;0;0;0;0;notSpecified
+;FLA-CAMISA-J2-2026-P;;200;0;0;0;0;notSpecified
+;FLA-CAMISA-J2-2026-M;;300;0;0;0;0;notSpecified
+;FLA-CAMISA-J2-2026-G;;300;0;0;0;0;notSpecified
+;FLA-CAMISA-J2-2026-GG;;150;0;0;0;0;notSpecified

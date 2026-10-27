@@ -1,0 +1,449 @@
+<section class="md" aria-labelledby="md-title">
+  <header class="md-hero">
+    <div class="md-wrap">
+      <p class="md-eyebrow">Matchday</p>
+      <h1 id="md-title" class="md-title">Monte o seu dia de jogo</h1>
+      <p class="md-lead">
+        Ingresso, estacionamento, comida e a camisa nova — tudo num só carrinho
+        e num só pagamento.
+      </p>
+    </div>
+  </header>
+
+  <div class="md-wrap">
+    <div *ngIf="loading" class="md-state" role="status">
+      <cx-spinner></cx-spinner>
+      <p>Carregando os próximos jogos…</p>
+    </div>
+
+    <div *ngIf="!loading && loadError" class="md-state" role="alert">
+      <p>Não encontramos jogos com ingressos à venda agora.</p>
+    </div>
+
+    <ng-container *ngIf="!loading && !loadError && catalog as cat">
+      <nav class="md-steps" aria-label="Etapas do dia de jogo">
+        <ol>
+          <li *ngFor="let label of steps; let i = index">
+            <button
+              type="button"
+              class="md-step"
+              [class.is-active]="i === step"
+              [class.is-done]="i < step"
+              [disabled]="!canOpen(i)"
+              [attr.aria-current]="i === step ? 'step' : null"
+              (click)="goTo(i)"
+            >
+              <span class="md-step-num" aria-hidden="true">{{ i + 1 }}</span>
+              <span class="md-step-label">{{ label }}</span>
+            </button>
+          </li>
+        </ol>
+      </nav>
+
+      <div class="md-grid">
+        <div class="md-main">
+          <!-- 1. Jogo -->
+          <section *ngIf="step === 0" class="md-panel" aria-labelledby="md-s1">
+            <h2 id="md-s1" class="md-h2">Escolha o jogo</h2>
+            <p class="md-muted">
+              Próximos jogos em casa com ingressos disponíveis.
+            </p>
+            <div class="md-list">
+              <button
+                type="button"
+                *ngFor="let m of cat.matches; trackBy: trackByCode"
+                class="md-card md-match"
+                [class.is-selected]="match?.code === m.code"
+                [attr.aria-pressed]="match?.code === m.code"
+                (click)="selectMatch(m)"
+              >
+                <span class="md-date">
+                  <span class="md-date-day">{{ m.weekday }}</span>
+                  <span class="md-date-num">{{ m.dateLabel }}</span>
+                </span>
+                <span class="md-match-body">
+                  <span class="md-small">{{ m.competition }}</span>
+                  <span class="md-match-title"
+                    >Flamengo x {{ m.opponent }}</span
+                  >
+                  <span class="md-small"
+                    >{{ m.timeLabel }} · {{ m.venue }} · a partir de
+                    {{ brl(m.minPrice) }}</span
+                  >
+                </span>
+                <span
+                  class="md-tag"
+                  [class.is-hot]="m.tag === 'Últimos ingressos'"
+                  >{{ m.tag }}</span
+                >
+              </button>
+            </div>
+          </section>
+
+          <!-- 2. Setor e poltrona -->
+          <section
+            *ngIf="step === 1 && match"
+            class="md-panel"
+            aria-labelledby="md-s2"
+          >
+            <h2 id="md-s2" class="md-h2">Setor e poltrona</h2>
+            <p class="md-muted">{{ match.title }} · {{ matchLine }}</p>
+            <div class="md-sectors">
+              <button
+                type="button"
+                *ngFor="let s of match.sectors; trackBy: trackByCode"
+                class="md-card md-sector"
+                [class.is-selected]="sector?.code === s.code"
+                [attr.aria-pressed]="sector?.code === s.code"
+                (click)="selectSector(s)"
+              >
+                <span class="md-sector-name">{{ s.name }}</span>
+                <span class="md-small">{{ s.description }}</span>
+                <span class="md-price">{{ brl(s.price) }}</span>
+                <span
+                  *ngIf="s.stock !== undefined && s.stock < 20"
+                  class="md-small md-warn"
+                >
+                  Restam {{ s.stock }} lugares
+                </span>
+              </button>
+            </div>
+
+            <div *ngIf="sector" class="md-seatmap">
+              <div class="md-field" aria-hidden="true">CAMPO</div>
+              <div
+                class="md-rows"
+                role="group"
+                [attr.aria-label]="'Poltronas do setor ' + sector.name"
+              >
+                <div class="md-row" *ngFor="let r of seatMap">
+                  <span class="md-row-label" aria-hidden="true">{{
+                    r.row
+                  }}</span>
+                  <button
+                    type="button"
+                    *ngFor="let c of r.seats"
+                    class="md-seat"
+                    [class.is-occupied]="c.occupied"
+                    [class.is-mine]="seat === c.id"
+                    [disabled]="c.occupied"
+                    [attr.aria-pressed]="seat === c.id"
+                    [attr.aria-label]="
+                      'Fileira ' +
+                      r.row +
+                      ', poltrona ' +
+                      c.number +
+                      (c.occupied
+                        ? ', ocupada'
+                        : seat === c.id
+                          ? ', selecionada'
+                          : ', livre')
+                    "
+                    (click)="selectSeat(c)"
+                  >
+                    {{ c.number }}
+                  </button>
+                </div>
+              </div>
+              <ul class="md-legend">
+                <li><span class="md-dot"></span> Livre</li>
+                <li><span class="md-dot is-mine"></span> Sua poltrona</li>
+                <li><span class="md-dot is-occupied"></span> Ocupada</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- 3. Estacionamento -->
+          <section *ngIf="step === 2" class="md-panel" aria-labelledby="md-s3">
+            <h2 id="md-s3" class="md-h2">Estacionamento</h2>
+            <p class="md-muted">
+              Garanta a vaga junto com o ingresso. A placa é lida na entrada —
+              sem papel.
+            </p>
+            <div class="md-list">
+              <button
+                type="button"
+                class="md-card md-option"
+                [class.is-selected]="parking === noParking"
+                [attr.aria-pressed]="parking === noParking"
+                (click)="parking = noParking"
+              >
+                <span class="md-option-body">
+                  <span class="md-option-name">Não preciso</span>
+                  <span class="md-small"
+                    >Vou de metrô, ônibus ou aplicativo</span
+                  >
+                </span>
+                <span class="md-price">{{ brl(0) }}</span>
+              </button>
+              <button
+                type="button"
+                *ngFor="let p of cat.parking; trackBy: trackByCode"
+                class="md-card md-option"
+                [class.is-selected]="parking === p.code"
+                [attr.aria-pressed]="parking === p.code"
+                (click)="parking = p.code"
+              >
+                <span class="md-option-body">
+                  <span class="md-option-name">{{ p.name }}</span>
+                  <span class="md-small">{{ p.summary }}</span>
+                </span>
+                <span class="md-price">{{ brl(p.price) }}</span>
+              </button>
+            </div>
+            <div *ngIf="parking !== noParking" class="md-input">
+              <label for="md-plate">Placa do veículo</label>
+              <input
+                id="md-plate"
+                type="text"
+                autocomplete="off"
+                placeholder="ABC1D23"
+                [(ngModel)]="plate"
+                (ngModelChange)="normalizePlate()"
+                [attr.aria-invalid]="plate && !plateValid"
+                aria-describedby="md-plate-help"
+              />
+              <span
+                id="md-plate-help"
+                class="md-small"
+                [class.md-warn]="plate && !plateValid"
+              >
+                {{
+                  plate && !plateValid
+                    ? 'Confira a placa (ex.: ABC1D23).'
+                    : 'Padrão Mercosul ou antigo.'
+                }}
+              </span>
+            </div>
+          </section>
+
+          <!-- 4. Comidas e bebidas -->
+          <section *ngIf="step === 3" class="md-panel" aria-labelledby="md-s4">
+            <h2 id="md-s4" class="md-h2">Comidas e bebidas</h2>
+            <p class="md-muted">Peça agora e não pegue fila no estádio.</p>
+            <div class="md-list">
+              <div
+                class="md-card md-food"
+                *ngFor="let f of cat.food; trackBy: trackByCode"
+              >
+                <span class="md-option-body">
+                  <span class="md-option-name">{{ f.name }}</span>
+                  <span class="md-small">
+                    {{ brl(f.price) }}
+                    <span *ngIf="f.recommended" class="md-reco"
+                      >· Recomendado para você</span
+                    >
+                  </span>
+                </span>
+                <span class="md-qty">
+                  <button
+                    type="button"
+                    [disabled]="qty(f.code) === 0"
+                    (click)="changeQty(f.code, -1)"
+                    [attr.aria-label]="'Remover ' + f.name"
+                  >
+                    −
+                  </button>
+                  <span aria-live="polite">{{ qty(f.code) }}</span>
+                  <button
+                    type="button"
+                    (click)="changeQty(f.code, 1)"
+                    [attr.aria-label]="'Adicionar ' + f.name"
+                  >
+                    +
+                  </button>
+                </span>
+              </div>
+            </div>
+            <fieldset class="md-radios">
+              <legend>Como quer receber?</legend>
+              <label
+                ><input
+                  type="radio"
+                  name="md-deliv"
+                  value="seat"
+                  [(ngModel)]="foodDelivery"
+                />
+                Entregar na poltrona no intervalo</label
+              >
+              <label
+                ><input
+                  type="radio"
+                  name="md-deliv"
+                  value="pickup"
+                  [(ngModel)]="foodDelivery"
+                />
+                Retirar no quiosque do setor</label
+              >
+            </fieldset>
+          </section>
+
+          <!-- 5. Camisa -->
+          <section *ngIf="step === 4" class="md-panel" aria-labelledby="md-s5">
+            <h2 id="md-s5" class="md-h2">A camisa nova</h2>
+            <p class="md-muted">
+              Personalize e retire no estádio, no dia do jogo.
+            </p>
+            <div *ngIf="cat.shirt as shirt; else noShirt" class="md-shirt">
+              <div class="md-shirt-art" aria-hidden="true">
+                <svg viewBox="0 0 200 220" class="md-shirt-svg">
+                  <path
+                    d="M60 10 L30 25 L5 70 L35 85 L45 65 L45 210 L155 210 L155 65 L165 85 L195 70 L170 25 L140 10 Q100 40 60 10 Z"
+                  />
+                  <g class="md-stripes">
+                    <rect x="45" y="70" width="110" height="14" />
+                    <rect x="45" y="100" width="110" height="14" />
+                    <rect x="45" y="130" width="110" height="14" />
+                    <rect x="45" y="160" width="110" height="14" />
+                  </g>
+                </svg>
+                <span class="md-shirt-name">{{ shirtName || 'SEU NOME' }}</span>
+                <span class="md-shirt-number">{{ shirtNumber || '10' }}</span>
+              </div>
+              <div class="md-shirt-form">
+                <p class="md-option-name">{{ shirt.name }}</p>
+                <p class="md-price">{{ brl(shirt.price) }}</p>
+                <fieldset class="md-sizes">
+                  <legend>Tamanho</legend>
+                  <label
+                    *ngFor="let z of shirt.sizes"
+                    class="md-size"
+                    [class.is-selected]="shirtSize === z.label"
+                  >
+                    <input
+                      type="radio"
+                      name="md-size"
+                      [value]="z.label"
+                      [(ngModel)]="shirtSize"
+                    />
+                    {{ z.label }}
+                  </label>
+                </fieldset>
+                <div class="md-input">
+                  <label for="md-sname">Nome nas costas</label>
+                  <input
+                    id="md-sname"
+                    type="text"
+                    maxlength="12"
+                    [(ngModel)]="shirtName"
+                    (ngModelChange)="normalizeShirt()"
+                  />
+                </div>
+                <div class="md-input">
+                  <label for="md-snum">Número</label>
+                  <input
+                    id="md-snum"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="2"
+                    [(ngModel)]="shirtNumber"
+                    (ngModelChange)="normalizeShirt()"
+                  />
+                </div>
+                <p *ngIf="shirt.personalization" class="md-small">
+                  Personalização: + {{ brl(shirt.personalization.price) }}
+                </p>
+                <button
+                  type="button"
+                  class="md-btn"
+                  [class.md-btn-ghost]="addShirt"
+                  (click)="addShirt = !addShirt"
+                >
+                  {{
+                    addShirt
+                      ? 'Remover a camisa do pedido'
+                      : 'Adicionar a camisa ao pedido'
+                  }}
+                </button>
+              </div>
+            </div>
+            <ng-template #noShirt
+              ><p class="md-muted">
+                A camisa nova não está disponível agora.
+              </p></ng-template
+            >
+          </section>
+
+          <!-- 6. Revisão -->
+          <section *ngIf="step === 5" class="md-panel" aria-labelledby="md-s6">
+            <h2 id="md-s6" class="md-h2">Um pedido, um pagamento</h2>
+            <p class="md-muted">
+              Confira o seu dia de jogo. Ao seguir, tudo entra no mesmo carrinho
+              e você paga uma vez só no checkout.
+            </p>
+            <ul class="md-review">
+              <li *ngFor="let l of lines">
+                <span>
+                  <strong>{{ l.label }}</strong>
+                  <span class="md-small">{{ l.detail }}</span>
+                </span>
+                <span>{{ brl(l.price) }}</span>
+              </li>
+            </ul>
+            <p class="md-review-total">
+              Total <strong>{{ brl(total) }}</strong>
+            </p>
+            <button
+              type="button"
+              class="md-btn md-btn-big"
+              [disabled]="submitting"
+              (click)="checkout()"
+            >
+              {{
+                submitting ? 'Montando o seu pedido…' : 'Ir para o pagamento'
+              }}
+            </button>
+          </section>
+
+          <div class="md-actions" *ngIf="step < steps.length - 1">
+            <button
+              type="button"
+              class="md-btn md-btn-ghost"
+              [disabled]="step === 0"
+              (click)="back()"
+            >
+              Voltar
+            </button>
+            <button
+              type="button"
+              class="md-btn"
+              [disabled]="nextDisabled"
+              (click)="next()"
+            >
+              {{ nextLabel }}
+            </button>
+          </div>
+          <div class="md-actions" *ngIf="step === steps.length - 1">
+            <button type="button" class="md-btn md-btn-ghost" (click)="back()">
+              Voltar
+            </button>
+          </div>
+        </div>
+
+        <aside class="md-summary" aria-label="Seu pedido">
+          <h2 class="md-h3">Seu pedido</h2>
+          <p *ngIf="!lines.length" class="md-muted">
+            Escolha um jogo para começar.
+          </p>
+          <ul *ngIf="lines.length">
+            <li *ngFor="let l of lines">
+              <span>
+                <span class="md-sum-label">{{ l.label }}</span>
+                <span class="md-small">{{ l.detail }}</span>
+              </span>
+              <span class="md-sum-price">{{ brl(l.price) }}</span>
+            </li>
+          </ul>
+          <p class="md-sum-total">
+            <span>Total</span>
+            <strong>{{ brl(total) }}</strong>
+          </p>
+          <p class="md-small">
+            {{ itemCount }} {{ itemCount === 1 ? 'item' : 'itens' }} · um só
+            pagamento
+          </p>
+        </aside>
+      </div>
+    </ng-container>
+  </div>
+</section>

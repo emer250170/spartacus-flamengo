@@ -1,0 +1,74 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.mdc {
+  margin: 24px 0;
+  padding: 24px;
+  border-radius: 12px;
+  background: #0b0b0c;
+  color: #f4f4f5;
+}
+
+.mdc-title {
+  margin: 0 0 4px;
+  color: #fff;
+}
+
+.mdc-sub {
+  margin: 0 0 20px;
+  color: #a1a1aa;
+}
+
+.mdc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.mdc-card {
+  padding: 16px;
+  border: 1px solid #2e2e33;
+  border-radius: 10px;
+  background: #18181b;
+
+  p {
+    margin: 0 0 4px;
+  }
+}
+
+.mdc-ticket {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  grid-column: 1 / -1;
+  border-color: var(--fla-vermelho, #d70000);
+}
+
+.mdc-kind {
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mdc-name {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mdc-detail {
+  color: #d4d4d8;
+}
+
+.mdc-qr {
+  flex: none;
+  width: 120px;
+  height: 120px;
+  padding: 6px;
+  border-radius: 6px;
+  background: #fff;
+}

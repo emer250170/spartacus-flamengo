@@ -1,0 +1,91 @@
+<section
+  *ngIf="confirmation$ | async as c"
+  class="mdc"
+  aria-labelledby="mdc-title"
+>
+  <h2 id="mdc-title" class="mdc-title">Tudo pronto para o jogo</h2>
+  <p class="mdc-sub">
+    Pedido nº {{ c.orderCode }} · ingresso, vaga, comida e camisa num só pedido.
+  </p>
+
+  <div class="mdc-grid">
+    <article class="mdc-card mdc-ticket">
+      <div>
+        <p class="mdc-kind">Ingresso</p>
+        <p class="mdc-name">{{ c.selection.matchTitle }}</p>
+        <p class="mdc-detail">{{ c.selection.matchLine }}</p>
+        <p class="mdc-detail">
+          Setor {{ c.selection.sectorName }} · Poltrona {{ c.selection.seat }}
+        </p>
+      </div>
+      <svg
+        class="mdc-qr"
+        viewBox="0 0 21 21"
+        role="img"
+        aria-label="QR code ilustrativo do ingresso"
+        shape-rendering="crispEdges"
+      >
+        <rect width="21" height="21" fill="#fff"></rect>
+        <ng-container *ngFor="let row of c.qr; let r = index">
+          <ng-container *ngFor="let on of row; let col = index">
+            <rect
+              *ngIf="on"
+              [attr.x]="col"
+              [attr.y]="r"
+              width="1"
+              height="1"
+              fill="#0b0b0c"
+            ></rect>
+          </ng-container>
+        </ng-container>
+      </svg>
+    </article>
+
+    <article class="mdc-card">
+      <p class="mdc-kind">Estacionamento</p>
+      <ng-container *ngIf="c.selection.parkingName; else noPark">
+        <p class="mdc-name">{{ c.selection.parkingName }}</p>
+        <p class="mdc-detail">
+          Placa {{ c.selection.plate }} · liberada na entrada
+        </p>
+      </ng-container>
+      <ng-template #noPark
+        ><p class="mdc-detail">Sem vaga reservada.</p></ng-template
+      >
+    </article>
+
+    <article class="mdc-card">
+      <p class="mdc-kind">Comidas e bebidas</p>
+      <ng-container *ngIf="c.selection.food.length; else noFood">
+        <p class="mdc-name">{{ foodTotal(c.selection) }} itens</p>
+        <p class="mdc-detail">
+          {{
+            c.selection.foodDelivery === 'seat'
+              ? 'Entrega na poltrona ' + c.selection.seat + ' no intervalo'
+              : 'Retirada no quiosque do setor ' + c.selection.sectorName
+          }}
+        </p>
+      </ng-container>
+      <ng-template #noFood
+        ><p class="mdc-detail">Nenhum pedido antecipado.</p></ng-template
+      >
+    </article>
+
+    <article class="mdc-card">
+      <p class="mdc-kind">Camisa</p>
+      <ng-container *ngIf="c.selection.shirtCode; else noShirt">
+        <p class="mdc-name">Camisa Jogo 2 · {{ c.selection.shirtSize }}</p>
+        <p class="mdc-detail">
+          {{
+            c.selection.shirtName || c.selection.shirtNumber
+              ? c.selection.shirtName + ' ' + c.selection.shirtNumber + ' · '
+              : ''
+          }}retire no estádio no dia do jogo
+        </p>
+      </ng-container>
+      <ng-template #noShirt
+        ><p class="mdc-detail">Não incluída neste pedido.</p></ng-template
+      >
+    </article>
+  </div>
+</section>

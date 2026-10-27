@@ -1,0 +1,68 @@
+# =====================================================================
+#  Matchday Flamengo - CMS (electronics-spaContentCatalog, Staged e Online)
+#  - pagina de conteudo /matchday com a jornada
+#  - banner "Proximo jogo em casa" no topo da home
+#  - bloco "Tudo pronto para o jogo" na confirmacao do pedido
+#  - item "Ingressos" no menu principal
+# =====================================================================
+$contentCatalog=electronics-spaContentCatalog
+
+#### ---------- Staged ----------
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+
+INSERT_UPDATE CMSFlexComponent;$contentCV[unique=true];uid[unique=true];name;flexType
+;;MatchdayJourneyComponent;Matchday - jornada;MatchdayJourneyComponent
+;;MatchdayHomeBannerComponent;Matchday - banner da home;MatchdayHomeBannerComponent
+;;MatchdayOrderConfirmationComponent;Matchday - confirmacao do pedido;MatchdayOrderConfirmationComponent
+
+INSERT_UPDATE ContentPage;$contentCV[unique=true];uid[unique=true];name;masterTemplate(uid,$contentCV);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;matchdayPage;Matchday;LandingPage2Template;/matchday;;;;Monte o seu dia de jogo;Build your matchday
+
+INSERT_UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];name;active;cmsComponents(uid,$contentCV)
+;;Section1Slot-Matchday;Matchday Section1;true;MatchdayJourneyComponent
+
+INSERT_UPDATE ContentSlotForPage;$contentCV[unique=true];uid[unique=true];position[unique=true];page(uid,$contentCV)[unique=true];contentSlot(uid,$contentCV)[unique=true]
+;;Section1-Matchday;Section1;matchdayPage;Section1Slot-Matchday
+
+UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];cmsComponents(uid,$contentCV)
+;;Section1Slot-Homepage;MatchdayHomeBannerComponent,ElectronicsHompageSplashBannerComponent,ElectronicsHompageDiscountBannerComponent
+;;BodyContent-orderConfirmation;OrderConfirmationThankMessageComponent,MatchdayOrderConfirmationComponent,OrderConfirmationShippingComponent,OrderConfirmationPickUpComponent,ExportOrderEntriesComponent,OrderConfirmationBillingComponent,OrderConfirmationTotalsComponent,OrderConfirmationContinueButtonComponent
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;linkName[lang=pt];linkName[lang=en]
+;;FlaIngressosLink;Link Ingressos;/matchday;Ingressos;Tickets
+
+INSERT_UPDATE CMSNavigationNode;$contentCV[unique=true];uid[unique=true];name;title[lang=pt];title[lang=en];parent(uid,$contentCV)
+;;FlaIngressosNavNode;Ingressos;Ingressos;Tickets;FlamengoCategoryNavNode
+
+INSERT_UPDATE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true];name;navigationNode(uid,$contentCV);item(CMSLinkComponent.uid,CMSLinkComponent.catalogVersion(CatalogVersion.catalog(Catalog.id),CatalogVersion.version))
+;;FlaIngressosEntry;Ingressos;FlaIngressosNavNode;FlaIngressosLink:electronics-spaContentCatalog:Staged
+
+#### ---------- Online ----------
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Online])[default=$contentCatalog:Online]
+
+INSERT_UPDATE CMSFlexComponent;$contentCV[unique=true];uid[unique=true];name;flexType
+;;MatchdayJourneyComponent;Matchday - jornada;MatchdayJourneyComponent
+;;MatchdayHomeBannerComponent;Matchday - banner da home;MatchdayHomeBannerComponent
+;;MatchdayOrderConfirmationComponent;Matchday - confirmacao do pedido;MatchdayOrderConfirmationComponent
+
+INSERT_UPDATE ContentPage;$contentCV[unique=true];uid[unique=true];name;masterTemplate(uid,$contentCV);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;matchdayPage;Matchday;LandingPage2Template;/matchday;;;;Monte o seu dia de jogo;Build your matchday
+
+INSERT_UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];name;active;cmsComponents(uid,$contentCV)
+;;Section1Slot-Matchday;Matchday Section1;true;MatchdayJourneyComponent
+
+INSERT_UPDATE ContentSlotForPage;$contentCV[unique=true];uid[unique=true];position[unique=true];page(uid,$contentCV)[unique=true];contentSlot(uid,$contentCV)[unique=true]
+;;Section1-Matchday;Section1;matchdayPage;Section1Slot-Matchday
+
+UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];cmsComponents(uid,$contentCV)
+;;Section1Slot-Homepage;MatchdayHomeBannerComponent,ElectronicsHompageSplashBannerComponent,ElectronicsHompageDiscountBannerComponent
+;;BodyContent-orderConfirmation;OrderConfirmationThankMessageComponent,MatchdayOrderConfirmationComponent,OrderConfirmationShippingComponent,OrderConfirmationPickUpComponent,ExportOrderEntriesComponent,OrderConfirmationBillingComponent,OrderConfirmationTotalsComponent,OrderConfirmationContinueButtonComponent
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;linkName[lang=pt];linkName[lang=en]
+;;FlaIngressosLink;Link Ingressos;/matchday;Ingressos;Tickets
+
+INSERT_UPDATE CMSNavigationNode;$contentCV[unique=true];uid[unique=true];name;title[lang=pt];title[lang=en];parent(uid,$contentCV)
+;;FlaIngressosNavNode;Ingressos;Ingressos;Tickets;FlamengoCategoryNavNode
+
+INSERT_UPDATE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true];name;navigationNode(uid,$contentCV);item(CMSLinkComponent.uid,CMSLinkComponent.catalogVersion(CatalogVersion.catalog(Catalog.id),CatalogVersion.version))
+;;FlaIngressosEntry;Ingressos;FlaIngressosNavNode;FlaIngressosLink:electronics-spaContentCatalog:Online

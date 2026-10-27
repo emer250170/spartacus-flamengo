@@ -31,6 +31,7 @@ import { GOOGLE_MAPS_DEVELOPMENT_KEY_CONFIG } from '@spartacus/storefinder/root'
 import { AppRoutingModule, StorefrontComponent } from '@spartacus/storefront';
 import { environment } from '../environments/environment';
 import { TestOutletModule } from '../test-outlets/test-outlet.module';
+import { MatchdayModule } from './matchday/matchday.module';
 import { SpartacusModule } from './spartacus/spartacus.module';
 
 registerLocaleData(localeDe);
@@ -49,6 +50,7 @@ if (!environment.production) {
     StoreModule.forRoot({}),
     EffectsModule.forRoot([]),
     SpartacusModule,
+    MatchdayModule,
     TestOutletModule, // custom usages of cxOutletRef only for e2e testing
     TestConfigModule.forRoot({ cookie: 'cxConfigE2E' }), // Injects config dynamically from e2e tests. Should be imported after other config modules.
 
