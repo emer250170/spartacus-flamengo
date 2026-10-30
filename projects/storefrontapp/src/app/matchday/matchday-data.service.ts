@@ -188,41 +188,34 @@ export class MatchdayDataService {
   }
 
   /**
-   * Lista de jogos: busca (nome, preço "a partir de") + descrição de cada jogo
-   * (datas das ondas de venda). Poltronas ficam para depois.
+   * Lista de jogos só pela busca: nome, preço "a partir de" e descrição (com as
+   * datas das ondas). MEDIDO (30/10): o detalhe do produto, mesmo pedindo só
+   * code,description, levava ~20 s com o cache frio — a API monta a matriz de
+   * 384 poltronas de qualquer jeito. A busca responde em ~0,3 s.
    */
   protected loadMatchList(): Observable<MatchdayMatch[]> {
-    return this.search(MATCHES_CATEGORY).pipe(
-      switchMap((products) =>
-        products.length
-          ? forkJoin(
-              products.map((p) =>
-                this.loadProduct(p.code, 'code,description').pipe(
-                  map((detail) =>
-                    this.toMatch({ ...p, description: detail?.description })
-                  )
-                )
-              )
-            )
-          : of([] as MatchdayMatch[])
-      ),
-      map((matches) =>
-        matches.sort((a, b) =>
-          this.dateKey(a.code).localeCompare(this.dateKey(b.code))
-        )
+    return this.search(MATCHES_CATEGORY, true).pipe(
+      map((products) =>
+        products
+          .map((p) => this.toMatch(p))
+          .sort((a, b) =>
+            this.dateKey(a.code).localeCompare(this.dateKey(b.code))
+          )
       )
     );
   }
 
-  protected search(category: string): Observable<OccProduct[]> {
+  protected search(
+    category: string,
+    withDescription = false
+  ): Observable<OccProduct[]> {
     const url = `${this.occEndpoints.getBaseUrl()}/products/search`;
     return this.http
       .get<OccSearchResult>(url, {
         params: {
           query: `:relevance:allCategories:${category}`,
           pageSize: '50',
-          fields:
-            'products(code,name,summary,price(value,formattedValue),stock(stockLevel,stockLevelStatus))',
+          fields: `products(code,name,summary,${withDescription ? 'description,' : ''}price(value,formattedValue),stock(stockLevel,stockLevelStatus))`,
         },
       })
       .pipe(
