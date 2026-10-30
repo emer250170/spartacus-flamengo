@@ -33,6 +33,7 @@ import { environment } from '../environments/environment';
 import { TestOutletModule } from '../test-outlets/test-outlet.module';
 import { MatchdayModule } from './matchday/matchday.module';
 import { SocioModule } from './socio/socio.module';
+import { ptProduto } from './i18n/pt-produto';
 import { SpartacusModule } from './spartacus/spartacus.module';
 
 registerLocaleData(localeDe);
@@ -87,6 +88,8 @@ if (!environment.production) {
         fallbackLang: 'en',
       },
     }),
+    // português da página de produto (o Spartacus só traz inglês)
+    provideConfig(<I18nConfig>{ i18n: { resources: ptProduto } }),
     provideConfig({ features: { level: '*' } }), // For the development environment and CI, feature level is always the highest.
     provideConfig(<StoreFinderConfig>{
       // For security compliance, by default, google maps does not display.
