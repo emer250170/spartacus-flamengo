@@ -314,3 +314,8 @@ Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglê
   - nomes das poltronas em inglês;
   - categorias, menu e carrosséis da home em inglês.
 - Backup: o valor anterior de cada campo está em `/backup/antes-ingles-20261030/data-en-antes.txt`. A classe Java anterior está na mesma pasta.
+- Produtos da loja oficial (656 produtos e seus tamanhos), nome e descrição em inglês:
+  - Traduções em `traducao/produtos-en.json`, feitas segundo `traducao/glossario.md`.
+  - Os tamanhos aparecem no padrão em inglês: P → S, G → L, GG → XL…
+  - Gravação: o JSON vai para `/tmp/fla-en.json` no container e depois roda `scripts/ingles-produtos.groovy` (HAC, Staged e Online).
+  - Backup em `/backup/antes-ingles-20261030/produtos-en-antes.json`. Antes, o inglês era uma cópia do português.

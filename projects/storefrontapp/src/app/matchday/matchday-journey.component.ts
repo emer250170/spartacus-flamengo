@@ -15,7 +15,14 @@ import {
   RoutingService,
   WindowRef,
 } from '@spartacus/core';
-import { Observable, Subscription, interval, raceWith, timer } from 'rxjs';
+import {
+  Observable,
+  Subscription,
+  combineLatest,
+  interval,
+  raceWith,
+  timer,
+} from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { WaveStatus } from '../socio/socio.model';
@@ -144,11 +151,15 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       })
     );
     // volta para a jornada com a poltrona que já está no carrinho
+    // só com o carrinho estável: na troca de idioma o Spartacus recarrega o
+    // carrinho e, no meio da recarga, a lista de itens vem vazia
     this.subscription.add(
-      this.activeCart.getEntries().subscribe((entries) => {
-        this.dropRemovedHold(entries);
-        this.restoreHold(entries);
-      })
+      combineLatest([this.activeCart.getEntries(), this.activeCart.isStable()])
+        .pipe(filter(([, stable]) => stable))
+        .subscribe(([entries]) => {
+          this.dropRemovedHold(entries);
+          this.restoreHold(entries);
+        })
     );
     this.subscription.add(interval(1000).subscribe(() => this.tick()));
     // plano do sócio (lido de novo a cada visita: pode ter acabado de assinar)
