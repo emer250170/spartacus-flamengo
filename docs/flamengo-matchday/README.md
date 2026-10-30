@@ -227,3 +227,41 @@ A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
   Usuário de demonstração já criado no servidor: `gestor.jogos` (senha fora do repositório).
 - Deploy: importar o impex (HAC › Console › ImpEx Import, ou Update com *Create essential data*) e
   Backoffice › F4 › *cockpit-config.xml › Reset to Defaults*.
+
+## Sócio-Torcedor Nação Maraca
+
+Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.
+
+| Plano | Mensalidade | Desconto na inteira | Onda de compra | Convidados |
+|---|---|---|---|---|
+| Nação Maraca 1 | R$ 357,90 | 75% | 2 (1 com estrela) | até 3 × R$ 60 |
+| Nação Maraca 2 | R$ 165,00 | 65% | 5 (3 e 4 com estrelas) | até 2 × R$ 60 |
+| Nação Maraca 3 | R$ 67,10 | 60% | 6 (5 com estrela) | 1 × R$ 35 |
+
+### Servidor — `scripts/socio-torcedor-cadastro.groovy` (HAC, Groovy, commit)
+
+- Grupos `nacao-maraca-1/2/3` (dentro de `customergroup`, senão a API `/users/{id}/customergroups` não os lista).
+- Plano de cobrança mensal, termo anual renovável (`nacao-anual`), categoria `socio_torcedor`.
+- Produtos `NACAO-MARACA-1/2/3`, `NACAO-CONVIDADO-60` e `NACAO-CONVIDADO-35`: plano de preço com a 1ª mensalidade paga na hora e as mensalidades 2 a 12 recorrentes; benefícios como `Entitlement`. Maraca 1 tem 50 vagas (estoque).
+- Promoções `nacao_maraca_N_desconto_ingresso`: grupo do cliente + categorias dos setores → desconto % no item do ingresso. Estacionamento, comida e camisa não têm desconto.
+- `flamengoProductCatalog:Online` → `promotions-context` (sem isso nenhuma promoção do catálogo era avaliada). Não mapear o Staged: dá "More than one Rules Modules".
+- `order-process`: no `completeOrder`, pedido com plano põe o cliente no grupo do plano (troca de plano substitui o grupo). Testado: pedido 00004012 → `socio.teste@example.com` em `nacao-maraca-3`.
+- A publicação das regras roda numa thread separada: dentro da transação do console do HAC ela trava.
+
+### Loja
+
+- `src/app/socio/`: `SocioService` (planos pela busca + descrição, plano do torcedor pelos grupos, ondas de venda) e `SocioPlansComponent` (página `/socio-torcedor`).
+- Assinar põe o plano e os convidados no carrinho e vai para o checkout. A página mostra "Seu plano" para quem já é sócio.
+- Jornada de matchday:
+  - barra com o plano do torcedor;
+  - selo da onda em cada jogo;
+  - jogo bloqueado (com convite para virar sócio ou subir de plano) quando a venda ainda não chegou na onda do torcedor;
+  - preço de sócio nos setores e no resumo. O valor cobrado vem da promoção do SAP Commerce.
+- Ondas: a onda *k* abre 13 − *k* dias antes do jogo, às 10h. A venda geral (onda 7) abre 6 dias antes. Na demonstração, o seletor "Demonstração · onda aberta" força a onda aberta; ele vale só para a aba do navegador.
+- CMS: `06-cms-socio.impex` (página e item "Sócio-Torcedor" no menu). Importar **depois** de publicar a loja. Para desfazer: `06-cms-socio-remover.impex`.
+
+### Backup e como voltar
+
+- Banco + extensão + config: `/backup/antes-socio-torcedor-20261030/` no container. `restaurar.sh` para o servidor, restaura o HSQLDB de 30/10 08:23 e sobe de novo; perde o que foi feito depois.
+- Só o sócio-torcedor, sem perder o resto: `scripts/socio-torcedor-remover.groovy`. Ele volta o order-process, tira as promoções, e apaga planos, grupos e o cliente de teste. Depois, `06-cms-socio-remover.impex`.
+- Front: a branch `backup-antes-socio-torcedor` é a loja de antes. Para voltar, publique por ela.
