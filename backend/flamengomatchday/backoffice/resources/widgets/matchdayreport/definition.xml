@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Relatórios de ingressos da perspectiva "Matchday Flamengo": totais, rosca de
+  vendidos x disponíveis, setores, vendas por dia e tipos de ingresso.
+-->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.matchdayreport">
+	<name>Matchday Flamengo - Relatórios</name>
+	<description>Relatório de ingressos dos jogos do Flamengo</description>
+	<defaultTitle>Relatórios</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="matchdayreport.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.report.MatchdayReportController"/>
+	<sockets>
+		<!-- recarrega jogos e números (clique em "Relatórios" na árvore) -->
+		<input id="refresh" type="java.lang.Object"/>
+	</sockets>
+	<keywords>
+		<keyword>Matchday</keyword>
+		<keyword>Report</keyword>
+	</keywords>
+</widget-definition>

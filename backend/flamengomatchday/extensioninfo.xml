@@ -10,7 +10,7 @@
                jaloLogicFree="true" name="flamengomatchday" usemaven="false">
 
         <requires-extension name="commerceservices"/>
-        <!-- tela "Jogos" no Backoffice (só configuração, sem Java de Backoffice) -->
+        <!-- perspectiva "Matchday Flamengo" no Backoffice; o widget de relatórios fica em backoffice/src e backoffice/resources -->
         <requires-extension name="backoffice"/>
         <!-- a validação de carrinho da loja vem da b2bacceleratorservices; carregar depois dela -->
         <requires-extension name="b2bacceleratorservices"/>
