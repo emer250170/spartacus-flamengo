@@ -33,7 +33,7 @@
         [class.is-mine]="level === plan.level"
         [attr.aria-labelledby]="'st-plan-' + plan.level"
       >
-        <header class="st-card-head">
+        <div class="st-card-head">
           <span *ngIf="level === plan.level" class="st-badge">Seu plano</span>
           <span
             *ngIf="level !== plan.level && plan.level === 1"
@@ -50,7 +50,7 @@
           <p class="st-term">
             Contrato anual · 1ª mensalidade hoje + 11 mensais
           </p>
-        </header>
+        </div>
 
         <ul class="st-highlights">
           <li>
@@ -103,7 +103,7 @@
           </div>
         </div>
 
-        <footer class="st-card-foot">
+        <div class="st-card-foot">
           <p *ngIf="guestCount(plan) > 0" class="st-total">
             Total {{ brl(monthly(plan)) }}/mês
           </p>
@@ -120,7 +120,7 @@
               buttonLabel(plan)
             }}</span>
           </button>
-        </footer>
+        </div>
       </article>
     </div>
 

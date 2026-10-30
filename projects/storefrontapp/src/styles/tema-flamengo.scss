@@ -131,6 +131,21 @@ header cx-navigation-ui.flyout > nav > ul > li > button {
 // (button:hover + .wrapper) e o painel (85px) começa à esquerda dela — ao
 // descer da seta o mouse saía dos dois e o menu fechava. Agora abre passando
 // o mouse em qualquer parte do item e o painel cobre o item inteiro.
+// MEDIDO: com o 9o item (Sócio-Torcedor) o menu passava de 1120px e quebrava
+// em 2 linhas. Espaçamento menor entre itens e na setinha: 1225px -> 1051px.
+@media (min-width: 992px) {
+  header cx-navigation-ui.flyout > nav > ul > li { padding: 0 9px !important; }
+  header cx-navigation-ui.flyout > nav > ul > li > button {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    margin-left: 2px !important;
+  }
+}
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  header cx-navigation-ui.flyout > nav > ul > li > cx-generic-link > a,
+  header cx-navigation-ui.flyout > nav > ul > li > span,
+  header cx-navigation-ui.flyout > nav > ul > li > button { font-size: .9rem !important; }
+}
 @media (min-width: 992px) {
   header cx-navigation-ui.flyout > nav > ul > li:hover > button + .wrapper { display: initial; }
   header cx-navigation-ui.flyout > nav > ul > li > button + .wrapper { min-width: 200px; }
