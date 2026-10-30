@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OccEndpointsService, WindowRef } from '@spartacus/core';
-import { Observable, forkJoin, merge, of } from 'rxjs';
-import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import {
   MATCHDAY_HOLD_KEY,
   MATCHDAY_STORAGE_KEY,
@@ -80,6 +80,7 @@ interface OccSearchResult {
 export class MatchdayDataService {
   private catalog$?: Observable<MatchdayCatalog>;
   private matches$?: Observable<MatchdayMatch[]>;
+  private seats = new Map<string, Observable<MatchdayMatch | undefined>>();
 
   constructor(
     protected http: HttpClient,
@@ -88,14 +89,16 @@ export class MatchdayDataService {
   ) {}
 
   /**
-   * Carrega jogos, setores e poltronas, estacionamento, comidas e camisa.
-   * Emite duas vezes: primeiro a lista de jogos (rápida, sem poltronas, com
-   * `seatsLoaded` falso) e depois os mesmos jogos com setores e poltronas.
-   * `refresh` busca de novo (a ocupação das poltronas muda a cada venda).
+   * Lista de jogos (sem poltronas), estacionamento, comidas e camisa.
+   * Setores e poltronas de cada jogo vêm de getSeats(), só quando o torcedor
+   * escolhe o jogo. MEDIDO (30/10): com o cache da API frio, o detalhe de um
+   * jogo leva 3,4–6 s; pedir os 4 jogos juntos levava 20–35 s (disputam o
+   * servidor). Com cache, ~40 ms.
+   * `refresh` busca de novo.
    */
   getCatalog(refresh = false): Observable<MatchdayCatalog> {
     if (!this.catalog$ || refresh) {
-      const light$ = forkJoin({
+      this.catalog$ = forkJoin({
         matches: this.loadMatchList(),
         services: this.search(SERVICES_CATEGORY),
         shirt: this.loadProduct(SHIRT_CODE, SHIRT_FIELDS),
@@ -105,28 +108,35 @@ export class MatchdayDataService {
         ),
         shareReplay({ bufferSize: 1, refCount: false })
       );
-      const full$ = light$.pipe(
-        switchMap((catalog) =>
-          catalog.matches.length
-            ? forkJoin(
-                catalog.matches.map((m) =>
-                  this.loadProduct(m.code, SEAT_FIELDS).pipe(
-                    map((detail) =>
-                      detail
-                        ? { ...this.toMatch(detail), seatsLoaded: true }
-                        : m
-                    )
-                  )
-                )
-              ).pipe(map((matches) => ({ ...catalog, matches })))
-            : of(catalog)
-        )
-      );
-      this.catalog$ = merge(light$, full$).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
     }
     return this.catalog$;
+  }
+
+  /**
+   * Setores e poltronas de um jogo (com a ocupação). Guardado por jogo;
+   * `refresh` busca de novo (a ocupação muda a cada venda).
+   */
+  getSeats(
+    matchCode: string,
+    refresh = false
+  ): Observable<MatchdayMatch | undefined> {
+    let seats$ = this.seats.get(matchCode);
+    if (!seats$ || refresh) {
+      seats$ = this.loadProduct(matchCode, SEAT_FIELDS).pipe(
+        map((detail) =>
+          detail ? { ...this.toMatch(detail), seatsLoaded: true } : undefined
+        ),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.seats.set(matchCode, seats$);
+    }
+    return seats$;
+  }
+
+  /** JOGO-20261115-BAH-SUL-A09 -> JOGO-20261115-BAH */
+  matchCodeOfSeat(seatCode: string): string | undefined {
+    const m = /^([A-Z]+-\d{8}-[A-Z0-9]+)-/.exec(seatCode);
+    return m?.[1];
   }
 
   /** Só a lista de jogos, sem poltronas (banner da home) */
