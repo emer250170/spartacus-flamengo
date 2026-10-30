@@ -241,6 +241,12 @@ A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
   - os arquivos anteriores (`resources`);
   - os widgets gravados antes do reset (`cockpitng-widgets-config.xml`).
 
+### Ficha do jogo sem a aba "Administração" para o Gestor de jogos (30/10)
+- A aba "Administração" vem do GenericItem e mostra dados técnicos: PK, tipo, data de criação e de alteração, dono, **histórico de alterações** e sincronização.
+- O papel Gestor de jogos tem a própria ficha: contexto `editor-area` com `principal="matchdaygamemanagerrole"`, sem merge-by. Com isso só aparece a aba "Jogo". O administrador continua vendo as duas abas.
+- O histórico de alterações já é gravado pelo Backoffice (SavedValues): toda criação, alteração ou exclusão feita na tela, com usuário e data. Alterações feitas por script ou impex não entram.
+- Deploy: Backoffice › F4 › *Reset to Defaults* da cockpit-config. Não precisa de `ant all`.
+
 ## Sócio-Torcedor Nação Maraca
 
 Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.

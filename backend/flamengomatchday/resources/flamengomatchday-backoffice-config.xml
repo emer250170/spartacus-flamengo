@@ -197,6 +197,53 @@
 		</editorArea:editorArea>
 	</context>
 
+	<!--
+	  Ficha do jogo para o papel "Gestor de jogos": sem merge-by, não herda do
+	  GenericItem a aba técnica "Administração" (PK, metadados, histórico de
+	  alterações). O administrador continua vendo a aba.
+	-->
+	<context type="MatchdayGame" component="editor-area" principal="matchdaygamemanagerrole">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="matchday.editor.essentials">
+					<editorArea:attribute qualifier="code" readonly="true"/>
+					<editorArea:attribute qualifier="opponent"/>
+					<editorArea:attribute qualifier="kickoff"/>
+					<editorArea:attribute qualifier="status"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="matchday.editor.tab">
+				<editorArea:section name="matchday.editor.match">
+					<editorArea:attribute qualifier="competition"/>
+					<editorArea:attribute qualifier="venue"/>
+					<editorArea:attribute qualifier="presale"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.waves">
+					<editorArea:attribute qualifier="wave1Start"/>
+					<editorArea:attribute qualifier="wave2Start"/>
+					<editorArea:attribute qualifier="wave3Start"/>
+					<editorArea:attribute qualifier="generalSaleStart"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.prices">
+					<editorArea:attribute qualifier="priceNorte"/>
+					<editorArea:attribute qualifier="priceSul"/>
+					<editorArea:attribute qualifier="priceLeste"/>
+					<editorArea:attribute qualifier="priceOeste"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.sales">
+					<editorArea:attribute qualifier="seatsTotal" readonly="true"/>
+					<editorArea:attribute qualifier="seatsAvailable" readonly="true"/>
+					<editorArea:attribute qualifier="seatsSold" readonly="true"/>
+					<editorArea:attribute qualifier="product" readonly="true"/>
+					<editorArea:attribute qualifier="statusMessage" readonly="true"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.demo">
+					<editorArea:attribute qualifier="simulatedSoldPercent"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
 	<!-- Reservas de poltrona -->
 	<context merge-by="type" parent="GenericItem" type="SeatHold" component="listview">
 		<list-view:list-view>
