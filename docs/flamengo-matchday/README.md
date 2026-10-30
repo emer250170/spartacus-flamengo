@@ -280,7 +280,7 @@ Deploy:
 
 Não faça o reset antes do `ant all`: sem o widget compilado, a tela de relatórios fica vazia.
 
-Os textos do widget (`backoffice/resources/widgets/matchdayreport/labels/*.properties`) ficam em **UTF-8 puro**, com acento direto, e não em `\u00e9`. O Backoffice lê esses arquivos sem converter os `\uXXXX` e mostraria o código na tela.
+Os textos do widget (`backoffice/resources/widgets/matchdayreport/labels/*.properties`) ficam em **UTF-8 puro**, com acento direto, e não em `\u00e9`. O Backoffice lê esses arquivos sem converter os `\uXXXX` e mostraria o código na tela. Outra regra: uma chave usada no zul (`${labels.pdf}`) não pode ser o começo de outra chave com ponto (`pdf.file`). O ZK transforma a chave em grupo e o botão mostra `{file=...}`.
 
 ## Sócio-Torcedor Nação Maraca
 
