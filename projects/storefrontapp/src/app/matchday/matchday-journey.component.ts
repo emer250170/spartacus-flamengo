@@ -155,15 +155,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     // limpa os dados do carrinho (ResetCartDetails, já "estável" e sem itens)
     // e depois o busca de novo
     this.subscription.add(
-      combineLatest([this.activeCart.getActive(), this.activeCart.isStable()])
-        .pipe(
-          filter(([cart, stable]) => stable && !!cart?.code),
-          map(([cart]) => cart.entries ?? [])
-        )
-        .subscribe((entries) => {
-          this.dropRemovedHold(entries);
-          this.restoreHold(entries);
-        })
+      this.loadedEntries().subscribe((entries) => {
+        this.dropRemovedHold(entries);
+        this.restoreHold(entries);
+      })
     );
     this.subscription.add(interval(1000).subscribe(() => this.tick()));
     // plano do sócio (lido de novo a cada visita: pode ter acabado de assinar)
@@ -399,8 +394,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           this.sector = sector;
           this.seatMap = sector ? this.buildSeatMap(sector) : [];
         }
-        this.activeCart
-          .getEntries()
+        this.loadedEntries()
           .pipe(take(1))
           .subscribe((entries) => this.restoreHold(entries));
         this.cd.markForCheck();
@@ -587,18 +581,22 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (requested) {
       this.selectMatch(requested);
     }
-    // poltrona de jogo já no carrinho: carrega aquele jogo para retomar a jornada
-    this.activeCart
-      .getEntries()
-      .pipe(take(1))
-      .subscribe((entries) => {
-        const code = entries
-          .map((e) => this.data.matchCodeOfSeat(e.product?.code ?? ''))
-          .find((c) => !!c && catalog.matches.some((m) => m.code === c));
-        if (code) {
-          this.loadSeats(code);
-        }
-      });
+    // poltrona de jogo já no carrinho: carrega aquele jogo para retomar a
+    // jornada (espera o carrinho carregar; a última poltrona reservada vem antes)
+    this.subscription.add(
+      this.loadedEntries()
+        .pipe(take(1))
+        .subscribe((entries) => {
+          const savedCode = this.data.readHold()?.code ?? '';
+          const code = this.seatCodes(entries)
+            .sort((a, b) => Number(b === savedCode) - Number(a === savedCode))
+            .map((seat) => this.data.matchCodeOfSeat(seat))
+            .find((c) => !!c && catalog.matches.some((m) => m.code === c));
+          if (code) {
+            this.loadSeats(code);
+          }
+        })
+    );
   }
 
   /**
@@ -627,11 +625,13 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (!this.catalog || this.held || this.holding || this.match) {
       return;
     }
+    const inCart = this.seatCodes(entries);
+    const savedCode = this.data.readHold()?.code;
+    const wanted =
+      savedCode && inCart.includes(savedCode) ? [savedCode] : inCart;
     for (const match of this.catalog.matches) {
       for (const sector of match.sectors) {
-        const seat = sector.seats.find((s) =>
-          entries.some((e) => e.product?.code === s.code)
-        );
+        const seat = sector.seats.find((s) => wanted.includes(s.code));
         if (seat) {
           const saved = this.data.readHold();
           this.held = {
@@ -649,6 +649,29 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         }
       }
     }
+  }
+
+  /**
+   * Itens do carrinho só com ele carregado e estável. Na troca de idioma o
+   * Spartacus limpa os dados do carrinho (ResetCartDetails: "estável" e sem
+   * itens) e depois o busca de novo; ao abrir a página ele ainda pode estar
+   * carregando.
+   */
+  protected loadedEntries(): Observable<OrderEntry[]> {
+    return combineLatest([
+      this.activeCart.getActive(),
+      this.activeCart.isStable(),
+    ]).pipe(
+      filter(([cart, stable]) => stable && !!cart?.code),
+      map(([cart]) => cart.entries ?? [])
+    );
+  }
+
+  /** Códigos das poltronas de jogo no carrinho */
+  protected seatCodes(entries: OrderEntry[]): string[] {
+    return entries
+      .map((e) => e.product?.code ?? '')
+      .filter((code) => !!this.data.matchCodeOfSeat(code));
   }
 
   protected tick(): void {
