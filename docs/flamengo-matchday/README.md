@@ -232,11 +232,14 @@ A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
 - Aparece na lista de perspectivas do cabeçalho do Backoffice, junto de Administration Cockpit e Product Cockpit, para o administrador (`backofficeadministratorrole`) e para o papel Gestor de jogos (`matchdaygamemanagerrole`).
 - `resources/flamengomatchday-backoffice-widgets.xml`: mesmo desenho da Administration Cockpit, só com o menu do Matchday. Menu à esquerda, busca e lista no centro, ficha embaixo. Ao abrir, "Jogos" já vem selecionado.
 - O menu está no contexto `matchday-explorer-tree` em `flamengomatchday-backoffice-config.xml`. O rótulo é `matchday.perspective`.
+- Quem vê: o `access` do widget compara com as *authorities* do papel, não com o uid. Por isso os dois papéis ganharam a authority `matchdayperspective` (impex do papel; no servidor foi gravado pelo HAC).
 - Deploy:
   1. `ant all` e reinício.
-  2. Backoffice › F4 › *Reset to Defaults*.
-  3. Sair e entrar de novo.
-- Backup dos arquivos anteriores no container: `/backup/antes-perspectiva-20261030/resources`.
+  2. Backoffice › F4 › menu (☰) › **as duas** opções *Reset to Defaults*: a de baixo de *Show widgets.xml* (widgets) e a de baixo de *Show cockpit-config.xml* (telas). Só o reset de telas não traz a perspectiva nova.
+  3. Sair e entrar de novo: as authorities são lidas no login.
+- Backup no container (`/backup/antes-perspectiva-20261030/`):
+  - os arquivos anteriores (`resources`);
+  - os widgets gravados antes do reset (`cockpitng-widgets-config.xml`).
 
 ## Sócio-Torcedor Nação Maraca
 
