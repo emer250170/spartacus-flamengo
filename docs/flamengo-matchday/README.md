@@ -234,9 +234,10 @@ Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preç
 
 | Plano | Mensalidade | Desconto na inteira | Onda de compra | Convidados |
 |---|---|---|---|---|
-| Nação Maraca 1 | R$ 357,90 | 75% | 2 (1 com estrela) | até 3 × R$ 60 |
-| Nação Maraca 2 | R$ 165,00 | 65% | 5 (3 e 4 com estrelas) | até 2 × R$ 60 |
-| Nação Maraca 3 | R$ 67,10 | 60% | 6 (5 com estrela) | 1 × R$ 35 |
+| Nação Maraca 1 | R$ 357,90 | 75% | 1 | até 3 × R$ 60 |
+| Nação Maraca 2 | R$ 165,00 | 65% | 2 | até 2 × R$ 60 |
+| Nação Maraca 3 | R$ 67,10 | 60% | 3 | 1 × R$ 35 |
+| Não sócio | — | — | venda geral | — |
 
 ### Servidor — `scripts/socio-torcedor-cadastro.groovy` (HAC, Groovy, commit)
 
@@ -257,7 +258,7 @@ Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preç
   - selo da onda em cada jogo;
   - jogo bloqueado (com convite para virar sócio ou subir de plano) quando a venda ainda não chegou na onda do torcedor;
   - preço de sócio nos setores e no resumo. O valor cobrado vem da promoção do SAP Commerce.
-- Ondas: a onda *k* abre 13 − *k* dias antes do jogo, às 10h. A venda geral (onda 7) abre 6 dias antes. Na demonstração, o seletor "Demonstração · onda aberta" força a onda aberta; ele vale só para a aba do navegador.
+- Ondas (regra simplificada da demo): cada jogo tem 4 datas no Backoffice (tela Jogos, seção "Ondas de venda"): onda 1, onda 2, onda 3 e venda geral, nessa ordem e antes do jogo. Em branco num jogo novo: 7, 6, 5 e 4 dias antes, às 10h. A loja lê as datas da descrição do produto do jogo ("Onda 1 (Nação Maraca 1): dd/mm/aaaa HHhMM; ..."). Quem já entrou continua comprando até o jogo. Jogo sem datas está em venda geral. Hoje o bloqueio é só na loja; o carrinho não confere a onda.
 - CMS: `06-cms-socio.impex` (página e item "Sócio-Torcedor" no menu). Importar **depois** de publicar a loja. Para desfazer: `06-cms-socio-remover.impex`.
 
 ### Backup e como voltar
@@ -265,3 +266,12 @@ Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preç
 - Banco + extensão + config: `/backup/antes-socio-torcedor-20261030/` no container. `restaurar.sh` para o servidor, restaura o HSQLDB de 30/10 08:23 e sobe de novo; perde o que foi feito depois.
 - Só o sócio-torcedor, sem perder o resto: `scripts/socio-torcedor-remover.groovy`. Ele volta o order-process, tira as promoções, e apaga planos, grupos e o cliente de teste. Depois, `06-cms-socio-remover.impex`.
 - Front: a branch `backup-antes-socio-torcedor` é a loja de antes. Para voltar, publique por ela.
+
+### Deploy das ondas por jogo (30/10)
+
+Mudou o `flamengomatchday-items.xml` (4 datas no jogo), então precisa:
+1. Backup: `/backup/antes-ondas-20261030/` (banco de 30/10 09:59, extensão anterior e `restaurar.sh`).
+2. `./backend/deploy-flamengomatchday.sh` (branch `matchday`).
+3. HAC › Platform › Update só com **Update running system** + **Localize types**.
+4. Restart do servidor.
+5. Backoffice › F4 › ☰ › *Show cockpit-config.xml › Reset to Defaults* (passo novo no cadastro e seção nova na ficha).

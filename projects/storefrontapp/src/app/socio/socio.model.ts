@@ -53,59 +53,52 @@ export const SOCIO_RULES: Record<
 > = {
   1: {
     discount: 75,
-    wave: 2,
-    wavesLabel: 'Ondas 1 e 2',
+    wave: 1,
+    wavesLabel: 'Onda 1',
     maxGuests: 3,
     guestCode: 'NACAO-CONVIDADO-60',
   },
   2: {
     discount: 65,
-    wave: 5,
-    wavesLabel: 'Ondas 3, 4 e 5',
+    wave: 2,
+    wavesLabel: 'Onda 2',
     maxGuests: 2,
     guestCode: 'NACAO-CONVIDADO-60',
   },
   3: {
     discount: 60,
-    wave: 6,
-    wavesLabel: 'Ondas 5 e 6',
+    wave: 3,
+    wavesLabel: 'Onda 3',
     maxGuests: 1,
     guestCode: 'NACAO-CONVIDADO-35',
   },
 };
 
-/** Onda 7 = venda geral (quem não é sócio) */
-export const GENERAL_SALE_WAVE = 7;
+/** Onda 4 = venda geral (quem não é sócio) */
+export const GENERAL_SALE_WAVE = 4;
 
 export const SOCIO_PLAN_PREFIX = 'NACAO-MARACA-';
 export const SOCIO_GROUP_PREFIX = 'nacao-maraca-';
 export const SOCIO_CATEGORY = 'socio_torcedor';
 
-/** Rótulos das ondas, como no site do Nação */
+/**
+ * Ondas de venda de cada jogo (datas cadastradas no Backoffice, tela Jogos).
+ * Cada onda vale até o jogo: quando a onda 2 abre, o Maraca 1 continua comprando.
+ */
 export const WAVE_LABELS: Record<number, string> = {
-  1: 'Onda 1 · Nação Maraca 1 com estrela',
-  2: 'Onda 2 · Nação Maraca 1',
-  3: 'Onda 3 · Nação Maraca 2 com 2 estrelas',
-  4: 'Onda 4 · Nação Maraca 2 com 1 estrela',
-  5: 'Onda 5 · Nação Maraca 2 e Nação Maraca 3 com estrela',
-  6: 'Onda 6 · Nação Maraca 3',
-  7: 'Venda geral',
+  1: 'Onda 1 · Nação Maraca 1',
+  2: 'Onda 2 · Nação Maraca 2',
+  3: 'Onda 3 · Nação Maraca 3',
+  4: 'Venda geral',
 };
 
-/**
- * Simulação da abertura de vendas (só para a demonstração): força a onda
- * aberta em todos os jogos. null = pela data do jogo.
- */
-export const SOCIO_SIMULATION_KEY = 'fla-socio-onda-simulada';
-
 export interface WaveStatus {
-  /** Onda aberta agora (0 = vendas ainda não abriram, 7 = venda geral) */
+  /** Onda aberta agora (0 = vendas ainda não abriram, 4 = venda geral) */
   current: number;
-  /** Onda do torcedor (7 se não é sócio) */
+  /** Onda do torcedor (4 se não é sócio) */
   mine: number;
   /** Pode comprar agora */
   open: boolean;
-  /** Quando a onda do torcedor abre (pela data do jogo) */
+  /** Quando a onda do torcedor abre */
   opensAt?: Date;
-  simulated: boolean;
 }

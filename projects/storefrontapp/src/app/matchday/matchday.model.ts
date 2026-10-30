@@ -39,6 +39,11 @@ export interface MatchdayMatch {
   minPrice: number;
   /** Selo do card: últimos ingressos, pré-venda etc. */
   tag?: string;
+  /**
+   * Abertura das ondas de venda (ISO): onda 1, 2, 3 e venda geral.
+   * Vazio = jogo sem ondas cadastradas (venda geral).
+   */
+  waveStarts?: string[];
   sectors: MatchdaySector[];
 }
 

@@ -275,7 +275,27 @@ export class MatchdayDataService {
           ? 'Pré-venda sócio'
           : 'Vendas abertas',
       sectors,
+      waveStarts: this.waveStarts(p.description),
     };
+  }
+
+  /**
+   * Datas das ondas na descrição do jogo (escritas pelo SAP Commerce ao abrir
+   * o jogo): "Onda 1 (...): 20/10/2026 10h00; ...; Venda geral: 23/10/2026 10h00".
+   * Horário de Brasília.
+   */
+  protected waveStarts(description?: string): string[] | undefined {
+    const text = this.clean(description);
+    const at = (label: RegExp): string | undefined => {
+      const m = new RegExp(
+        label.source +
+          String.raw`[^:]*:\s*(\d{2})\/(\d{2})\/(\d{4}) (\d{2})h(\d{2})`,
+        'i'
+      ).exec(text);
+      return m ? `${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:00-03:00` : undefined;
+    };
+    const dates = [/Onda 1/, /Onda 2/, /Onda 3/, /Venda geral/].map(at);
+    return dates.every(Boolean) ? (dates as string[]) : undefined;
   }
 
   protected buildCatalog(
