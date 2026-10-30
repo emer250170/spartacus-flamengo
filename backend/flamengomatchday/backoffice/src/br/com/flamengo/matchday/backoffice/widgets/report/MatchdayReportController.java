@@ -88,7 +88,7 @@ public class MatchdayReportController extends DefaultWidgetController
 		{
 			render();
 		}
-		final String fileName = label("pdf.file") + " - " + lastTitle + " - "
+		final String fileName = label("pdfFile") + " - " + lastTitle + " - "
 				+ new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 		final String document = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>" + MatchdayReportHtml.esc(fileName)
 				+ "</title><style>"
