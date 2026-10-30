@@ -36,6 +36,16 @@
 		</explorer-tree:explorer-tree>
 	</context>
 
+	<!-- Menu da perspectiva "Matchday Flamengo" (flamengomatchday-backoffice-widgets.xml) -->
+	<context component="matchday-explorer-tree">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="matchday.tree.root">
+				<explorer-tree:type-node id="matchday.tree.games" code="MatchdayGame"/>
+				<explorer-tree:type-node id="matchday.tree.seatholds" code="SeatHold"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
 	<!-- Como o jogo aparece em títulos e referências -->
 	<context merge-by="type" parent="GenericItem" type="MatchdayGame" component="base">
 		<y:base>

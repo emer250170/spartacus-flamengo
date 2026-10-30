@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Perspectiva "Matchday Flamengo" no Backoffice: aparece na lista do cabeçalho
+  (ao lado de Administration Cockpit e Product Cockpit) para o administrador e
+  para o papel "Gestor de jogos".
+  Mesmo desenho da Administration Cockpit (menu à esquerda, busca e lista no
+  centro, ficha embaixo), com menu próprio (contexto matchday-explorer-tree em
+  flamengomatchday-backoffice-config.xml). Ao abrir a perspectiva, "Jogos" já
+  vem selecionado.
+-->
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widgets.xsd">
+
+	<widget-extension widgetId="backofficeMainSlot">
+		<widget id="matchdayPerspective" widgetDefinitionId="com.hybris.cockpitng.borderlayout" slotId="perspectives"
+				title="matchday.perspective" template="false" access="backofficeadministratorrole,matchdaygamemanagerrole">
+
+			<!-- Menu à esquerda -->
+			<widget id="matchdayExplorerTree" widgetDefinitionId="com.hybris.cockpitng.widgets.common.explorertree"
+					slotId="leftSlot" template="false" title="matchday.perspective">
+				<!-- clique num tipo (Jogos, Reservas): manda o tipo para a busca -->
+				<widget id="matchdayTreeSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="matchdayTypeName" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">name</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root instanceof T(com.hybris.cockpitng.tree.node.TypeNode)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- ao abrir a perspectiva, seleciona "Jogos" -->
+				<widget id="matchdayPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="matchdayGamesSelector" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("matchday.tree.games", true)</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "matchdayPerspective".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<setting key="explorerTreeConfigCtx" type="String">matchday-explorer-tree</setting>
+				<setting key="allowFilteringEntries" type="Boolean">false</setting>
+				<setting key="widgetStyleClass" type="String">yw-explorerTree-sideNavigation</setting>
+				<setting key="widgetMold" type="String" value="light"/>
+				<virtual-sockets/>
+			</widget>
+
+			<!-- Busca e lista no centro, ficha embaixo -->
+			<widget id="matchdayContainer" widgetDefinitionId="com.hybris.cockpitng.collapsiblecontainer"
+					slotId="centerSlot" template="false">
+				<widget id="matchdayAdvancedSearch" widgetDefinitionId="com.hybris.cockpitng.advancedsearch"
+						slotId="center" template="false">
+					<widget id="matchdayHeaderTitle" widgetDefinitionId="com.hybris.backoffice.widgets.title"
+							slotId="pageTitle" template="false"/>
+					<widget id="matchdaySearchEngine" widgetDefinitionId="com.hybris.cockpitng.widgets.common.advancedsearchengine"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="defaultPageSize" type="Integer">50</setting>
+						<virtual-sockets/>
+					</widget>
+					<widget id="matchdayList" widgetDefinitionId="com.hybris.cockpitng.collectionBrowser"
+							slotId="nestedWidget" template="false">
+						<setting key="listSubtitle" type="String">emptylist</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+						<setting key="pageSize" type="Integer">20</setting>
+						<setting key="maxCharsInCell" type="Integer">70</setting>
+						<setting key="actionSlotComponentId" type="String">listviewactions</setting>
+						<setting key="multiSelect" type="Boolean">true</setting>
+						<setting key="colConfigCtxCode" type="String">listview</setting>
+						<setting key="itemRenderer" type="String">listViewRenderer</setting>
+						<setting key="listTitle" type="String"></setting>
+						<setting key="sortableListHeader" type="Boolean">true</setting>
+						<setting key="asyncLoading" type="Boolean">true</setting>
+						<setting key="sendItemsOnSelect" type="Boolean">true</setting>
+						<setting key="widgetStyleClass" type="String">yw-collection-browser-inset</setting>
+					</widget>
+					<setting key="advancedSearchConfigCtxCode" type="String">advanced-search</setting>
+					<setting key="simpleSearchConfigCtxCode" type="String">simple-search</setting>
+					<setting key="addRowPosition" type="String">Bottom</setting>
+					<setting key="enableNestedWidgetView" type="Boolean">true</setting>
+					<setting key="isNestedObjectCreationDisabled" type="Boolean">true</setting>
+					<virtual-sockets/>
+				</widget>
+				<widget id="matchdayEditorArea" widgetDefinitionId="com.hybris.cockpitng.backoffice.defaultEditorArea"
+						slotId="bottom" template="false">
+					<widget id="matchdayPreviousItem" widgetDefinitionId="com.hybris.cockpitng.previousItemSelector"
+							slotId="previousItemSelectorSlot" template="false">
+						<virtual-sockets/>
+					</widget>
+					<widget id="matchdayNextItem" widgetDefinitionId="com.hybris.cockpitng.nextItemSelector"
+							slotId="nextItemSelectorSlot" template="false">
+						<virtual-sockets/>
+					</widget>
+					<setting key="viewModeBtnVisible" type="Boolean">false</setting>
+					<setting key="initViewMode" type="String">fluid</setting>
+					<setting key="fluidViewCode" type="String">fluid</setting>
+					<setting key="editorAreaConfigCtx" type="String">editor-area</setting>
+					<setting key="bottomToolbar" type="Boolean">false</setting>
+					<setting key="actionSlotComponentId" type="String">editorareaactions</setting>
+					<virtual-sockets>
+						<output id="com.hybris.cockpitng.action.delete.success" type="java.lang.Object"/>
+						<output id="com.hybris.cockpitng.action.clone.success" type="java.lang.Object"/>
+					</virtual-sockets>
+				</widget>
+				<widget id="matchdaySpaceManagement" widgetDefinitionId="com.hybris.backoffice.spaceManagement"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<virtual-sockets/>
+				</widget>
+				<setting key="allowLockingCenterPanel" type="Boolean">false</setting>
+				<setting key="bottomPanelCollapsed" type="Boolean">false</setting>
+				<setting key="topHeight" type="String">33%</setting>
+				<setting key="centerCaption" type="String">List</setting>
+				<setting key="bottomPanelInitiallyLocked" type="Boolean">false</setting>
+				<setting key="centerHeight" type="String">50%</setting>
+				<setting key="topPanelInitiallyLocked" type="Boolean">false</setting>
+				<setting key="thirdSectionDisabled" type="Boolean">true</setting>
+				<setting key="allowLockingBottomPanel" type="Boolean">false</setting>
+				<setting key="bottomCaption" type="String">Edit</setting>
+				<setting key="centerPanelCollapsed" type="Boolean">false</setting>
+				<setting key="widgetStyleClass" type="String">yw-collapsibleContainer-caption-large-font-size</setting>
+				<setting key="topCaption" type="String">Search</setting>
+				<setting key="topPanelCollapsed" type="Boolean">true</setting>
+				<setting key="allowLockingTopPanel" type="Boolean">false</setting>
+				<setting key="centerPanelInitiallyLocked" type="Boolean">true</setting>
+				<virtual-sockets/>
+			</widget>
+
+			<setting key="northDisabled" type="Boolean">true</setting>
+			<setting key="southDisabled" type="Boolean">true</setting>
+			<setting key="eastDisabled" type="Boolean">true</setting>
+			<setting key="westDisabled" type="Boolean">false</setting>
+			<setting key="westWidth" type="String">260px</setting>
+			<setting key="westCollapsible" type="Boolean">false</setting>
+			<setting key="westSplittable" type="String">false</setting>
+			<setting key="westBorder" type="String">none</setting>
+			<setting key="centerBorder" type="String">none</setting>
+			<setting key="border" type="String">none</setting>
+			<setting key="broadcastHorizontalResize" type="Boolean">true</setting>
+			<setting key="opaqueBG" type="String">true</setting>
+			<setting key="widgetStyleClass" type="String" value="yw-borderlayout-opaque"/>
+			<setting key="widgetMold" type="String" value="light"/>
+			<virtual-sockets/>
+		</widget>
+	</widget-extension>
+
+	<!-- Menu -->
+	<widget-connection sourceWidgetId="backofficeMainSlot" outputId="perspectiveSelected" targetWidgetId="matchdayPerspectiveChecker" inputId="input"/>
+	<widget-connection sourceWidgetId="matchdayPerspectiveChecker" outputId="true" targetWidgetId="matchdayGamesSelector" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="matchdayGamesSelector" outputId="genericOutput" targetWidgetId="matchdayExplorerTree" inputId="nodeIdSelected"/>
+	<widget-connection sourceWidgetId="matchdayExplorerTree" outputId="nodeSelected" targetWidgetId="matchdayTreeSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="matchdayTreeSelection" outputId="true" targetWidgetId="matchdayTypeName" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="matchdayTypeName" outputId="genericOutput" targetWidgetId="matchdayAdvancedSearch" inputId="type"/>
+	<widget-connection sourceWidgetId="matchdayTreeSelection" outputId="true" targetWidgetId="matchdayHeaderTitle" inputId="nodeSelected"/>
+	<widget-connection sourceWidgetId="matchdayExplorerTree" outputId="dataSelected" targetWidgetId="matchdaySpaceManagement" inputId="navigationTreeSelectedObject"/>
+
+	<!-- Busca e lista -->
+	<widget-connection sourceWidgetId="matchdaySpaceManagement" outputId="collapseState" targetWidgetId="matchdayContainer" inputId="collapseState"/>
+	<widget-connection sourceWidgetId="matchdayContainer" outputId="centerPanelLocked" targetWidgetId="matchdayAdvancedSearch" inputId="centerPanelLocked"/>
+	<widget-connection sourceWidgetId="matchdayList" outputId="sortData" targetWidgetId="matchdayAdvancedSearch" inputId="sortData"/>
+	<widget-connection sourceWidgetId="matchdayAdvancedSearch" outputId="searchData" targetWidgetId="matchdaySearchEngine" inputId="searchData"/>
+	<widget-connection sourceWidgetId="matchdayAdvancedSearch" outputId="searchData" targetWidgetId="matchdaySpaceManagement" inputId="searchData"/>
+	<widget-connection sourceWidgetId="matchdayAdvancedSearch" outputId="reset" targetWidgetId="matchdayList" inputId="reset"/>
+	<widget-connection sourceWidgetId="matchdayAdvancedSearch" outputId="autosuggestionQuery" targetWidgetId="matchdaySearchEngine" inputId="autosuggestionQuery"/>
+	<widget-connection sourceWidgetId="matchdaySearchEngine" outputId="pageable" targetWidgetId="matchdayList" inputId="pageable"/>
+	<widget-connection sourceWidgetId="matchdaySearchEngine" outputId="fullTextSearchData" targetWidgetId="matchdayAdvancedSearch" inputId="fullTextSearchData"/>
+	<widget-connection sourceWidgetId="matchdaySearchEngine" outputId="autosuggestions" targetWidgetId="matchdayAdvancedSearch" inputId="autosuggestions"/>
+
+	<!-- Ficha -->
+	<widget-connection sourceWidgetId="matchdayList" outputId="focusedItem" targetWidgetId="matchdayEditorArea" inputId="inputObject"/>
+	<widget-connection sourceWidgetId="matchdayList" outputId="focusedItem" targetWidgetId="matchdaySpaceManagement" inputId="listSelectedObject"/>
+	<widget-connection sourceWidgetId="matchdayEditorArea" outputId="com.hybris.cockpitng.action.delete.success" targetWidgetId="matchdaySpaceManagement" inputId="navigationTreeSelectedObject"/>
+	<widget-connection sourceWidgetId="matchdayEditorArea" outputId="com.hybris.cockpitng.action.clone.success" targetWidgetId="matchdayList" inputId="focusItem"/>
+	<widget-connection sourceWidgetId="matchdayPerspective" outputId="resized" targetWidgetId="matchdayEditorArea" inputId="resize"/>
+	<widget-connection sourceWidgetId="matchdayPreviousItem" outputId="previousItemSelectorInvocation" targetWidgetId="matchdayList" inputId="previousItemSelectorInvocation"/>
+	<widget-connection sourceWidgetId="matchdayList" outputId="previousItemSelectorContext" targetWidgetId="matchdayPreviousItem" inputId="previousItemSelectorContext"/>
+	<widget-connection sourceWidgetId="matchdayNextItem" outputId="nextItemSelectorInvocation" targetWidgetId="matchdayList" inputId="nextItemSelectorInvocation"/>
+	<widget-connection sourceWidgetId="matchdayList" outputId="nextItemSelectorContext" targetWidgetId="matchdayNextItem" inputId="nextItemSelectorContext"/>
+
+</widgets>
