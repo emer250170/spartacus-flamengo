@@ -112,6 +112,14 @@
               </button>
             </div>
 
+            <p
+              *ngIf="match && !match.seatsLoaded"
+              class="md-muted md-seats-loading"
+              role="status"
+            >
+              Carregando setores e poltronas…
+            </p>
+
             <ng-container *ngIf="match && waveFor(match) as w">
               <div *ngIf="!w.open && !held" class="md-lock" role="alert">
                 <p class="md-lock-title">

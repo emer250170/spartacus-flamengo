@@ -44,6 +44,8 @@ export interface MatchdayMatch {
    * Vazio = jogo sem ondas cadastradas (venda geral).
    */
   waveStarts?: string[];
+  /** Setores e poltronas já carregados (a lista de jogos chega antes) */
+  seatsLoaded?: boolean;
   sectors: MatchdaySector[];
 }
 

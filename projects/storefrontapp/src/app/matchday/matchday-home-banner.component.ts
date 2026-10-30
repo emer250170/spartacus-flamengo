@@ -25,9 +25,10 @@ const WEEKDAY_FULL: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatchdayHomeBannerComponent {
+  // só a lista de jogos: a home não precisa das poltronas
   next$: Observable<MatchdayMatch | undefined> = this.data
-    .getCatalog()
-    .pipe(map((catalog) => catalog.matches[0]));
+    .getMatches()
+    .pipe(map((matches) => matches[0]));
 
   constructor(protected data: MatchdayDataService) {}
 
