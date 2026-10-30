@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   Perspectiva "Matchday Flamengo" no Backoffice: aparece na lista do cabeçalho
-  (ao lado de Administration Cockpit e Product Cockpit) para o administrador e
-  para o papel "Gestor de jogos".
+  (ao lado de Administration Cockpit e Product Cockpit) para quem tem a
+  autoridade "matchdayperspective" (o atributo access compara com as
+  authorities do BackofficeRole, não com o uid): dada ao administrador
+  (backofficeadministratorrole) e ao papel "Gestor de jogos" no impex do papel.
   Mesmo desenho da Administration Cockpit (menu à esquerda, busca e lista no
   centro, ficha embaixo), com menu próprio (contexto matchday-explorer-tree em
   flamengomatchday-backoffice-config.xml). Ao abrir a perspectiva, "Jogos" já
@@ -13,11 +15,11 @@
 
 	<widget-extension widgetId="backofficeMainSlot">
 		<widget id="matchdayPerspective" widgetDefinitionId="com.hybris.cockpitng.borderlayout" slotId="perspectives"
-				title="matchday.perspective" template="false" access="backofficeadministratorrole,matchdaygamemanagerrole">
+				title="Matchday Flamengo" template="false" access="matchdayperspective">
 
 			<!-- Menu à esquerda -->
 			<widget id="matchdayExplorerTree" widgetDefinitionId="com.hybris.cockpitng.widgets.common.explorertree"
-					slotId="leftSlot" template="false" title="matchday.perspective">
+					slotId="leftSlot" template="false" title="Matchday Flamengo">
 				<!-- clique num tipo (Jogos, Reservas): manda o tipo para a busca -->
 				<widget id="matchdayTreeSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">

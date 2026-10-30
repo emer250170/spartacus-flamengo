@@ -3,7 +3,12 @@
 # Usuário: Employee com groups=matchdaygamemanagerrole (criar pelo Backoffice ou ImpEx; a senha não fica no repositório).
 
 INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];description;authorities;backOfficeLoginDisabled[default=false]
-;matchdaygamemanagerrole;Gestor de jogos;Game manager;Cria, edita, pausa e encerra jogos na tela Jogos do Backoffice;matchdaygamemanagerrole;
+;matchdaygamemanagerrole;Gestor de jogos;Game manager;Cria, edita, pausa e encerra jogos na tela Jogos do Backoffice;matchdaygamemanagerrole,matchdayperspective;
+
+# Perspectiva "Matchday Flamengo" (flamengomatchday-backoffice-widgets.xml, access="matchdayperspective")
+# também para o administrador do Backoffice
+UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
+;backofficeadministratorrole;matchdayperspective
 
 # A tela grava produtos, preços e estoque dos jogos no catálogo da loja em nome do usuário
 UPDATE CatalogVersion;catalog(id)[unique=true];version[unique=true];readPrincipals(uid)[mode=append];writePrincipals(uid)[mode=append]
