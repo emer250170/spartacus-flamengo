@@ -1,22 +1,17 @@
 <section class="st" aria-labelledby="st-title">
   <div class="st-hero">
     <div class="st-wrap">
-      <p class="st-eyebrow">Sócio-Torcedor</p>
+      <p class="st-eyebrow">{{ 'st.eyebrow' | flaT }}</p>
       <h1 id="st-title" class="st-title">Nação Maraca</h1>
-      <p class="st-lead">
-        Prioridade na compra, até 75% de desconto no ingresso e compra garantida
-        no Maracanã. Escolha o seu plano.
-      </p>
+      <p class="st-lead">{{ 'st.lead' | flaT }}</p>
       <p *ngIf="member" class="st-member" role="status">
-        Você é sócio <strong>Nação Maraca {{ member }}</strong
-        >.
-        <a routerLink="/matchday">Comprar ingressos com o seu desconto</a>
+        <span [innerHTML]="'st.youAre' | flaT: { n: member }"></span>
+        <a routerLink="/matchday">{{ 'st.buyTickets' | flaT }}</a>
       </p>
       <p *ngIf="inCart && inCart !== member" class="st-member" role="status">
-        <strong>Nação Maraca {{ inCart }}</strong> está no seu carrinho: a
-        prioridade e o desconto já valem para os ingressos.
-        <a routerLink="/matchday">Escolher ingressos</a> ·
-        <a routerLink="/cart">Ver carrinho</a>
+        <span [innerHTML]="'st.inCart' | flaT: { n: inCart }"></span>
+        <a routerLink="/matchday">{{ 'st.pickTickets' | flaT }}</a> ·
+        <a routerLink="/cart">{{ 'st.viewCart' | flaT }}</a>
       </p>
     </div>
   </div>
@@ -24,11 +19,11 @@
   <div class="st-wrap">
     <div *ngIf="loading" class="st-state" role="status">
       <cx-spinner></cx-spinner>
-      <p>Carregando os planos…</p>
+      <p>{{ 'st.loading' | flaT }}</p>
     </div>
 
     <div *ngIf="!loading && !plans.length" class="st-state" role="alert">
-      <p>Os planos não estão disponíveis agora.</p>
+      <p>{{ 'st.unavailable' | flaT }}</p>
     </div>
 
     <div *ngIf="plans.length" class="st-plans">
@@ -40,35 +35,35 @@
         [attr.aria-labelledby]="'st-plan-' + plan.level"
       >
         <div class="st-card-head">
-          <span *ngIf="plan.level === member" class="st-badge">Seu plano</span>
+          <span *ngIf="plan.level === member" class="st-badge">{{
+            'st.badge.mine' | flaT
+          }}</span>
           <span
             *ngIf="plan.level === inCart && plan.level !== member"
             class="st-badge"
-            >No carrinho</span
+            >{{ 'st.badge.inCart' | flaT }}</span
           >
-          <span *ngIf="!isCurrent(plan) && plan.level === 1" class="st-badge"
-            >Vagas limitadas</span
-          >
+          <span *ngIf="!isCurrent(plan) && plan.level === 1" class="st-badge">{{
+            'st.badge.limited' | flaT
+          }}</span>
           <h2 [id]="'st-plan-' + plan.level" class="st-card-title">
             {{ plan.name }}
           </h2>
           <p class="st-price">
             <span class="st-price-value">{{ brl(plan.price) }}</span>
-            <span class="st-price-unit">/mês</span>
+            <span class="st-price-unit">{{ 'st.perMonth' | flaT }}</span>
           </p>
-          <p class="st-term">
-            Contrato anual · 1ª mensalidade hoje + 11 mensais
-          </p>
+          <p class="st-term">{{ 'st.term' | flaT }}</p>
         </div>
 
         <ul class="st-highlights">
           <li>
             <strong>{{ plan.discount }}%</strong>
-            <span>de desconto na inteira</span>
+            <span>{{ 'st.offFull' | flaT }}</span>
           </li>
           <li>
-            <strong>{{ plan.wavesLabel }}</strong>
-            <span>prioridade na compra</span>
+            <strong>{{ 'wave.n' | flaT: { n: plan.wave } }}</strong>
+            <span>{{ 'st.priority' | flaT }}</span>
           </li>
         </ul>
 
@@ -78,22 +73,25 @@
 
         <div *ngIf="plan.guest && !isCurrent(plan)" class="st-guests">
           <div>
-            <p class="st-guests-title">Convidados</p>
+            <p class="st-guests-title">{{ 'st.guests' | flaT }}</p>
             <p class="st-muted">
-              Até {{ plan.maxGuests }} · {{ brl(plan.guest.price) }}/mês cada
+              {{
+                'st.guestsUpTo'
+                  | flaT: { n: plan.maxGuests, price: brl(plan.guest.price) }
+              }}
             </p>
           </div>
           <div
             class="st-qty"
             role="group"
-            [attr.aria-label]="'Convidados do ' + plan.name"
+            [attr.aria-label]="'st.guestsOf' | flaT: { plan: plan.name }"
           >
             <button
               type="button"
               class="st-qty-btn"
               [disabled]="guestCount(plan) === 0"
               (click)="changeGuests(plan, -1)"
-              aria-label="Menos um convidado"
+              [attr.aria-label]="'st.guestLess' | flaT"
             >
               −
             </button>
@@ -105,7 +103,7 @@
               class="st-qty-btn"
               [disabled]="guestCount(plan) >= plan.maxGuests"
               (click)="changeGuests(plan, 1)"
-              aria-label="Mais um convidado"
+              [attr.aria-label]="'st.guestMore' | flaT"
             >
               +
             </button>
@@ -114,7 +112,7 @@
 
         <div class="st-card-foot">
           <p *ngIf="guestCount(plan) > 0" class="st-total">
-            Total {{ brl(monthly(plan)) }}/mês
+            {{ 'st.total' | flaT: { price: brl(monthly(plan)) } }}
           </p>
           <button
             type="button"
@@ -124,7 +122,9 @@
             [disabled]="plan.soldOut || isCurrent(plan) || !!submitting"
             (click)="subscribe(plan)"
           >
-            <span *ngIf="submitting === plan.code">Incluindo…</span>
+            <span *ngIf="submitting === plan.code">{{
+              'st.adding' | flaT
+            }}</span>
             <span *ngIf="submitting !== plan.code">{{
               buttonLabel(plan)
             }}</span>
@@ -134,34 +134,26 @@
     </div>
 
     <section class="st-section" aria-labelledby="st-common">
-      <h2 id="st-common" class="st-h2">Em todos os planos</h2>
+      <h2 id="st-common" class="st-h2">{{ 'st.common' | flaT }}</h2>
       <ul class="st-common">
         <li *ngFor="let b of commonBenefits">
-          <strong>{{ b.title }}</strong>
-          <span>{{ b.text }}</span>
+          <strong>{{ 'st.b.' + b + '.t' | flaT }}</strong>
+          <span>{{ 'st.b.' + b + '.x' | flaT }}</span>
         </li>
       </ul>
     </section>
 
     <section class="st-section" aria-labelledby="st-waves">
-      <h2 id="st-waves" class="st-h2">Como funcionam as ondas de venda</h2>
-      <p class="st-muted">
-        Cada jogo tem as suas datas de venda. O Nação Maraca 1 compra primeiro,
-        depois o Maraca 2 e o Maraca 3; quem não é sócio só compra na venda
-        geral. Quem já entrou continua comprando até o jogo — e quem compra
-        antes escolhe primeiro.
-      </p>
+      <h2 id="st-waves" class="st-h2">{{ 'st.wavesTitle' | flaT }}</h2>
+      <p class="st-muted">{{ 'st.wavesText' | flaT }}</p>
       <ol class="st-wave-list">
-        <li
-          *ngFor="let w of waves"
-          [class.is-mine]="!!level && w.wave === myWave"
-        >
-          {{ w.label }}
+        <li *ngFor="let w of waves" [class.is-mine]="!!level && w === myWave">
+          {{ 'wave.label.' + w | flaT }}
         </li>
       </ol>
-      <a class="btn btn-secondary st-tickets" routerLink="/matchday"
-        >Ver próximos jogos</a
-      >
+      <a class="btn btn-secondary st-tickets" routerLink="/matchday">{{
+        'st.seeMatches' | flaT
+      }}</a>
     </section>
   </div>
 </section>

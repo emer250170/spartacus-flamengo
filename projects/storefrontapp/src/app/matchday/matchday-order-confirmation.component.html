@@ -3,26 +3,27 @@
   class="mdc"
   aria-labelledby="mdc-title"
 >
-  <h2 id="mdc-title" class="mdc-title">Tudo pronto para o jogo</h2>
-  <p class="mdc-sub">
-    Pedido nº {{ c.orderCode }} · ingresso, vaga, comida e camisa num só pedido.
-  </p>
+  <h2 id="mdc-title" class="mdc-title">{{ 'mdc.title' | flaT }}</h2>
+  <p class="mdc-sub">{{ 'mdc.sub' | flaT: { code: c.orderCode } }}</p>
 
   <div class="mdc-grid">
     <article class="mdc-card mdc-ticket">
       <div>
-        <p class="mdc-kind">Ingresso</p>
+        <p class="mdc-kind">{{ 'mdc.ticket' | flaT }}</p>
         <p class="mdc-name">{{ c.selection.matchTitle }}</p>
         <p class="mdc-detail">{{ c.selection.matchLine }}</p>
         <p class="mdc-detail">
-          Setor {{ c.selection.sectorName }} · Poltrona {{ c.selection.seat }}
+          {{
+            'mdc.sectorSeat'
+              | flaT: { sector: c.selection.sectorName, seat: c.selection.seat }
+          }}
         </p>
       </div>
       <svg
         class="mdc-qr"
         viewBox="0 0 21 21"
         role="img"
-        aria-label="QR code ilustrativo do ingresso"
+        [attr.aria-label]="'mdc.qr' | flaT"
         shape-rendering="crispEdges"
       >
         <rect width="21" height="21" fill="#fff"></rect>
@@ -42,53 +43,57 @@
     </article>
 
     <article class="mdc-card">
-      <p class="mdc-kind">Estacionamento</p>
+      <p class="mdc-kind">{{ 'mdc.parking' | flaT }}</p>
       <ng-container *ngIf="c.selection.parkingName; else noPark">
         <p class="mdc-name">{{ c.selection.parkingName }}</p>
         <p class="mdc-detail">
           {{
             c.selection.plate
-              ? 'Placa ' + c.selection.plate + ' · liberada na entrada'
-              : 'Vaga garantida · liberada na entrada'
+              ? ('mdc.plate' | flaT: { plate: c.selection.plate })
+              : ('mdc.spot' | flaT)
           }}
         </p>
       </ng-container>
       <ng-template #noPark
-        ><p class="mdc-detail">Sem vaga reservada.</p></ng-template
+        ><p class="mdc-detail">{{ 'mdc.noParking' | flaT }}</p></ng-template
       >
     </article>
 
     <article class="mdc-card">
-      <p class="mdc-kind">Comidas e bebidas</p>
+      <p class="mdc-kind">{{ 'mdc.food' | flaT }}</p>
       <ng-container *ngIf="c.selection.food.length; else noFood">
-        <p class="mdc-name">{{ foodTotal(c.selection) }} itens</p>
+        <p class="mdc-name">
+          {{ 'mdc.foodItems' | flaT: { n: foodTotal(c.selection) } }}
+        </p>
         <p class="mdc-detail">
           {{
             c.selection.foodDelivery === 'seat'
-              ? 'Entrega na poltrona ' + c.selection.seat + ' no intervalo'
-              : 'Retirada no quiosque do setor ' + c.selection.sectorName
+              ? ('mdc.atSeat' | flaT: { seat: c.selection.seat })
+              : ('mdc.atKiosk' | flaT: { sector: c.selection.sectorName })
           }}
         </p>
       </ng-container>
       <ng-template #noFood
-        ><p class="mdc-detail">Nenhum pedido antecipado.</p></ng-template
+        ><p class="mdc-detail">{{ 'mdc.noFood' | flaT }}</p></ng-template
       >
     </article>
 
     <article class="mdc-card">
-      <p class="mdc-kind">Camisa</p>
+      <p class="mdc-kind">{{ 'mdc.shirt' | flaT }}</p>
       <ng-container *ngIf="c.selection.shirtCode; else noShirt">
-        <p class="mdc-name">Camisa Jogo 2 · {{ c.selection.shirtSize }}</p>
+        <p class="mdc-name">
+          {{ 'mdc.shirtName' | flaT: { size: c.selection.shirtSize } }}
+        </p>
         <p class="mdc-detail">
           {{
             c.selection.shirtName || c.selection.shirtNumber
               ? c.selection.shirtName + ' ' + c.selection.shirtNumber + ' · '
               : ''
-          }}retire no estádio no dia do jogo
+          }}{{ 'mdc.pickup' | flaT }}
         </p>
       </ng-container>
       <ng-template #noShirt
-        ><p class="mdc-detail">Não incluída neste pedido.</p></ng-template
+        ><p class="mdc-detail">{{ 'mdc.noShirt' | flaT }}</p></ng-template
       >
     </article>
   </div>

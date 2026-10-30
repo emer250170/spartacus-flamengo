@@ -26,8 +26,6 @@ export interface SocioPlan {
   discount: number;
   /** Onda de vendas do titular sem estrelas */
   wave: number;
-  /** Ondas do plano (texto) */
-  wavesLabel: string;
 }
 
 export interface SocioGuest {
@@ -46,7 +44,6 @@ export const SOCIO_RULES: Record<
   {
     discount: number;
     wave: number;
-    wavesLabel: string;
     maxGuests: number;
     guestCode: string;
   }
@@ -54,21 +51,18 @@ export const SOCIO_RULES: Record<
   1: {
     discount: 75,
     wave: 1,
-    wavesLabel: 'Onda 1',
     maxGuests: 3,
     guestCode: 'NACAO-CONVIDADO-60',
   },
   2: {
     discount: 65,
     wave: 2,
-    wavesLabel: 'Onda 2',
     maxGuests: 2,
     guestCode: 'NACAO-CONVIDADO-60',
   },
   3: {
     discount: 60,
     wave: 3,
-    wavesLabel: 'Onda 3',
     maxGuests: 1,
     guestCode: 'NACAO-CONVIDADO-35',
   },
@@ -81,16 +75,11 @@ export const SOCIO_PLAN_PREFIX = 'NACAO-MARACA-';
 export const SOCIO_GROUP_PREFIX = 'nacao-maraca-';
 export const SOCIO_CATEGORY = 'socio_torcedor';
 
-/**
- * Ondas de venda de cada jogo (datas cadastradas no Backoffice, tela Jogos).
- * Cada onda vale até o jogo: quando a onda 2 abre, o Maraca 1 continua comprando.
+/*
+ * Ondas de venda de cada jogo: datas cadastradas no Backoffice (tela Jogos).
+ * Cada onda vale até o jogo: quando a onda 2 abre, o Maraca 1 continua
+ * comprando. Nomes das ondas em fla-texts (wave.label.N).
  */
-export const WAVE_LABELS: Record<number, string> = {
-  1: 'Onda 1 · Nação Maraca 1',
-  2: 'Onda 2 · Nação Maraca 2',
-  3: 'Onda 3 · Nação Maraca 3',
-  4: 'Venda geral',
-};
 
 export interface WaveStatus {
   /** Onda aberta agora (0 = vendas ainda não abriram, 4 = venda geral) */

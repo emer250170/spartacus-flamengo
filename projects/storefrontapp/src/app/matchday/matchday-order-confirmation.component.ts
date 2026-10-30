@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Order, OrderFacade } from '@spartacus/order/root';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { MatchdayDataService } from './matchday-data.service';
 import { MatchdaySelection } from './matchday.model';
 
@@ -24,13 +25,17 @@ interface MatchdayConfirmation {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatchdayOrderConfirmationComponent {
-  confirmation$: Observable<MatchdayConfirmation | undefined> = this.orderFacade
-    .getOrderDetails()
-    .pipe(map((order) => this.build(order)));
+  // emite de novo na troca de idioma (os textos do cartão acompanham o site)
+  confirmation$: Observable<MatchdayConfirmation | undefined> =
+    this.i18n.lang$.pipe(
+      switchMap(() => this.orderFacade.getOrderDetails()),
+      map((order) => this.build(order))
+    );
 
   constructor(
     protected orderFacade: OrderFacade,
-    protected data: MatchdayDataService
+    protected data: MatchdayDataService,
+    protected i18n: FlaI18nService
   ) {}
 
   foodTotal(selection: MatchdaySelection): number {

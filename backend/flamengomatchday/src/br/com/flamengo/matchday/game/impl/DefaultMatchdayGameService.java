@@ -58,6 +58,7 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 
 	private static final TimeZone TZ = TimeZone.getTimeZone("America/Sao_Paulo");
 	private static final Locale PT = new Locale("pt");
+	private static final Locale EN = new Locale("en");
 	private static final String[] MONTHS_PT = { "JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV",
 			"DEZ" };
 	private static final String[] MONTHS_EN = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV",
@@ -191,6 +192,11 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		final String description = title + ", " + datePt(game.getKickoff()) + ", " + hourPt(game.getKickoff()) + ", no "
 				+ venue + "." + salesText(game)
 				+ " Escolha setor e poltrona e monte o seu dia de jogo: estacionamento, comidas e bebidas e a camisa nova no mesmo pedido.";
+		// loja em ingles: mesmos dados, texto em ingles ("Rodada 35" -> "Round 35")
+		final String summaryEn = summary.replaceAll("\\bRodada\\b", "Round");
+		final String descriptionEn = title + ", " + dateEn(game.getKickoff()) + ", " + hourEn(game.getKickoff()) + ", at "
+				+ venue + "." + salesTextEn(game)
+				+ " Pick your sector and seat and build your matchday: parking, food and drinks and the new jersey in the same order.";
 
 		final List<String> variantLines = new ArrayList<>();
 		final List<String> priceLines = new ArrayList<>();
@@ -205,12 +211,13 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 			final String seatCode = code + "-" + suffix;
 			final Double price = priceFor(game, sector, templateSeatPrices.get(seat.getCode()));
 			minPrice = minPrice == null ? price : Math.min(minPrice, price);
-			final String sectorName = categoryName(seat, "setor-");
-			final String seatName = categoryName(seat, "poltrona-");
+			final String sectorName = categoryName(seat, "setor-", PT);
+			final String sectorNameEn = categoryName(seat, "setor-", EN);
+			final String seatName = categoryName(seat, "poltrona-", PT);
 			final String categories = seat.getSupercategories().stream().map(CategoryModel::getCode)
 					.collect(Collectors.joining(","));
-			variantLines.add(";" + seatCode + ";;" + code + ";" + q(title + DOT + sectorName + DOT + seatName) + ";" + categories
-					+ ";;approved");
+			variantLines.add(";" + seatCode + ";;" + code + ";" + q(title + DOT + sectorName + DOT + seatName) + ";"
+					+ q(title + DOT + sectorNameEn + DOT + seatName) + ";" + categories + ";;approved");
 			priceLines.add(";" + seatCode + ";;" + currency() + ";" + amount(price) + ";1;1;false");
 			final boolean sold = Math.abs((code + suffix).hashCode()) % 100 < percent;
 			if (!sold)
@@ -232,11 +239,11 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		lines.add("INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];"
 				+ "summary[lang=en];description[lang=pt];description[lang=en];$supercategories;variantType(code);unit(code)[default=pieces];"
 				+ "approvalstatus(code)");
-		lines.add(";" + code + ";;" + q(namePt) + ";" + q(nameEn) + ";" + q(summary) + ";" + q(summary) + ";" + q(description)
-				+ ";" + q(description) + ";" + (onSale ? storeCategory() + "," : "") + "setor,poltrona;GenericVariantProduct;;"
+		lines.add(";" + code + ";;" + q(namePt) + ";" + q(nameEn) + ";" + q(summary) + ";" + q(summaryEn) + ";" + q(description)
+				+ ";" + q(descriptionEn) + ";" + (onSale ? storeCategory() + "," : "") + "setor,poltrona;GenericVariantProduct;;"
 				+ (onSale ? "approved" : "unapproved"));
 		lines.add("INSERT_UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;$baseProduct;name[lang=pt];"
-				+ "$supercategories;unit(code)[default=pieces];approvalstatus(code)");
+				+ "name[lang=en];$supercategories;unit(code)[default=pieces];approvalstatus(code)");
 		lines.addAll(variantLines);
 		lines.add("INSERT_UPDATE PriceRow;productId[unique=true];unit(code[unique=true,default=pieces]);"
 				+ "currency(isocode)[unique=true];price;minqtd;unitFactor;net");
@@ -519,7 +526,7 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		return codes;
 	}
 
-	protected String categoryName(final ProductModel seat, final String prefix)
+	protected String categoryName(final ProductModel seat, final String prefix, final Locale locale)
 	{
 		final Collection<CategoryModel> categories = seat.getSupercategories();
 		if (categories != null)
@@ -528,7 +535,8 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 			{
 				if (category.getCode() != null && category.getCode().startsWith(prefix))
 				{
-					return StringUtils.defaultString(category.getName(PT), category.getCode());
+					return StringUtils.defaultIfBlank(category.getName(locale),
+							StringUtils.defaultString(category.getName(PT), category.getCode()));
 				}
 			}
 		}
@@ -567,6 +575,29 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		return " Pré-venda para sócios: Onda 1 (Nação Maraca 1): " + waveDate(game.getWave1Start())
 				+ "; Onda 2 (Nação Maraca 2): " + waveDate(game.getWave2Start()) + "; Onda 3 (Nação Maraca 3): "
 				+ waveDate(game.getWave3Start()) + "; Venda geral: " + waveDate(game.getGeneralSaleStart()) + ".";
+	}
+
+	/**
+	 * O mesmo texto das ondas para a loja em ingles: "Wave N (...): aaaa-MM-dd HH:mm" (horario de Brasilia).
+	 */
+	protected static String salesTextEn(final MatchdayGameModel game)
+	{
+		if (game.getWave1Start() == null || game.getWave2Start() == null || game.getWave3Start() == null
+				|| game.getGeneralSaleStart() == null)
+		{
+			return Boolean.TRUE.equals(game.getPresale()) ? " Member presale." : "";
+		}
+		return " Member presale: Wave 1 (Nação Maraca 1): " + waveDateEn(game.getWave1Start())
+				+ "; Wave 2 (Nação Maraca 2): " + waveDateEn(game.getWave2Start()) + "; Wave 3 (Nação Maraca 3): "
+				+ waveDateEn(game.getWave3Start()) + "; General sale: " + waveDateEn(game.getGeneralSaleStart())
+				+ " (Brasília time).";
+	}
+
+	protected static String waveDateEn(final Date date)
+	{
+		final Calendar c = calendar(date);
+		return String.format("%04d-%02d-%02d %02d:%02d", c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1,
+				c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
 	}
 
 	protected static String waveDate(final Date date)

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CmsConfig, provideConfig } from '@spartacus/core';
 import { SpinnerModule } from '@spartacus/storefront';
+import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
 import { MatchdayJourneyComponent } from './matchday-journey.component';
 import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmation.component';
@@ -17,7 +18,13 @@ import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmatio
  * - MatchdayOrderConfirmationComponent -> confirmação do pedido
  */
 @NgModule({
-  imports: [CommonModule, FormsModule, RouterModule, SpinnerModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    SpinnerModule,
+    FlaI18nModule,
+  ],
   declarations: [
     MatchdayJourneyComponent,
     MatchdayHomeBannerComponent,

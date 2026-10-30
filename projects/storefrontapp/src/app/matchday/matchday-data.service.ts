@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OccEndpointsService, WindowRef } from '@spartacus/core';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import {
@@ -23,8 +24,6 @@ const SHIRT_CODE = 'FLA-CAMISA-J2-2026';
 const PERSONALIZATION_CODE = 'FLA-PERSONALIZACAO';
 const RECOMMENDED_FOOD = 'FLA-FOOD-COMBO';
 
-const WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-
 /**
  * Campos pedidos à API: só o que a jornada usa. MEDIDO (30/10, jogo com 384
  * poltronas, cache frio): fields=FULL 647 KB / 3,1 s; estes campos 170 KB / 1,4 s.
@@ -39,13 +38,8 @@ const SHIRT_FIELDS =
   'code,name,summary,price(value),' +
   'variantMatrix(variantValueCategory(name,sequence),variantOption(code))';
 
-/** Descrição de cada setor do Maracanã (texto de apoio do protótipo) */
-const SECTOR_DESCRIPTIONS: Record<string, string> = {
-  NORTE: 'Arquibancada atrás do gol',
-  SUL: 'Arquibancada atrás do gol',
-  LESTE: 'Lateral · visão central',
-  OESTE: 'Lateral coberta · cadeira numerada',
-};
+/** Setores com texto de apoio (fla-texts: sector.NORTE etc.) */
+const SECTOR_KEYS = ['NORTE', 'SUL', 'LESTE', 'OESTE'];
 
 interface OccPrice {
   value?: number;
@@ -85,8 +79,21 @@ export class MatchdayDataService {
   constructor(
     protected http: HttpClient,
     protected occEndpoints: OccEndpointsService,
-    protected winRef: WindowRef
-  ) {}
+    protected winRef: WindowRef,
+    protected i18n: FlaI18nService
+  ) {
+    // nomes, resumos e datas vêm da API no idioma do site: troca de idioma
+    // descarta o que já foi buscado
+    let first = true;
+    this.i18n.lang$.subscribe(() => {
+      if (!first) {
+        this.catalog$ = undefined;
+        this.matches$ = undefined;
+        this.seats.clear();
+      }
+      first = false;
+    });
+  }
 
   /**
    * Lista de jogos (sem poltronas), estacionamento, comidas e camisa.
@@ -285,7 +292,7 @@ export class MatchdayDataService {
           return {
             code: key,
             name: el.variantValueCategory?.name ?? key,
-            description: SECTOR_DESCRIPTIONS[key] ?? '',
+            description: this.sectorDescription(key),
             price:
               children[0].variantOption?.priceData?.value ??
               p.price?.value ??
@@ -300,7 +307,7 @@ export class MatchdayDataService {
         return {
           code,
           name: el.variantValueCategory?.name ?? key,
-          description: SECTOR_DESCRIPTIONS[key] ?? '',
+          description: this.sectorDescription(key),
           price: el.variantOption?.priceData?.value ?? p.price?.value ?? 0,
           stock: el.variantOption?.stock?.stockLevel,
           seats: [],
@@ -312,25 +319,27 @@ export class MatchdayDataService {
       : (p.price?.value ?? 0);
     const lowStock = sectors.some((s) => s.stock !== undefined && s.stock < 20);
 
+    const weekdayIndex = this.weekdayFromCode(p.code);
     return {
       code: p.code,
       title,
       opponent,
-      weekday: this.weekdayFromCode(p.code),
+      weekday: weekdayIndex < 0 ? '' : this.i18n.weekday(weekdayIndex),
+      weekdayIndex,
       dateLabel,
       timeLabel,
       competition,
       venue,
       minPrice,
       tag: lowStock
-        ? 'Últimos ingressos'
-        : /pré-venda/i.test(
+        ? 'low'
+        : /pré-venda|presale/i.test(
               [p.name, p.summary, p.description]
                 .map((t) => this.clean(t))
                 .join(' ')
             )
-          ? 'Pré-venda sócio'
-          : 'Vendas abertas',
+          ? 'presale'
+          : 'open',
       sectors,
       waveStarts: this.waveStarts(p.description),
     };
@@ -338,21 +347,42 @@ export class MatchdayDataService {
 
   /**
    * Datas das ondas na descrição do jogo (escritas pelo SAP Commerce ao abrir
-   * o jogo): "Onda 1 (...): 20/10/2026 10h00; ...; Venda geral: 23/10/2026 10h00".
-   * Horário de Brasília.
+   * o jogo), em horário de Brasília:
+   * - pt: "Onda 1 (...): 20/10/2026 10h00; ...; Venda geral: 23/10/2026 10h00"
+   * - en: "Wave 1 (...): 2026-10-20 10:00; ...; General sale: 2026-10-23 10:00"
    */
   protected waveStarts(description?: string): string[] | undefined {
     const text = this.clean(description);
     const at = (label: RegExp): string | undefined => {
-      const m = new RegExp(
-        label.source +
-          String.raw`[^:]*:\s*(\d{2})\/(\d{2})\/(\d{4}) (\d{2})h(\d{2})`,
+      const after = new RegExp(
+        label.source + String.raw`[^:]*:\s*([^;.]+)`,
         'i'
-      ).exec(text);
-      return m ? `${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:00-03:00` : undefined;
+      )
+        .exec(text)?.[1]
+        ?.trim();
+      if (!after) {
+        return undefined;
+      }
+      const pt = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2})h(\d{2})/.exec(after);
+      if (pt) {
+        return `${pt[3]}-${pt[2]}-${pt[1]}T${pt[4]}:${pt[5]}:00-03:00`;
+      }
+      const iso = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(after);
+      return iso
+        ? `${iso[1]}-${iso[2]}-${iso[3]}T${iso[4]}:${iso[5]}:00-03:00`
+        : undefined;
     };
-    const dates = [/Onda 1/, /Onda 2/, /Onda 3/, /Venda geral/].map(at);
+    const dates = [
+      /(?:Onda|Wave) 1/,
+      /(?:Onda|Wave) 2/,
+      /(?:Onda|Wave) 3/,
+      /(?:Venda geral|General sale)/,
+    ].map(at);
     return dates.every(Boolean) ? (dates as string[]) : undefined;
+  }
+
+  protected sectorDescription(key: string): string {
+    return SECTOR_KEYS.includes(key) ? this.i18n.t('sector.' + key) : '';
   }
 
   protected buildCatalog(
@@ -417,14 +447,13 @@ export class MatchdayDataService {
     return /(\d{8})/.exec(code)?.[1] ?? code;
   }
 
-  /** FLA-PAL-20261019 -> "SEG" */
-  protected weekdayFromCode(code: string): string {
+  /** FLA-PAL-20261019 -> 1 (segunda) */
+  protected weekdayFromCode(code: string): number {
     const m = /(\d{4})(\d{2})(\d{2})/.exec(code);
     if (!m) {
-      return '';
+      return -1;
     }
-    const date = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return WEEKDAYS[date.getDay()] ?? '';
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getDay();
   }
 
   protected inStock(stock?: OccStock): boolean {
