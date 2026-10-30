@@ -230,10 +230,10 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		lines.add("$supercategories=supercategories(code,$catalogVersion)");
 		lines.add("$baseProduct=baseProduct(code,$catalogVersion)");
 		lines.add("INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];"
-				+ "summary[lang=en];description[lang=pt];$supercategories;variantType(code);unit(code)[default=pieces];"
+				+ "summary[lang=en];description[lang=pt];description[lang=en];$supercategories;variantType(code);unit(code)[default=pieces];"
 				+ "approvalstatus(code)");
 		lines.add(";" + code + ";;" + q(namePt) + ";" + q(nameEn) + ";" + q(summary) + ";" + q(summary) + ";" + q(description)
-				+ ";" + (onSale ? storeCategory() + "," : "") + "setor,poltrona;GenericVariantProduct;;"
+				+ ";" + q(description) + ";" + (onSale ? storeCategory() + "," : "") + "setor,poltrona;GenericVariantProduct;;"
 				+ (onSale ? "approved" : "unapproved"));
 		lines.add("INSERT_UPDATE GenericVariantProduct;code[unique=true];$catalogVersion;$baseProduct;name[lang=pt];"
 				+ "$supercategories;unit(code)[default=pieces];approvalstatus(code)");
