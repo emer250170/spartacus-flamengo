@@ -15,7 +15,6 @@ import {
   SOCIO_GROUP_PREFIX,
   SOCIO_PLAN_PREFIX,
   SOCIO_RULES,
-  SOCIO_SIMULATION_KEY,
   SocioGuest,
   SocioPlan,
   WaveStatus,
@@ -30,26 +29,18 @@ interface OccProduct {
   stock?: { stockLevel?: number; stockLevelStatus?: string };
 }
 
-/** Dias antes do jogo em que cada onda abre (às 10h) */
-const WAVE_DAYS_BEFORE = 13;
-const WAVE_OPEN_HOUR = 10;
-
 /**
  * Planos de sócio-torcedor e a situação do torcedor logado.
  *
  * - Planos: busca da categoria socio_torcedor (traz o preço) + detalhe de
  *   cada plano (traz os benefícios na descrição).
  * - Plano do torcedor: grupos de clientes do SAP Commerce (nacao-maraca-N).
- * - Ondas de venda: calculadas a partir da data do jogo; na demonstração dá
- *   para simular a onda aberta (fica só nesta aba do navegador).
+ * - Ondas de venda: datas cadastradas em cada jogo (Backoffice, tela Jogos).
  */
 @Injectable({ providedIn: 'root' })
 export class SocioService {
   private plans$?: Observable<SocioPlan[]>;
   private refresh$ = new BehaviorSubject<number>(0);
-  private simulation$ = new BehaviorSubject<number | null>(
-    this.readSimulation()
-  );
   private level$?: Observable<number | null>;
 
   constructor(
@@ -137,25 +128,6 @@ export class SocioService {
 
   // ---------- ondas de venda ----------
 
-  /** Onda simulada na demonstração (null = pela data do jogo) */
-  getSimulation(): Observable<number | null> {
-    return this.simulation$.asObservable();
-  }
-
-  setSimulation(wave: number | null): void {
-    try {
-      const storage = this.winRef.sessionStorage;
-      if (wave === null) {
-        storage?.removeItem(SOCIO_SIMULATION_KEY);
-      } else {
-        storage?.setItem(SOCIO_SIMULATION_KEY, String(wave));
-      }
-    } catch {
-      // sem armazenamento a simulação vale só até recarregar a página
-    }
-    this.simulation$.next(wave);
-  }
-
   /** Onda do torcedor: a do plano, ou venda geral para quem não é sócio */
   memberWave(level: number | null): number {
     return level ? SOCIO_RULES[level].wave : GENERAL_SALE_WAVE;
@@ -167,68 +139,31 @@ export class SocioService {
   }
 
   /**
-   * Situação de venda de um jogo para o torcedor.
-   * `matchCode` traz a data (JOGO-20261101-FLU) e `timeLabel` o horário (16h00).
+   * Situação de venda de um jogo para o torcedor, pelas datas das ondas
+   * cadastradas no jogo (onda 1, 2, 3 e venda geral). Jogo sem datas está em
+   * venda geral.
    */
   waveStatus(
-    matchCode: string,
-    timeLabel: string,
+    waveStarts: string[] | undefined,
     level: number | null,
-    simulated: number | null,
     now = new Date()
   ): WaveStatus {
     const mine = this.memberWave(level);
-    const kickoff = this.kickoff(matchCode, timeLabel);
-    let current = GENERAL_SALE_WAVE;
-    if (simulated !== null) {
-      current = simulated;
-    } else if (kickoff) {
-      current = 0;
-      for (let k = 1; k <= GENERAL_SALE_WAVE; k++) {
-        if (this.waveOpensAt(kickoff, k).getTime() <= now.getTime()) {
-          current = k;
-        }
-      }
+    if (!waveStarts || waveStarts.length < GENERAL_SALE_WAVE) {
+      return { current: GENERAL_SALE_WAVE, mine, open: true };
     }
+    let current = 0;
+    waveStarts.forEach((iso, i) => {
+      if (new Date(iso).getTime() <= now.getTime()) {
+        current = Math.max(current, i + 1);
+      }
+    });
     return {
       current,
       mine,
       open: current >= mine,
-      opensAt: kickoff ? this.waveOpensAt(kickoff, mine) : undefined,
-      simulated: simulated !== null,
+      opensAt: new Date(waveStarts[mine - 1]),
     };
-  }
-
-  waveOpensAt(kickoff: Date, wave: number): Date {
-    const d = new Date(kickoff);
-    d.setDate(d.getDate() - (WAVE_DAYS_BEFORE - wave));
-    d.setHours(WAVE_OPEN_HOUR, 0, 0, 0);
-    return d;
-  }
-
-  protected kickoff(code: string, timeLabel: string): Date | undefined {
-    const m = /(\d{4})(\d{2})(\d{2})/.exec(code);
-    if (!m) {
-      return undefined;
-    }
-    const t = /(\d{1,2})h(\d{2})?/i.exec(timeLabel ?? '');
-    return new Date(
-      Number(m[1]),
-      Number(m[2]) - 1,
-      Number(m[3]),
-      t ? Number(t[1]) : 16,
-      t && t[2] ? Number(t[2]) : 0
-    );
-  }
-
-  protected readSimulation(): number | null {
-    try {
-      const raw = this.winRef.sessionStorage?.getItem(SOCIO_SIMULATION_KEY);
-      const n = raw ? Number(raw) : NaN;
-      return n >= 0 && n <= GENERAL_SALE_WAVE ? n : null;
-    } catch {
-      return null;
-    }
   }
 
   // ---------- OCC ----------

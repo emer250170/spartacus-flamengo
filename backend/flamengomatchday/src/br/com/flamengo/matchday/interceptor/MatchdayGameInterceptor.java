@@ -11,6 +11,7 @@ import de.hybris.platform.servicelayer.interceptor.RemoveInterceptor;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,12 @@ public class MatchdayGameInterceptor implements InitDefaultsInterceptor<Matchday
 
 	private static final List<String> CONTENT = Arrays.asList(MatchdayGameModel.OPPONENT, MatchdayGameModel.KICKOFF,
 			MatchdayGameModel.COMPETITION, MatchdayGameModel.VENUE, MatchdayGameModel.PRESALE, MatchdayGameModel.PRICENORTE,
-			MatchdayGameModel.PRICESUL, MatchdayGameModel.PRICELESTE, MatchdayGameModel.PRICEOESTE);
+			MatchdayGameModel.PRICESUL, MatchdayGameModel.PRICELESTE, MatchdayGameModel.PRICEOESTE, MatchdayGameModel.WAVE1START,
+			MatchdayGameModel.WAVE2START, MatchdayGameModel.WAVE3START, MatchdayGameModel.GENERALSALESTART);
+
+	/** Ondas em branco num jogo novo: 7, 6, 5 e 4 dias antes do jogo, às 10h */
+	private static final int[] DEFAULT_DAYS_BEFORE = { 7, 6, 5, 4 };
+	private static final int DEFAULT_HOUR = 10;
 
 	private MatchdayGameService matchdayGameService;
 
@@ -91,8 +97,12 @@ public class MatchdayGameInterceptor implements InitDefaultsInterceptor<Matchday
 	@Override
 	public void onPrepare(final MatchdayGameModel game, final InterceptorContext ctx) throws InterceptorException
 	{
-		validate(game);
 		final boolean isNew = ctx.isNew(game);
+		if (isNew)
+		{
+			defaultWaves(game);
+		}
+		validate(game);
 		if (StringUtils.isBlank(game.getCode()))
 		{
 			game.setCode(matchdayGameService.generateCode(game));
@@ -192,10 +202,66 @@ public class MatchdayGameInterceptor implements InitDefaultsInterceptor<Matchday
 				throw new InterceptorException("Preço não pode ser negativo.");
 			}
 		}
+		validateWaves(game);
 		final Integer percent = game.getSimulatedSoldPercent();
 		if (percent != null && (percent.intValue() < 0 || percent.intValue() > 100))
 		{
 			throw new InterceptorException("A ocupação simulada vai de 0 a 100%.");
+		}
+	}
+
+	/** Jogo novo com as 4 datas em branco recebe o calendário padrão */
+	protected void defaultWaves(final MatchdayGameModel game)
+	{
+		if (game.getKickoff() == null || game.getWave1Start() != null || game.getWave2Start() != null
+				|| game.getWave3Start() != null || game.getGeneralSaleStart() != null)
+		{
+			return;
+		}
+		game.setWave1Start(daysBefore(game.getKickoff(), DEFAULT_DAYS_BEFORE[0]));
+		game.setWave2Start(daysBefore(game.getKickoff(), DEFAULT_DAYS_BEFORE[1]));
+		game.setWave3Start(daysBefore(game.getKickoff(), DEFAULT_DAYS_BEFORE[2]));
+		game.setGeneralSaleStart(daysBefore(game.getKickoff(), DEFAULT_DAYS_BEFORE[3]));
+	}
+
+	protected static Date daysBefore(final Date kickoff, final int days)
+	{
+		final Calendar c = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+		c.setTime(kickoff);
+		c.add(Calendar.DAY_OF_MONTH, -days);
+		c.set(Calendar.HOUR_OF_DAY, DEFAULT_HOUR);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		return c.getTime();
+	}
+
+	/** Todas as datas ou nenhuma; onda 1 < onda 2 < onda 3 < venda geral < jogo */
+	protected void validateWaves(final MatchdayGameModel game) throws InterceptorException
+	{
+		final List<Date> dates = Arrays.asList(game.getWave1Start(), game.getWave2Start(), game.getWave3Start(),
+				game.getGeneralSaleStart());
+		final long filled = dates.stream().filter(java.util.Objects::nonNull).count();
+		if (filled == 0)
+		{
+			return;
+		}
+		if (filled < dates.size())
+		{
+			throw new InterceptorException(
+					"Preencha as quatro datas de venda (ondas 1, 2 e 3 e venda geral) ou deixe todas em branco.");
+		}
+		final List<String> names = Arrays.asList("onda 1", "onda 2", "onda 3", "venda geral");
+		for (int i = 1; i < dates.size(); i++)
+		{
+			if (!dates.get(i - 1).before(dates.get(i)))
+			{
+				throw new InterceptorException("A " + names.get(i - 1) + " precisa abrir antes da " + names.get(i) + ".");
+			}
+		}
+		if (!game.getGeneralSaleStart().before(game.getKickoff()))
+		{
+			throw new InterceptorException("A venda geral precisa abrir antes do jogo.");
 		}
 	}
 

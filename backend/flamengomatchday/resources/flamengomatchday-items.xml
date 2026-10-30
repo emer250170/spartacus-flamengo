@@ -61,6 +61,27 @@
 				<attribute qualifier="priceOeste" type="java.lang.Double">
 					<persistence type="property"/>
 				</attribute>
+				<!--
+					Ondas de venda (demo): onda 1 = Nação Maraca 1, onda 2 = Maraca 2,
+					onda 3 = Maraca 3, venda geral = todo mundo. Cada onda vale até
+					o jogo; quem tem prioridade maior continua podendo comprar.
+				-->
+				<attribute qualifier="wave1Start" type="java.util.Date">
+					<description>Abertura da onda 1 (Nação Maraca 1)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="wave2Start" type="java.util.Date">
+					<description>Abertura da onda 2 (Nação Maraca 2)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="wave3Start" type="java.util.Date">
+					<description>Abertura da onda 3 (Nação Maraca 3)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="generalSaleStart" type="java.util.Date">
+					<description>Abertura da venda geral (quem não é sócio)</description>
+					<persistence type="property"/>
+				</attribute>
 				<attribute qualifier="simulatedSoldPercent" type="java.lang.Integer">
 					<description>Demonstração: % de poltronas que já abrem vendidas</description>
 					<persistence type="property"/>

@@ -33,27 +33,6 @@
             <a routerLink="/socio-torcedor">Conheça a Nação Maraca</a>
           </ng-template>
         </p>
-        <!-- Fechado por padrão: só o resumo entra no texto da página -->
-        <details class="md-socio-sim" [open]="simulatedWave !== null">
-          <summary>
-            Demonstração{{
-              simulatedWave === null ? '' : ' · onda ' + simulatedWave
-            }}
-          </summary>
-          <label>
-            <span>Onda aberta</span>
-            <select
-              [value]="simulatedWave === null ? '' : simulatedWave"
-              (change)="onSimulationChange($any($event.target).value)"
-            >
-              <option value="">Pela data do jogo</option>
-              <option value="0">Vendas ainda não abertas</option>
-              <option *ngFor="let w of waveOptions" [value]="w.wave">
-                {{ w.label }}
-              </option>
-            </select>
-          </label>
-        </details>
       </div>
 
       <nav class="md-steps" aria-label="Etapas do dia de jogo">
@@ -120,11 +99,12 @@
                     >
                       {{
                         w.open
-                          ? w.current >= 7
+                          ? w.current >= 4
                             ? 'Venda geral aberta'
                             : 'Onda ' + w.current + ' aberta'
-                          : 'Sua onda: ' +
-                            (w.mine >= 7 ? 'venda geral' : w.mine)
+                          : (w.mine >= 4 ? 'Venda geral' : 'Sua onda') +
+                            ' abre ' +
+                            shortDate(w.opensAt)
                       }}
                     </span>
                   </ng-container>
@@ -138,15 +118,22 @@
                   A venda deste jogo ainda não chegou na sua onda
                 </p>
                 <p class="md-muted">
-                  Agora: {{ waveLabel(w.current) }}.
                   {{
                     memberLevel
                       ? 'Seu plano compra na ' + waveLabel(w.mine)
-                      : 'A venda geral abre'
-                  }}<ng-container *ngIf="w.opensAt && !w.simulated">
-                    em {{ dateTimeLabel(w.opensAt) }}</ng-container
-                  >.
+                      : 'Quem não é sócio compra na venda geral'
+                  }}, a partir de {{ shortDate(w.opensAt) }}.
                 </p>
+                <ol class="md-wave-schedule">
+                  <li
+                    *ngFor="let s of waveSchedule(match)"
+                    [class.is-current]="s.wave === w.current"
+                    [class.is-mine]="s.wave === w.mine"
+                  >
+                    <span>{{ s.label }}</span>
+                    <span>{{ shortDate(s.at) }}</span>
+                  </li>
+                </ol>
                 <a
                   *ngIf="!memberLevel || memberLevel > 1"
                   class="btn btn-primary"

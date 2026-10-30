@@ -94,6 +94,22 @@
 				</wz:navigation>
 			</wz:step>
 
+			<wz:step id="matchdayStepWaves" label="matchday.wizard.waves" sublabel="matchday.wizard.waves.sub">
+				<wz:content id="waves.content">
+					<wz:property-list root="newGame">
+						<wz:property qualifier="wave1Start" type="java.util.Date"/>
+						<wz:property qualifier="wave2Start" type="java.util.Date"/>
+						<wz:property qualifier="wave3Start" type="java.util.Date"/>
+						<wz:property qualifier="generalSaleStart" type="java.util.Date"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="waves.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:next/>
+				</wz:navigation>
+			</wz:step>
+
 			<wz:step id="matchdayStep2" label="matchday.wizard.step2" sublabel="matchday.wizard.step2.sub">
 				<wz:content id="step2.content">
 					<wz:property-list root="newGame">
@@ -144,6 +160,12 @@
 					<editorArea:attribute qualifier="competition"/>
 					<editorArea:attribute qualifier="venue"/>
 					<editorArea:attribute qualifier="presale"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.waves">
+					<editorArea:attribute qualifier="wave1Start"/>
+					<editorArea:attribute qualifier="wave2Start"/>
+					<editorArea:attribute qualifier="wave3Start"/>
+					<editorArea:attribute qualifier="generalSaleStart"/>
 				</editorArea:section>
 				<editorArea:section name="matchday.editor.prices">
 					<editorArea:attribute qualifier="priceNorte"/>

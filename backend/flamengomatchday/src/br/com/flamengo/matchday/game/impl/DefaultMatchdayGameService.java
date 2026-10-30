@@ -189,7 +189,7 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		final String competition = clean(game.getCompetition());
 		final String summary = StringUtils.isBlank(competition) ? venue : competition + DOT + venue;
 		final String description = title + ", " + datePt(game.getKickoff()) + ", " + hourPt(game.getKickoff()) + ", no "
-				+ venue + "." + (Boolean.TRUE.equals(game.getPresale()) ? " Pré-venda para sócios." : "")
+				+ venue + "." + salesText(game)
 				+ " Escolha setor e poltrona e monte o seu dia de jogo: estacionamento, comidas e bebidas e a camisa nova no mesmo pedido.";
 
 		final List<String> variantLines = new ArrayList<>();
@@ -551,6 +551,29 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		{
 			LOG.warn("Não foi possível disparar a reindexação {}: {}", code, e.getMessage());
 		}
+	}
+
+	/**
+	 * Texto das ondas de venda na descrição do produto. A loja lê as datas daqui
+	 * (formato fixo "Onda N (...): dd/MM/aaaa HHhmm"; horário de Brasília).
+	 */
+	protected static String salesText(final MatchdayGameModel game)
+	{
+		if (game.getWave1Start() == null || game.getWave2Start() == null || game.getWave3Start() == null
+				|| game.getGeneralSaleStart() == null)
+		{
+			return Boolean.TRUE.equals(game.getPresale()) ? " Pré-venda para sócios." : "";
+		}
+		return " Pré-venda para sócios: Onda 1 (Nação Maraca 1): " + waveDate(game.getWave1Start())
+				+ "; Onda 2 (Nação Maraca 2): " + waveDate(game.getWave2Start()) + "; Onda 3 (Nação Maraca 3): "
+				+ waveDate(game.getWave3Start()) + "; Venda geral: " + waveDate(game.getGeneralSaleStart()) + ".";
+	}
+
+	protected static String waveDate(final Date date)
+	{
+		final Calendar c = calendar(date);
+		return String.format("%02d/%02d/%04d %02dh%02d", c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1,
+				c.get(Calendar.YEAR), c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
 	}
 
 	protected static String datePt(final Date date)

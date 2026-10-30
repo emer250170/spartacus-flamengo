@@ -15,14 +15,7 @@ import {
   RoutingService,
   WindowRef,
 } from '@spartacus/core';
-import {
-  Observable,
-  Subscription,
-  combineLatest,
-  interval,
-  raceWith,
-  timer,
-} from 'rxjs';
+import { Observable, Subscription, interval, raceWith, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
 import { WAVE_LABELS, WaveStatus } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
@@ -114,12 +107,6 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   // sócio-torcedor: plano do torcedor e ondas de venda
   /** Plano Nação Maraca do torcedor (1 a 3) ou null */
   memberLevel: number | null = null;
-  /** Onda simulada na demonstração (null = pela data do jogo) */
-  simulatedWave: number | null = null;
-  readonly waveOptions = Object.entries(WAVE_LABELS).map(([k, label]) => ({
-    wave: Number(k),
-    label,
-  }));
 
   private subscription = new Subscription();
 
@@ -176,14 +163,14 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     // plano do sócio (lido de novo a cada visita: pode ter acabado de assinar)
     this.socio.refreshMembership();
     this.subscription.add(
-      combineLatest([
-        this.socio.getMemberLevel(),
-        this.socio.getSimulation(),
-      ]).subscribe(([level, simulated]) => {
+      this.socio.getMemberLevel().subscribe((level) => {
         this.memberLevel = level;
-        this.simulatedWave = simulated;
         this.cd.markForCheck();
       })
+    );
+    // a onda vira pelo relógio: confere a cada 30 s
+    this.subscription.add(
+      interval(30000).subscribe(() => this.cd.markForCheck())
     );
   }
 
@@ -249,34 +236,45 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   /** Situação de venda do jogo para este torcedor */
   waveFor(match: MatchdayMatch): WaveStatus {
-    return this.socio.waveStatus(
-      match.code,
-      match.timeLabel,
-      this.memberLevel,
-      this.simulatedWave
-    );
+    return this.socio.waveStatus(match.waveStarts, this.memberLevel);
+  }
+
+  /** Calendário de vendas do jogo, para o aviso de onda fechada */
+  waveSchedule(
+    match: MatchdayMatch
+  ): { wave: number; label: string; at: Date }[] {
+    return (match.waveStarts ?? []).map((iso, i) => ({
+      wave: i + 1,
+      label: WAVE_LABELS[i + 1],
+      at: new Date(iso),
+    }));
+  }
+
+  /** "09/11 10h00" */
+  shortDate(date?: Date): string {
+    if (!date) {
+      return '';
+    }
+    const d = date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      timeZone: 'America/Sao_Paulo',
+    });
+    const t = date
+      .toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo',
+      })
+      .replace(':', 'h');
+    return `${d} ${t}`;
   }
 
   waveLabel(wave: number): string {
     return wave <= 0 ? 'Vendas ainda não abertas' : (WAVE_LABELS[wave] ?? '');
   }
 
-  /** "sex., 23/10 às 10h00" */
-  dateTimeLabel(date?: Date): string {
-    if (!date) {
-      return '';
-    }
-    return `${date.toLocaleDateString('pt-BR', {
-      weekday: 'short',
-      day: '2-digit',
-      month: '2-digit',
-    })} às ${date.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })}`;
-  }
-
-  /** Onda do torcedor (7 = venda geral) */
+  /** Onda do torcedor (4 = venda geral) */
   get myWave(): number {
     return this.socio.memberWave(this.memberLevel);
   }
@@ -288,10 +286,6 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   /** Preço do ingresso com o desconto do plano (o carrinho aplica pela promoção) */
   ticketPrice(price: number): number {
     return Math.round(price * (100 - this.memberDiscount)) / 100;
-  }
-
-  onSimulationChange(value: string): void {
-    this.socio.setSimulation(value === '' ? null : Number(value));
   }
 
   // ---------- etapa 1: jogo ----------
