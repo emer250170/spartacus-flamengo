@@ -1,0 +1,6 @@
+# Backoffice em português: a busca do Backoffice (índice "Solr Config for Backoffice")
+# passa a indexar também o português. Sem isso, quem usa o Backoffice em português
+# vê o aviso "O idioma da sessão atual não está registrado no mecanismo de pesquisa".
+# Depois de importar, rodar uma indexação completa desse índice.
+UPDATE SolrFacetSearchConfig;name[unique=true];languages(isocode)[mode=append]
+;Solr Config for Backoffice;pt

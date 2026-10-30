@@ -247,6 +247,10 @@ A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
 - O histórico de alterações já é gravado pelo Backoffice (SavedValues): toda criação, alteração ou exclusão feita na tela, com usuário e data. Alterações feitas por script ou impex não entram.
 - Deploy: Backoffice › F4 › *Reset to Defaults* da cockpit-config. Não precisa de `ant all`.
 
+### Backoffice em português (30/10)
+- Todos os rótulos do Matchday (perspectiva, árvore, assistente, ficha, campos, status) já existem em português e inglês. O idioma segue a escolha de cada usuário: avatar › *Settings* › *Language* › *UI Locale* › *Portuguese*.
+- A busca do Backoffice só indexava alemão e inglês. Em português aparecia o aviso "O idioma da sessão atual não está registrado no mecanismo de pesquisa". O impex `essentialdata-flamengomatchday-backoffice-pt.impex` inclui o português no índice "Solr Config for Backoffice". Depois de importar, rode uma indexação completa desse índice.
+
 ## Sócio-Torcedor Nação Maraca
 
 Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.
