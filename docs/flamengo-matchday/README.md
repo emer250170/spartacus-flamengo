@@ -292,3 +292,7 @@ Mudou o `flamengomatchday-items.xml` (4 datas no jogo), então precisa:
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.
 - Abas (Detalhes do produto, Especificações, Avaliações, Entrega) alinhadas ao container de 1140px da página. Ver `tema-flamengo.scss`.
 - O texto da aba Entrega fica no CMS: `deliveryTab` do `electronics-spaContentCatalog`, Staged e Online. O texto em pt/en foi gravado pelo HAC, e o lorem ipsum anterior está salvo em `/backup/antes-ondas-20261030/deliveryTab-*.html`.
+- `src/app/i18n/pt-carrinho-checkout.ts`: carrinho, checkout, endereço, pagamento, confirmação do pedido, "Olá / Entrar / Cadastrar" e tema em português.
+- `brl-price.interceptor.ts`: preços no formato R$ 229,99 com o site em português. A API manda R$229.99, porque o idioma `pt` do SAP Commerce não tem país.
+- O rótulo "Language" vem de uma constante do Spartacus; com o site em pt, o CSS troca o texto por "Idioma:".
+- Pelo HAC foram gravados em pt (Staged e Online) os nomes dos links do topo, do menu Minha conta e do rodapé, e o aviso de copyright.

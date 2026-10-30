@@ -13,6 +13,7 @@ import {
 import localeDe from '@angular/common/locales/de';
 import localeJa from '@angular/common/locales/ja';
 import localeZh from '@angular/common/locales/zh';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { EffectsModule } from '@ngrx/effects';
@@ -33,6 +34,8 @@ import { environment } from '../environments/environment';
 import { TestOutletModule } from '../test-outlets/test-outlet.module';
 import { MatchdayModule } from './matchday/matchday.module';
 import { SocioModule } from './socio/socio.module';
+import { BrlPriceInterceptor } from './i18n/brl-price.interceptor';
+import { ptCarrinhoCheckout } from './i18n/pt-carrinho-checkout';
 import { ptProduto } from './i18n/pt-produto';
 import { SpartacusModule } from './spartacus/spartacus.module';
 
@@ -90,6 +93,9 @@ if (!environment.production) {
     }),
     // português da página de produto (o Spartacus só traz inglês)
     provideConfig(<I18nConfig>{ i18n: { resources: ptProduto } }),
+    provideConfig(<I18nConfig>{ i18n: { resources: ptCarrinhoCheckout } }),
+    // preços em R$ 229,99 com o site em português (a API manda R$229.99)
+    { provide: HTTP_INTERCEPTORS, useClass: BrlPriceInterceptor, multi: true },
     provideConfig({ features: { level: '*' } }), // For the development environment and CI, feature level is always the highest.
     provideConfig(<StoreFinderConfig>{
       // For security compliance, by default, google maps does not display.
