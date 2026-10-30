@@ -15,8 +15,17 @@ import {
   RoutingService,
   WindowRef,
 } from '@spartacus/core';
-import { Observable, Subscription, interval, raceWith, timer } from 'rxjs';
+import {
+  Observable,
+  Subscription,
+  combineLatest,
+  interval,
+  raceWith,
+  timer,
+} from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
+import { WAVE_LABELS, WaveStatus } from '../socio/socio.model';
+import { SocioService } from '../socio/socio.service';
 import { MatchdayDataService } from './matchday-data.service';
 import {
   MATCHDAY_HOLD_MINUTES,
@@ -102,6 +111,16 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   needLogin = false;
   holdMessage?: string;
 
+  // sócio-torcedor: plano do torcedor e ondas de venda
+  /** Plano Nação Maraca do torcedor (1 a 3) ou null */
+  memberLevel: number | null = null;
+  /** Onda simulada na demonstração (null = pela data do jogo) */
+  simulatedWave: number | null = null;
+  readonly waveOptions = Object.entries(WAVE_LABELS).map(([k, label]) => ({
+    wave: Number(k),
+    label,
+  }));
+
   private subscription = new Subscription();
 
   constructor(
@@ -113,7 +132,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     protected winRef: WindowRef,
     protected auth: AuthService,
     protected authRedirect: AuthRedirectService,
-    protected router: Router
+    protected router: Router,
+    protected socio: SocioService
   ) {}
 
   ngOnInit(): void {
@@ -153,6 +173,18 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         .subscribe((entries) => this.restoreHold(entries))
     );
     this.subscription.add(interval(1000).subscribe(() => this.tick()));
+    // plano do sócio (lido de novo a cada visita: pode ter acabado de assinar)
+    this.socio.refreshMembership();
+    this.subscription.add(
+      combineLatest([
+        this.socio.getMemberLevel(),
+        this.socio.getSimulation(),
+      ]).subscribe(([level, simulated]) => {
+        this.memberLevel = level;
+        this.simulatedWave = simulated;
+        this.cd.markForCheck();
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -166,6 +198,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       return true;
     }
     if (!this.match) {
+      return false;
+    }
+    // a venda do jogo ainda não chegou na onda do torcedor
+    if (!this.waveFor(this.match).open && !this.held) {
       return false;
     }
     return index <= 1 || !!(this.sector && this.seat);
@@ -194,7 +230,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   get nextDisabled(): boolean {
     if (this.step === 0) {
-      return !this.match;
+      return !this.match || !this.canOpen(1);
     }
     if (this.step === 1) {
       return this.holding || !(this.sector && this.seat);
@@ -207,6 +243,55 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   get nextLabel(): string {
     return this.step === STEPS.length - 2 ? 'Revisar pedido' : 'Continuar';
+  }
+
+  // ---------- sócio-torcedor: ondas e desconto ----------
+
+  /** Situação de venda do jogo para este torcedor */
+  waveFor(match: MatchdayMatch): WaveStatus {
+    return this.socio.waveStatus(
+      match.code,
+      match.timeLabel,
+      this.memberLevel,
+      this.simulatedWave
+    );
+  }
+
+  waveLabel(wave: number): string {
+    return wave <= 0 ? 'Vendas ainda não abertas' : (WAVE_LABELS[wave] ?? '');
+  }
+
+  /** "sex., 23/10 às 10h00" */
+  dateTimeLabel(date?: Date): string {
+    if (!date) {
+      return '';
+    }
+    return `${date.toLocaleDateString('pt-BR', {
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+    })} às ${date.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`;
+  }
+
+  /** Onda do torcedor (7 = venda geral) */
+  get myWave(): number {
+    return this.socio.memberWave(this.memberLevel);
+  }
+
+  get memberDiscount(): number {
+    return this.socio.discount(this.memberLevel);
+  }
+
+  /** Preço do ingresso com o desconto do plano (o carrinho aplica pela promoção) */
+  ticketPrice(price: number): number {
+    return Math.round(price * (100 - this.memberDiscount)) / 100;
+  }
+
+  onSimulationChange(value: string): void {
+    this.socio.setSimulation(value === '' ? null : Number(value));
   }
 
   // ---------- etapa 1: jogo ----------
@@ -546,8 +631,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (this.match) {
       lines.push({
         label: `Ingresso · ${this.sector ? this.sector.name : 'setor a escolher'}`,
-        detail: `${this.match.title} · ${this.match.dateLabel}${this.seat ? ' · Poltrona ' + this.seat : ''}`,
-        price: this.sector?.price ?? 0,
+        detail: `${this.match.title} · ${this.match.dateLabel}${this.seat ? ' · Poltrona ' + this.seat : ''}${this.memberDiscount ? ` · Sócio ${this.memberDiscount}% off` : ''}`,
+        price: this.ticketPrice(this.sector?.price ?? 0),
       });
     }
     const parking = this.parkingProduct;

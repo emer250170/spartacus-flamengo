@@ -21,6 +21,33 @@
     </div>
 
     <ng-container *ngIf="!loading && !loadError && catalog as cat">
+      <div class="md-socio-bar">
+        <p class="md-socio-status">
+          <ng-container *ngIf="memberLevel; else notMember">
+            Sócio <strong>Nação Maraca {{ memberLevel }}</strong> ·
+            {{ memberDiscount }}% de desconto no ingresso ·
+            {{ waveLabel(myWave) }}
+          </ng-container>
+          <ng-template #notMember>
+            Seja sócio e compre antes, com até 75% de desconto.
+            <a routerLink="/socio-torcedor">Conheça a Nação Maraca</a>
+          </ng-template>
+        </p>
+        <label class="md-socio-sim">
+          <span>Demonstração · onda aberta</span>
+          <select
+            [value]="simulatedWave === null ? '' : simulatedWave"
+            (change)="onSimulationChange($any($event.target).value)"
+          >
+            <option value="">Pela data do jogo</option>
+            <option value="0">Vendas ainda não abertas</option>
+            <option *ngFor="let w of waveOptions" [value]="w.wave">
+              {{ w.label }}
+            </option>
+          </select>
+        </label>
+      </div>
+
       <nav class="md-steps" aria-label="Etapas do dia de jogo">
         <ol>
           <li *ngFor="let label of steps; let i = index">
@@ -71,13 +98,57 @@
                     {{ brl(m.minPrice) }}</span
                   >
                 </span>
-                <span
-                  class="md-tag"
-                  [class.is-hot]="m.tag === 'Últimos ingressos'"
-                  >{{ m.tag }}</span
-                >
+                <span class="md-tags">
+                  <span
+                    class="md-tag"
+                    [class.is-hot]="m.tag === 'Últimos ingressos'"
+                    >{{ m.tag }}</span
+                  >
+                  <ng-container *ngIf="waveFor(m) as w">
+                    <span
+                      class="md-tag md-wave"
+                      [class.is-open]="w.open"
+                      [class.is-locked]="!w.open"
+                    >
+                      {{
+                        w.open
+                          ? w.current >= 7
+                            ? 'Venda geral aberta'
+                            : 'Onda ' + w.current + ' aberta'
+                          : 'Sua onda: ' +
+                            (w.mine >= 7 ? 'venda geral' : w.mine)
+                      }}
+                    </span>
+                  </ng-container>
+                </span>
               </button>
             </div>
+
+            <ng-container *ngIf="match && waveFor(match) as w">
+              <div *ngIf="!w.open && !held" class="md-lock" role="alert">
+                <p class="md-lock-title">
+                  A venda deste jogo ainda não chegou na sua onda
+                </p>
+                <p class="md-muted">
+                  Agora: {{ waveLabel(w.current) }}.
+                  {{
+                    memberLevel
+                      ? 'Seu plano compra na ' + waveLabel(w.mine)
+                      : 'A venda geral abre'
+                  }}<ng-container *ngIf="w.opensAt && !w.simulated">
+                    em {{ dateTimeLabel(w.opensAt) }}</ng-container
+                  >.
+                </p>
+                <a
+                  *ngIf="!memberLevel || memberLevel > 1"
+                  class="btn btn-primary"
+                  routerLink="/socio-torcedor"
+                  >{{
+                    memberLevel ? 'Subir de plano' : 'Seja sócio e compre antes'
+                  }}</a
+                >
+              </div>
+            </ng-container>
           </section>
 
           <!-- 2. Setor e poltrona -->
@@ -100,7 +171,16 @@
               >
                 <span class="md-sector-name">{{ s.name }}</span>
                 <span class="md-small">{{ s.description }}</span>
-                <span class="md-price">{{ brl(s.price) }}</span>
+                <span *ngIf="!memberDiscount" class="md-price">{{
+                  brl(s.price)
+                }}</span>
+                <span *ngIf="memberDiscount" class="md-price">
+                  <s class="md-old-price">{{ brl(s.price) }}</s>
+                  {{ brl(ticketPrice(s.price)) }}
+                  <span class="md-small md-socio-off"
+                    >Sócio {{ memberDiscount }}% off</span
+                  >
+                </span>
                 <span *ngIf="sectorStock(s) === 0" class="md-small md-warn">
                   Esgotado
                 </span>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Tela "Jogos" do Backoffice (Matchday Flamengo).
+  Menu: Matchday Flamengo > Jogos e Reservas de poltrona.
+  Rótulos em flamengomatchday-backoffice-labels; nomes de campos na
+  localização do tipo (resources/localization).
+-->
+<config xmlns="http://www.hybris.com/cockpit/config"
+		xmlns:list-view="http://www.hybris.com/cockpitng/component/listView"
+		xmlns:advanced-search="http://www.hybris.com/cockpitng/config/advancedsearch"
+		xmlns:editorArea="http://www.hybris.com/cockpitng/component/editorArea"
+		xmlns:wz="http://www.hybris.com/cockpitng/config/wizard-config"
+		xmlns:explorer-tree="http://www.hybris.com/cockpitng/config/explorertree"
+		xmlns:y="http://www.hybris.com/cockpit/config/hybris">
+
+	<!-- Menu lateral -->
+	<context merge-by="module" parent="auto" component="explorer-tree">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="matchday.tree.root">
+				<explorer-tree:type-node id="matchday.tree.games" code="MatchdayGame"/>
+				<explorer-tree:type-node id="matchday.tree.seatholds" code="SeatHold"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
+	<!--
+	  Menu do papel "Gestor de jogos": sem merge-by, substitui a árvore inteira,
+	  então o usuário só vê Matchday Flamengo.
+	-->
+	<context component="explorer-tree" principal="matchdaygamemanagerrole">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="matchday.tree.root">
+				<explorer-tree:type-node id="matchday.tree.games" code="MatchdayGame"/>
+				<explorer-tree:type-node id="matchday.tree.seatholds" code="SeatHold"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
+	<!-- Como o jogo aparece em títulos e referências -->
+	<context merge-by="type" parent="GenericItem" type="MatchdayGame" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>'Flamengo x ' + opponent + ' (' + code + ')'</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<!-- Lista de jogos -->
+	<context merge-by="type" parent="GenericItem" type="MatchdayGame" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="code"/>
+			<list-view:column qualifier="opponent"/>
+			<list-view:column qualifier="kickoff"/>
+			<list-view:column qualifier="competition"/>
+			<list-view:column qualifier="status"/>
+			<list-view:column qualifier="seatsAvailable"/>
+			<list-view:column qualifier="seatsSold"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="MatchdayGame" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="opponent" selected="true"/>
+				<advanced-search:field name="status" selected="true"/>
+				<advanced-search:field name="kickoff" selected="true"/>
+				<advanced-search:field name="code" selected="false"/>
+				<advanced-search:field name="competition" selected="false"/>
+			</advanced-search:field-list>
+		</advanced-search:advanced-search>
+	</context>
+
+	<!-- Cadastro de jogo novo: 3 passos -->
+	<!-- sem merge-by: não herda o assistente genérico do GenericItem -->
+	<context type="MatchdayGame" component="create-wizard">
+		<wz:flow id="MatchdayGameWizard" title="create.title(ctx.TYPE_CODE)">
+			<wz:prepare id="matchdayGamePrepare">
+				<wz:initialize property="newGame" type="ctx.TYPE_CODE"/>
+			</wz:prepare>
+
+			<wz:step id="matchdayStep1" label="matchday.wizard.step1" sublabel="matchday.wizard.step1.sub">
+				<wz:content id="step1.content">
+					<wz:property-list root="newGame">
+						<wz:property qualifier="opponent" type="java.lang.String"/>
+						<wz:property qualifier="kickoff" type="java.util.Date"/>
+						<wz:property qualifier="competition" type="java.lang.String"/>
+						<wz:property qualifier="venue" type="java.lang.String"/>
+						<wz:property qualifier="presale" type="java.lang.Boolean"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="step1.navigation">
+					<wz:cancel/>
+					<wz:next visible="!#empty(newGame.opponent) AND newGame.kickoff != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="matchdayStep2" label="matchday.wizard.step2" sublabel="matchday.wizard.step2.sub">
+				<wz:content id="step2.content">
+					<wz:property-list root="newGame">
+						<wz:property qualifier="priceNorte" type="java.lang.Double"/>
+						<wz:property qualifier="priceSul" type="java.lang.Double"/>
+						<wz:property qualifier="priceLeste" type="java.lang.Double"/>
+						<wz:property qualifier="priceOeste" type="java.lang.Double"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="step2.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:next visible="newGame.priceNorte != null AND newGame.priceSul != null AND newGame.priceLeste != null AND newGame.priceOeste != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="matchdayStep3" label="matchday.wizard.step3" sublabel="matchday.wizard.step3.sub">
+				<wz:content id="step3.content">
+					<wz:property-list root="newGame">
+						<wz:property qualifier="status" editor="com.hybris.cockpitng.editor.nonoptionalenum"/>
+						<wz:property qualifier="simulatedSoldPercent" type="java.lang.Integer"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="step3.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:done visible="!#empty(newGame.opponent) AND newGame.kickoff != null AND newGame.status != null">
+						<wz:save property="newGame"/>
+					</wz:done>
+				</wz:navigation>
+			</wz:step>
+		</wz:flow>
+	</context>
+
+	<!-- Ficha do jogo -->
+	<context merge-by="type" parent="GenericItem" type="MatchdayGame" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="matchday.editor.essentials">
+					<editorArea:attribute qualifier="code" readonly="true"/>
+					<editorArea:attribute qualifier="opponent"/>
+					<editorArea:attribute qualifier="kickoff"/>
+					<editorArea:attribute qualifier="status"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="matchday.editor.tab">
+				<editorArea:section name="matchday.editor.match">
+					<editorArea:attribute qualifier="competition"/>
+					<editorArea:attribute qualifier="venue"/>
+					<editorArea:attribute qualifier="presale"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.prices">
+					<editorArea:attribute qualifier="priceNorte"/>
+					<editorArea:attribute qualifier="priceSul"/>
+					<editorArea:attribute qualifier="priceLeste"/>
+					<editorArea:attribute qualifier="priceOeste"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.sales">
+					<editorArea:attribute qualifier="seatsTotal" readonly="true"/>
+					<editorArea:attribute qualifier="seatsAvailable" readonly="true"/>
+					<editorArea:attribute qualifier="seatsSold" readonly="true"/>
+					<editorArea:attribute qualifier="product" readonly="true"/>
+					<editorArea:attribute qualifier="statusMessage" readonly="true"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.demo">
+					<editorArea:attribute qualifier="simulatedSoldPercent"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- Reservas de poltrona -->
+	<context merge-by="type" parent="GenericItem" type="SeatHold" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="product"/>
+			<list-view:column qualifier="cartCode"/>
+			<list-view:column qualifier="user"/>
+			<list-view:column qualifier="expiresAt"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SeatHold" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>product.code + ' (' + cartCode + ')'</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+</config>

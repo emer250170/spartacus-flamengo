@@ -671,3 +671,93 @@
   margin-top: 6px;
   color: #fca5a5;
 }
+
+// ---------- sócio-torcedor: plano, ondas de venda e desconto ----------
+.md-socio-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  background: var(--md-panel);
+  border: 1px solid var(--md-line);
+  border-left: 4px solid var(--md-red);
+  border-radius: 6px;
+
+  a {
+    color: #fff;
+    text-decoration: underline;
+    margin-left: 4px;
+  }
+}
+
+.md-socio-status {
+  margin: 0;
+}
+
+.md-socio-sim {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-muted);
+
+  select {
+    min-height: 36px;
+    padding: 4px 8px;
+    border: 1px dashed var(--md-muted);
+    border-radius: 4px;
+    background: var(--md-panel-2);
+    color: var(--md-text);
+  }
+}
+
+.md-tags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.md-wave {
+  &.is-open {
+    border-color: #2f7d4a;
+    color: #b6f0c8;
+  }
+  &.is-locked {
+    border-style: dashed;
+    color: var(--md-text);
+  }
+}
+
+.md-lock {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px dashed var(--md-red);
+  border-radius: 6px;
+  background: var(--md-selected);
+
+  .btn {
+    margin-top: 12px;
+  }
+}
+
+.md-lock-title {
+  margin: 0 0 4px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.md-old-price {
+  color: var(--md-muted);
+  font-weight: 400;
+  margin-right: 4px;
+}
+
+.md-socio-off {
+  display: block;
+  color: #b6f0c8;
+}

@@ -57,10 +57,13 @@ html header {
   background: var(--fla-vermelho) !important;
 }
 @media (min-width: 992px) {
+  // Faixa preta de ponta a ponta com border-image (pinta só para os lados).
+  // MEDIDO: a versão anterior (box-shadow + clip-path: inset(0 -100vmax))
+  // recortava tudo abaixo da faixa — os menus suspensos (Mantos, Masculino...)
+  // abriam mas ficavam invisíveis.
   html header cx-page-slot.NavigationBar {
     background: var(--fla-preto);
-    box-shadow: 0 0 0 100vmax var(--fla-preto);
-    clip-path: inset(0 -100vmax);
+    border-image: conic-gradient(var(--fla-preto) 0 0) fill 0 / / 0 100vmax;
   }
 }
 // MEDIDO: o <select> de idioma/moeda tem fundo #f1f1f1 — com texto branco some
@@ -69,11 +72,27 @@ header .SiteContext select {
 }
 header .SiteContext, header .SiteLinks,
 header .SiteContext label, header .SiteContext select, header .SiteContext cx-icon,
-header .SiteLinks a, header cx-login a, header cx-login .cx-login-greet {
+header .SiteLinks a, header cx-login > a, header cx-login .cx-login-greet {
   color: #fff !important;
+}
+// MEDIDO: "header cx-login a" pintava de branco também os itens do menu
+// My Account (fundo branco) — o menu abria vazio. Itens dos menus suspensos
+// do cabeçalho ficam escuros, com hover vermelho.
+// Só no desktop: no celular o menu fica no fundo preto do hambúrguer.
+@media (min-width: 992px) {
+  header cx-navigation-ui.flyout .wrapper a { color: var(--fla-preto) !important; }
+  header cx-navigation-ui.flyout .wrapper a:hover { color: var(--fla-vermelho) !important; }
 }
 header .SiteLinks a { text-decoration: none !important; text-transform: uppercase; font-weight: 600; }
 header .SiteContext select option { color: var(--fla-preto); }
+// MEDIDO: no celular saudação, idioma e links do topo vão para o menu
+// hambúrguer, de fundo cinza claro — em branco ficavam ilegíveis.
+@media (max-width: 991.98px) {
+  header .SiteContext, header .SiteContext label, header .SiteContext select, header .SiteContext cx-icon,
+  header .SiteLinks a, header cx-login .cx-login-greet {
+    color: var(--fla-preto) !important;
+  }
+}
 
 // mini cart: no Spartacus e um bloco da cor primaria — sobre o header vermelho
 // sumiria; fica preto como o botao "Ingressos" do site deles.
@@ -106,6 +125,15 @@ header cx-navigation-ui.flyout > nav > ul > li > button {
     color: #fff !important;
     box-shadow: inset 0 -3px 0 var(--fla-vermelho);
   }
+}
+
+// MEDIDO: no Spartacus o menu suspenso só abre com o mouse sobre a setinha
+// (button:hover + .wrapper) e o painel (85px) começa à esquerda dela — ao
+// descer da seta o mouse saía dos dois e o menu fechava. Agora abre passando
+// o mouse em qualquer parte do item e o painel cobre o item inteiro.
+@media (min-width: 992px) {
+  header cx-navigation-ui.flyout > nav > ul > li:hover > button + .wrapper { display: initial; }
+  header cx-navigation-ui.flyout > nav > ul > li > button + .wrapper { min-width: 200px; }
 }
 
 // hamburguer (mobile) sobre fundo vermelho

@@ -1,0 +1,318 @@
+// Planos Nação Maraca: mesmo visual escuro da jornada de matchday.
+:host {
+  --st-bg: #0b0b0c;
+  --st-panel: #18181b;
+  --st-panel-2: #202024;
+  --st-line: #2e2e33;
+  --st-text: #f4f4f5;
+  --st-muted: #a1a1aa;
+  --st-red: var(--fla-vermelho, #d70000);
+
+  display: block;
+  background: var(--st-bg);
+  color: var(--st-text);
+  font-family: var(--fla-fonte, inherit);
+}
+
+.st {
+  padding-bottom: 64px;
+}
+
+.st-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.st-hero {
+  background: repeating-linear-gradient(
+      90deg,
+      rgba(215, 0, 0, 0.16) 0 28px,
+      transparent 28px 56px
+    ),
+    var(--st-bg);
+  border-bottom: 1px solid var(--st-line);
+  padding: 40px 0 32px;
+  margin-bottom: 32px;
+}
+
+.st-eyebrow {
+  color: var(--st-red);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+.st-title {
+  color: #fff;
+  font-size: clamp(28px, 4vw, 44px);
+  margin: 0 0 8px;
+}
+
+.st-lead {
+  color: var(--st-muted);
+  font-size: 18px;
+  margin: 0;
+  max-width: 640px;
+}
+
+.st-member {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--st-red);
+  background: var(--st-panel);
+  max-width: 640px;
+
+  a {
+    color: #fff;
+    text-decoration: underline;
+    margin-left: 4px;
+  }
+}
+
+.st-state {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--st-muted);
+}
+
+.st-muted {
+  color: var(--st-muted);
+  margin: 0;
+}
+
+// ---------- cards ----------
+.st-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.st-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: var(--st-panel);
+  border: 1px solid var(--st-line);
+  border-radius: 8px;
+
+  &.is-featured {
+    border-color: var(--st-red);
+    box-shadow: 0 0 0 1px var(--st-red);
+  }
+  &.is-mine {
+    background: #2a0e13;
+  }
+}
+
+.st-card-head {
+  position: relative;
+}
+
+.st-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--st-red);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.st-card-title {
+  color: #fff;
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+
+.st-price {
+  margin: 0;
+  color: #fff;
+}
+
+.st-price-value {
+  font-size: 36px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.st-price-unit {
+  color: var(--st-muted);
+  margin-left: 4px;
+}
+
+.st-term {
+  color: var(--st-muted);
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.st-highlights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    padding: 10px 12px;
+    background: var(--st-panel-2);
+    border-radius: 6px;
+  }
+  strong {
+    display: block;
+    color: #fff;
+    font-size: 18px;
+  }
+  span {
+    color: var(--st-muted);
+    font-size: 13px;
+  }
+}
+
+.st-benefits {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    padding: 6px 0 6px 22px;
+    border-top: 1px solid var(--st-line);
+    font-size: 15px;
+  }
+  li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 13px;
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid var(--st-red);
+    border-bottom: 2px solid var(--st-red);
+    transform: rotate(-45deg);
+  }
+}
+
+.st-guests {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--st-panel-2);
+  border-radius: 6px;
+}
+
+.st-guests-title {
+  margin: 0;
+  font-weight: 700;
+  color: #fff;
+}
+
+.st-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-qty-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--st-line);
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.st-qty-value {
+  min-width: 20px;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.st-card-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.st-total {
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+}
+
+// ---------- seções ----------
+.st-section {
+  margin-top: 48px;
+}
+
+.st-h2 {
+  color: #fff;
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+
+.st-common {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    padding: 16px;
+    background: var(--st-panel);
+    border: 1px solid var(--st-line);
+    border-radius: 8px;
+  }
+  strong {
+    display: block;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  span {
+    color: var(--st-muted);
+    font-size: 14px;
+  }
+}
+
+.st-wave-list {
+  margin: 16px 0 24px;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+
+  li {
+    padding: 8px 12px;
+    background: var(--st-panel);
+    border-left: 3px solid var(--st-line);
+  }
+  li.is-mine {
+    border-left-color: var(--st-red);
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+.st-tickets {
+  display: inline-block;
+}

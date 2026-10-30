@@ -1,0 +1,24 @@
+# Papel "Gestor de jogos": entra no Backoffice e só cria, edita, pausa e encerra jogos.
+# O menu reduzido está em flamengomatchday-backoffice-config.xml (explorer-tree com principal=matchdaygamemanagerrole).
+# Usuário: Employee com groups=matchdaygamemanagerrole (criar pelo Backoffice ou ImpEx; a senha não fica no repositório).
+
+INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];description;authorities;backOfficeLoginDisabled[default=false]
+;matchdaygamemanagerrole;Gestor de jogos;Game manager;Cria, edita, pausa e encerra jogos na tela Jogos do Backoffice;matchdaygamemanagerrole;
+
+# A tela grava produtos, preços e estoque dos jogos no catálogo da loja em nome do usuário
+UPDATE CatalogVersion;catalog(id)[unique=true];version[unique=true];readPrincipals(uid)[mode=append];writePrincipals(uid)[mode=append]
+;flamengoProductCatalog;Online;matchdaygamemanagerrole;matchdaygamemanagerrole
+;flamengoProductCatalog;Staged;matchdaygamemanagerrole;matchdaygamemanagerrole
+
+$START_USERRIGHTS;;;;;;;;;
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+BackofficeRole;matchdaygamemanagerrole;;;;;;;;
+;;;;MatchdayGame;+;+;+;+;-
+;;;;MatchdayGameStatus;+;-;-;-;-
+;;;;SeatHold;+;-;-;-;-
+;;;;Product;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;Warehouse;+;-;-;-;-
+;;;;User;+;-;-;-;-
+$END_USERRIGHTS;;;;;;;;;

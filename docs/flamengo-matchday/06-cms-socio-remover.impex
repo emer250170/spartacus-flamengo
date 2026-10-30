@@ -1,0 +1,34 @@
+# Desfaz o 06-cms-socio.impex (Staged e Online)
+$contentCatalog=electronics-spaContentCatalog
+
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+REMOVE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true]
+;;FlaSocioEntry
+REMOVE CMSNavigationNode;$contentCV[unique=true];uid[unique=true]
+;;FlaSocioNavNode
+REMOVE CMSLinkComponent;$contentCV[unique=true];uid[unique=true]
+;;FlaSocioLink
+REMOVE ContentSlotForPage;$contentCV[unique=true];uid[unique=true]
+;;Section1-Socio
+REMOVE ContentSlot;$contentCV[unique=true];uid[unique=true]
+;;Section1Slot-Socio
+REMOVE ContentPage;$contentCV[unique=true];uid[unique=true]
+;;socioTorcedorPage
+REMOVE CMSFlexComponent;$contentCV[unique=true];uid[unique=true]
+;;SocioPlansComponent
+
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Online])[default=$contentCatalog:Online]
+REMOVE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true]
+;;FlaSocioEntry
+REMOVE CMSNavigationNode;$contentCV[unique=true];uid[unique=true]
+;;FlaSocioNavNode
+REMOVE CMSLinkComponent;$contentCV[unique=true];uid[unique=true]
+;;FlaSocioLink
+REMOVE ContentSlotForPage;$contentCV[unique=true];uid[unique=true]
+;;Section1-Socio
+REMOVE ContentSlot;$contentCV[unique=true];uid[unique=true]
+;;Section1Slot-Socio
+REMOVE ContentPage;$contentCV[unique=true];uid[unique=true]
+;;socioTorcedorPage
+REMOVE CMSFlexComponent;$contentCV[unique=true];uid[unique=true]
+;;SocioPlansComponent
