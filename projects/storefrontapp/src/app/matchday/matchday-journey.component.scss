@@ -456,6 +456,15 @@
   }
 }
 
+// MEDIDO: o Spartacus põe todo radio em position:absolute com margem de
+// -2.25rem (para o padrão .form-check); aqui o radio fica fora do painel,
+// à esquerda do texto. Volta para o fluxo, ao lado do rótulo.
+.md-radios input[type='radio'] {
+  position: relative;
+  flex: none;
+  margin: 0;
+}
+
 .md-sizes {
   display: flex;
   flex-wrap: wrap;
