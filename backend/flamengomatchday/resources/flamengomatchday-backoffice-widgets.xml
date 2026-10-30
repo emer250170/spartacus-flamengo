@@ -9,6 +9,9 @@
   centro, ficha embaixo), com menu próprio (contexto matchday-explorer-tree em
   flamengomatchday-backoffice-config.xml). Ao abrir a perspectiva, "Jogos" já
   vem selecionado.
+  O centro é um perspectiveContainer com duas telas: a lista com a ficha
+  (matchdayContainer, para Jogos e Reservas de poltrona) e os relatórios
+  (matchdayReport, para Relatórios), trocadas pelo clique na árvore.
 -->
 <widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widgets.xsd">
@@ -33,6 +36,26 @@
 					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 					<virtual-sockets/>
 				</widget>
+				<!-- clique em Jogos ou Reservas: mostra a lista -->
+				<widget id="matchdayShowList" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<setting key="expression" type="String">'matchdayContainer'</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- clique em "Relatórios": mostra os relatórios -->
+				<widget id="matchdayReportsSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="matchdayShowReport" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">'matchdayReport'</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "matchday.tree.reports".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
 				<!-- ao abrir a perspectiva, seleciona "Jogos" -->
 				<widget id="matchdayPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
@@ -53,84 +76,97 @@
 				<virtual-sockets/>
 			</widget>
 
-			<!-- Busca e lista no centro, ficha embaixo -->
-			<widget id="matchdayContainer" widgetDefinitionId="com.hybris.cockpitng.collapsiblecontainer"
+			<!-- Centro: lista com ficha ou relatórios -->
+			<widget id="matchdayContent" widgetDefinitionId="com.hybris.backoffice.perspectiveContainer"
 					slotId="centerSlot" template="false">
-				<widget id="matchdayAdvancedSearch" widgetDefinitionId="com.hybris.cockpitng.advancedsearch"
-						slotId="center" template="false">
-					<widget id="matchdayHeaderTitle" widgetDefinitionId="com.hybris.backoffice.widgets.title"
-							slotId="pageTitle" template="false"/>
-					<widget id="matchdaySearchEngine" widgetDefinitionId="com.hybris.cockpitng.widgets.common.advancedsearchengine"
+
+				<!-- Busca e lista no centro, ficha embaixo (primeira tela: aparece por padrão) -->
+				<widget id="matchdayContainer" widgetDefinitionId="com.hybris.cockpitng.collapsiblecontainer"
+						slotId="perspectives" template="false">
+					<widget id="matchdayAdvancedSearch" widgetDefinitionId="com.hybris.cockpitng.advancedsearch"
+							slotId="center" template="false">
+						<widget id="matchdayHeaderTitle" widgetDefinitionId="com.hybris.backoffice.widgets.title"
+								slotId="pageTitle" template="false"/>
+						<widget id="matchdaySearchEngine" widgetDefinitionId="com.hybris.cockpitng.widgets.common.advancedsearchengine"
+								slotId="cockpitWidgetChildrenInvisible" template="false">
+							<setting key="defaultPageSize" type="Integer">50</setting>
+							<virtual-sockets/>
+						</widget>
+						<widget id="matchdayList" widgetDefinitionId="com.hybris.cockpitng.collectionBrowser"
+								slotId="nestedWidget" template="false">
+							<setting key="listSubtitle" type="String">emptylist</setting>
+							<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+							<setting key="pageSize" type="Integer">20</setting>
+							<setting key="maxCharsInCell" type="Integer">70</setting>
+							<setting key="actionSlotComponentId" type="String">listviewactions</setting>
+							<setting key="multiSelect" type="Boolean">true</setting>
+							<setting key="colConfigCtxCode" type="String">listview</setting>
+							<setting key="itemRenderer" type="String">listViewRenderer</setting>
+							<setting key="listTitle" type="String"></setting>
+							<setting key="sortableListHeader" type="Boolean">true</setting>
+							<setting key="asyncLoading" type="Boolean">true</setting>
+							<setting key="sendItemsOnSelect" type="Boolean">true</setting>
+							<setting key="widgetStyleClass" type="String">yw-collection-browser-inset</setting>
+						</widget>
+						<setting key="advancedSearchConfigCtxCode" type="String">advanced-search</setting>
+						<setting key="simpleSearchConfigCtxCode" type="String">simple-search</setting>
+						<setting key="addRowPosition" type="String">Bottom</setting>
+						<setting key="enableNestedWidgetView" type="Boolean">true</setting>
+						<setting key="isNestedObjectCreationDisabled" type="Boolean">true</setting>
+						<virtual-sockets/>
+					</widget>
+					<widget id="matchdayEditorArea" widgetDefinitionId="com.hybris.cockpitng.backoffice.defaultEditorArea"
+							slotId="bottom" template="false">
+						<widget id="matchdayPreviousItem" widgetDefinitionId="com.hybris.cockpitng.previousItemSelector"
+								slotId="previousItemSelectorSlot" template="false">
+							<virtual-sockets/>
+						</widget>
+						<widget id="matchdayNextItem" widgetDefinitionId="com.hybris.cockpitng.nextItemSelector"
+								slotId="nextItemSelectorSlot" template="false">
+							<virtual-sockets/>
+						</widget>
+						<setting key="viewModeBtnVisible" type="Boolean">false</setting>
+						<setting key="initViewMode" type="String">fluid</setting>
+						<setting key="fluidViewCode" type="String">fluid</setting>
+						<setting key="editorAreaConfigCtx" type="String">editor-area</setting>
+						<setting key="bottomToolbar" type="Boolean">false</setting>
+						<setting key="actionSlotComponentId" type="String">editorareaactions</setting>
+						<virtual-sockets>
+							<output id="com.hybris.cockpitng.action.delete.success" type="java.lang.Object"/>
+							<output id="com.hybris.cockpitng.action.clone.success" type="java.lang.Object"/>
+						</virtual-sockets>
+					</widget>
+					<widget id="matchdaySpaceManagement" widgetDefinitionId="com.hybris.backoffice.spaceManagement"
 							slotId="cockpitWidgetChildrenInvisible" template="false">
-						<setting key="defaultPageSize" type="Integer">50</setting>
 						<virtual-sockets/>
 					</widget>
-					<widget id="matchdayList" widgetDefinitionId="com.hybris.cockpitng.collectionBrowser"
-							slotId="nestedWidget" template="false">
-						<setting key="listSubtitle" type="String">emptylist</setting>
-						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
-						<setting key="pageSize" type="Integer">20</setting>
-						<setting key="maxCharsInCell" type="Integer">70</setting>
-						<setting key="actionSlotComponentId" type="String">listviewactions</setting>
-						<setting key="multiSelect" type="Boolean">true</setting>
-						<setting key="colConfigCtxCode" type="String">listview</setting>
-						<setting key="itemRenderer" type="String">listViewRenderer</setting>
-						<setting key="listTitle" type="String"></setting>
-						<setting key="sortableListHeader" type="Boolean">true</setting>
-						<setting key="asyncLoading" type="Boolean">true</setting>
-						<setting key="sendItemsOnSelect" type="Boolean">true</setting>
-						<setting key="widgetStyleClass" type="String">yw-collection-browser-inset</setting>
-					</widget>
-					<setting key="advancedSearchConfigCtxCode" type="String">advanced-search</setting>
-					<setting key="simpleSearchConfigCtxCode" type="String">simple-search</setting>
-					<setting key="addRowPosition" type="String">Bottom</setting>
-					<setting key="enableNestedWidgetView" type="Boolean">true</setting>
-					<setting key="isNestedObjectCreationDisabled" type="Boolean">true</setting>
+					<setting key="allowLockingCenterPanel" type="Boolean">false</setting>
+					<setting key="bottomPanelCollapsed" type="Boolean">false</setting>
+					<setting key="topHeight" type="String">33%</setting>
+					<setting key="centerCaption" type="String">List</setting>
+					<setting key="bottomPanelInitiallyLocked" type="Boolean">false</setting>
+					<setting key="centerHeight" type="String">50%</setting>
+					<setting key="topPanelInitiallyLocked" type="Boolean">false</setting>
+					<setting key="thirdSectionDisabled" type="Boolean">true</setting>
+					<setting key="allowLockingBottomPanel" type="Boolean">false</setting>
+					<setting key="bottomCaption" type="String">Edit</setting>
+					<setting key="centerPanelCollapsed" type="Boolean">false</setting>
+					<setting key="widgetStyleClass" type="String">yw-collapsibleContainer-caption-large-font-size</setting>
+					<setting key="topCaption" type="String">Search</setting>
+					<setting key="topPanelCollapsed" type="Boolean">true</setting>
+					<setting key="allowLockingTopPanel" type="Boolean">false</setting>
+					<setting key="centerPanelInitiallyLocked" type="Boolean">true</setting>
 					<virtual-sockets/>
 				</widget>
-				<widget id="matchdayEditorArea" widgetDefinitionId="com.hybris.cockpitng.backoffice.defaultEditorArea"
-						slotId="bottom" template="false">
-					<widget id="matchdayPreviousItem" widgetDefinitionId="com.hybris.cockpitng.previousItemSelector"
-							slotId="previousItemSelectorSlot" template="false">
-						<virtual-sockets/>
-					</widget>
-					<widget id="matchdayNextItem" widgetDefinitionId="com.hybris.cockpitng.nextItemSelector"
-							slotId="nextItemSelectorSlot" template="false">
-						<virtual-sockets/>
-					</widget>
-					<setting key="viewModeBtnVisible" type="Boolean">false</setting>
-					<setting key="initViewMode" type="String">fluid</setting>
-					<setting key="fluidViewCode" type="String">fluid</setting>
-					<setting key="editorAreaConfigCtx" type="String">editor-area</setting>
-					<setting key="bottomToolbar" type="Boolean">false</setting>
-					<setting key="actionSlotComponentId" type="String">editorareaactions</setting>
-					<virtual-sockets>
-						<output id="com.hybris.cockpitng.action.delete.success" type="java.lang.Object"/>
-						<output id="com.hybris.cockpitng.action.clone.success" type="java.lang.Object"/>
-					</virtual-sockets>
-				</widget>
-				<widget id="matchdaySpaceManagement" widgetDefinitionId="com.hybris.backoffice.spaceManagement"
-						slotId="cockpitWidgetChildrenInvisible" template="false">
+
+				<!-- Relatórios de ingressos -->
+				<widget id="matchdayReport" widgetDefinitionId="br.com.flamengo.matchday.widgets.matchdayreport"
+						slotId="perspectives" template="false">
 					<virtual-sockets/>
 				</widget>
-				<setting key="allowLockingCenterPanel" type="Boolean">false</setting>
-				<setting key="bottomPanelCollapsed" type="Boolean">false</setting>
-				<setting key="topHeight" type="String">33%</setting>
-				<setting key="centerCaption" type="String">List</setting>
-				<setting key="bottomPanelInitiallyLocked" type="Boolean">false</setting>
-				<setting key="centerHeight" type="String">50%</setting>
-				<setting key="topPanelInitiallyLocked" type="Boolean">false</setting>
-				<setting key="thirdSectionDisabled" type="Boolean">true</setting>
-				<setting key="allowLockingBottomPanel" type="Boolean">false</setting>
-				<setting key="bottomCaption" type="String">Edit</setting>
-				<setting key="centerPanelCollapsed" type="Boolean">false</setting>
-				<setting key="widgetStyleClass" type="String">yw-collapsibleContainer-caption-large-font-size</setting>
-				<setting key="topCaption" type="String">Search</setting>
-				<setting key="topPanelCollapsed" type="Boolean">true</setting>
-				<setting key="allowLockingTopPanel" type="Boolean">false</setting>
-				<setting key="centerPanelInitiallyLocked" type="Boolean">true</setting>
+
 				<virtual-sockets/>
-			</widget>
+				</widget>
 
 			<setting key="northDisabled" type="Boolean">true</setting>
 			<setting key="southDisabled" type="Boolean">true</setting>
@@ -159,6 +195,14 @@
 	<widget-connection sourceWidgetId="matchdayTypeName" outputId="genericOutput" targetWidgetId="matchdayAdvancedSearch" inputId="type"/>
 	<widget-connection sourceWidgetId="matchdayTreeSelection" outputId="true" targetWidgetId="matchdayHeaderTitle" inputId="nodeSelected"/>
 	<widget-connection sourceWidgetId="matchdayExplorerTree" outputId="dataSelected" targetWidgetId="matchdaySpaceManagement" inputId="navigationTreeSelectedObject"/>
+
+	<!-- Troca de tela no centro: Jogos/Reservas -> lista; Relatórios -> relatórios -->
+	<widget-connection sourceWidgetId="matchdayTreeSelection" outputId="true" targetWidgetId="matchdayShowList" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="matchdayShowList" outputId="genericOutput" targetWidgetId="matchdayContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="matchdayExplorerTree" outputId="nodeSelected" targetWidgetId="matchdayReportsSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="matchdayReportsSelection" outputId="true" targetWidgetId="matchdayShowReport" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="matchdayShowReport" outputId="genericOutput" targetWidgetId="matchdayContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="matchdayReportsSelection" outputId="true" targetWidgetId="matchdayReport" inputId="refresh"/>
 
 	<!-- Busca e lista -->
 	<widget-connection sourceWidgetId="matchdaySpaceManagement" outputId="collapseState" targetWidgetId="matchdayContainer" inputId="collapseState"/>

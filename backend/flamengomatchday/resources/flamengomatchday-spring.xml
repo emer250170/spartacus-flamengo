@@ -108,4 +108,12 @@
 		<property name="seatHoldService" ref="seatHoldService"/>
 	</bean>
 
+	<!-- Relatório de ingressos (Backoffice > Matchday Flamengo > Relatórios) -->
+	<bean id="matchdayReportService" class="br.com.flamengo.matchday.report.impl.DefaultMatchdayReportService">
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="matchdayGameService" ref="matchdayGameService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+	</bean>
+
 </beans>

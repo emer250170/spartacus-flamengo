@@ -251,6 +251,34 @@ A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
 - Todos os rótulos do Matchday (perspectiva, árvore, assistente, ficha, campos, status) já existem em português e inglês. O idioma segue a escolha de cada usuário: avatar › *Settings* › *Language* › *UI Locale* › *Portuguese*.
 - A busca do Backoffice só indexava alemão e inglês. Em português aparecia o aviso "O idioma da sessão atual não está registrado no mecanismo de pesquisa". O impex `essentialdata-flamengomatchday-backoffice-pt.impex` inclui o português no índice "Solr Config for Backoffice". Depois de importar, rode uma indexação completa desse índice.
 
+### Relatórios de vendas no Backoffice (30/10)
+Fica em Backoffice › perspectiva **Matchday Flamengo** › **Relatórios**, abaixo de Jogos e Reservas de poltrona. É uma página só, com um seletor de jogo no topo (um jogo ou todos os jogos somados):
+- **Números do topo:** ingressos à venda, vendidos, disponíveis, receita total e ticket médio (receita ÷ ingressos pagos).
+- **Rosca** de vendidos x disponíveis. Os reservados em carrinho aparecem quando houver.
+- **Por setor:** as mesmas informações para Norte, Sul, Leste e Oeste.
+- **Vendas por dia:** gráfico de linha da abertura das vendas até hoje, ou até o jogo, se ele já passou.
+- **Tipo de ingresso:** inteira, meia-entrada, sócio, gratuidade e cortesia, com quantidade (#) e receita (R$).
+
+De onde vêm os números:
+- Poltrona vendida = estoque zerado; disponível = estoque livre, sem reserva.
+- Vendas com pedido na loja usam o preço e a data do pedido. Preço abaixo da inteira conta como sócio; preço zero, como cortesia.
+- Poltronas vendidas sem pedido vêm da ocupação simulada ao abrir o jogo. Para elas, o tipo, o preço e a data são gerados a partir do código da poltrona e saem sempre iguais:
+  - mistura: 40% inteira, 22% meia, 26% sócio (Maraca 1/2/3 com 75/65/60% de desconto), 7% gratuidade e 5% cortesia;
+  - datas: a partir da onda de cada tipo, a maioria logo na abertura e o resto perto do jogo.
+- O rodapé do relatório mostra quantas vendas são simuladas.
+
+Código:
+- `MatchdayReportService` (core, `src/.../report`).
+- Widget `br.com.flamengo.matchday.widgets.matchdayreport` (`backoffice/src` e `backoffice/resources/widgets/matchdayreport`). Os gráficos são SVG gerados no servidor, sem biblioteca no navegador.
+- Na perspectiva, o centro virou um `perspectiveContainer` que troca entre a lista com a ficha e os relatórios, conforme o clique na árvore.
+
+Deploy:
+1. `ant all` e reiniciar (Java novo no core e no Backoffice).
+2. Backoffice › F4 › menu ☰ › os dois *Reset to Defaults*: widgets.xml e cockpit-config.xml.
+3. Sair e entrar de novo.
+
+Não faça o reset antes do `ant all`: sem o widget compilado, a tela de relatórios fica vazia.
+
 ## Sócio-Torcedor Nação Maraca
 
 Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.
