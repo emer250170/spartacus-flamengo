@@ -17,7 +17,8 @@ import {
 } from '@spartacus/core';
 import { Observable, Subscription, interval, raceWith, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
-import { WAVE_LABELS, WaveStatus } from '../socio/socio.model';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { WaveStatus } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
 import { MatchdayDataService } from './matchday-data.service';
 import {
@@ -43,14 +44,8 @@ interface SeatCell {
   code?: string;
 }
 
-const STEPS = [
-  'Jogo',
-  'Setor e poltrona',
-  'Estacionamento',
-  'Comidas e bebidas',
-  'Camisa',
-  'Revisão',
-];
+/** Etapas (textos em fla-texts: md.step.N) */
+const STEPS = [0, 1, 2, 3, 4, 5];
 const SEAT_ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const SEATS_PER_ROW = 12;
 const NO_PARKING = 'none';
@@ -124,29 +119,19 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     protected auth: AuthService,
     protected authRedirect: AuthRedirectService,
     protected router: Router,
-    protected socio: SocioService
+    protected socio: SocioService,
+    public i18n: FlaI18nService
   ) {}
 
   ngOnInit(): void {
+    this.requestedMatch =
+      this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
+    // recarrega a cada visita (a ocupação das poltronas muda a cada venda) e
+    // a cada troca de idioma (nomes e datas vêm da API no idioma do site)
     this.subscription.add(
-      // recarrega a cada visita: a ocupação das poltronas muda a cada venda
-      // 1a emissão: lista de jogos; 2a: com setores e poltronas
-      this.data.getCatalog(true).subscribe({
-        next: (catalog) => {
-          this.applyCatalog(catalog);
-          this.loading = false;
-          this.loadError = catalog.matches.length === 0;
-          const sizes = catalog.shirt?.sizes ?? [];
-          if (sizes.length && !sizes.some((s) => s.label === this.shirtSize)) {
-            this.shirtSize = sizes[0].label;
-          }
-          this.cd.markForCheck();
-        },
-        error: () => {
-          this.loading = false;
-          this.loadError = true;
-          this.cd.markForCheck();
-        },
+      this.i18n.lang$.subscribe(() => {
+        this.loadCatalog();
+        this.cd.markForCheck();
       })
     );
     this.subscription.add(
@@ -158,8 +143,6 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         this.cd.markForCheck();
       })
     );
-    this.requestedMatch =
-      this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
     // volta para a jornada com a poltrona que já está no carrinho
     this.subscription.add(
       this.activeCart.getEntries().subscribe((entries) => {
@@ -181,6 +164,29 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     // a onda vira pelo relógio: confere a cada 30 s
     this.subscription.add(
       interval(30000).subscribe(() => this.cd.markForCheck())
+    );
+  }
+
+  /** Lista de jogos, estacionamento, comidas e camisa (no idioma do site) */
+  protected loadCatalog(): void {
+    this.subscription.add(
+      this.data.getCatalog(true).subscribe({
+        next: (catalog) => {
+          this.applyCatalog(catalog);
+          this.loading = false;
+          this.loadError = catalog.matches.length === 0;
+          const sizes = catalog.shirt?.sizes ?? [];
+          if (sizes.length && !sizes.some((s) => s.label === this.shirtSize)) {
+            this.shirtSize = sizes[0].label;
+          }
+          this.cd.markForCheck();
+        },
+        error: () => {
+          this.loading = false;
+          this.loadError = true;
+          this.cd.markForCheck();
+        },
+      })
     );
   }
 
@@ -239,7 +245,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   }
 
   get nextLabel(): string {
-    return this.step === STEPS.length - 2 ? 'Revisar pedido' : 'Continuar';
+    return this.i18n.t(
+      this.step === STEPS.length - 2 ? 'md.review' : 'md.continue'
+    );
   }
 
   // ---------- sócio-torcedor: ondas e desconto ----------
@@ -255,33 +263,60 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   ): { wave: number; label: string; at: Date }[] {
     return (match.waveStarts ?? []).map((iso, i) => ({
       wave: i + 1,
-      label: WAVE_LABELS[i + 1],
+      label: this.i18n.waveLabel(i + 1),
       at: new Date(iso),
     }));
   }
 
-  /** "09/11 10h00" */
+  /** "09/11 10h00" (pt) ou "Nov 9, 10:00 AM" (en) */
   shortDate(date?: Date): string {
-    if (!date) {
-      return '';
-    }
-    const d = date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      timeZone: 'America/Sao_Paulo',
-    });
-    const t = date
-      .toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/Sao_Paulo',
-      })
-      .replace(':', 'h');
-    return `${d} ${t}`;
+    return this.i18n.shortDate(date);
   }
 
   waveLabel(wave: number): string {
-    return wave <= 0 ? 'Vendas ainda não abertas' : (WAVE_LABELS[wave] ?? '');
+    return this.i18n.waveLabel(wave);
+  }
+
+  /** Selo de onda do card do jogo */
+  waveTag(w: WaveStatus): string {
+    if (w.open) {
+      return w.current >= 4
+        ? this.i18n.t('md.wave.generalOpen')
+        : this.i18n.t('md.wave.open', { n: w.current });
+    }
+    return this.i18n.t(
+      w.mine >= 4 ? 'md.wave.generalOpens' : 'md.wave.mineOpens',
+      { date: this.shortDate(w.opensAt) }
+    );
+  }
+
+  /** Aviso de onda fechada: quando a onda do torcedor abre */
+  lockText(w: WaveStatus): string {
+    const date = this.shortDate(w.opensAt);
+    return this.memberLevel
+      ? this.i18n.t('md.lock.member', { wave: this.waveLabel(w.mine), date })
+      : this.i18n.t('md.lock.nonMember', { date });
+  }
+
+  /** "Restam 3 lugares" / "3 seats left" */
+  stockText(s: MatchdaySector): string {
+    const n = this.sectorStock(s) ?? 0;
+    return n === 1
+      ? this.i18n.t('md.left.one')
+      : this.i18n.t('md.left.many', { n });
+  }
+
+  seatAria(row: string, c: SeatCell): string {
+    const state = c.occupied
+      ? 'md.seat.occupied'
+      : this.seat === c.id
+        ? 'md.seat.selected'
+        : 'md.seat.free';
+    return this.i18n.t('md.seatAria', {
+      row,
+      n: c.number,
+      state: this.i18n.t(state),
+    });
   }
 
   /** Onda do torcedor (4 = venda geral) */
@@ -469,8 +504,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
             this.tick();
           } else {
             this.clearHeld();
-            this.holdMessage =
-              'Essa poltrona acabou de ser reservada por outra pessoa. Escolha outra.';
+            this.holdMessage = this.i18n.t('md.holdTaken');
             this.refreshSeats();
           }
           this.cd.markForCheck();
@@ -522,6 +556,15 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
    */
   protected applyCatalog(catalog: MatchdayCatalog): void {
     this.catalog = catalog;
+    // troca de idioma: o jogo aberto passa a ser o do catálogo novo
+    if (this.match) {
+      const code = this.match.code;
+      const fresh = catalog.matches.find((m) => m.code === code);
+      if (fresh) {
+        this.match = fresh;
+        this.loadSeats(code);
+      }
+    }
     const requested =
       !this.match && this.requestedMatch
         ? catalog.matches.find((m) => m.code === this.requestedMatch)
@@ -558,8 +601,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       return;
     }
     this.clearHeld();
-    this.holdMessage =
-      'A poltrona saiu do seu carrinho. Se você tirou o plano de sócio, a compra deste jogo só abre na sua onda.';
+    this.holdMessage = this.i18n.t('md.holdRemoved');
     this.step = Math.min(this.step, 1);
     this.refreshSeats();
     this.cd.markForCheck();
@@ -721,9 +763,22 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   get lines(): SummaryLine[] {
     const lines: SummaryLine[] = [];
     if (this.match) {
+      const t = (key: string, params?: Record<string, unknown>) =>
+        this.i18n.t(key, params);
       lines.push({
-        label: `Ingresso · ${this.sector ? this.sector.name : 'setor a escolher'}`,
-        detail: `${this.match.title} · ${this.match.dateLabel}${this.seat ? ' · Poltrona ' + this.seat : ''}${this.memberDiscount ? ` · Sócio ${this.memberDiscount}% off` : ''}`,
+        label: t('md.line.ticket', {
+          sector: this.sector ? this.sector.name : t('md.line.sectorTbd'),
+        }),
+        detail: [
+          this.match.title,
+          this.match.dateLabel,
+          this.seat ? t('md.line.seat', { seat: this.seat }) : '',
+          this.memberDiscount
+            ? t('md.memberOff', { d: this.memberDiscount })
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' · '),
         price: this.ticketPrice(this.sector?.price ?? 0),
       });
     }
@@ -731,7 +786,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (parking) {
       lines.push({
         label: parking.name,
-        detail: this.plate ? `Placa ${this.plate}` : 'Vaga garantida',
+        detail: this.plate
+          ? this.i18n.t('md.line.plate', { plate: this.plate })
+          : this.i18n.t('md.line.spot'),
         price: parking.price,
       });
     }
@@ -740,10 +797,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       if (q > 0) {
         lines.push({
           label: `${q}x ${item.name}`,
-          detail:
-            this.foodDelivery === 'seat'
-              ? 'Entrega na poltrona'
-              : 'Retirada no quiosque',
+          detail: this.i18n.t(
+            this.foodDelivery === 'seat' ? 'md.line.atSeat' : 'md.line.atKiosk'
+          ),
           price: q * item.price,
         });
       }
@@ -752,12 +808,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (this.addShirt && shirt) {
       lines.push({
         label: shirt.name,
-        detail: `Tamanho ${this.shirtSize}`,
+        detail: this.i18n.t('md.line.size', { size: this.shirtSize }),
         price: shirt.price,
       });
       if (this.hasPersonalization && shirt.personalization) {
         lines.push({
-          label: 'Personalização',
+          label: this.i18n.t('md.line.personalization'),
           detail: [this.shirtName, this.shirtNumber].filter(Boolean).join(' '),
           price: shirt.personalization.price,
         });
@@ -779,10 +835,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   }
 
   brl(value: number): string {
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+    return this.i18n.money(value);
   }
 
   trackByCode(_: number, item: { code: string }): string {
@@ -863,7 +916,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         error: () => {
           this.submitting = false;
           this.globalMessages.add(
-            'Não foi possível montar o pedido agora. Tente de novo.',
+            this.i18n.t('md.orderError'),
             GlobalMessageType.MSG_TYPE_ERROR
           );
           this.cd.markForCheck();

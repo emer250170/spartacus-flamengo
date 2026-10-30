@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActiveCartFacade } from '@spartacus/cart/base/root';
 import { AuthService, OccEndpointsService, WindowRef } from '@spartacus/core';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { BehaviorSubject, Observable, combineLatest, forkJoin, of } from 'rxjs';
 import {
   catchError,
@@ -51,8 +52,18 @@ export class SocioService {
     protected occEndpoints: OccEndpointsService,
     protected auth: AuthService,
     protected winRef: WindowRef,
-    protected activeCart: ActiveCartFacade
-  ) {}
+    protected activeCart: ActiveCartFacade,
+    protected i18n: FlaI18nService
+  ) {
+    // nome e benefícios dos planos vêm da API no idioma do site
+    let first = true;
+    this.i18n.lang$.subscribe(() => {
+      if (!first) {
+        this.plans$ = undefined;
+      }
+      first = false;
+    });
+  }
 
   // ---------- planos ----------
 
@@ -276,7 +287,6 @@ export class SocioService {
       maxGuests: rules.maxGuests,
       discount: rules.discount,
       wave: rules.wave,
-      wavesLabel: rules.wavesLabel,
     };
   }
 

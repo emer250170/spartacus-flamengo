@@ -31,14 +31,17 @@ export interface MatchdayMatch {
   code: string;
   title: string;
   opponent: string;
+  /** Dia da semana curto no idioma do site ("SEG" / "MON") */
   weekday: string;
+  /** 0 = domingo; -1 se o código não tem data */
+  weekdayIndex: number;
   dateLabel: string;
   timeLabel: string;
   competition: string;
   venue: string;
   minPrice: number;
-  /** Selo do card: últimos ingressos, pré-venda etc. */
-  tag?: string;
+  /** Selo do card: últimos ingressos, pré-venda de sócio ou vendas abertas */
+  tag?: 'low' | 'presale' | 'open';
   /**
    * Abertura das ondas de venda (ISO): onda 1, 2, 3 e venda geral.
    * Vazio = jogo sem ondas cadastradas (venda geral).

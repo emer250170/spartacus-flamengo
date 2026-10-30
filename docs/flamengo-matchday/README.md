@@ -296,3 +296,21 @@ Mudou o `flamengomatchday-items.xml` (4 datas no jogo), então precisa:
 - `brl-price.interceptor.ts`: preços no formato R$ 229,99 com o site em português. A API manda R$229.99, porque o idioma `pt` do SAP Commerce não tem país.
 - O rótulo "Language" vem de uma constante do Spartacus; com o site em pt, o CSS troca o texto por "Idioma:".
 - Pelo HAC foram gravados em pt (Staged e Online) os nomes dos links do topo, do menu Minha conta e do rodapé, e o aviso de copyright.
+
+### Loja em inglês (30/10)
+
+Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglês; com Português, em português.
+
+- `src/app/i18n/fla-texts.ts`: textos pt/en da jornada de matchday, da página Sócio-Torcedor, do banner da home e da confirmação do pedido.
+- `src/app/i18n/fla-i18n.service.ts`: idioma atual (acompanha o seletor do site), pipe `flaT`, preço (`R$ 1.234,56` / `R$1,234.56`) e datas (`09/11 10h00` / `Nov 9, 10:00 AM`).
+- Ao trocar o idioma, jogos, planos e serviços são buscados de novo na API no novo idioma; jogo e poltrona escolhidos continuam.
+- As datas das ondas são lidas da descrição do jogo nos dois formatos:
+  - pt: `Onda 1 (...): 30/10/2026 08h09`
+  - en: `Wave 1 (...): 2026-10-30 08:09`
+- Extensão `flamengomatchday` (`DefaultMatchdayGameService`): ao abrir um jogo, grava também em inglês a descrição com as ondas, o resumo (`Rodada` vira `Round`) e o nome das poltronas com o setor em inglês. Precisa de `ant all` e reinício, como nas outras mudanças da extensão.
+- Dados gravados pelo HAC (`scripts/ingles-dados.groovy`):
+  - textos em inglês dos planos, convidados, estacionamentos, comidas, camisa e personalização;
+  - descrição e resumo dos jogos em inglês;
+  - nomes das poltronas em inglês;
+  - categorias, menu e carrosséis da home em inglês.
+- Backup: o valor anterior de cada campo está em `/backup/antes-ingles-20261030/data-en-antes.txt`. A classe Java anterior está na mesma pasta.

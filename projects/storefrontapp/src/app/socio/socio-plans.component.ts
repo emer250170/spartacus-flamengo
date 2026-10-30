@@ -16,23 +16,18 @@ import {
 } from '@spartacus/core';
 import { Observable, Subscription, raceWith, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
-import { SocioPlan, WAVE_LABELS } from './socio.model';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { GENERAL_SALE_WAVE, SocioPlan } from './socio.model';
 import { SocioService } from './socio.service';
 
-/** Benefícios que valem para os três planos */
+/** Benefícios que valem para os três planos (textos em fla-texts: st.b.*) */
 const COMMON_BENEFITS = [
-  { title: 'Frete grátis', text: 'Nas compras da loja oficial.' },
-  { title: 'Cashback', text: 'Parte do valor das compras volta para você.' },
-  {
-    title: 'Personalização',
-    text: 'Nome e número no manto sem custo extra.',
-  },
-  { title: 'Prêmios e experiências', text: 'Sorteios e ações exclusivas.' },
-  { title: 'Rede de parceiros', text: 'Descontos em marcas parceiras.' },
-  {
-    title: 'Pacote Maracanã',
-    text: 'Direito à compra do pacote anual de jogos.',
-  },
+  'shipping',
+  'cashback',
+  'custom',
+  'prizes',
+  'partners',
+  'package',
 ];
 
 /**
@@ -51,10 +46,8 @@ const COMMON_BENEFITS = [
 })
 export class SocioPlansComponent implements OnInit, OnDestroy {
   readonly commonBenefits = COMMON_BENEFITS;
-  readonly waves = Object.entries(WAVE_LABELS).map(([k, label]) => ({
-    wave: Number(k),
-    label,
-  }));
+  /** Ondas 1 a 3 e venda geral */
+  readonly waves = Array.from({ length: GENERAL_SALE_WAVE }, (_, i) => i + 1);
 
   plans: SocioPlan[] = [];
   loading = true;
@@ -80,16 +73,20 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
     protected routing: RoutingService,
     protected router: Router,
     protected globalMessages: GlobalMessageService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected i18n: FlaI18nService
   ) {}
 
   ngOnInit(): void {
+    // planos no idioma do site (nome e benefícios vêm da API)
     this.subscription.add(
-      this.socio.getPlans().subscribe((plans) => {
-        this.plans = plans;
-        this.loading = false;
-        this.cd.markForCheck();
-      })
+      this.i18n.lang$
+        .pipe(switchMap(() => this.socio.getPlans()))
+        .subscribe((plans) => {
+          this.plans = plans;
+          this.loading = false;
+          this.cd.markForCheck();
+        })
     );
     this.subscription.add(
       this.auth.isUserLoggedIn().subscribe((loggedIn) => {
@@ -136,19 +133,20 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
   }
 
   buttonLabel(plan: SocioPlan): string {
+    const t = (key: string) => this.i18n.t('st.btn.' + key);
     if (plan.soldOut) {
-      return 'Esgotado';
+      return t('soldOut');
     }
     if (plan.level === this.member) {
-      return 'Seu plano';
+      return t('mine');
     }
     if (plan.level === this.inCart) {
-      return 'No carrinho';
+      return t('inCart');
     }
     if (this.level) {
-      return 'Trocar para este plano';
+      return t('switch');
     }
-    return this.loggedIn ? 'Quero ser sócio' : 'Entrar e assinar';
+    return this.loggedIn ? t('join') : t('login');
   }
 
   /**
@@ -193,7 +191,7 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.globalMessages.add(
-              `${plan.name} no carrinho: a prioridade de compra e o desconto de ${plan.discount}% já valem para os seus ingressos.`,
+              this.i18n.t('st.added', { plan: plan.name, d: plan.discount }),
               GlobalMessageType.MSG_TYPE_CONFIRMATION
             );
             this.router.navigateByUrl(
@@ -205,7 +203,7 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
           error: () => {
             this.submitting = undefined;
             this.globalMessages.add(
-              'Não foi possível incluir o plano agora. Tente de novo.',
+              this.i18n.t('st.addError'),
               GlobalMessageType.MSG_TYPE_ERROR
             );
             this.cd.markForCheck();
@@ -220,10 +218,7 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
   }
 
   brl(value: number): string {
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+    return this.i18n.money(value);
   }
 
   trackByCode(_: number, item: { code: string }): string {

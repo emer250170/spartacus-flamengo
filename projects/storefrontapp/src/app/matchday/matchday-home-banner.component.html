@@ -1,7 +1,7 @@
 <section *ngIf="next$ | async as m" class="mdb" aria-labelledby="mdb-title">
   <div class="mdb-inner">
     <div class="mdb-text">
-      <p class="mdb-eyebrow">Próximo jogo em casa</p>
+      <p class="mdb-eyebrow">{{ 'mdb.eyebrow' | flaT }}</p>
       <h2 id="mdb-title" class="mdb-title">Flamengo x {{ m.opponent }}</h2>
       <p class="mdb-line">
         {{ weekday(m) }}, {{ m.dateLabel }} · {{ m.timeLabel }} ·
@@ -9,9 +9,11 @@
       </p>
     </div>
     <div class="mdb-actions">
-      <a class="mdb-btn" [routerLink]="'/matchday'">Monte o seu dia de jogo</a>
-      <a class="mdb-btn mdb-btn-ghost" [routerLink]="'/c/flamengo_jogos_casa'"
-        >Ver todos os jogos</a
+      <a class="mdb-btn" [routerLink]="'/matchday'">{{ 'mdb.build' | flaT }}</a>
+      <a
+        class="mdb-btn mdb-btn-ghost"
+        [routerLink]="'/c/flamengo_jogos_casa'"
+        >{{ 'mdb.all' | flaT }}</a
       >
     </div>
   </div>

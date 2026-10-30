@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CmsConfig, provideConfig } from '@spartacus/core';
 import { SpinnerModule } from '@spartacus/storefront';
+import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { SocioPlansComponent } from './socio-plans.component';
 
 /**
@@ -11,7 +12,7 @@ import { SocioPlansComponent } from './socio-plans.component';
  * O SocioService também é usado pela jornada de matchday (ondas e desconto).
  */
 @NgModule({
-  imports: [CommonModule, RouterModule, SpinnerModule],
+  imports: [CommonModule, RouterModule, SpinnerModule, FlaI18nModule],
   declarations: [SocioPlansComponent],
   providers: [
     provideConfig(<CmsConfig>{
