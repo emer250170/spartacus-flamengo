@@ -151,12 +151,16 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       })
     );
     // volta para a jornada com a poltrona que já está no carrinho
-    // só com o carrinho estável: na troca de idioma o Spartacus recarrega o
-    // carrinho e, no meio da recarga, a lista de itens vem vazia
+    // só com o carrinho carregado e estável: na troca de idioma o Spartacus
+    // limpa os dados do carrinho (ResetCartDetails, já "estável" e sem itens)
+    // e depois o busca de novo
     this.subscription.add(
-      combineLatest([this.activeCart.getEntries(), this.activeCart.isStable()])
-        .pipe(filter(([, stable]) => stable))
-        .subscribe(([entries]) => {
+      combineLatest([this.activeCart.getActive(), this.activeCart.isStable()])
+        .pipe(
+          filter(([cart, stable]) => stable && !!cart?.code),
+          map(([cart]) => cart.entries ?? [])
+        )
+        .subscribe((entries) => {
           this.dropRemovedHold(entries);
           this.restoreHold(entries);
         })
