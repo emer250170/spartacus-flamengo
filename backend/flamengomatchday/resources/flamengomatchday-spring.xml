@@ -133,6 +133,14 @@
 		<property name="socioPlanService" ref="socioPlanService"/>
 	</bean>
 
+	<!-- Relatórios do sócio-torcedor (Backoffice > Sócio-Torcedor > Relatórios) -->
+	<bean id="socioReportService" class="br.com.flamengo.matchday.report.socio.impl.DefaultSocioReportService">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+	</bean>
+
 	<!-- Relatório de ingressos (Backoffice > Matchday Flamengo > Relatórios) -->
 	<bean id="matchdayReportService" class="br.com.flamengo.matchday.report.impl.DefaultMatchdayReportService">
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>

@@ -78,7 +78,7 @@
 				<virtual-sockets/>
 			</widget>
 
-			<!-- Centro: lista com ficha ou relatórios -->
+			<!-- Centro: Planos -> lista com ficha; Relatórios -> relatórios ou relatórios -->
 			<widget id="matchdayContent" widgetDefinitionId="com.hybris.backoffice.perspectiveContainer"
 					slotId="centerSlot" template="false">
 
@@ -214,7 +214,20 @@
 					<setting key="socketDataType_$T" type="String">java.lang.String</setting>
 					<virtual-sockets/>
 				</widget>
-				<!-- ao abrir a perspectiva, seleciona "Jogos" -->
+				<!-- clique em "Relatórios": mostra os relatórios -->
+				<widget id="socioReportsSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="socioShowReport" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">'socioReport'</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "socio.tree.reports".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- ao abrir a perspectiva, seleciona "Planos" -->
 				<widget id="socioPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
 					<widget id="socioGamesSelector" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
@@ -317,6 +330,12 @@
 					<virtual-sockets/>
 				</widget>
 
+				<!-- Relatórios do sócio-torcedor -->
+				<widget id="socioReport" widgetDefinitionId="br.com.flamengo.matchday.widgets.socioreport"
+						slotId="perspectives" template="false">
+					<virtual-sockets/>
+				</widget>
+
 
 				<virtual-sockets/>
 				</widget>
@@ -395,6 +414,10 @@
 	<!-- Centro: lista com ficha -->
 	<widget-connection sourceWidgetId="socioTreeSelection" outputId="true" targetWidgetId="socioShowList" inputId="genericInput"/>
 	<widget-connection sourceWidgetId="socioShowList" outputId="genericOutput" targetWidgetId="socioContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="socioExplorerTree" outputId="nodeSelected" targetWidgetId="socioReportsSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="socioReportsSelection" outputId="true" targetWidgetId="socioShowReport" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="socioShowReport" outputId="genericOutput" targetWidgetId="socioContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="socioReportsSelection" outputId="true" targetWidgetId="socioReport" inputId="refresh"/>
 
 	<!-- Busca e lista -->
 	<widget-connection sourceWidgetId="socioSpaceManagement" outputId="collapseState" targetWidgetId="socioContainer" inputId="collapseState"/>

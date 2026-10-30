@@ -322,6 +322,30 @@ Deploy (nesta ordem):
 
 Para voltar: código anterior em `/backup/antes-socio-planos-codigo-20261030/`; dados e order-process em `/backup/antes-socio-planos-<data>/`.
 
+## Relatórios do sócio-torcedor (30/10)
+
+Ficam em Backoffice › perspectiva **Sócio-Torcedor** › **Relatórios**: um painel no modelo do "Dashboard - Base" do clube, com **Atualizar** e **Gerar PDF** (impressão do navegador em A4 deitado).
+
+Blocos:
+- **Total da base ativa:** ativos total (titulares + convidados) e contratos ativos, com a variação sobre ontem. Também um cartão por programa (Nação Maraca, Nação Sem Fronteiras) com contratos, inativos e adimplentes / inadimplentes / não renovado.
+- **Novos contratos por operação** (renovação, adesão, upgrade) e **por horário**, por programa, com o acumulado do dia.
+- **Receita do mês:** evolução diária, competências pagas, recorrências futuras e receita prevista.
+- **Base ativa** por onda de abertura e por plano (titulares, convidados, ativos total).
+- **Cupons**, **churn mensal por plano** (com a diferença para a média móvel de 12 meses), **adesões por plano** (abandono de carrinho, hoje, no mês, mês passado e %) e **top 10 estados** do Sem Fronteiras.
+
+De onde vêm os números (`DefaultSocioReportService`):
+- **Base simulada (demonstração):** o campo "Titulares simulados" de cada plano define a base.
+  - Os convidados seguem o máximo de convidados do plano, nas proporções do painel do clube.
+  - A partir da base são gerados adimplência, adesões, receita (mensalidade × base), churn, cupons e estados.
+  - Os valores são determinísticos: no mesmo dia saem iguais e mudam ao longo das horas.
+- **Dados reais da loja**, somados à base:
+  - sócios no grupo de cada plano;
+  - pedidos com plano: adesões de hoje, do mês e do mês passado, receita do mês e estado de entrega;
+  - carrinhos com plano sem pedido nos últimos 30 dias, como abandono.
+- O rodapé do painel informa quanto veio da loja.
+
+Deploy: `ant all` e reiniciar, depois Backoffice › F4 › ☰ › os dois *Reset to Defaults* (o nó Relatórios e o widget entram na perspectiva). Não precisa de update do sistema.
+
 ## Sócio-Torcedor Nação Maraca
 
 Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.

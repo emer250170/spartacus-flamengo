@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Relatórios do sócio-torcedor; o conteúdo é montado pelo SocioReportController -->
+<widget xmlns="http://www.zkoss.org/2005/zul"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.zkoss.org/2005/zul http://www.hybris.com/schema/cockpitng/zul/zul.xsd"
+		height="100%">
+	<div height="100%" style="overflow:auto; box-sizing:border-box; padding:18px 24px; background:#f5f6f7;">
+		<div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; max-width:1400px;">
+			<label value="${labels.title}" style="font-size:22px; font-weight:700; color:#1d2d3e; margin-right:auto;"/>
+			<button id="refreshButton" label="${labels.refresh}"/>
+			<button id="pdfButton" label="${labels.pdf}" tooltiptext="${labels.pdfHint}"/>
+		</div>
+		<html id="reportContent"/>
+	</div>
+</widget>
