@@ -236,3 +236,30 @@ html cx-page-layout.footer cx-paragraph, html cx-page-layout.footer .notice {
   background: transparent !important;
   color: #fff !important;
 }
+
+// --- página de produto: abas (Detalhes do produto, Especificações...) ---------
+// MEDIDO (30/10, 1366px): a barra de abas começava em x=0 (4 botões de 360px,
+// a última passando da tela) e o texto em x=259, desalinhados do resto da
+// página (Summary: 1140px centralizado). Faixa cinza de ponta a ponta, botões
+// e texto no mesmo container de 1140px.
+cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab {
+  display: block;
+  background: var(--cx-color-background, #f4f4f4);
+}
+cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab > div.tab,
+cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab > cx-tab-panel > div {
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+@media (min-width: 768px) {
+  cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab > div.tab {
+    display: flex;
+  }
+  cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab > div.tab > button {
+    flex: 1 1 0;
+    width: auto;
+  }
+}

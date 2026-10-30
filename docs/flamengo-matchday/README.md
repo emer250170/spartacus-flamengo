@@ -286,3 +286,9 @@ Mudou o `flamengomatchday-items.xml` (4 datas no jogo), então precisa:
   - Maraca 3 no carrinho: ingresso do Bahia a R$ 32.
   - Sem o plano: os grupos saem e o ingresso do Bahia sai do carrinho.
   - Maraca 1 + Fluminense: R$ 20 com o plano, R$ 80 depois de tirar o plano.
+
+### Página de produto em português (30/10)
+
+- `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.
+- Abas (Detalhes do produto, Especificações, Avaliações, Entrega) alinhadas ao container de 1140px da página. Ver `tema-flamengo.scss`.
+- O texto da aba Entrega fica no CMS: `deliveryTab` do `electronics-spaContentCatalog`, Staged e Online. O texto em pt/en foi gravado pelo HAC, e o lorem ipsum anterior está salvo em `/backup/antes-ondas-20261030/deliveryTab-*.html`.
