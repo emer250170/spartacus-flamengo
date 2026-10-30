@@ -39,3 +39,11 @@ Thread.start {
   finally { de.hybris.platform.core.Registry.unsetCurrentTenant() }
 }
 return "rodando em segundo plano: /backup/antes-ingles-20261030/produtos-en.log"
+
+// ---- Depois (HAC, commit): os tamanhos (variantes) têm descrição própria; recebem a descrição em inglês do produto base ----
+// def fs = spring.getBean('flexibleSearchService'); def ms = spring.getBean('modelService')
+// def en = new Locale('en'); def pt = new Locale('pt')
+// fs.search("SELECT {p.pk} FROM {VariantProduct AS p JOIN CatalogVersion AS cv ON {p.catalogVersion}={cv.pk} JOIN Catalog AS k ON {cv.catalog}={k.pk}} WHERE {k.id}='flamengoProductCatalog' AND {p.code} LIKE 'flamengo_%'").result.each { v ->
+//   def ben = v.baseProduct?.getDescription(en)
+//   if (v.getDescription(pt) && ben) { v.setDescription(ben, en); ms.save(v) }
+// }
