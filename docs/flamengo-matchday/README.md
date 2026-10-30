@@ -279,6 +279,8 @@ Deploy:
 
 Não faça o reset antes do `ant all`: sem o widget compilado, a tela de relatórios fica vazia.
 
+Os textos do widget (`backoffice/resources/widgets/matchdayreport/labels/*.properties`) ficam em **UTF-8 puro**, com acento direto, e não em `\u00e9`. O Backoffice lê esses arquivos sem converter os `\uXXXX` e mostraria o código na tela.
+
 ## Sócio-Torcedor Nação Maraca
 
 Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.
