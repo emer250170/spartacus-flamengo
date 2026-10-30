@@ -88,6 +88,8 @@ def L = []
 // saber o plano do torcedor) só lista grupos que estão dentro de customergroup
 L << 'INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];description;groups(uid)[mode=append]'
 PLANOS.each { p -> L << ";nacao-maraca-${p.n};Sócio Nação Maraca ${p.n};Nação Maraca ${p.n} member;Titulares do plano Nação Maraca ${p.n} (entram ao comprar o plano);customergroup" }
+// marcador: plano no carrinho, ainda não comprado (SocioCartService da extensão flamengomatchday)
+PLANOS.each { p -> L << ";nacao-pendente-${p.n};Plano Nação Maraca ${p.n} no carrinho;Nação Maraca ${p.n} in cart;Tem o plano no carrinho e ainda não comprou;customergroup" }
 L << ''
 L << 'INSERT_UPDATE BillingFrequency;code[unique=true];nameInCart[lang=pt];nameInOrder[lang=pt];nameInCart[lang=en];nameInOrder[lang=en];order;cartAware'
 L << ';monthly;Mensal;Mensal;Monthly;Monthly;10;false'
@@ -282,7 +284,7 @@ try {
   if (planos) {
     def grupo = ctx.getBean('userService').getUserGroupForUID('nacao-maraca-' + planos[0].substring(13))
     def cliente = o.user
-    cliente.groups = ((cliente.groups ?: []).findAll { !(it.uid ?: '').startsWith('nacao-maraca-') } + [grupo]) as Set
+    cliente.groups = ((cliente.groups ?: []).findAll { !(it.uid ?: '').startsWith('nacao-maraca-') && !(it.uid ?: '').startsWith('nacao-pendente-') } + [grupo]) as Set
     ms.save(cliente)
   }
 } catch (Exception ex) {

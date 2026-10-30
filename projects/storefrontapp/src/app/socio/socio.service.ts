@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { ActiveCartFacade } from '@spartacus/cart/base/root';
 import { AuthService, OccEndpointsService, WindowRef } from '@spartacus/core';
 import { BehaviorSubject, Observable, combineLatest, forkJoin, of } from 'rxjs';
 import {
@@ -11,8 +12,10 @@ import {
 } from 'rxjs/operators';
 import {
   GENERAL_SALE_WAVE,
+  Membership,
   SOCIO_CATEGORY,
   SOCIO_GROUP_PREFIX,
+  SOCIO_PENDING_PREFIX,
   SOCIO_PLAN_PREFIX,
   SOCIO_RULES,
   SocioGuest,
@@ -41,13 +44,14 @@ interface OccProduct {
 export class SocioService {
   private plans$?: Observable<SocioPlan[]>;
   private refresh$ = new BehaviorSubject<number>(0);
-  private level$?: Observable<number | null>;
+  private membership$?: Observable<Membership>;
 
   constructor(
     protected http: HttpClient,
     protected occEndpoints: OccEndpointsService,
     protected auth: AuthService,
-    protected winRef: WindowRef
+    protected winRef: WindowRef,
+    protected activeCart: ActiveCartFacade
   ) {}
 
   // ---------- planos ----------
@@ -78,20 +82,47 @@ export class SocioService {
 
   // ---------- plano do torcedor ----------
 
-  /** Nível do plano do torcedor logado (1, 2 ou 3) ou null se não é sócio */
+  /** Plano que vale para ingressos (comprado ou no carrinho) ou null */
   getMemberLevel(): Observable<number | null> {
-    if (!this.level$) {
-      this.level$ = combineLatest([
+    return this.getMembership().pipe(
+      map((m) => m.level),
+      distinctUntilChanged()
+    );
+  }
+
+  /**
+   * Plano comprado, plano no carrinho e o que vale agora. Lido de novo quando o
+   * plano do carrinho muda (o SAP Commerce acerta os grupos nessa hora).
+   */
+  getMembership(): Observable<Membership> {
+    if (!this.membership$) {
+      const inCart$ = this.activeCart.getEntries().pipe(
+        map((entries) => {
+          const levels = entries
+            .map((e) => e.product?.code ?? '')
+            .filter((code) => code.startsWith(SOCIO_PLAN_PREFIX))
+            .map((code) => Number(code.substring(SOCIO_PLAN_PREFIX.length)))
+            .filter((n) => SOCIO_RULES[n] !== undefined);
+          return levels.length ? Math.min(...levels) : null;
+        }),
+        distinctUntilChanged()
+      );
+      this.membership$ = combineLatest([
         this.auth.isUserLoggedIn().pipe(distinctUntilChanged()),
         this.refresh$,
+        inCart$,
       ]).pipe(
-        switchMap(([loggedIn]) =>
-          loggedIn ? this.loadLevel() : of(null as number | null)
+        switchMap(([loggedIn, , inCart]) =>
+          loggedIn
+            ? this.loadMember().pipe(
+                map((member) => this.membership(member, inCart))
+              )
+            : of(this.membership(null, null))
         ),
         shareReplay({ bufferSize: 1, refCount: true })
       );
     }
-    return this.level$;
+    return this.membership$;
   }
 
   /** Lê de novo o plano do torcedor (depois de uma compra) */
@@ -99,7 +130,20 @@ export class SocioService {
     this.refresh$.next(this.refresh$.value + 1);
   }
 
-  protected loadLevel(): Observable<number | null> {
+  protected membership(
+    member: number | null,
+    inCart: number | null
+  ): Membership {
+    const levels = [member, inCart].filter((n): n is number => n !== null);
+    return {
+      member,
+      inCart,
+      level: levels.length ? Math.min(...levels) : null,
+    };
+  }
+
+  /** Plano comprado: grupo nacao-maraca-N sem o marcador nacao-pendente-N */
+  protected loadMember(): Observable<number | null> {
     const base = this.occEndpoints.getBaseUrl();
     return this.http
       .get<{ uid?: string }>(`${base}/users/current`, {
@@ -115,11 +159,15 @@ export class SocioService {
             : of({ userGroups: [] })
         ),
         map((res) => {
-          const levels = (res.userGroups ?? [])
-            .map((g) => g.uid ?? '')
+          const uids = (res.userGroups ?? []).map((g) => g.uid ?? '');
+          const levels = uids
             .filter((uid) => uid.startsWith(SOCIO_GROUP_PREFIX))
             .map((uid) => Number(uid.substring(SOCIO_GROUP_PREFIX.length)))
-            .filter((n) => SOCIO_RULES[n] !== undefined);
+            .filter(
+              (n) =>
+                SOCIO_RULES[n] !== undefined &&
+                !uids.includes(SOCIO_PENDING_PREFIX + n)
+            );
           return levels.length ? Math.min(...levels) : null;
         }),
         catchError(() => of(null))

@@ -275,3 +275,14 @@ Mudou o `flamengomatchday-items.xml` (4 datas no jogo), então precisa:
 3. HAC › Platform › Update só com **Update running system** + **Localize types**.
 4. Restart do servidor.
 5. Backoffice › F4 › ☰ › *Show cockpit-config.xml › Reset to Defaults* (passo novo no cadastro e seção nova na ficha).
+
+### Plano no carrinho já vale como sócio (30/10)
+
+- Escolher o plano na página Sócio-Torcedor põe o plano no carrinho e volta para a escolha de jogos (para o mesmo jogo, se veio dele). O pagamento é um só, no fim.
+- Enquanto o plano está no carrinho, o `SocioCartService` (extensão `flamengomatchday`, ganchos de incluir/alterar item do carrinho) põe o torcedor no grupo `nacao-maraca-N` e no marcador `nacao-pendente-N`. Com isso valem a onda do plano e a promoção de desconto do SAP Commerce.
+- Se o plano sai do carrinho, os dois grupos saem, o carrinho é recalculado (sem desconto), e os ingressos de jogos cuja onda ainda não chegou para o torcedor saem do carrinho, liberando a poltrona.
+- Quando o pedido fecha, o order-process (versão 4) tira os marcadores `nacao-pendente-*` e deixa só o grupo do plano comprado.
+- Testado por OCC com `torcedor.teste@example.com`:
+  - Maraca 3 no carrinho: ingresso do Bahia a R$ 32.
+  - Sem o plano: os grupos saem e o ingresso do Bahia sai do carrinho.
+  - Maraca 1 + Fluminense: R$ 20 com o plano, R$ 80 depois de tirar o plano.

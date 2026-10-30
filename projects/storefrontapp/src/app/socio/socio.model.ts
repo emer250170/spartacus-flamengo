@@ -102,3 +102,18 @@ export interface WaveStatus {
   /** Quando a onda do torcedor abre */
   opensAt?: Date;
 }
+
+/**
+ * Situação do torcedor. O plano no carrinho já vale para ingressos (o SAP
+ * Commerce põe o torcedor no grupo do plano enquanto ele estiver no carrinho).
+ */
+export interface Membership {
+  /** Plano comprado (1 a 3) ou null */
+  member: number | null;
+  /** Plano no carrinho (1 a 3) ou null */
+  inCart: number | null;
+  /** O que vale para ingressos: o melhor dos dois */
+  level: number | null;
+}
+
+export const SOCIO_PENDING_PREFIX = 'nacao-pendente-';

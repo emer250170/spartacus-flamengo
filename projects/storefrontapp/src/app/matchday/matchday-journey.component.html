@@ -24,13 +24,22 @@
       <div class="md-socio-bar">
         <p class="md-socio-status">
           <ng-container *ngIf="memberLevel; else notMember">
-            Sócio <strong>Nação Maraca {{ memberLevel }}</strong> ·
-            {{ memberDiscount }}% de desconto no ingresso ·
+            <ng-container *ngIf="planInCart; else isMember">
+              Plano <strong>Nação Maraca {{ memberLevel }}</strong> no carrinho
+            </ng-container>
+            <ng-template #isMember>
+              Sócio <strong>Nação Maraca {{ memberLevel }}</strong>
+            </ng-template>
+            · {{ memberDiscount }}% de desconto no ingresso ·
             {{ waveLabel(myWave) }}
           </ng-container>
           <ng-template #notMember>
             Seja sócio e compre antes, com até 75% de desconto.
-            <a routerLink="/socio-torcedor">Conheça a Nação Maraca</a>
+            <a
+              routerLink="/socio-torcedor"
+              [queryParams]="match ? { jogo: match.code } : {}"
+              >Conheça a Nação Maraca</a
+            >
           </ng-template>
         </p>
       </div>
@@ -146,6 +155,7 @@
                   *ngIf="!memberLevel || memberLevel > 1"
                   class="btn btn-primary"
                   routerLink="/socio-torcedor"
+                  [queryParams]="{ jogo: match.code }"
                   >{{
                     memberLevel ? 'Subir de plano' : 'Seja sócio e compre antes'
                   }}</a

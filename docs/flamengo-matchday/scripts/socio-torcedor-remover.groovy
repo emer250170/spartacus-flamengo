@@ -74,7 +74,8 @@ all("SELECT {pk} FROM {BillingPlan} WHERE {id}='nacao-mensal'").each { ms.remove
 
 // 4. grupos e cliente de demonstração
 all("SELECT {pk} FROM {Customer} WHERE {uid}='socio.teste@example.com'").each { ms.remove(it) }
-all("SELECT {pk} FROM {UserGroup} WHERE {uid} LIKE 'nacao-maraca-%'").each { ms.remove(it) }
+all("SELECT {pk} FROM {UserGroup} WHERE {uid} LIKE 'nacao-maraca-%' OR {uid} LIKE 'nacao-pendente-%'").each { ms.remove(it) }
+all("SELECT {pk} FROM {Customer} WHERE {uid}='torcedor.teste@example.com'").each { ms.remove(it) }
 log << 'grupos nacao-maraca-* e cliente de demonstração removidos'
 
 return log.join('\n')
