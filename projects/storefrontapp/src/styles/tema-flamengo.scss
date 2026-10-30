@@ -263,3 +263,14 @@ cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab > cx-tab-panel > div {
     width: auto;
   }
 }
+
+// --- seletor de idioma: rótulo "Language" fixo no Spartacus -------------------
+// O texto vem de uma constante do Spartacus (não passa pela tradução). Com o
+// site em português o rótulo vira "Idioma:".
+html[lang='pt'] header cx-site-context-selector label > span {
+  font-size: 0 !important;
+}
+html[lang='pt'] header cx-site-context-selector label > span::before {
+  content: 'Idioma:';
+  font-size: 14px;
+}
