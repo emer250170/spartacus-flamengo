@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OccEndpointsService, WindowRef } from '@spartacus/core';
-import { Observable, forkJoin, of } from 'rxjs';
+import { Observable, forkJoin, merge, of } from 'rxjs';
 import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
 import {
   MATCHDAY_HOLD_KEY,
@@ -24,6 +24,20 @@ const PERSONALIZATION_CODE = 'FLA-PERSONALIZACAO';
 const RECOMMENDED_FOOD = 'FLA-FOOD-COMBO';
 
 const WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+/**
+ * Campos pedidos à API: só o que a jornada usa. MEDIDO (30/10, jogo com 384
+ * poltronas, cache frio): fields=FULL 647 KB / 3,1 s; estes campos 170 KB / 1,4 s.
+ */
+const SEAT_FIELDS =
+  'code,name,summary,description,price(value),' +
+  'variantMatrix(variantValueCategory(name,sequence),' +
+  'variantOption(code,priceData(value),stock(stockLevel,stockLevelStatus)),' +
+  'elements(variantValueCategory(name,sequence),' +
+  'variantOption(code,priceData(value),stock(stockLevel,stockLevelStatus))))';
+const SHIRT_FIELDS =
+  'code,name,summary,price(value),' +
+  'variantMatrix(variantValueCategory(name,sequence),variantOption(code))';
 
 /** Descrição de cada setor do Maracanã (texto de apoio do protótipo) */
 const SECTOR_DESCRIPTIONS: Record<string, string> = {
@@ -65,6 +79,7 @@ interface OccSearchResult {
 @Injectable({ providedIn: 'root' })
 export class MatchdayDataService {
   private catalog$?: Observable<MatchdayCatalog>;
+  private matches$?: Observable<MatchdayMatch[]>;
 
   constructor(
     protected http: HttpClient,
@@ -74,22 +89,54 @@ export class MatchdayDataService {
 
   /**
    * Carrega jogos, setores e poltronas, estacionamento, comidas e camisa.
+   * Emite duas vezes: primeiro a lista de jogos (rápida, sem poltronas, com
+   * `seatsLoaded` falso) e depois os mesmos jogos com setores e poltronas.
    * `refresh` busca de novo (a ocupação das poltronas muda a cada venda).
    */
   getCatalog(refresh = false): Observable<MatchdayCatalog> {
     if (!this.catalog$ || refresh) {
-      this.catalog$ = forkJoin({
-        matches: this.loadMatches(),
+      const light$ = forkJoin({
+        matches: this.loadMatchList(),
         services: this.search(SERVICES_CATEGORY),
-        shirt: this.loadProduct(SHIRT_CODE),
+        shirt: this.loadProduct(SHIRT_CODE, SHIRT_FIELDS),
       }).pipe(
         map(({ matches, services, shirt }) =>
           this.buildCatalog(matches, services, shirt)
         ),
         shareReplay({ bufferSize: 1, refCount: false })
       );
+      const full$ = light$.pipe(
+        switchMap((catalog) =>
+          catalog.matches.length
+            ? forkJoin(
+                catalog.matches.map((m) =>
+                  this.loadProduct(m.code, SEAT_FIELDS).pipe(
+                    map((detail) =>
+                      detail
+                        ? { ...this.toMatch(detail), seatsLoaded: true }
+                        : m
+                    )
+                  )
+                )
+              ).pipe(map((matches) => ({ ...catalog, matches })))
+            : of(catalog)
+        )
+      );
+      this.catalog$ = merge(light$, full$).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
     }
     return this.catalog$;
+  }
+
+  /** Só a lista de jogos, sem poltronas (banner da home) */
+  getMatches(): Observable<MatchdayMatch[]> {
+    if (!this.matches$) {
+      this.matches$ = this.loadMatchList().pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+    }
+    return this.matches$;
   }
 
   saveSelection(selection: MatchdaySelection): void {
@@ -140,25 +187,29 @@ export class MatchdayDataService {
     }
   }
 
-  protected loadMatches(): Observable<MatchdayMatch[]> {
+  /**
+   * Lista de jogos: busca (nome, preço "a partir de") + descrição de cada jogo
+   * (datas das ondas de venda). Poltronas ficam para depois.
+   */
+  protected loadMatchList(): Observable<MatchdayMatch[]> {
     return this.search(MATCHES_CATEGORY).pipe(
       switchMap((products) =>
         products.length
           ? forkJoin(
               products.map((p) =>
-                this.loadProduct(p.code).pipe(
-                  map((detail) => this.toMatch(detail ?? p))
+                this.loadProduct(p.code, 'code,description').pipe(
+                  map((detail) =>
+                    this.toMatch({ ...p, description: detail?.description })
+                  )
                 )
               )
             )
           : of([] as MatchdayMatch[])
       ),
       map((matches) =>
-        matches
-          .filter((m) => m.sectors.length > 0)
-          .sort((a, b) =>
-            this.dateKey(a.code).localeCompare(this.dateKey(b.code))
-          )
+        matches.sort((a, b) =>
+          this.dateKey(a.code).localeCompare(this.dateKey(b.code))
+        )
       )
     );
   }
@@ -180,10 +231,13 @@ export class MatchdayDataService {
       );
   }
 
-  protected loadProduct(code: string): Observable<OccProduct | undefined> {
+  protected loadProduct(
+    code: string,
+    fields = 'FULL'
+  ): Observable<OccProduct | undefined> {
     const url = `${this.occEndpoints.getBaseUrl()}/products/${encodeURIComponent(code)}`;
     return this.http
-      .get<OccProduct>(url, { params: { fields: 'FULL' } })
+      .get<OccProduct>(url, { params: { fields } })
       .pipe(catchError(() => of(undefined)));
   }
 

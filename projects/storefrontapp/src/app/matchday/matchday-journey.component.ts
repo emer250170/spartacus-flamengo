@@ -126,9 +126,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription.add(
       // recarrega a cada visita: a ocupação das poltronas muda a cada venda
+      // 1a emissão: lista de jogos; 2a: com setores e poltronas
       this.data.getCatalog(true).subscribe({
         next: (catalog) => {
-          this.catalog = catalog;
+          this.applyCatalog(catalog);
           this.loading = false;
           this.loadError = catalog.matches.length === 0;
           const sizes = catalog.shirt?.sizes ?? [];
@@ -184,7 +185,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (index === 0) {
       return true;
     }
-    if (!this.match) {
+    if (!this.match || !this.match.seatsLoaded) {
       return false;
     }
     // a venda do jogo ainda não chegou na onda do torcedor
@@ -458,6 +459,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     const sectorCode = this.sector?.code;
     this.subscription.add(
       this.data.getCatalog(true).subscribe((catalog) => {
+        // a 1a emissão (sem poltronas) não pode apagar o mapa aberto
+        if (!catalog.matches.some((m) => m.seatsLoaded)) {
+          return;
+        }
         this.catalog = catalog;
         this.match = catalog.matches.find((m) => m.code === matchCode);
         this.sector = this.match?.sectors.find((s) => s.code === sectorCode);
@@ -465,6 +470,36 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         this.cd.markForCheck();
       })
     );
+  }
+
+  /**
+   * Novo catálogo: troca o jogo e o setor escolhidos pelos objetos novos
+   * (a 2a emissão traz as poltronas) e tenta retomar a poltrona do carrinho.
+   */
+  protected applyCatalog(catalog: MatchdayCatalog): void {
+    const hadSeats = this.catalog?.matches.some((m) => m.seatsLoaded);
+    const hasSeats = catalog.matches.some((m) => m.seatsLoaded);
+    if (hadSeats && !hasSeats) {
+      return;
+    }
+    this.catalog = catalog;
+    if (this.match) {
+      this.match =
+        catalog.matches.find((m) => m.code === this.match?.code) ?? this.match;
+      const sector = this.match.sectors.find(
+        (s) => s.code === this.sector?.code
+      );
+      if (sector) {
+        this.sector = sector;
+        this.seatMap = this.buildSeatMap(sector);
+      }
+    }
+    if (hasSeats) {
+      this.activeCart
+        .getEntries()
+        .pipe(take(1))
+        .subscribe((entries) => this.restoreHold(entries));
+    }
   }
 
   /** Se o carrinho já tem uma poltrona de jogo, retoma a jornada com ela */
