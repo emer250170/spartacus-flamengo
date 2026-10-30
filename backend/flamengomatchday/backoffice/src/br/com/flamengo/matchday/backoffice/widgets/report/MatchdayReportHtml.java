@@ -393,7 +393,7 @@ public class MatchdayReportHtml
 		return String.format(Locale.ROOT, "%.2f", value);
 	}
 
-	protected static String esc(final String text)
+	public static String esc(final String text)
 	{
 		if (text == null)
 		{

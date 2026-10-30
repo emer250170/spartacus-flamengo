@@ -9,6 +9,7 @@
 			<label value="${labels.title}" style="font-size:22px; font-weight:700; color:#1d2d3e; margin-right:auto;"/>
 			<combobox id="gameSelector" readonly="true" width="380px"/>
 			<button id="refreshButton" label="${labels.refresh}"/>
+			<button id="pdfButton" label="${labels.pdf}" tooltiptext="${labels.pdfHint}"/>
 		</div>
 		<html id="reportContent"/>
 	</div>
