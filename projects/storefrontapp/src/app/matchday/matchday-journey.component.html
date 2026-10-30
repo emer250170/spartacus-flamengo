@@ -79,6 +79,8 @@
                 [class.is-selected]="match?.code === m.code"
                 [attr.aria-pressed]="match?.code === m.code"
                 (click)="selectMatch(m)"
+                (mouseenter)="prefetchSeats(m)"
+                (focus)="prefetchSeats(m)"
               >
                 <span class="md-date">
                   <span class="md-date-day">{{ m.weekday }}</span>

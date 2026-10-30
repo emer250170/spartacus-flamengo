@@ -309,6 +309,53 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       this.ticketCode = undefined;
       this.seatMap = [];
     }
+    if (!this.match.seatsLoaded) {
+      this.loadSeats(match.code);
+    }
+  }
+
+  /** Mouse ou foco no card: já começa a buscar as poltronas daquele jogo */
+  prefetchSeats(match: MatchdayMatch): void {
+    if (!match.seatsLoaded) {
+      this.loadSeats(match.code);
+    }
+  }
+
+  /**
+   * Busca setores e poltronas de um jogo e põe no catálogo; se for o jogo
+   * aberto, atualiza setor e mapa.
+   */
+  protected loadSeats(matchCode: string, refresh = false): void {
+    this.subscription.add(
+      this.data.getSeats(matchCode, refresh).subscribe((full) => {
+        if (!full || !this.catalog) {
+          return;
+        }
+        this.catalog = {
+          ...this.catalog,
+          matches: this.catalog.matches.map((m) =>
+            m.code === matchCode
+              ? { ...full, waveStarts: full.waveStarts ?? m.waveStarts }
+              : m
+          ),
+        };
+        if (this.match?.code === matchCode) {
+          this.match =
+            this.catalog.matches.find((m) => m.code === matchCode) ??
+            this.match;
+          const sector = this.match.sectors.find(
+            (s) => s.code === this.sector?.code
+          );
+          this.sector = sector;
+          this.seatMap = sector ? this.buildSeatMap(sector) : [];
+        }
+        this.activeCart
+          .getEntries()
+          .pipe(take(1))
+          .subscribe((entries) => this.restoreHold(entries));
+        this.cd.markForCheck();
+      })
+    );
   }
 
   // ---------- etapa 2: setor e poltrona ----------
@@ -464,21 +511,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   /** Recarrega a ocupação do setor aberto */
   protected refreshSeats(): void {
-    const matchCode = this.match?.code;
-    const sectorCode = this.sector?.code;
-    this.subscription.add(
-      this.data.getCatalog(true).subscribe((catalog) => {
-        // a 1a emissão (sem poltronas) não pode apagar o mapa aberto
-        if (!catalog.matches.some((m) => m.seatsLoaded)) {
-          return;
-        }
-        this.catalog = catalog;
-        this.match = catalog.matches.find((m) => m.code === matchCode);
-        this.sector = this.match?.sectors.find((s) => s.code === sectorCode);
-        this.seatMap = this.sector ? this.buildSeatMap(this.sector) : [];
-        this.cd.markForCheck();
-      })
-    );
+    if (this.match) {
+      this.loadSeats(this.match.code, true);
+    }
   }
 
   /**
@@ -486,37 +521,26 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
    * (a 2a emissão traz as poltronas) e tenta retomar a poltrona do carrinho.
    */
   protected applyCatalog(catalog: MatchdayCatalog): void {
-    const hadSeats = this.catalog?.matches.some((m) => m.seatsLoaded);
-    const hasSeats = catalog.matches.some((m) => m.seatsLoaded);
-    if (hadSeats && !hasSeats) {
-      return;
-    }
     this.catalog = catalog;
-    if (!this.match && this.requestedMatch) {
-      const requested = catalog.matches.find(
-        (m) => m.code === this.requestedMatch
-      );
-      if (requested) {
-        this.match = requested;
-      }
+    const requested =
+      !this.match && this.requestedMatch
+        ? catalog.matches.find((m) => m.code === this.requestedMatch)
+        : undefined;
+    if (requested) {
+      this.selectMatch(requested);
     }
-    if (this.match) {
-      this.match =
-        catalog.matches.find((m) => m.code === this.match?.code) ?? this.match;
-      const sector = this.match.sectors.find(
-        (s) => s.code === this.sector?.code
-      );
-      if (sector) {
-        this.sector = sector;
-        this.seatMap = this.buildSeatMap(sector);
-      }
-    }
-    if (hasSeats) {
-      this.activeCart
-        .getEntries()
-        .pipe(take(1))
-        .subscribe((entries) => this.restoreHold(entries));
-    }
+    // poltrona de jogo já no carrinho: carrega aquele jogo para retomar a jornada
+    this.activeCart
+      .getEntries()
+      .pipe(take(1))
+      .subscribe((entries) => {
+        const code = entries
+          .map((e) => this.data.matchCodeOfSeat(e.product?.code ?? ''))
+          .find((c) => !!c && catalog.matches.some((m) => m.code === c));
+        if (code) {
+          this.loadSeats(code);
+        }
+      });
   }
 
   /**
