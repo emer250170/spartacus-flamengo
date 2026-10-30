@@ -1,0 +1,57 @@
+# =====================================================================
+#  Socio-Torcedor Nacao Maraca - CMS (electronics-spaContentCatalog, Staged e Online)
+#  - pagina de conteudo /socio-torcedor com os planos (SocioPlansComponent)
+#  - item "Socio-Torcedor" no menu principal, depois de "Ingressos"
+#  Importar DEPOIS de publicar a loja com o SocioModule (senao a pagina abre vazia).
+#  Para desfazer: 06-cms-socio-remover.impex
+# =====================================================================
+$contentCatalog=electronics-spaContentCatalog
+
+#### ---------- Staged ----------
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+
+INSERT_UPDATE CMSFlexComponent;$contentCV[unique=true];uid[unique=true];name;flexType
+;;SocioPlansComponent;Socio-torcedor - planos Nacao Maraca;SocioPlansComponent
+
+INSERT_UPDATE ContentPage;$contentCV[unique=true];uid[unique=true];name;masterTemplate(uid,$contentCV);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;socioTorcedorPage;Socio-Torcedor;LandingPage2Template;/socio-torcedor;;;;Sócio-Torcedor Nação Maraca;Nação Maraca membership
+
+INSERT_UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];name;active;cmsComponents(uid,$contentCV)
+;;Section1Slot-Socio;Socio-Torcedor Section1;true;SocioPlansComponent
+
+INSERT_UPDATE ContentSlotForPage;$contentCV[unique=true];uid[unique=true];position[unique=true];page(uid,$contentCV)[unique=true];contentSlot(uid,$contentCV)[unique=true]
+;;Section1-Socio;Section1;socioTorcedorPage;Section1Slot-Socio
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;linkName[lang=pt];linkName[lang=en]
+;;FlaSocioLink;Link Socio-Torcedor;/socio-torcedor;Sócio-Torcedor;Membership
+
+INSERT_UPDATE CMSNavigationNode;$contentCV[unique=true];uid[unique=true];name;title[lang=pt];title[lang=en];parent(uid,$contentCV)
+;;FlaSocioNavNode;Socio-Torcedor;Sócio-Torcedor;Membership;FlamengoCategoryNavNode
+
+INSERT_UPDATE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true];name;navigationNode(uid,$contentCV);item(CMSLinkComponent.uid,CMSLinkComponent.catalogVersion(CatalogVersion.catalog(Catalog.id),CatalogVersion.version))
+;;FlaSocioEntry;Socio-Torcedor;FlaSocioNavNode;FlaSocioLink:electronics-spaContentCatalog:Staged
+
+#### ---------- Online ----------
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Online])[default=$contentCatalog:Online]
+
+INSERT_UPDATE CMSFlexComponent;$contentCV[unique=true];uid[unique=true];name;flexType
+;;SocioPlansComponent;Socio-torcedor - planos Nacao Maraca;SocioPlansComponent
+
+INSERT_UPDATE ContentPage;$contentCV[unique=true];uid[unique=true];name;masterTemplate(uid,$contentCV);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;socioTorcedorPage;Socio-Torcedor;LandingPage2Template;/socio-torcedor;;;;Sócio-Torcedor Nação Maraca;Nação Maraca membership
+
+INSERT_UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];name;active;cmsComponents(uid,$contentCV)
+;;Section1Slot-Socio;Socio-Torcedor Section1;true;SocioPlansComponent
+
+INSERT_UPDATE ContentSlotForPage;$contentCV[unique=true];uid[unique=true];position[unique=true];page(uid,$contentCV)[unique=true];contentSlot(uid,$contentCV)[unique=true]
+;;Section1-Socio;Section1;socioTorcedorPage;Section1Slot-Socio
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;linkName[lang=pt];linkName[lang=en]
+;;FlaSocioLink;Link Socio-Torcedor;/socio-torcedor;Sócio-Torcedor;Membership
+
+INSERT_UPDATE CMSNavigationNode;$contentCV[unique=true];uid[unique=true];name;title[lang=pt];title[lang=en];parent(uid,$contentCV)
+;;FlaSocioNavNode;Socio-Torcedor;Sócio-Torcedor;Membership;FlamengoCategoryNavNode
+
+INSERT_UPDATE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true];name;navigationNode(uid,$contentCV);item(CMSLinkComponent.uid,CMSLinkComponent.catalogVersion(CatalogVersion.catalog(Catalog.id),CatalogVersion.version))
+;;FlaSocioEntry;Socio-Torcedor;FlaSocioNavNode;FlaSocioLink:electronics-spaContentCatalog:Online
+

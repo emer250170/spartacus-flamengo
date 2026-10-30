@@ -84,8 +84,10 @@ def money = { BigDecimal v -> v.setScale(2, BigDecimal.ROUND_HALF_UP).toString()
 // ---------- 1. ImpEx: grupos, cobrança, prazo, categoria, produtos, estoque ----------
 def q = { String s -> '"' + s.replace('"', '""') + '"' }
 def L = []
-L << 'INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];description'
-PLANOS.each { p -> L << ";nacao-maraca-${p.n};Sócio Nação Maraca ${p.n};Nação Maraca ${p.n} member;Titulares do plano Nação Maraca ${p.n} (entram ao comprar o plano)" }
+// groups=customergroup: a API /users/{id}/customergroups (usada pela loja para
+// saber o plano do torcedor) só lista grupos que estão dentro de customergroup
+L << 'INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];description;groups(uid)[mode=append]'
+PLANOS.each { p -> L << ";nacao-maraca-${p.n};Sócio Nação Maraca ${p.n};Nação Maraca ${p.n} member;Titulares do plano Nação Maraca ${p.n} (entram ao comprar o plano);customergroup" }
 L << ''
 L << 'INSERT_UPDATE BillingFrequency;code[unique=true];nameInCart[lang=pt];nameInOrder[lang=pt];nameInCart[lang=en];nameInOrder[lang=en];order;cartAware'
 L << ';monthly;Mensal;Mensal;Monthly;Monthly;10;false'
