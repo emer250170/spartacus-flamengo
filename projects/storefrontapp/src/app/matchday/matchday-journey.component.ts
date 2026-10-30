@@ -25,7 +25,7 @@ import {
 } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { WaveStatus } from '../socio/socio.model';
+import { SocioPlan, WaveStatus } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
 import { MatchdayDataService } from './matchday-data.service';
 import {
@@ -107,10 +107,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   holdMessage?: string;
 
   // sócio-torcedor: plano do torcedor e ondas de venda
-  /** Plano Nação Maraca que vale para ingressos (comprado ou no carrinho) */
-  memberLevel: number | null = null;
+  /** Plano de sócio que vale para ingressos (comprado ou no carrinho) */
+  memberPlan: SocioPlan | null = null;
   /** O plano que vale está só no carrinho (ainda não comprado) */
   planInCart = false;
+  /** Planos de sócio (nomes das ondas e maior desconto) */
+  socioPlans: SocioPlan[] = [];
   /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
   protected requestedMatch?: string;
 
@@ -165,11 +167,22 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.socio.refreshMembership();
     this.subscription.add(
       this.socio.getMembership().subscribe((m) => {
-        this.memberLevel = m.level;
+        this.memberPlan = m.plan;
         this.planInCart =
-          m.inCart !== null && m.level === m.inCart && m.member !== m.level;
+          !!m.plan &&
+          m.plan.code === m.inCart?.code &&
+          m.plan.code !== m.member?.code;
         this.cd.markForCheck();
       })
+    );
+    // planos no idioma do site (o nome entra no nome das ondas)
+    this.subscription.add(
+      this.i18n.lang$
+        .pipe(switchMap(() => this.socio.getPlans()))
+        .subscribe((plans) => {
+          this.socioPlans = plans;
+          this.cd.markForCheck();
+        })
     );
     // a onda vira pelo relógio: confere a cada 30 s
     this.subscription.add(
@@ -264,7 +277,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   /** Situação de venda do jogo para este torcedor */
   waveFor(match: MatchdayMatch): WaveStatus {
-    return this.socio.waveStatus(match.waveStarts, this.memberLevel);
+    return this.socio.waveStatus(match.waveStarts, this.memberPlan);
   }
 
   /** Calendário de vendas do jogo, para o aviso de onda fechada */
@@ -273,7 +286,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   ): { wave: number; label: string; at: Date }[] {
     return (match.waveStarts ?? []).map((iso, i) => ({
       wave: i + 1,
-      label: this.i18n.waveLabel(i + 1),
+      label: this.waveLabel(i + 1),
       at: new Date(iso),
     }));
   }
@@ -283,8 +296,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     return this.i18n.shortDate(date);
   }
 
+  /** "Onda 1 · Nação Maraca 1" com os planos de cada onda */
   waveLabel(wave: number): string {
-    return this.i18n.waveLabel(wave);
+    return this.socio.waveLabel(wave, this.socioPlans);
   }
 
   /** Selo de onda do card do jogo */
@@ -303,9 +317,22 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   /** Aviso de onda fechada: quando a onda do torcedor abre */
   lockText(w: WaveStatus): string {
     const date = this.shortDate(w.opensAt);
-    return this.memberLevel
+    if (!this.memberPlan) {
+      return this.i18n.t('md.lock.nonMember', { date });
+    }
+    return this.memberPlan.wave
       ? this.i18n.t('md.lock.member', { wave: this.waveLabel(w.mine), date })
-      : this.i18n.t('md.lock.nonMember', { date });
+      : this.i18n.t('md.lock.noPriority', { date });
+  }
+
+  /** Sugere subir de plano: não é sócio, ou o plano não compra na onda 1 */
+  get canUpgrade(): boolean {
+    return this.memberPlan?.wave !== 1;
+  }
+
+  /** Maior desconto entre os planos (convite para ser sócio) */
+  get maxDiscount(): number {
+    return Math.max(0, ...this.socioPlans.map((p) => p.discount));
   }
 
   /** "Restam 3 lugares" / "3 seats left" */
@@ -331,11 +358,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   /** Onda do torcedor (4 = venda geral) */
   get myWave(): number {
-    return this.socio.memberWave(this.memberLevel);
+    return this.socio.memberWave(this.memberPlan);
   }
 
   get memberDiscount(): number {
-    return this.socio.discount(this.memberLevel);
+    return this.socio.discount(this.memberPlan);
   }
 
   /** Preço do ingresso com o desconto do plano (o carrinho aplica pela promoção) */

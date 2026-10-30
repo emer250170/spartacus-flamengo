@@ -1,0 +1,26 @@
+# Papel "Gestor do sócio-torcedor": entra no Backoffice, cria e mantém os planos do
+# sócio-torcedor (perspectiva "Sócio-Torcedor") e vê os relatórios do programa.
+# A ficha reduzida está em flamengomatchday-backoffice-config.xml (editor-area com principal=sociomanagerrole).
+# Usuário: Employee gestor.socio com groups=sociomanagerrole, criado SEM senha pelo
+# scripts/socio-planos-migracao.groovy (a senha é definida no Backoffice e não fica no repositório).
+
+INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];description;authorities;backOfficeLoginDisabled[default=false]
+;sociomanagerrole;Gestor do sócio-torcedor;Membership manager;Cria e mantém os planos do sócio-torcedor e vê os relatórios do programa;sociomanagerrole,socioperspective;
+
+# Perspectiva "Sócio-Torcedor" (flamengomatchday-backoffice-widgets.xml, access="socioperspective") também para o admin
+UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
+;backofficeadministratorrole;socioperspective
+
+# A publicação na loja (produto, preço, promoção, grupos) roda como admin no
+# SocioPlanService; o papel só precisa do cadastro de planos.
+$START_USERRIGHTS;;;;;;;;;
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+BackofficeRole;sociomanagerrole;;;;;;;;
+;;;;SocioPlan;+;+;+;+;-
+;;;;SocioPlanStatus;+;-;-;-;-
+;;;;Product;+;-;-;-;-
+;;;;UserGroup;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;User;+;-;-;-;-
+$END_USERRIGHTS;;;;;;;;;

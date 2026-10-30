@@ -1,6 +1,7 @@
 package br.com.flamengo.matchday.socio;
 
 import br.com.flamengo.matchday.model.MatchdayGameModel;
+import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.service.SeatHoldService;
 import de.hybris.platform.commerceservices.order.CommerceCartCalculationStrategy;
 import de.hybris.platform.commerceservices.service.data.CommerceCartParameter;
@@ -31,24 +32,20 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Plano Nação Maraca no carrinho vale como sócio já na compra do ingresso.
+ * Plano de sócio-torcedor no carrinho vale como sócio já na compra do ingresso.
  * <p>
- * Ao entrar no carrinho, o plano põe o torcedor no grupo do plano
- * (nacao-maraca-N, que as promoções de desconto usam) e num grupo marcador
- * nacao-pendente-N. Se o plano sai do carrinho, os dois grupos saem e os
- * ingressos de jogos cuja onda ainda não chegou para ele saem do carrinho.
- * Quando o pedido fecha, o order-process tira o marcador e deixa só o grupo do
- * plano comprado.
+ * Ao entrar no carrinho, o plano põe o torcedor no grupo do plano (que a
+ * promoção de desconto usa) e no grupo marcador de carrinho do plano. Se o
+ * plano sai do carrinho, os dois grupos saem e os ingressos de jogos cuja onda
+ * ainda não chegou para ele saem do carrinho. Quando o pedido fecha, o
+ * order-process ({@link SocioPlanService#applyOrder}) deixa só o grupo do plano
+ * comprado. Planos, grupos e ondas vêm do cadastro de planos (SocioPlan).
  */
 public class SocioCartService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(SocioCartService.class);
 
-	public static final String PLAN_PREFIX = "NACAO-MARACA-";
-	public static final String GROUP_PREFIX = "nacao-maraca-";
-	public static final String PENDING_PREFIX = "nacao-pendente-";
-	private static final int LEVELS = 3;
-	/** Onda 4 = venda geral (quem não é sócio) */
+	/** Onda 4 = venda geral (quem não é sócio ou plano sem prioridade) */
 	private static final int GENERAL_SALE = 4;
 
 	private UserService userService;
@@ -56,23 +53,12 @@ public class SocioCartService
 	private FlexibleSearchService flexibleSearchService;
 	private SeatHoldService seatHoldService;
 	private CommerceCartCalculationStrategy commerceCartCalculationStrategy;
+	private SocioPlanService socioPlanService;
 
-	/** NACAO-MARACA-2 -> 2; outro produto -> 0 */
-	public int planLevel(final ProductModel product)
+	/** O produto é um plano de sócio-torcedor? */
+	public boolean isPlan(final ProductModel product)
 	{
-		if (product == null || product.getCode() == null || !product.getCode().startsWith(PLAN_PREFIX))
-		{
-			return 0;
-		}
-		try
-		{
-			final int level = Integer.parseInt(product.getCode().substring(PLAN_PREFIX.length()));
-			return level >= 1 && level <= LEVELS ? level : 0;
-		}
-		catch (final NumberFormatException e)
-		{
-			return 0;
-		}
+		return socioPlanService.findForProduct(product) != null;
 	}
 
 	/** O carrinho tem plano ou o torcedor tem grupo marcador? (evita trabalho nos demais carrinhos) */
@@ -99,7 +85,7 @@ public class SocioCartService
 		{
 			return Collections.emptyList();
 		}
-		final Set<Integer> wanted = plansInCart(cart);
+		final Set<SocioPlanModel> wanted = plansInCart(cart);
 		final Set<PrincipalGroupModel> groups = new HashSet<>();
 		if (customer.getGroups() != null)
 		{
@@ -107,27 +93,27 @@ public class SocioCartService
 		}
 		boolean changed = false;
 		boolean lostPending = false;
-		for (int level = 1; level <= LEVELS; level++)
+		for (final SocioPlanModel plan : socioPlanService.getPlans())
 		{
-			final UserGroupModel plan = group(GROUP_PREFIX + level);
-			final UserGroupModel pending = group(PENDING_PREFIX + level);
-			if (plan == null || pending == null)
+			final UserGroupModel planGroup = plan.getCustomerGroup();
+			final UserGroupModel pending = plan.getPendingGroup();
+			if (planGroup == null || pending == null)
 			{
 				continue;
 			}
 			final boolean isPending = groups.contains(pending);
-			if (wanted.contains(Integer.valueOf(level)))
+			if (wanted.contains(plan))
 			{
-				if (!groups.contains(plan))
+				if (!groups.contains(planGroup))
 				{
-					groups.add(plan);
+					groups.add(planGroup);
 					groups.add(pending);
 					changed = true;
 				}
 			}
 			else if (isPending)
 			{
-				groups.remove(plan);
+				groups.remove(planGroup);
 				groups.remove(pending);
 				changed = true;
 				lostPending = true;
@@ -137,8 +123,8 @@ public class SocioCartService
 		{
 			customer.setGroups(groups);
 			modelService.save(customer);
-			LOG.info("Sócio no carrinho {}: grupos {}", cart.getCode(), groups.stream().map(PrincipalGroupModel::getUid)
-					.filter(uid -> uid != null && uid.startsWith("nacao-")).collect(Collectors.joining(",")));
+			LOG.info("Sócio no carrinho {}: planos {}", cart.getCode(),
+					wanted.stream().map(SocioPlanModel::getCode).collect(Collectors.joining(",")));
 		}
 		final List<String> removed = lostPending ? removeLockedSeats(cart, memberWave(groups)) : Collections.emptyList();
 		if (changed || !removed.isEmpty())
@@ -208,53 +194,56 @@ public class SocioCartService
 		return current;
 	}
 
-	/** Onda do torcedor: a do melhor plano (1 a 3) ou a venda geral */
+	/** Onda do torcedor: a do melhor plano que ele tem (1 a 3) ou a venda geral */
 	protected int memberWave(final Set<PrincipalGroupModel> groups)
 	{
 		int wave = GENERAL_SALE;
-		for (final PrincipalGroupModel group : groups)
+		for (final SocioPlanModel plan : socioPlanService.getPlans())
 		{
-			final String uid = group.getUid();
-			if (uid != null && uid.startsWith(GROUP_PREFIX))
+			final int planWave = plan.getWave() == null ? 0 : plan.getWave().intValue();
+			if (planWave > 0 && plan.getCustomerGroup() != null && groups.contains(plan.getCustomerGroup()))
 			{
-				try
-				{
-					wave = Math.min(wave, Integer.parseInt(uid.substring(GROUP_PREFIX.length())));
-				}
-				catch (final NumberFormatException e)
-				{
-					// grupo com outro formato: ignora
-				}
+				wave = Math.min(wave, planWave);
 			}
 		}
 		return wave;
 	}
 
-	protected Set<Integer> plansInCart(final CartModel cart)
+	protected Set<SocioPlanModel> plansInCart(final CartModel cart)
 	{
-		final Set<Integer> levels = new HashSet<>();
+		final Set<SocioPlanModel> plans = new HashSet<>();
 		if (cart.getEntries() != null)
 		{
 			for (final AbstractOrderEntryModel entry : cart.getEntries())
 			{
-				if (modelService.isRemoved(entry))
+				if (modelService.isRemoved(entry) || entry.getQuantity() == null || entry.getQuantity().longValue() <= 0)
 				{
 					continue;
 				}
-				final int level = planLevel(entry.getProduct());
-				if (level > 0 && entry.getQuantity() != null && entry.getQuantity().longValue() > 0)
+				final SocioPlanModel plan = socioPlanService.findForProduct(entry.getProduct());
+				if (plan != null)
 				{
-					levels.add(Integer.valueOf(level));
+					plans.add(plan);
 				}
 			}
 		}
-		return levels;
+		return plans;
 	}
 
 	protected boolean hasAnyPending(final CustomerModel customer)
 	{
-		return customer.getGroups() != null && customer.getGroups().stream()
-				.anyMatch(g -> g.getUid() != null && g.getUid().startsWith(PENDING_PREFIX));
+		if (customer.getGroups() == null || customer.getGroups().isEmpty())
+		{
+			return false;
+		}
+		for (final SocioPlanModel plan : socioPlanService.getPlans())
+		{
+			if (plan.getPendingGroup() != null && customer.getGroups().contains(plan.getPendingGroup()))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected CustomerModel customer(final CartModel cart)
@@ -313,5 +302,10 @@ public class SocioCartService
 	public void setCommerceCartCalculationStrategy(final CommerceCartCalculationStrategy commerceCartCalculationStrategy)
 	{
 		this.commerceCartCalculationStrategy = commerceCartCalculationStrategy;
+	}
+
+	public void setSocioPlanService(final SocioPlanService socioPlanService)
+	{
+		this.socioPlanService = socioPlanService;
 	}
 }

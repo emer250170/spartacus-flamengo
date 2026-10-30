@@ -20,7 +20,7 @@ import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { GENERAL_SALE_WAVE, SocioPlan } from './socio.model';
 import { SocioService } from './socio.service';
 
-/** Benefícios que valem para os três planos (textos em fla-texts: st.b.*) */
+/** Benefícios que valem para todos os planos (textos em fla-texts: st.b.*) */
 const COMMON_BENEFITS = [
   'shipping',
   'cashback',
@@ -30,9 +30,17 @@ const COMMON_BENEFITS = [
   'package',
 ];
 
+/** Cards de uma família de planos */
+interface PlanGroup {
+  family: string;
+  plans: SocioPlan[];
+  /** Cards por linha no desktop (4 cabem; 5 ou 6 ficam em 3 + 2 / 3 + 3) */
+  cols: number;
+}
+
 /**
- * Página /socio-torcedor: os três planos Nação Maraca com preço, benefícios
- * e convidados. Escolher o plano o põe no carrinho do SAP Commerce e volta
+ * Página /socio-torcedor: os planos de sócio (cadastrados no Backoffice) com
+ * preço, benefícios e convidados, agrupados por família. Escolher o plano o põe no carrinho do SAP Commerce e volta
  * para a escolha de jogos: enquanto o plano estiver no carrinho, o torcedor já
  * compra na onda do plano e com o desconto dele (tirou o plano, perde os dois).
  * Quando o pedido fecha, ele vira sócio de vez.
@@ -50,14 +58,22 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
   readonly waves = Array.from({ length: GENERAL_SALE_WAVE }, (_, i) => i + 1);
 
   plans: SocioPlan[] = [];
+  /** Planos por família (uma só família: um grupo, sem título) */
+  groups: PlanGroup[] = [];
+  /** Card em destaque: o primeiro plano (pela ordem) da onda 1 */
+  featuredCode?: string;
+  /** Maior desconto entre os planos (texto do topo) */
+  maxDiscount = 0;
+  /** Título da página: a família, se só há uma */
+  title = '';
   loading = true;
   loggedIn = false;
   /** Plano que vale para ingressos (comprado ou no carrinho) */
-  level: number | null = null;
+  plan: SocioPlan | null = null;
   /** Plano comprado */
-  member: number | null = null;
+  member: SocioPlan | null = null;
   /** Plano no carrinho */
-  inCart: number | null = null;
+  inCart: SocioPlan | null = null;
   /** Jogo de onde o torcedor veio (volta para ele depois de escolher o plano) */
   fromMatch?: string;
   guests: Record<string, number> = {};
@@ -83,7 +99,7 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
       this.i18n.lang$
         .pipe(switchMap(() => this.socio.getPlans()))
         .subscribe((plans) => {
-          this.plans = plans;
+          this.setPlans(plans);
           this.loading = false;
           this.cd.markForCheck();
         })
@@ -99,7 +115,7 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
     this.socio.refreshMembership();
     this.subscription.add(
       this.socio.getMembership().subscribe((m) => {
-        this.level = m.level;
+        this.plan = m.plan;
         this.member = m.member;
         this.inCart = m.inCart;
         this.cd.markForCheck();
@@ -127,9 +143,17 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
     return plan.price + this.guestCount(plan) * (plan.guest?.price ?? 0);
   }
 
+  isMember(plan: SocioPlan): boolean {
+    return plan.code === this.member?.code;
+  }
+
+  isInCart(plan: SocioPlan): boolean {
+    return plan.code === this.inCart?.code;
+  }
+
   /** Plano já comprado ou já no carrinho */
   isCurrent(plan: SocioPlan): boolean {
-    return plan.level === this.member || plan.level === this.inCart;
+    return this.isMember(plan) || this.isInCart(plan);
   }
 
   buttonLabel(plan: SocioPlan): string {
@@ -137,13 +161,13 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
     if (plan.soldOut) {
       return t('soldOut');
     }
-    if (plan.level === this.member) {
+    if (this.isMember(plan)) {
       return t('mine');
     }
-    if (plan.level === this.inCart) {
+    if (this.isInCart(plan)) {
       return t('inCart');
     }
-    if (this.level) {
+    if (this.plan) {
       return t('switch');
     }
     return this.loggedIn ? t('join') : t('login');
@@ -181,8 +205,11 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
           take(1),
           switchMap((current) => {
             // um plano por pedido: tira outro plano ou convidado que já esteja no carrinho
+            const socioCodes = this.plans.flatMap((p) =>
+              p.guest ? [p.code, p.guest.code] : [p.code]
+            );
             current
-              .filter((e) => e.product?.code?.startsWith('NACAO-'))
+              .filter((e) => socioCodes.includes(e.product?.code ?? ''))
               .forEach((e) => this.activeCart.removeEntry(e));
             this.activeCart.addEntries(entries);
             return this.cartSettled();
@@ -191,7 +218,10 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.globalMessages.add(
-              this.i18n.t('st.added', { plan: plan.name, d: plan.discount }),
+              this.i18n.t(plan.discount ? 'st.added' : 'st.addedPlain', {
+                plan: plan.name,
+                d: plan.discount,
+              }),
               GlobalMessageType.MSG_TYPE_CONFIRMATION
             );
             this.router.navigateByUrl(
@@ -214,7 +244,12 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
 
   /** Onda do plano do torcedor */
   get myWave(): number {
-    return this.socio.memberWave(this.level);
+    return this.socio.memberWave(this.plan);
+  }
+
+  /** "Onda 1 · Nação Maraca 1" com os planos de cada onda */
+  waveLabel(wave: number): string {
+    return this.socio.waveLabel(wave, this.plans);
   }
 
   brl(value: number): string {
@@ -223,6 +258,29 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
 
   trackByCode(_: number, item: { code: string }): string {
     return item.code;
+  }
+
+  trackByFamily(_: number, group: PlanGroup): string {
+    return group.family;
+  }
+
+  /** Planos já ordenados (order) pelo SocioService */
+  protected setPlans(plans: SocioPlan[]): void {
+    this.plans = plans;
+    this.featuredCode = plans.find((p) => p.wave === 1)?.code;
+    this.maxDiscount = Math.max(0, ...plans.map((p) => p.discount));
+    const groups: PlanGroup[] = [];
+    plans.forEach((plan) => {
+      const group = groups.find((g) => g.family === plan.family);
+      if (group) {
+        group.plans.push(plan);
+      } else {
+        groups.push({ family: plan.family, plans: [plan], cols: 0 });
+      }
+    });
+    groups.forEach((g) => (g.cols = g.plans.length <= 4 ? g.plans.length : 3));
+    this.groups = groups;
+    this.title = groups.length === 1 ? groups[0].family : '';
   }
 
   /** Espera o carrinho processar as alterações (com limite de 15 s) */

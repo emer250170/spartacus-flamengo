@@ -83,14 +83,28 @@
 }
 
 // ---------- cards ----------
+// Quantidade de planos vem do Backoffice (1 a ~6): linhas centralizadas, com
+// data-cols cards por linha no desktop (5 ou 6 planos: 3 + 2 / 3 + 3).
+.st-group + .st-group {
+  margin-top: 32px;
+}
+
+.st-family {
+  margin-bottom: 16px;
+}
+
 .st-plans {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  --st-gap: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--st-gap);
   align-items: stretch;
 }
 
 .st-card {
+  flex: 0 1 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -105,6 +119,23 @@
   }
   &.is-mine {
     background: #2a0e13;
+  }
+}
+
+// tablet: 2 por linha
+@media (min-width: 640px) {
+  .st-card {
+    flex-basis: calc((100% - var(--st-gap)) / 2);
+  }
+}
+
+// desktop: 3 ou 4 por linha, conforme o número de planos da família
+@media (min-width: 992px) {
+  .st-plans[data-cols='3'] .st-card {
+    flex-basis: calc((100% - 2 * var(--st-gap)) / 3);
+  }
+  .st-plans[data-cols='4'] .st-card {
+    flex-basis: calc((100% - 3 * var(--st-gap)) / 4);
   }
 }
 
@@ -153,9 +184,11 @@
   margin: 4px 0 0;
 }
 
+// 1 ou 2 destaques (sem desconto, só a onda): dividem a largura
 .st-highlights {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 8px;
   list-style: none;
   margin: 0;

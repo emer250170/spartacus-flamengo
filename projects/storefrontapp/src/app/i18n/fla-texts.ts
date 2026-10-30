@@ -9,10 +9,9 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
   pt: {
     // comuns
     'wave.n': 'Onda {n}',
-    'wave.label.1': 'Onda 1 · Nação Maraca 1',
-    'wave.label.2': 'Onda 2 · Nação Maraca 2',
-    'wave.label.3': 'Onda 3 · Nação Maraca 3',
-    'wave.label.4': 'Venda geral',
+    // {plans}: nomes dos planos que compram na onda
+    'wave.plans': 'Onda {n} · {plans}',
+    'wave.general': 'Venda geral',
     'wave.notOpen': 'Vendas ainda não abertas',
     weekdays: 'DOM,SEG,TER,QUA,QUI,SEX,SÁB',
     weekdaysFull: 'Domingo,Segunda,Terça,Quarta,Quinta,Sexta,Sábado',
@@ -33,11 +32,12 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Ingresso, estacionamento, comida e a camisa nova — tudo num só carrinho e num só pagamento.',
     'md.loading': 'Carregando os próximos jogos…',
     'md.loadError': 'Não encontramos jogos com ingressos à venda agora.',
-    'md.planInCart': 'Plano <strong>Nação Maraca {n}</strong> no carrinho',
-    'md.member': 'Sócio <strong>Nação Maraca {n}</strong>',
+    'md.planInCart': 'Plano <strong>{plan}</strong> no carrinho',
+    'md.member': 'Sócio <strong>{plan}</strong>',
     'md.discountLine': '{d}% de desconto no ingresso',
-    'md.beMember': 'Seja sócio e compre antes, com até 75% de desconto.',
-    'md.knowPlans': 'Conheça a Nação Maraca',
+    'md.beMember': 'Seja sócio e compre antes, com até {d}% de desconto.',
+    'md.beMemberNoOff': 'Seja sócio e compre antes.',
+    'md.knowPlans': 'Conheça os planos de sócio',
     'md.stepsNav': 'Etapas do dia de jogo',
     'md.step.0': 'Jogo',
     'md.step.1': 'Setor e poltrona',
@@ -55,6 +55,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.seatsLoading': 'Carregando setores e poltronas…',
     'md.lock.title': 'A venda deste jogo ainda não chegou na sua onda',
     'md.lock.member': 'Seu plano compra na {wave}, a partir de {date}.',
+    'md.lock.noPriority':
+      'Seu plano não tem prioridade: compra na venda geral, a partir de {date}.',
     'md.lock.nonMember':
       'Quem não é sócio compra na venda geral, a partir de {date}.',
     'md.lock.upgrade': 'Subir de plano',
@@ -166,11 +168,15 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     // sócio-torcedor
     'st.eyebrow': 'Sócio-Torcedor',
     'st.lead':
-      'Prioridade na compra, até 75% de desconto no ingresso e compra garantida no Maracanã. Escolha o seu plano.',
-    'st.youAre': 'Você é sócio <strong>Nação Maraca {n}</strong>.',
+      'Prioridade na compra, até {d}% de desconto no ingresso e compra garantida no Maracanã. Escolha o seu plano.',
+    'st.leadNoOff':
+      'Prioridade na compra e compra garantida no Maracanã. Escolha o seu plano.',
+    // título da página quando há planos de mais de uma família
+    'st.title': 'Planos de sócio',
+    'st.youAre': 'Você é sócio <strong>{plan}</strong>.',
     'st.buyTickets': 'Comprar ingressos com o seu desconto',
     'st.inCart':
-      '<strong>Nação Maraca {n}</strong> está no seu carrinho: a prioridade e o desconto já valem para os ingressos.',
+      '<strong>{plan}</strong> está no seu carrinho: os benefícios do plano já valem para os ingressos.',
     'st.pickTickets': 'Escolher ingressos',
     'st.viewCart': 'Ver carrinho',
     'st.loading': 'Carregando os planos…',
@@ -182,6 +188,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.term': 'Contrato anual · 1ª mensalidade hoje + 11 mensais',
     'st.offFull': 'de desconto na inteira',
     'st.priority': 'prioridade na compra',
+    'st.noPriority': 'Sem prioridade',
+    'st.generalSale': 'compra na venda geral',
     'st.guests': 'Convidados',
     'st.guestsUpTo': 'Até {n} · {price}/mês cada',
     'st.guestsOf': 'Convidados do {plan}',
@@ -198,10 +206,12 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.common': 'Em todos os planos',
     'st.wavesTitle': 'Como funcionam as ondas de venda',
     'st.wavesText':
-      'Cada jogo tem as suas datas de venda. O Nação Maraca 1 compra primeiro, depois o Maraca 2 e o Maraca 3; quem não é sócio só compra na venda geral. Quem já entrou continua comprando até o jogo — e quem compra antes escolhe primeiro.',
+      'Cada jogo tem as suas datas de venda. Os planos com prioridade compram primeiro, onda a onda; quem não é sócio, ou tem plano sem prioridade, compra na venda geral. Quem já entrou continua comprando até o jogo — e quem compra antes escolhe primeiro.',
     'st.seeMatches': 'Ver próximos jogos',
     'st.added':
       '{plan} no carrinho: a prioridade de compra e o desconto de {d}% já valem para os seus ingressos.',
+    'st.addedPlain':
+      '{plan} no carrinho: os benefícios do plano já valem para os seus ingressos.',
     'st.addError': 'Não foi possível incluir o plano agora. Tente de novo.',
     'st.b.shipping.t': 'Frete grátis',
     'st.b.shipping.x': 'Nas compras da loja oficial.',
@@ -219,10 +229,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
 
   en: {
     'wave.n': 'Wave {n}',
-    'wave.label.1': 'Wave 1 · Nação Maraca 1',
-    'wave.label.2': 'Wave 2 · Nação Maraca 2',
-    'wave.label.3': 'Wave 3 · Nação Maraca 3',
-    'wave.label.4': 'General sale',
+    'wave.plans': 'Wave {n} · {plans}',
+    'wave.general': 'General sale',
     'wave.notOpen': 'Sales not open yet',
     weekdays: 'SUN,MON,TUE,WED,THU,FRI,SAT',
     weekdaysFull: 'Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
@@ -241,11 +249,12 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Ticket, parking, food and the new jersey — all in one cart and one payment.',
     'md.loading': 'Loading the upcoming matches…',
     'md.loadError': 'No matches with tickets on sale right now.',
-    'md.planInCart': '<strong>Nação Maraca {n}</strong> plan in your cart',
-    'md.member': '<strong>Nação Maraca {n}</strong> member',
+    'md.planInCart': '<strong>{plan}</strong> plan in your cart',
+    'md.member': '<strong>{plan}</strong> member',
     'md.discountLine': '{d}% off tickets',
-    'md.beMember': 'Become a member and buy first, with up to 75% off.',
-    'md.knowPlans': 'Discover Nação Maraca',
+    'md.beMember': 'Become a member and buy first, with up to {d}% off.',
+    'md.beMemberNoOff': 'Become a member and buy first.',
+    'md.knowPlans': 'Discover the membership plans',
     'md.stepsNav': 'Matchday steps',
     'md.step.0': 'Match',
     'md.step.1': 'Sector and seat',
@@ -263,6 +272,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.seatsLoading': 'Loading sectors and seats…',
     'md.lock.title': 'Sales for this match have not reached your wave yet',
     'md.lock.member': 'Your plan buys in {wave}, from {date}.',
+    'md.lock.noPriority':
+      'Your plan has no buying priority: it buys in the general sale, from {date}.',
     'md.lock.nonMember': 'Non-members buy in the general sale, from {date}.',
     'md.lock.upgrade': 'Upgrade your plan',
     'md.lock.join': 'Become a member and buy first',
@@ -371,11 +382,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
 
     'st.eyebrow': 'Membership',
     'st.lead':
-      'Buying priority, up to 75% off tickets and guaranteed tickets at Maracanã. Choose your plan.',
-    'st.youAre': 'You are a <strong>Nação Maraca {n}</strong> member.',
+      'Buying priority, up to {d}% off tickets and guaranteed tickets at Maracanã. Choose your plan.',
+    'st.leadNoOff':
+      'Buying priority and guaranteed tickets at Maracanã. Choose your plan.',
+    'st.title': 'Membership plans',
+    'st.youAre': 'You are a <strong>{plan}</strong> member.',
     'st.buyTickets': 'Buy tickets with your discount',
     'st.inCart':
-      '<strong>Nação Maraca {n}</strong> is in your cart: its priority and discount already apply to tickets.',
+      '<strong>{plan}</strong> is in your cart: its benefits already apply to tickets.',
     'st.pickTickets': 'Choose tickets',
     'st.viewCart': 'View cart',
     'st.loading': 'Loading the plans…',
@@ -387,6 +401,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.term': 'Annual contract · 1st payment today + 11 monthly',
     'st.offFull': 'off full-price tickets',
     'st.priority': 'buying priority',
+    'st.noPriority': 'No priority',
+    'st.generalSale': 'buys in the general sale',
     'st.guests': 'Guests',
     'st.guestsUpTo': 'Up to {n} · {price}/month each',
     'st.guestsOf': '{plan} guests',
@@ -403,10 +419,12 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.common': 'In every plan',
     'st.wavesTitle': 'How the sales waves work',
     'st.wavesText':
-      'Each match has its own sales dates. Nação Maraca 1 buys first, then Maraca 2 and Maraca 3; non-members only buy in the general sale. Once a wave opens it stays open until the match — and whoever buys earlier picks first.',
+      'Each match has its own sales dates. Plans with buying priority buy first, wave by wave; non-members, and plans without priority, buy in the general sale. Once a wave opens it stays open until the match — and whoever buys earlier picks first.',
     'st.seeMatches': 'See upcoming matches',
     'st.added':
       '{plan} is in your cart: its buying priority and {d}% discount already apply to your tickets.',
+    'st.addedPlain':
+      '{plan} is in your cart: its benefits already apply to your tickets.',
     'st.addError': 'We could not add the plan right now. Please try again.',
     'st.b.shipping.t': 'Free shipping',
     'st.b.shipping.x': 'On official store purchases.',

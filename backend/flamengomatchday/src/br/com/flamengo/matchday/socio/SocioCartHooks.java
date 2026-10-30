@@ -29,7 +29,7 @@ public class SocioCartHooks implements CommerceAddToCartMethodHook, CommerceUpda
 	@Override
 	public void afterAddToCart(final CommerceCartParameter parameters, final CommerceCartModification result)
 	{
-		if (socioCartService.planLevel(parameters.getProduct()) > 0)
+		if (socioCartService.isPlan(parameters.getProduct()))
 		{
 			sync(parameters.getCart());
 		}

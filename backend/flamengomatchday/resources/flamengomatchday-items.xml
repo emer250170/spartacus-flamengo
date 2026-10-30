@@ -8,6 +8,12 @@
 			<value code="ON_SALE"/>
 			<value code="CLOSED"/>
 		</enumtype>
+		<enumtype code="SocioPlanStatus" autocreate="true" generate="true" dynamic="false">
+			<description>Situação do plano de sócio-torcedor na loja</description>
+			<value code="DRAFT"/>
+			<value code="ON_SALE"/>
+			<value code="OFF_SALE"/>
+		</enumtype>
 	</enumtypes>
 
 	<itemtypes>
@@ -117,6 +123,115 @@
 			</attributes>
 			<indexes>
 				<index name="matchdayGameCode" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<!--
+			Plano de sócio-torcedor cadastrado pelo gestor do programa na perspectiva
+			"Sócio-Torcedor" do Backoffice. Ao ficar "À venda", vira o produto de
+			assinatura da loja (preço mensal, vagas, convidados, benefícios), o grupo
+			de clientes do plano e a promoção de desconto no ingresso; a loja lê as
+			regras do plano (onda, desconto, convidados) da descrição do produto.
+		-->
+		<itemtype code="SocioPlan" extends="GenericItem" autocreate="true" generate="true">
+			<description>Plano de sócio-torcedor</description>
+			<deployment table="socioplans" typecode="25903"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código do produto do plano (gerado a partir do nome)</description>
+					<modifiers unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="name" type="localized:java.lang.String">
+					<description>Nome do plano</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="family" type="java.lang.String">
+					<description>Programa (Nação Maraca, Nação Sem Fronteiras...)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="summary" type="localized:java.lang.String">
+					<description>Resumo que aparece no card do plano</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="benefits" type="localized:java.lang.String">
+					<description>Benefícios, um por linha</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="monthlyPrice" type="java.lang.Double">
+					<description>Mensalidade (R$)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="ticketDiscount" type="java.lang.Integer">
+					<description>Desconto na inteira (%)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="wave" type="java.lang.Integer">
+					<description>Onda de compra de ingressos: 1, 2 ou 3; 0 = sem prioridade (venda geral)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="maxGuests" type="java.lang.Integer">
+					<description>Convidados que o titular pode contratar</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="guestPrice" type="java.lang.Double">
+					<description>Mensalidade de cada convidado (R$)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="slots" type="java.lang.Integer">
+					<description>Vagas de titulares (em branco = sem limite)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="sortOrder" type="java.lang.Integer">
+					<description>Ordem do card na loja</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="status" type="SocioPlanStatus">
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="product" type="Product">
+					<description>Produto de assinatura na loja (criado ao colocar à venda)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="customerGroup" type="UserGroup">
+					<description>Grupo dos titulares (usado pela promoção de desconto)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="pendingGroup" type="UserGroup">
+					<description>Marcador: plano no carrinho, ainda não comprado</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="promotionCode" type="java.lang.String">
+					<description>Promoção de desconto no ingresso</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="statusMessage" type="java.lang.String">
+					<description>Resultado da última publicação</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="demoBase" type="java.lang.Integer">
+					<description>Demonstração: titulares simulados nos relatórios</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="members" type="java.lang.Integer">
+					<description>Titulares ativos na loja (grupo do plano)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="socioPlanMembersHandler"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioPlanCode" unique="true">
 					<key attribute="code"/>
 				</index>
 			</indexes>

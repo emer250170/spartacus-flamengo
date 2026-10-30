@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  Tela "Jogos" do Backoffice (Matchday Flamengo).
+  Tela "Jogos" do Backoffice (Matchday Flamengo) e, no fim, a tela "Planos"
+  da perspectiva Sócio-Torcedor.
   Menu: Matchday Flamengo > Jogos e Reservas de poltrona.
   Rótulos em flamengomatchday-backoffice-labels; nomes de campos na
   localização do tipo (resources/localization).
@@ -261,6 +262,221 @@
 				<y:label>product.code + ' (' + cartCode + ')'</y:label>
 			</y:labels>
 		</y:base>
+	</context>
+
+	<!-- ============================ Sócio-Torcedor ============================ -->
+
+	<!-- Menu da perspectiva "Sócio-Torcedor" (flamengomatchday-backoffice-widgets.xml) -->
+	<context component="socio-explorer-tree">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="socio.tree.root">
+				<explorer-tree:type-node id="socio.tree.plans" code="SocioPlan"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioPlan" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>name + ' (' + code + ')'</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<!-- Lista de planos -->
+	<context merge-by="type" parent="GenericItem" type="SocioPlan" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="name"/>
+			<list-view:column qualifier="family"/>
+			<list-view:column qualifier="monthlyPrice"/>
+			<list-view:column qualifier="ticketDiscount"/>
+			<list-view:column qualifier="wave"/>
+			<list-view:column qualifier="maxGuests"/>
+			<list-view:column qualifier="members"/>
+			<list-view:column qualifier="status"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioPlan" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="name" selected="true"/>
+				<advanced-search:field name="family" selected="true"/>
+				<advanced-search:field name="status" selected="true"/>
+				<advanced-search:field name="code" selected="false"/>
+			</advanced-search:field-list>
+		</advanced-search:advanced-search>
+	</context>
+
+	<!-- Plano novo: 4 passos (sem merge-by: não herda o assistente genérico) -->
+	<context type="SocioPlan" component="create-wizard">
+		<wz:flow id="SocioPlanWizard" title="create.title(ctx.TYPE_CODE)">
+			<wz:prepare id="socioPlanPrepare">
+				<wz:initialize property="newPlan" type="ctx.TYPE_CODE"/>
+			</wz:prepare>
+
+			<wz:step id="socioStep1" label="socio.wizard.step1" sublabel="socio.wizard.step1.sub">
+				<wz:content id="socioStep1.content">
+					<wz:property-list root="newPlan">
+						<wz:property qualifier="name"/>
+						<wz:property qualifier="family" type="java.lang.String"/>
+						<wz:property qualifier="monthlyPrice" type="java.lang.Double"/>
+						<wz:property qualifier="slots" type="java.lang.Integer"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="socioStep1.navigation">
+					<wz:cancel/>
+					<wz:next visible="newPlan.monthlyPrice != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="socioStep2" label="socio.wizard.step2" sublabel="socio.wizard.step2.sub">
+				<wz:content id="socioStep2.content">
+					<wz:property-list root="newPlan">
+						<wz:property qualifier="wave" type="java.lang.Integer"/>
+						<wz:property qualifier="ticketDiscount" type="java.lang.Integer"/>
+						<wz:property qualifier="maxGuests" type="java.lang.Integer"/>
+						<wz:property qualifier="guestPrice" type="java.lang.Double"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="socioStep2.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:next visible="newPlan.wave != null AND newPlan.ticketDiscount != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="socioStep3" label="socio.wizard.step3" sublabel="socio.wizard.step3.sub">
+				<wz:content id="socioStep3.content">
+					<wz:property-list root="newPlan">
+						<wz:property qualifier="summary"/>
+						<wz:property qualifier="benefits" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
+							<wz:editor-parameter>
+								<wz:name>rows</wz:name>
+								<wz:value>8</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="socioStep3.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:next/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="socioStep4" label="socio.wizard.step4" sublabel="socio.wizard.step4.sub">
+				<wz:content id="socioStep4.content">
+					<wz:property-list root="newPlan">
+						<wz:property qualifier="status" editor="com.hybris.cockpitng.editor.nonoptionalenum"/>
+						<wz:property qualifier="sortOrder" type="java.lang.Integer"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="socioStep4.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:done visible="newPlan.monthlyPrice != null AND newPlan.status != null">
+						<wz:save property="newPlan"/>
+					</wz:done>
+				</wz:navigation>
+			</wz:step>
+		</wz:flow>
+	</context>
+
+	<!-- Ficha do plano -->
+	<context merge-by="type" parent="GenericItem" type="SocioPlan" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.editor.essentials">
+					<editorArea:attribute qualifier="name"/>
+					<editorArea:attribute qualifier="code" readonly="true"/>
+					<editorArea:attribute qualifier="status"/>
+					<editorArea:attribute qualifier="members" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.editor.tab">
+				<editorArea:section name="socio.editor.plan">
+					<editorArea:attribute qualifier="family"/>
+					<editorArea:attribute qualifier="summary"/>
+					<editorArea:attribute qualifier="sortOrder"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.price">
+					<editorArea:attribute qualifier="monthlyPrice"/>
+					<editorArea:attribute qualifier="slots"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.tickets">
+					<editorArea:attribute qualifier="wave"/>
+					<editorArea:attribute qualifier="ticketDiscount"/>
+					<editorArea:attribute qualifier="maxGuests"/>
+					<editorArea:attribute qualifier="guestPrice"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.benefits">
+					<editorArea:attribute qualifier="benefits" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>8</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.publication">
+					<editorArea:attribute qualifier="product" readonly="true"/>
+					<editorArea:attribute qualifier="customerGroup" readonly="true"/>
+					<editorArea:attribute qualifier="promotionCode" readonly="true"/>
+					<editorArea:attribute qualifier="statusMessage" readonly="true"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.demo">
+					<editorArea:attribute qualifier="demoBase"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- Ficha do plano para o "Gestor do sócio-torcedor": sem merge-by, sem a aba técnica Administração -->
+	<context type="SocioPlan" component="editor-area" principal="sociomanagerrole">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.editor.essentials">
+					<editorArea:attribute qualifier="name"/>
+					<editorArea:attribute qualifier="code" readonly="true"/>
+					<editorArea:attribute qualifier="status"/>
+					<editorArea:attribute qualifier="members" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.editor.tab">
+				<editorArea:section name="socio.editor.plan">
+					<editorArea:attribute qualifier="family"/>
+					<editorArea:attribute qualifier="summary"/>
+					<editorArea:attribute qualifier="sortOrder"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.price">
+					<editorArea:attribute qualifier="monthlyPrice"/>
+					<editorArea:attribute qualifier="slots"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.tickets">
+					<editorArea:attribute qualifier="wave"/>
+					<editorArea:attribute qualifier="ticketDiscount"/>
+					<editorArea:attribute qualifier="maxGuests"/>
+					<editorArea:attribute qualifier="guestPrice"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.benefits">
+					<editorArea:attribute qualifier="benefits" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>8</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.publication">
+					<editorArea:attribute qualifier="product" readonly="true"/>
+					<editorArea:attribute qualifier="customerGroup" readonly="true"/>
+					<editorArea:attribute qualifier="promotionCode" readonly="true"/>
+					<editorArea:attribute qualifier="statusMessage" readonly="true"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.demo">
+					<editorArea:attribute qualifier="demoBase"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
 	</context>
 
 </config>
