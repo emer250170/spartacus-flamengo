@@ -61,16 +61,29 @@ export class BrlPriceInterceptor implements HttpInterceptor {
       node.forEach((item) => this.reformat(item));
     } else if (node && typeof node === 'object') {
       const obj = node as Record<string, unknown>;
-      if (
-        typeof obj['value'] === 'number' &&
-        typeof obj['formattedValue'] === 'string' &&
-        (obj['currencyIso'] === 'BRL' ||
-          (obj['formattedValue'] as string).startsWith('R$'))
-      ) {
-        obj['formattedValue'] = BRL.format(obj['value'] as number);
+      const formatted = obj['formattedValue'];
+      if (typeof formatted === 'string') {
+        // o carrinho às vezes pede só formattedValue (ex.: frete), sem value
+        const value =
+          typeof obj['value'] === 'number'
+            ? (obj['value'] as number)
+            : this.parseBrl(formatted);
+        if (
+          value !== undefined &&
+          (obj['currencyIso'] === 'BRL' || formatted.startsWith('R$'))
+        ) {
+          obj['formattedValue'] = BRL.format(value);
+        }
       }
       Object.values(obj).forEach((child) => this.reformat(child));
     }
     return node;
+  }
+
+  /** "R$1,234.56" (formato que a API manda) -> 1234.56 */
+  protected parseBrl(text: string): number | undefined {
+    // só o formato inglês da API (ponto decimal, 2 casas); "R$ 229,99" fica como está
+    const m = /^R\$(-?\d{1,3}(?:,\d{3})*\.\d{2})$/.exec(text.trim());
+    return m ? Number(m[1].replace(/,/g, '')) : undefined;
   }
 }

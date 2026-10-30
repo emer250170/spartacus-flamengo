@@ -313,6 +313,79 @@ export const ptCarrinhoCheckout: TranslationResources = {
         required: 'Os campos marcados com "*" são obrigatórios.',
       },
     },
+    savedCart: {
+      addToSavedCart: {
+        savedCarts: 'Carrinhos salvos',
+        saveCartForLater: 'Salvar carrinho para depois',
+      },
+      savedCartDialog: {
+        saveForLater: 'Salvar para depois',
+        itemsSavedForLater:
+          'Todos os itens do carrinho serão salvos para depois',
+        savedCartName: 'Nome do carrinho salvo',
+        savedCartDescription: 'Descrição do carrinho salvo',
+        optional: 'opcional',
+        charactersLeft: 'caracteres restantes: {{count}}',
+        cancel: 'Cancelar',
+        save: 'Salvar',
+        restore: 'Restaurar',
+        delete: 'Excluir',
+        name: 'Nome',
+        description: 'Descrição',
+        quantity: 'QTD',
+        quantityFull: 'Quantidade',
+        total: 'Total',
+      },
+      savedCartCartPage: {
+        messages: {
+          cartSaved:
+            'Os itens do seu carrinho foram salvos para depois no carrinho "{{cartName}}"',
+        },
+      },
+    },
+    importExport: {
+      exportEntries: {
+        exportToCsv: 'Exportar para CSV',
+        exportProductToCsv: 'Exportar produtos para CSV',
+        exportMessage:
+          'O arquivo CSV será baixado automaticamente; se não for, confira as configurações do navegador',
+        columnNames: {
+          code: 'Código',
+          quantity: 'Quantidade',
+          name: 'Nome',
+          price: 'Preço',
+        },
+      },
+      importEntries: { importProducts: 'Importar produtos' },
+      importEntriesDialog: {
+        importProducts: 'Importar produtos',
+        importProductsSubtitle: 'Adicione produtos importando um arquivo .CSV.',
+        selectFile: 'Escolher arquivo',
+        cancel: 'Cancelar',
+        upload: 'Enviar',
+        close: 'Fechar',
+      },
+    },
+    quickOrder: {
+      quickOrderCartForm: {
+        entriesWereAdded:
+          '({{ quantity }}) {{ product }} adicionado ao carrinho',
+        entryWasAdded: '{{ product }} adicionado ao carrinho',
+        noResults: 'Não encontramos nenhum produto',
+        stockLevelReached: 'Chegamos ao limite do estoque',
+        title: 'Pedido rápido',
+        productCodePlaceholder: 'Digite o código',
+        entryProductCode: 'Código do produto para o pedido rápido',
+        quantity: 'Quantidade para o pedido rápido',
+        addToCart: 'Adicionar produto ao pedido rápido',
+        add: 'Adicionar',
+        product: 'Produto',
+        products: 'Produtos',
+        productCodeLabel: 'Código do produto',
+        quantityLabel: 'Qtd',
+        quantityFullLabel: 'Quantidade',
+      },
+    },
     userAccount: {
       miniLogin: {
         userGreeting: 'Olá, {{name}}',
