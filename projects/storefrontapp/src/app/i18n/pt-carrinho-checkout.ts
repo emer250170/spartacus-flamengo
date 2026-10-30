@@ -350,6 +350,22 @@ export const ptCarrinhoCheckout: TranslationResources = {
       },
     },
     user: {
+      anonymousConsents: {
+        dialog: {
+          title: 'Gerenciar consentimentos',
+          legalDescription:
+            'Usamos cookies e o armazenamento do navegador para personalizar o conteúdo e melhorar a sua experiência. Também podemos compartilhar dados sobre o uso do site com nossas redes sociais. Para saber mais, leia a nossa política de privacidade.',
+          selectAll: 'Marcar todos',
+          clearAll: 'Desmarcar todos',
+        },
+        banner: {
+          title: 'Este site usa cookies',
+          description:
+            'Usamos cookies e o armazenamento do navegador para personalizar o conteúdo e melhorar a sua experiência.',
+          allowAll: 'Aceitar todos',
+          viewDetails: 'Ver detalhes',
+        },
+      },
       checkoutLogin: {
         emailAddress: { label: 'E-mail', placeholder: 'Digite o e-mail' },
         confirmEmail: {
