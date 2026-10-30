@@ -271,7 +271,8 @@
 
 .st-common {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  // 6 itens: 3 por linha no desktop (com 220px ficavam 4 + 2)
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 12px;
   list-style: none;
   margin: 0;
