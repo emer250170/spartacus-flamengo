@@ -228,6 +228,16 @@ A lista não se atualiza sozinha depois de criar: aperte Enter na busca.
 - Deploy: importar o impex (HAC › Console › ImpEx Import, ou Update com *Create essential data*) e
   Backoffice › F4 › *cockpit-config.xml › Reset to Defaults*.
 
+### Perspectiva "Matchday Flamengo" (30/10)
+- Aparece na lista de perspectivas do cabeçalho do Backoffice, junto de Administration Cockpit e Product Cockpit, para o administrador (`backofficeadministratorrole`) e para o papel Gestor de jogos (`matchdaygamemanagerrole`).
+- `resources/flamengomatchday-backoffice-widgets.xml`: mesmo desenho da Administration Cockpit, só com o menu do Matchday. Menu à esquerda, busca e lista no centro, ficha embaixo. Ao abrir, "Jogos" já vem selecionado.
+- O menu está no contexto `matchday-explorer-tree` em `flamengomatchday-backoffice-config.xml`. O rótulo é `matchday.perspective`.
+- Deploy:
+  1. `ant all` e reinício.
+  2. Backoffice › F4 › *Reset to Defaults*.
+  3. Sair e entrar de novo.
+- Backup dos arquivos anteriores no container: `/backup/antes-perspectiva-20261030/resources`.
+
 ## Sócio-Torcedor Nação Maraca
 
 Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.
