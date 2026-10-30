@@ -258,6 +258,7 @@ Fica em Backoffice › perspectiva **Matchday Flamengo** › **Relatórios**, ab
 - **Por setor:** as mesmas informações para Norte, Sul, Leste e Oeste.
 - **Vendas por dia:** gráfico de linha da abertura das vendas até hoje, ou até o jogo, se ele já passou.
 - **Tipo de ingresso:** inteira, meia-entrada, sócio, gratuidade e cortesia, com quantidade (#) e receita (R$).
+- **Gerar PDF:** botão ao lado de Atualizar. Abre a impressão do navegador só com o relatório (A4 deitado, com cabeçalho Flamengo e nome de arquivo sugerido). Basta escolher **Salvar como PDF**. Os gráficos são SVG e saem nítidos no PDF, sem biblioteca de PDF no servidor.
 
 De onde vêm os números:
 - Poltrona vendida = estoque zerado; disponível = estoque livre, sem reserva.
