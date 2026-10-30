@@ -7,10 +7,16 @@
         Prioridade na compra, até 75% de desconto no ingresso e compra garantida
         no Maracanã. Escolha o seu plano.
       </p>
-      <p *ngIf="level" class="st-member" role="status">
-        Você é sócio <strong>Nação Maraca {{ level }}</strong
+      <p *ngIf="member" class="st-member" role="status">
+        Você é sócio <strong>Nação Maraca {{ member }}</strong
         >.
         <a routerLink="/matchday">Comprar ingressos com o seu desconto</a>
+      </p>
+      <p *ngIf="inCart && inCart !== member" class="st-member" role="status">
+        <strong>Nação Maraca {{ inCart }}</strong> está no seu carrinho: a
+        prioridade e o desconto já valem para os ingressos.
+        <a routerLink="/matchday">Escolher ingressos</a> ·
+        <a routerLink="/cart">Ver carrinho</a>
       </p>
     </div>
   </div>
@@ -30,14 +36,17 @@
         *ngFor="let plan of plans; trackBy: trackByCode"
         class="st-card"
         [class.is-featured]="plan.level === 1"
-        [class.is-mine]="level === plan.level"
+        [class.is-mine]="isCurrent(plan)"
         [attr.aria-labelledby]="'st-plan-' + plan.level"
       >
         <div class="st-card-head">
-          <span *ngIf="level === plan.level" class="st-badge">Seu plano</span>
+          <span *ngIf="plan.level === member" class="st-badge">Seu plano</span>
           <span
-            *ngIf="level !== plan.level && plan.level === 1"
+            *ngIf="plan.level === inCart && plan.level !== member"
             class="st-badge"
+            >No carrinho</span
+          >
+          <span *ngIf="!isCurrent(plan) && plan.level === 1" class="st-badge"
             >Vagas limitadas</span
           >
           <h2 [id]="'st-plan-' + plan.level" class="st-card-title">
@@ -67,7 +76,7 @@
           <li *ngFor="let b of plan.benefits">{{ b }}</li>
         </ul>
 
-        <div *ngIf="plan.guest && level !== plan.level" class="st-guests">
+        <div *ngIf="plan.guest && !isCurrent(plan)" class="st-guests">
           <div>
             <p class="st-guests-title">Convidados</p>
             <p class="st-muted">
@@ -110,9 +119,9 @@
           <button
             type="button"
             class="btn btn-block"
-            [class.btn-primary]="level !== plan.level"
-            [class.btn-secondary]="level === plan.level"
-            [disabled]="plan.soldOut || level === plan.level || !!submitting"
+            [class.btn-primary]="!isCurrent(plan)"
+            [class.btn-secondary]="isCurrent(plan)"
+            [disabled]="plan.soldOut || isCurrent(plan) || !!submitting"
             (click)="subscribe(plan)"
           >
             <span *ngIf="submitting === plan.code">Incluindo…</span>

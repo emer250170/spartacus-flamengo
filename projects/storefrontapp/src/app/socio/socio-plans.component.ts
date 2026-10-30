@@ -37,9 +37,10 @@ const COMMON_BENEFITS = [
 
 /**
  * Página /socio-torcedor: os três planos Nação Maraca com preço, benefícios
- * e convidados. Assinar põe o plano (e os convidados) no carrinho do SAP
- * Commerce e segue para o checkout; quando o pedido fecha o torcedor entra
- * no grupo do plano e ganha o desconto e a prioridade na compra de ingressos.
+ * e convidados. Escolher o plano o põe no carrinho do SAP Commerce e volta
+ * para a escolha de jogos: enquanto o plano estiver no carrinho, o torcedor já
+ * compra na onda do plano e com o desconto dele (tirou o plano, perde os dois).
+ * Quando o pedido fecha, ele vira sócio de vez.
  * Mapeado no CMS como CMSFlexComponent (flexType SocioPlansComponent).
  */
 @Component({
@@ -58,8 +59,14 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
   plans: SocioPlan[] = [];
   loading = true;
   loggedIn = false;
-  /** Plano atual do torcedor (1 a 3) ou null */
+  /** Plano que vale para ingressos (comprado ou no carrinho) */
   level: number | null = null;
+  /** Plano comprado */
+  member: number | null = null;
+  /** Plano no carrinho */
+  inCart: number | null = null;
+  /** Jogo de onde o torcedor veio (volta para ele depois de escolher o plano) */
+  fromMatch?: string;
   guests: Record<string, number> = {};
   submitting?: string;
 
@@ -90,10 +97,14 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
         this.cd.markForCheck();
       })
     );
+    this.fromMatch =
+      this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
     this.socio.refreshMembership();
     this.subscription.add(
-      this.socio.getMemberLevel().subscribe((level) => {
-        this.level = level;
+      this.socio.getMembership().subscribe((m) => {
+        this.level = m.level;
+        this.member = m.member;
+        this.inCart = m.inCart;
         this.cd.markForCheck();
       })
     );
@@ -119,12 +130,20 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
     return plan.price + this.guestCount(plan) * (plan.guest?.price ?? 0);
   }
 
+  /** Plano já comprado ou já no carrinho */
+  isCurrent(plan: SocioPlan): boolean {
+    return plan.level === this.member || plan.level === this.inCart;
+  }
+
   buttonLabel(plan: SocioPlan): string {
     if (plan.soldOut) {
       return 'Esgotado';
     }
-    if (this.level === plan.level) {
+    if (plan.level === this.member) {
       return 'Seu plano';
+    }
+    if (plan.level === this.inCart) {
+      return 'No carrinho';
     }
     if (this.level) {
       return 'Trocar para este plano';
@@ -132,8 +151,13 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
     return this.loggedIn ? 'Quero ser sócio' : 'Entrar e assinar';
   }
 
+  /**
+   * Põe o plano (e os convidados) no carrinho e volta para a escolha de jogos:
+   * enquanto o plano estiver no carrinho, a prioridade de compra e o desconto
+   * do plano já valem para os ingressos. O pagamento é um só, no fim.
+   */
   subscribe(plan: SocioPlan): void {
-    if (plan.soldOut || this.level === plan.level || this.submitting) {
+    if (plan.soldOut || this.isCurrent(plan) || this.submitting) {
       return;
     }
     if (!this.loggedIn) {
@@ -167,7 +191,17 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
           })
         )
         .subscribe({
-          next: () => this.routing.go({ cxRoute: 'checkout' }),
+          next: () => {
+            this.globalMessages.add(
+              `${plan.name} no carrinho: a prioridade de compra e o desconto de ${plan.discount}% já valem para os seus ingressos.`,
+              GlobalMessageType.MSG_TYPE_CONFIRMATION
+            );
+            this.router.navigateByUrl(
+              this.fromMatch
+                ? `/matchday?jogo=${encodeURIComponent(this.fromMatch)}`
+                : '/matchday'
+            );
+          },
           error: () => {
             this.submitting = undefined;
             this.globalMessages.add(

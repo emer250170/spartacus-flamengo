@@ -105,8 +105,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   holdMessage?: string;
 
   // sócio-torcedor: plano do torcedor e ondas de venda
-  /** Plano Nação Maraca do torcedor (1 a 3) ou null */
+  /** Plano Nação Maraca que vale para ingressos (comprado ou no carrinho) */
   memberLevel: number | null = null;
+  /** O plano que vale está só no carrinho (ainda não comprado) */
+  planInCart = false;
+  /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
+  protected requestedMatch?: string;
 
   private subscription = new Subscription();
 
@@ -154,18 +158,23 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         this.cd.markForCheck();
       })
     );
+    this.requestedMatch =
+      this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
     // volta para a jornada com a poltrona que já está no carrinho
     this.subscription.add(
-      this.activeCart
-        .getEntries()
-        .subscribe((entries) => this.restoreHold(entries))
+      this.activeCart.getEntries().subscribe((entries) => {
+        this.dropRemovedHold(entries);
+        this.restoreHold(entries);
+      })
     );
     this.subscription.add(interval(1000).subscribe(() => this.tick()));
     // plano do sócio (lido de novo a cada visita: pode ter acabado de assinar)
     this.socio.refreshMembership();
     this.subscription.add(
-      this.socio.getMemberLevel().subscribe((level) => {
-        this.memberLevel = level;
+      this.socio.getMembership().subscribe((m) => {
+        this.memberLevel = m.level;
+        this.planInCart =
+          m.inCart !== null && m.level === m.inCart && m.member !== m.level;
         this.cd.markForCheck();
       })
     );
@@ -483,6 +492,14 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       return;
     }
     this.catalog = catalog;
+    if (!this.match && this.requestedMatch) {
+      const requested = catalog.matches.find(
+        (m) => m.code === this.requestedMatch
+      );
+      if (requested) {
+        this.match = requested;
+      }
+    }
     if (this.match) {
       this.match =
         catalog.matches.find((m) => m.code === this.match?.code) ?? this.match;
@@ -500,6 +517,28 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         .pipe(take(1))
         .subscribe((entries) => this.restoreHold(entries));
     }
+  }
+
+  /**
+   * A poltrona segura saiu do carrinho por fora da jornada (por exemplo, o
+   * plano saiu do carrinho e o jogo ainda não está liberado para a onda dele).
+   */
+  protected dropRemovedHold(entries: OrderEntry[]): void {
+    const code = this.held?.code;
+    if (
+      !code ||
+      this.holding ||
+      this.submitting ||
+      entries.some((e) => e.product?.code === code)
+    ) {
+      return;
+    }
+    this.clearHeld();
+    this.holdMessage =
+      'A poltrona saiu do seu carrinho. Se você tirou o plano de sócio, a compra deste jogo só abre na sua onda.';
+    this.step = Math.min(this.step, 1);
+    this.refreshSeats();
+    this.cd.markForCheck();
   }
 
   /** Se o carrinho já tem uma poltrona de jogo, retoma a jornada com ela */

@@ -49,6 +49,28 @@
 		<property name="seatHoldService" ref="seatHoldService"/>
 	</bean>
 
+	<!--
+		Sócio-torcedor: plano Nação Maraca no carrinho já vale como sócio (grupo do
+		plano + marcador nacao-pendente-N); se o plano sai, os grupos saem e os
+		ingressos fora da onda do torcedor saem do carrinho.
+	-->
+	<bean id="socioCartService" class="br.com.flamengo.matchday.socio.SocioCartService">
+		<property name="userService" ref="userService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="seatHoldService" ref="seatHoldService"/>
+		<property name="commerceCartCalculationStrategy" ref="commerceCartCalculationStrategy"/>
+	</bean>
+	<bean id="socioCartHooks" class="br.com.flamengo.matchday.socio.SocioCartHooks">
+		<property name="socioCartService" ref="socioCartService"/>
+	</bean>
+	<bean id="socioAddToCartMethodHookMergeDirective" depends-on="commerceAddToCartMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="socioCartHooks"/>
+	</bean>
+	<bean id="socioUpdateCartEntryHookMergeDirective" depends-on="commerceUpdateCartEntryMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="socioCartHooks"/>
+	</bean>
+
 	<!-- Jogos: tela "Jogos" do Backoffice -->
 	<bean id="matchdayGameService" class="br.com.flamengo.matchday.game.impl.DefaultMatchdayGameService">
 		<property name="modelService" ref="modelService"/>
