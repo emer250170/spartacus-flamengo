@@ -75,7 +75,10 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   orders: SocioPlanOrder[] = [];
   currentOrder?: SocioPlanOrder;
   cards: SocioCard[] = [];
+  /** Cancelamento solicitado e ainda não atendido (sócio ativo) */
   cancellation: SocioCancellation | null = null;
+  /** Ex-sócio: o atendimento confirmou o cancelamento e o plano foi encerrado */
+  ended: SocioCancellation | null = null;
 
   start?: Date;
   endDate?: Date;
@@ -132,17 +135,31 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
             this.membership = membership;
             this.plan = membership.member;
             this.plans = plans;
-            if (!membership.member) {
+            // plano no carrinho: a página só convida a finalizar a compra
+            if (!membership.member && membership.inCart) {
               return of(null);
             }
+            // não é sócio: pode ser ex-sócio (cancelamento confirmado)
             return this.loadAccount(plans);
           })
         )
         .subscribe((data) => {
+          this.ended = null;
+          this.cancellation = null;
           if (data) {
             this.orders = data.orders;
             this.cards = data.cards;
-            this.cancellation = data.cancellation;
+            const c = data.cancellation;
+            if (this.plan) {
+              // sócio: só um pedido ainda aberto conta (um antigo fechado é de um plano anterior)
+              this.cancellation = c && !c.closed ? c : null;
+            } else if (c?.closed && this.orders.length) {
+              // ex-sócio: mostra o plano que foi cancelado, inativo
+              this.ended = c;
+              this.plan =
+                this.plans.find((p) => p.code === this.orders[0].planCode) ??
+                null;
+            }
           }
           this.compute();
           this.loading = false;
@@ -169,23 +186,29 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     if (!value) {
       return '—';
     }
-    return value.toLocaleDateString(this.i18n.lang === 'pt' ? 'pt-BR' : 'en-US', {
-      day: '2-digit',
-      month: long ? 'long' : '2-digit',
-      year: 'numeric',
-      timeZone: 'America/Sao_Paulo',
-    });
+    return value.toLocaleDateString(
+      this.i18n.lang === 'pt' ? 'pt-BR' : 'en-US',
+      {
+        day: '2-digit',
+        month: long ? 'long' : '2-digit',
+        year: 'numeric',
+        timeZone: 'America/Sao_Paulo',
+      }
+    );
   }
 
   monthYear(value?: Date): string {
     if (!value) {
       return '—';
     }
-    return value.toLocaleDateString(this.i18n.lang === 'pt' ? 'pt-BR' : 'en-US', {
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'America/Sao_Paulo',
-    });
+    return value.toLocaleDateString(
+      this.i18n.lang === 'pt' ? 'pt-BR' : 'en-US',
+      {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'America/Sao_Paulo',
+      }
+    );
   }
 
   waveLabel(plan: SocioPlan): string {
@@ -200,6 +223,19 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     }
     const last = card.number.replace(/\D/g, '').slice(-4);
     return `${card.typeName || card.type} •••• ${last}`;
+  }
+
+  /** Situação do plano: ativo, cancelamento solicitado ou inativo (encerrado) */
+  get statusKey(): string {
+    return this.ended
+      ? 'sa.status.inactive'
+      : this.cancellation
+        ? 'sa.status.cancelling'
+        : 'sa.status.active';
+  }
+
+  get statusTone(): 'ok' | 'warn' | 'off' {
+    return this.ended ? 'off' : this.cancellation ? 'warn' : 'ok';
   }
 
   get defaultCard(): SocioCard | undefined {
@@ -316,7 +352,14 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   }
 
   protected emptyCard(): NewCard {
-    return { holder: '', number: '', type: 'visa', month: '', year: '', cvn: '' };
+    return {
+      holder: '',
+      number: '',
+      type: 'visa',
+      month: '',
+      year: '',
+      cvn: '',
+    };
   }
 
   // ---------- upgrade ----------
@@ -436,7 +479,8 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     if (!plan) {
       return;
     }
-    const now = new Date();
+    // inativo: as contas param na data em que o plano foi encerrado
+    const now = this.ended?.closedAt ?? new Date();
     this.currentOrder =
       this.orders.find((o) => o.planCode === plan.code) ?? this.orders[0];
     this.start = this.currentOrder?.created;
@@ -470,8 +514,9 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
               }
         );
       }
-      this.nextCharge =
-        this.paidCount < TERM
+      this.nextCharge = this.ended
+        ? undefined
+        : this.paidCount < TERM
           ? {
               date: addMonths(this.start, this.paidCount),
               label: this.t('sa.pay.month', {
@@ -493,7 +538,8 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
         history.push({
           date: o.created,
           label: this.t('sa.pay.first', {
-            plan: this.plans.find((p) => p.code === o.planCode)?.name ?? o.planCode,
+            plan:
+              this.plans.find((p) => p.code === o.planCode)?.name ?? o.planCode,
           }),
           amount: o.planAmount + o.guestAmount,
           card: o.card,
@@ -504,15 +550,17 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
 
     // upgrade: planos com onda melhor, ou a mesma onda com mais benefícios
     const rank = (p: SocioPlan) => (p.wave >= 1 ? p.wave : 99);
-    this.upgrades = this.plans.filter(
-      (p) =>
-        p.code !== plan.code &&
-        !p.soldOut &&
-        (rank(p) < rank(plan) ||
-          (rank(p) === rank(plan) && p.price > plan.price))
-    );
+    this.upgrades = this.ended
+      ? []
+      : this.plans.filter(
+          (p) =>
+            p.code !== plan.code &&
+            !p.soldOut &&
+            (rank(p) < rank(plan) ||
+              (rank(p) === rank(plan) && p.price > plan.price))
+        );
 
-    this.rating = this.mockRating(plan, now);
+    this.rating = this.ended ? undefined : this.mockRating(plan, now);
   }
 
   /** Rating ilustrativo: tempo de plano + mensalidades em dia (sem regra de negócio) */

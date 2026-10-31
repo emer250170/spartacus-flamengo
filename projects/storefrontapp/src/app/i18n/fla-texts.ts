@@ -236,6 +236,17 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.status': 'Situação',
     'sa.status.active': 'Ativo',
     'sa.status.cancelling': 'Cancelamento solicitado',
+    'sa.status.inactive': 'Inativo',
+    'sa.ended.on': 'Cancelado em {date}',
+    'sa.ended.label': 'Plano encerrado em',
+    'sa.ended.note':
+      'Seu plano foi cancelado em {date} (chamado {id}). Você não tem mais prioridade na compra de ingressos nem os descontos de sócio.',
+    'sa.ended.benefits':
+      'Benefícios do plano cancelado. Eles não estão mais ativos.',
+    'sa.ended.rejoinTitle': 'Volte a ser sócio-torcedor',
+    'sa.ended.rejoinText':
+      'Escolha um plano e recupere a prioridade nos ingressos e os descontos.',
+    'sa.ended.rejoin': 'Ver os planos',
     'sa.since': 'Sócio desde',
     'sa.general': 'Dados gerais',
     'sa.currentPlan': 'Plano atual',
@@ -271,7 +282,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.card.year': 'Ano',
     'sa.card.cvn': 'CVV',
     'sa.card.save': 'Salvar cartão',
-    'sa.card.saved': 'Pronto! As próximas mensalidades serão cobradas no {card}.',
+    'sa.card.saved':
+      'Pronto! As próximas mensalidades serão cobradas no {card}.',
     'sa.card.invalid': 'Confira os dados do cartão.',
     'sa.card.error': 'Não foi possível trocar o cartão agora. Tente de novo.',
     'sa.card.noAddress':
@@ -291,7 +303,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.up.store': 'na loja',
     'sa.up.cta': 'Fazer upgrade',
     'sa.up.adding': 'Incluindo…',
-    'sa.up.added': 'O plano {plan} está no carrinho. Finalize a compra para concluir o upgrade.',
+    'sa.up.added':
+      'O plano {plan} está no carrinho. Finalize a compra para concluir o upgrade.',
     'sa.cancel.title': 'Cancelar plano',
     'sa.cancel.text':
       'Se cancelar, você perde a prioridade na compra de ingressos e os descontos do plano ao fim do ciclo atual.',
@@ -303,7 +316,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.cancel.confirm': 'Confirmar cancelamento',
     'sa.cancel.keep': 'Continuar sócio',
     'sa.cancel.reason': 'Motivo',
-    'sa.cancel.done': 'Pedido de cancelamento enviado. Acompanhe em Chamados de atendimento.',
+    'sa.cancel.done':
+      'Pedido de cancelamento enviado. Acompanhe em Chamados de atendimento.',
     'sa.cancel.error': 'Não foi possível enviar o pedido agora. Tente de novo.',
     'sa.cancel.pending': 'Cancelamento solicitado em {date} · chamado {id}.',
     'sa.cancel.follow': 'Acompanhar o chamado',
@@ -331,7 +345,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Seja sócio e tenha prioridade na compra de ingressos, desconto no Maracanã e na loja oficial.',
     'sa.empty.cta': 'Conhecer os planos',
     'sa.empty.inCartTitle': 'O plano {plan} está no seu carrinho',
-    'sa.empty.inCartText': 'Finalize a compra para ativar o seu plano de sócio.',
+    'sa.empty.inCartText':
+      'Finalize a compra para ativar o seu plano de sócio.',
     'sa.empty.toCart': 'Ir para o carrinho',
   },
 
@@ -556,6 +571,17 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.status': 'Status',
     'sa.status.active': 'Active',
     'sa.status.cancelling': 'Cancellation requested',
+    'sa.status.inactive': 'Inactive',
+    'sa.ended.on': 'Cancelled on {date}',
+    'sa.ended.label': 'Membership ended on',
+    'sa.ended.note':
+      'Your membership was cancelled on {date} (ticket {id}). You no longer have ticket priority or member discounts.',
+    'sa.ended.benefits':
+      'Benefits of the cancelled plan. They are no longer active.',
+    'sa.ended.rejoinTitle': 'Become a member again',
+    'sa.ended.rejoinText':
+      'Pick a plan to get ticket priority and discounts back.',
+    'sa.ended.rejoin': 'See the plans',
     'sa.since': 'Member since',
     'sa.general': 'Overview',
     'sa.currentPlan': 'Current plan',
@@ -593,7 +619,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.card.save': 'Save card',
     'sa.card.saved': 'Done! Next installments will be charged to {card}.',
     'sa.card.invalid': 'Please check the card details.',
-    'sa.card.error': 'We could not change the card right now. Please try again.',
+    'sa.card.error':
+      'We could not change the card right now. Please try again.',
     'sa.card.noAddress':
       'Add an address in My account > Address book to use as billing address.',
     'sa.back': 'Back',
@@ -606,12 +633,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.h.paid': 'Paid',
     'sa.h.order': 'Order {code}',
     'sa.up.title': 'Upgrade your plan',
-    'sa.up.best': 'You already have the plan with the most benefits. Thank you!',
+    'sa.up.best':
+      'You already have the plan with the most benefits. Thank you!',
     'sa.up.ticket': 'off tickets',
     'sa.up.store': 'in the store',
     'sa.up.cta': 'Upgrade',
     'sa.up.adding': 'Adding…',
-    'sa.up.added': 'The {plan} plan is in your cart. Check out to complete the upgrade.',
+    'sa.up.added':
+      'The {plan} plan is in your cart. Check out to complete the upgrade.',
     'sa.cancel.title': 'Cancel plan',
     'sa.cancel.text':
       'If you cancel, you lose ticket priority and plan discounts at the end of the current cycle.',
@@ -623,8 +652,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.cancel.confirm': 'Confirm cancellation',
     'sa.cancel.keep': 'Stay a member',
     'sa.cancel.reason': 'Reason',
-    'sa.cancel.done': 'Cancellation request sent. Follow it in Customer service tickets.',
-    'sa.cancel.error': 'We could not send the request right now. Please try again.',
+    'sa.cancel.done':
+      'Cancellation request sent. Follow it in Customer service tickets.',
+    'sa.cancel.error':
+      'We could not send the request right now. Please try again.',
     'sa.cancel.pending': 'Cancellation requested on {date} · ticket {id}.',
     'sa.cancel.follow': 'Follow the ticket',
     'sa.reason.price': 'It got too expensive',

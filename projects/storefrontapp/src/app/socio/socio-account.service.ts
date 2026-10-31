@@ -36,8 +36,12 @@ export interface SocioCard {
 export interface SocioCancellation {
   id: string;
   createdAt?: Date;
+  /** Data em que o atendimento fechou o chamado (= plano encerrado) */
+  closedAt?: Date;
   status: string;
   statusName: string;
+  /** Chamado fechado: o plano foi encerrado */
+  closed: boolean;
 }
 
 export interface NewCard {
@@ -79,10 +83,9 @@ export class SocioAccountService {
     guestCodes: string[]
   ): Observable<SocioPlanOrder[]> {
     return this.http
-      .get<{ orders?: { code?: string }[] }>(
-        `${this.base}/users/current/orders`,
-        { params: { fields: 'orders(code)', pageSize: '20' } }
-      )
+      .get<{
+        orders?: { code?: string }[];
+      }>(`${this.base}/users/current/orders`, { params: { fields: 'orders(code)', pageSize: '20' } })
       .pipe(
         switchMap((res) => {
           const codes = (res.orders ?? [])
@@ -115,10 +118,9 @@ export class SocioAccountService {
   /** Cartões salvos na conta */
   cards(): Observable<SocioCard[]> {
     return this.http
-      .get<{ payments?: OccPayment[] }>(
-        `${this.base}/users/current/paymentdetails`,
-        { params: { saved: 'true', fields: 'FULL' } }
-      )
+      .get<{
+        payments?: OccPayment[];
+      }>(`${this.base}/users/current/paymentdetails`, { params: { saved: 'true', fields: 'FULL' } })
       .pipe(
         map((res) => (res.payments ?? []).map((p) => this.toCard(p))),
         catchError(() => of([] as SocioCard[]))
@@ -136,10 +138,9 @@ export class SocioAccountService {
   /** Cadastra um cartão novo (endereço de cobrança = endereço padrão) e o deixa como padrão */
   addCard(card: NewCard): Observable<unknown> {
     return this.http
-      .get<{ addresses?: OccAddress[] }>(
-        `${this.base}/users/current/addresses`,
-        { params: { fields: 'FULL' } }
-      )
+      .get<{
+        addresses?: OccAddress[];
+      }>(`${this.base}/users/current/addresses`, { params: { fields: 'FULL' } })
       .pipe(
         map((res) => {
           const list = res.addresses ?? [];
@@ -192,7 +193,11 @@ export class SocioAccountService {
       );
   }
 
-  /** Pedido de cancelamento ainda aberto (chamado de atendimento) ou null */
+  /**
+   * Último pedido de cancelamento (chamado de atendimento) ou null.
+   * Aberto: cancelamento solicitado. Fechado: o atendimento confirmou e o
+   * plano foi encerrado (o backend tira o torcedor do grupo do plano).
+   */
   cancellation(): Observable<SocioCancellation | null> {
     return this.http
       .get<{ tickets?: OccTicket[] }>(`${this.base}/users/current/tickets`, {
@@ -200,11 +205,13 @@ export class SocioAccountService {
       })
       .pipe(
         map((res) => {
-          const ticket = (res.tickets ?? []).find(
-            (t) =>
-              (t.subject ?? '').startsWith(CANCEL_SUBJECT) &&
-              t.status?.id !== 'CLOSED'
-          );
+          const ticket = (res.tickets ?? [])
+            .filter((t) => (t.subject ?? '').startsWith(CANCEL_SUBJECT))
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt ?? 0).getTime() -
+                new Date(a.createdAt ?? 0).getTime()
+            )[0];
           return ticket ? this.toCancellation(ticket) : null;
         }),
         catchError(() => of(null))
@@ -238,9 +245,7 @@ export class SocioAccountService {
     guestCodes: string[]
   ): SocioPlanOrder | null {
     const entries = order.entries ?? [];
-    const plan = entries.find((e) =>
-      planCodes.includes(e.product?.code ?? '')
-    );
+    const plan = entries.find((e) => planCodes.includes(e.product?.code ?? ''));
     if (!plan || !order.code || !order.created) {
       return null;
     }
@@ -272,11 +277,15 @@ export class SocioAccountService {
   }
 
   protected toCancellation(ticket: OccTicket): SocioCancellation {
+    const closed = ticket.status?.id === 'CLOSED';
+    const when = ticket.modifiedAt ?? ticket.createdAt;
     return {
       id: ticket.id ?? '',
       createdAt: ticket.createdAt ? new Date(ticket.createdAt) : undefined,
+      closedAt: closed && when ? new Date(when) : undefined,
       status: ticket.status?.id ?? 'OPEN',
       statusName: ticket.status?.name ?? '',
+      closed,
     };
   }
 }
@@ -322,5 +331,6 @@ interface OccTicket {
   id?: string;
   subject?: string;
   createdAt?: string;
+  modifiedAt?: string;
   status?: { id?: string; name?: string };
 }

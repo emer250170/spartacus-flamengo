@@ -40,7 +40,9 @@
   letter-spacing: 0.02em;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 
   &:hover {
     background: var(--sa-black);
@@ -101,6 +103,17 @@
     background: var(--sa-warn-bg);
     border-radius: 8px;
     padding: 10px 12px;
+  }
+
+  &--off {
+    color: #3f3f46;
+    background: #f0f0f2;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  &--top {
+    margin: -6px 0 14px;
   }
 }
 
@@ -167,6 +180,22 @@
   margin-bottom: 24px;
 }
 
+// ex-sócio: listras apagadas
+.sa-hero--off {
+  background: repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.05) 0 34px,
+      transparent 34px 68px
+    ),
+    linear-gradient(120deg, #2a2a2e 0%, #3a3a3f 100%);
+  box-shadow: none;
+
+  .sa-seal {
+    filter: grayscale(1);
+    opacity: 0.7;
+  }
+}
+
 .sa-hero-main {
   display: flex;
   align-items: center;
@@ -228,6 +257,19 @@
     color: var(--sa-gold);
   }
 
+  &--off::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &--off {
+    background: rgba(255, 255, 255, 0.16);
+    color: #d4d4d8;
+  }
+
   &--light {
     background: #f0f0f1;
     color: var(--sa-black);
@@ -240,6 +282,11 @@
     &.sa-chip--warn {
       background: var(--sa-warn-bg);
       color: var(--sa-warn);
+    }
+
+    &.sa-chip--off {
+      background: #ececee;
+      color: #52525b;
     }
   }
 }
@@ -313,6 +360,33 @@
 
   &--wide {
     grid-column: 1 / -1;
+  }
+}
+
+.sa-card--off .sa-tiles,
+.sa-card--off .sa-benefits {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.sa-rejoin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--sa-bg);
+  border-left: 4px solid var(--sa-red);
+
+  strong {
+    display: block;
+    font-size: 1.05rem;
+  }
+
+  span {
+    color: var(--sa-muted);
+    font-size: 0.9rem;
   }
 }
 
@@ -807,6 +881,11 @@
   .sa-table td {
     padding-left: 6px;
     padding-right: 6px;
+  }
+
+  .sa-rejoin {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .sa-up-item {
