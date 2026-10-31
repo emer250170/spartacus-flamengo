@@ -449,3 +449,12 @@ Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglê
   - Os tamanhos aparecem no padrão em inglês: P → S, G → L, GG → XL…
   - Gravação: o JSON vai para `/tmp/fla-en.json` no container e depois roda `scripts/ingles-produtos.groovy` (HAC, Staged e Online).
   - Backup em `/backup/antes-ingles-20261030/produtos-en-antes.json`. Antes, o inglês era uma cópia do português.
+
+### Busca e categoria em português (31/10)
+
+- Loja (`src/app/i18n/pt-produto.ts`): "Ordenar por", filtros ("Filtrar por", "Ver mais/menos"), visualização em grade/lista e os textos de acessibilidade da lista de produtos.
+- Dados gravados pelo HAC (só o `pt`; o `en` ficou igual), no tipo indexado `electronicsProductType`:
+  - opções de ordenação (`SolrSort`): Relevância, Mais bem avaliados, Nome (A a Z), Nome (Z a A), Menor preço, Maior preço;
+  - nomes dos filtros (`SolrIndexedProperty.displayName`): Categoria, Marca, Preço, Lojas, Promoção, Cor etc.
+- Carrinho vazio: o parágrafo `EmptyCartParagraphComponent` ganhou o texto em `pt` (Staged e Online).
+- Continua em inglês só o texto de acessibilidade da paginação ("first page", "page 2"), que é fixo no código do Spartacus.
