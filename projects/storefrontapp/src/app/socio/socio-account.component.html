@@ -1,0 +1,553 @@
+<section class="sa">
+  <div *ngIf="loading" class="sa-loading">
+    <cx-spinner></cx-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- ainda não é sócio -->
+    <div *ngIf="!plan" class="sa-empty">
+      <span class="sa-seal sa-seal--big" aria-hidden="true">
+        <ng-container *ngTemplateOutlet="shield"></ng-container>
+      </span>
+      <ng-container *ngIf="membership?.inCart as cartPlan; else notMember">
+        <h2>{{ 'sa.empty.inCartTitle' | flaT: { plan: cartPlan.name } }}</h2>
+        <p>{{ 'sa.empty.inCartText' | flaT }}</p>
+        <a class="sa-btn sa-btn--primary" routerLink="/cart">{{
+          'sa.empty.toCart' | flaT
+        }}</a>
+      </ng-container>
+      <ng-template #notMember>
+        <h2>{{ 'sa.empty.title' | flaT }}</h2>
+        <p>{{ 'sa.empty.text' | flaT }}</p>
+        <a class="sa-btn sa-btn--primary" routerLink="/socio-torcedor">{{
+          'sa.empty.cta' | flaT
+        }}</a>
+      </ng-template>
+    </div>
+
+    <ng-container *ngIf="plan as p">
+      <!-- cabeçalho -->
+      <header class="sa-hero">
+        <div class="sa-hero-main">
+          <span class="sa-seal sa-seal--big" aria-hidden="true">
+            <ng-container *ngTemplateOutlet="shield"></ng-container>
+          </span>
+          <div>
+            <p class="sa-kicker">{{ 'sa.kicker' | flaT }}</p>
+            <h2 class="sa-plan">{{ p.name }}</h2>
+            <div class="sa-chips">
+              <span
+                class="sa-chip"
+                [class.sa-chip--ok]="!cancellation"
+                [class.sa-chip--warn]="cancellation"
+                >{{
+                  (cancellation ? 'sa.status.cancelling' : 'sa.status.active')
+                    | flaT
+                }}</span
+              >
+              <span class="sa-chip">{{ waveLabel(p) }}</span>
+              <span class="sa-chip" *ngIf="start"
+                >{{ 'sa.since' | flaT }} {{ monthYear(start) }}</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="sa-hero-rating" *ngIf="rating">
+          <span class="sa-hero-score">{{ rating.score }}</span>
+          <span class="sa-level sa-level--{{ rating.level }}">{{
+            'sa.level.' + rating.level | flaT
+          }}</span>
+          <span class="sa-hero-caption">{{ 'sa.rating.title' | flaT }}</span>
+        </div>
+      </header>
+
+      <div class="sa-grid">
+        <!-- dados gerais -->
+        <article class="sa-card">
+          <h3 class="sa-card-title">{{ 'sa.general' | flaT }}</h3>
+          <dl class="sa-dl">
+            <div>
+              <dt>{{ 'sa.currentPlan' | flaT }}</dt>
+              <dd>
+                {{ p.name }} <small>{{ p.family }}</small>
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'sa.status' | flaT }}</dt>
+              <dd>
+                <span
+                  class="sa-chip sa-chip--light"
+                  [class.sa-chip--ok]="!cancellation"
+                  [class.sa-chip--warn]="cancellation"
+                  >{{
+                    (cancellation
+                      ? 'sa.status.cancelling'
+                      : 'sa.status.active'
+                    ) | flaT
+                  }}</span
+                >
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'sa.memberSince' | flaT }}</dt>
+              <dd>{{ date(start) }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'sa.term' | flaT }}</dt>
+              <dd>{{ 'sa.termValue' | flaT: { date: date(endDate) } }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'sa.monthly' | flaT }}</dt>
+              <dd>
+                {{ brl(monthly) }}
+                <small *ngIf="guests">{{
+                  'sa.monthlyGuests' | flaT: { n: guests }
+                }}</small>
+              </dd>
+            </div>
+          </dl>
+          <p class="sa-note sa-note--warn" *ngIf="cancellation">
+            {{
+              'sa.cancel.pending'
+                | flaT
+                  : {
+                      date: date(cancellation.createdAt),
+                      id: cancellation.id
+                    }
+            }}
+          </p>
+        </article>
+
+        <!-- benefícios -->
+        <article class="sa-card">
+          <h3 class="sa-card-title">{{ 'sa.benefits' | flaT }}</h3>
+          <div class="sa-tiles">
+            <div class="sa-tile">
+              <span class="sa-tile-value">{{
+                p.wave > 0 ? ('wave.n' | flaT: { n: p.wave }) : '—'
+              }}</span>
+              <span class="sa-tile-label">{{
+                (p.wave > 0 ? 'sa.b.wave' : 'sa.b.noWave') | flaT
+              }}</span>
+            </div>
+            <div class="sa-tile">
+              <span class="sa-tile-value">{{ p.discount }}%</span>
+              <span class="sa-tile-label">{{ 'sa.b.ticket' | flaT }}</span>
+            </div>
+            <div class="sa-tile">
+              <span class="sa-tile-value">{{ p.storeDiscount }}%</span>
+              <span class="sa-tile-label">{{ 'sa.b.store' | flaT }}</span>
+            </div>
+            <div class="sa-tile">
+              <span class="sa-tile-value">{{ p.maxGuests }}</span>
+              <span class="sa-tile-label">{{
+                (p.maxGuests ? 'sa.b.guests' : 'sa.b.noGuests')
+                  | flaT
+                    : {
+                        price: p.guest ? brl(p.guest.price) : '',
+                        n: guests
+                      }
+              }}</span>
+            </div>
+          </div>
+          <ul class="sa-benefits" *ngIf="p.benefits.length">
+            <li *ngFor="let b of p.benefits">{{ b }}</li>
+          </ul>
+        </article>
+
+        <!-- pagamentos e plano -->
+        <article class="sa-card sa-card--wide">
+          <h3 class="sa-card-title">{{ 'sa.payments' | flaT }}</h3>
+
+          <div class="sa-pay-top">
+            <div class="sa-box">
+              <span class="sa-box-label">{{ 'sa.next' | flaT }}</span>
+              <ng-container *ngIf="nextCharge; else noNext">
+                <span class="sa-box-value">{{ brl(nextCharge.amount) }}</span>
+                <span class="sa-box-sub"
+                  >{{ date(nextCharge.date, true) }} ·
+                  {{ nextCharge.label }}</span
+                >
+              </ng-container>
+              <ng-template #noNext>
+                <span class="sa-box-sub">{{ 'sa.noOrder' | flaT }}</span>
+              </ng-template>
+            </div>
+
+            <div class="sa-box">
+              <span class="sa-box-label">{{ 'sa.card.title' | flaT }}</span>
+              <span class="sa-box-value sa-card-line">
+                <span class="sa-brand">{{
+                  defaultCard?.type || 'card' | uppercase
+                }}</span>
+                {{ cardLabel(defaultCard) }}
+              </span>
+              <span class="sa-box-sub" *ngIf="defaultCard"
+                >{{ 'sa.card.expiry' | flaT }} {{ defaultCard.expiry }}
+                <ng-container *ngIf="defaultCard.holder"
+                  >· {{ defaultCard.holder }}</ng-container
+                ></span
+              >
+              <button
+                type="button"
+                class="sa-link"
+                (click)="toggleCardPanel()"
+                [attr.aria-expanded]="cardPanel"
+              >
+                {{ 'sa.card.change' | flaT }}
+              </button>
+            </div>
+          </div>
+
+          <!-- trocar cartão -->
+          <div class="sa-panel" *ngIf="cardPanel">
+            <ng-container *ngIf="!newCardForm">
+              <p class="sa-panel-title">{{ 'sa.card.choose' | flaT }}</p>
+              <label class="sa-radio" *ngFor="let c of cards">
+                <input
+                  type="radio"
+                  name="sa-card"
+                  [value]="c.id"
+                  [(ngModel)]="selectedCard"
+                />
+                <span
+                  ><strong>{{ cardLabel(c) }}</strong> ·
+                  {{ 'sa.card.expiry' | flaT }} {{ c.expiry }}
+                  <em *ngIf="c.isDefault">{{
+                    'sa.card.current' | flaT
+                  }}</em></span
+                >
+              </label>
+              <div class="sa-panel-actions">
+                <button
+                  type="button"
+                  class="sa-btn sa-btn--primary"
+                  [disabled]="cardBusy || !selectedCard"
+                  (click)="useCard()"
+                >
+                  {{ 'sa.card.use' | flaT }}
+                </button>
+                <button
+                  type="button"
+                  class="sa-btn"
+                  (click)="newCardForm = true; cardError = ''"
+                >
+                  {{ 'sa.card.add' | flaT }}
+                </button>
+              </div>
+            </ng-container>
+
+            <form *ngIf="newCardForm" class="sa-form" (ngSubmit)="saveNewCard()">
+              <p class="sa-panel-title">{{ 'sa.card.new' | flaT }}</p>
+              <label class="sa-field sa-field--wide"
+                >{{ 'sa.card.holder' | flaT }}
+                <input
+                  name="holder"
+                  autocomplete="cc-name"
+                  [(ngModel)]="newCard.holder"
+                  required
+              /></label>
+              <label class="sa-field sa-field--wide"
+                >{{ 'sa.card.number' | flaT }}
+                <input
+                  name="number"
+                  inputmode="numeric"
+                  autocomplete="cc-number"
+                  maxlength="19"
+                  placeholder="4111 1111 1111 1111"
+                  [(ngModel)]="newCard.number"
+                  required
+              /></label>
+              <label class="sa-field"
+                >{{ 'sa.card.month' | flaT }}
+                <select name="month" [(ngModel)]="newCard.month" required>
+                  <option value="" disabled></option>
+                  <option *ngFor="let m of months" [value]="m">{{ m }}</option>
+                </select></label
+              >
+              <label class="sa-field"
+                >{{ 'sa.card.year' | flaT }}
+                <select name="year" [(ngModel)]="newCard.year" required>
+                  <option value="" disabled></option>
+                  <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                </select></label
+              >
+              <label class="sa-field"
+                >{{ 'sa.card.cvn' | flaT }}
+                <input
+                  name="cvn"
+                  inputmode="numeric"
+                  autocomplete="cc-csc"
+                  maxlength="4"
+                  [(ngModel)]="newCard.cvn"
+                  required
+              /></label>
+              <div class="sa-panel-actions sa-field--wide">
+                <button
+                  type="submit"
+                  class="sa-btn sa-btn--primary"
+                  [disabled]="cardBusy"
+                >
+                  {{ 'sa.card.save' | flaT }}
+                </button>
+                <button type="button" class="sa-btn" (click)="newCardForm = false">
+                  {{ 'sa.back' | flaT }}
+                </button>
+              </div>
+            </form>
+            <p class="sa-error" *ngIf="cardError" role="alert">{{ cardError }}</p>
+          </div>
+
+          <!-- histórico -->
+          <h4 class="sa-subtitle">{{ 'sa.history' | flaT }}</h4>
+          <div class="sa-table-wrap" *ngIf="history.length; else noHistory">
+            <table class="sa-table">
+              <thead>
+                <tr>
+                  <th>{{ 'sa.h.date' | flaT }}</th>
+                  <th>{{ 'sa.h.desc' | flaT }}</th>
+                  <th class="sa-col-card">{{ 'sa.h.card' | flaT }}</th>
+                  <th class="sa-num">{{ 'sa.h.value' | flaT }}</th>
+                  <th class="sa-col-status">{{ 'sa.h.status' | flaT }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of history">
+                  <td>{{ date(c.date) }}</td>
+                  <td>
+                    {{ c.label }}
+                    <a
+                      *ngIf="c.order"
+                      class="sa-order"
+                      [routerLink]="'/my-account/order/' + c.order"
+                      >{{ 'sa.h.order' | flaT: { code: c.order } }}</a
+                    >
+                  </td>
+                  <td class="sa-col-card">{{ cardLabel(c.card) }}</td>
+                  <td class="sa-num">{{ brl(c.amount) }}</td>
+                  <td class="sa-col-status">
+                    <span class="sa-chip sa-chip--light sa-chip--ok">{{
+                      'sa.h.paid' | flaT
+                    }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noHistory>
+            <p class="sa-muted">{{ 'sa.noOrder' | flaT }}</p>
+          </ng-template>
+
+          <div class="sa-plan-actions">
+            <!-- upgrade -->
+            <section class="sa-up">
+              <h4 class="sa-subtitle">{{ 'sa.up.title' | flaT }}</h4>
+              <p class="sa-muted" *ngIf="!upgrades.length">
+                {{ 'sa.up.best' | flaT }}
+              </p>
+              <div class="sa-up-item" *ngFor="let u of upgrades">
+                <div>
+                  <strong>{{ u.name }}</strong>
+                  <span class="sa-up-meta"
+                    >{{ waveLabel(u) }} · {{ u.discount }}%
+                    {{ 'sa.up.ticket' | flaT }}
+                    <ng-container *ngIf="u.storeDiscount"
+                      >· {{ u.storeDiscount }}%
+                      {{ 'sa.up.store' | flaT }}</ng-container
+                    ></span
+                  >
+                  <span class="sa-up-price"
+                    >{{ brl(u.price) }}{{ 'st.perMonth' | flaT }}
+                    <em *ngIf="priceDiff(u) > 0"
+                      >(+{{ brl(priceDiff(u)) }})</em
+                    ></span
+                  >
+                </div>
+                <button
+                  type="button"
+                  class="sa-btn sa-btn--primary"
+                  [disabled]="!!upgrading || !!cancellation"
+                  (click)="upgrade(u)"
+                >
+                  {{
+                    (upgrading === u.code ? 'sa.up.adding' : 'sa.up.cta')
+                      | flaT
+                  }}
+                </button>
+              </div>
+            </section>
+
+            <!-- cancelamento -->
+            <section class="sa-cancel">
+              <h4 class="sa-subtitle">{{ 'sa.cancel.title' | flaT }}</h4>
+              <ng-container *ngIf="cancellation; else canCancel">
+                <p class="sa-muted">
+                  {{
+                    'sa.cancel.pending'
+                      | flaT
+                        : {
+                            date: date(cancellation.createdAt),
+                            id: cancellation.id
+                          }
+                  }}
+                </p>
+                <a class="sa-link" routerLink="/my-account/support-tickets">{{
+                  'sa.cancel.follow' | flaT
+                }}</a>
+              </ng-container>
+              <ng-template #canCancel>
+                <p class="sa-muted">{{ 'sa.cancel.text' | flaT }}</p>
+                <button
+                  *ngIf="!cancelPanel"
+                  type="button"
+                  class="sa-btn sa-btn--danger"
+                  (click)="cancelPanel = true"
+                >
+                  {{ 'sa.cancel.cta' | flaT }}
+                </button>
+                <div class="sa-panel" *ngIf="cancelPanel">
+                  <p class="sa-panel-title">{{ 'sa.cancel.ask' | flaT }}</p>
+                  <label class="sa-radio" *ngFor="let r of cancelReasons">
+                    <input
+                      type="radio"
+                      name="sa-reason"
+                      [value]="r"
+                      [(ngModel)]="cancelReason"
+                    />
+                    <span>{{ 'sa.reason.' + r | flaT }}</span>
+                  </label>
+                  <label class="sa-field sa-field--wide"
+                    >{{ 'sa.cancel.note' | flaT }}
+                    <textarea
+                      name="sa-note"
+                      rows="3"
+                      [(ngModel)]="cancelNote"
+                    ></textarea>
+                  </label>
+                  <p class="sa-note">{{ 'sa.cancel.warning' | flaT }}</p>
+                  <div class="sa-panel-actions">
+                    <button
+                      type="button"
+                      class="sa-btn sa-btn--danger"
+                      [disabled]="!cancelReason || cancelBusy"
+                      (click)="confirmCancel()"
+                    >
+                      {{ 'sa.cancel.confirm' | flaT }}
+                    </button>
+                    <button
+                      type="button"
+                      class="sa-btn"
+                      (click)="cancelPanel = false"
+                    >
+                      {{ 'sa.cancel.keep' | flaT }}
+                    </button>
+                  </div>
+                </div>
+              </ng-template>
+            </section>
+          </div>
+        </article>
+
+        <!-- rating -->
+        <article class="sa-card sa-card--wide sa-rating" *ngIf="rating">
+          <h3 class="sa-card-title">{{ 'sa.rating.title' | flaT }}</h3>
+          <div class="sa-rating-body">
+            <div class="sa-gauge">
+              <svg viewBox="0 0 200 116" aria-hidden="true">
+                <path
+                  d="M20 100a80 80 0 0 1 160 0"
+                  fill="none"
+                  stroke="#ececec"
+                  stroke-width="16"
+                  stroke-linecap="round"
+                />
+                <path
+                  class="sa-gauge-arc"
+                  d="M20 100a80 80 0 0 1 160 0"
+                  fill="none"
+                  stroke-width="16"
+                  stroke-linecap="round"
+                  [attr.stroke-dasharray]="gaugeDash"
+                />
+              </svg>
+              <div class="sa-gauge-value">
+                <strong>{{ rating.score }}</strong>
+                <span>{{ 'sa.rating.of' | flaT }}</span>
+              </div>
+            </div>
+
+            <div class="sa-rating-info">
+              <span class="sa-level sa-level--{{ rating.level }}">{{
+                'sa.level.' + rating.level | flaT
+              }}</span>
+              <div
+                class="sa-stars"
+                [attr.aria-label]="'sa.rating.stars' | flaT: { n: rating.stars }"
+              >
+                <span
+                  *ngFor="let s of starList"
+                  class="sa-star sa-star--{{ s }}"
+                  aria-hidden="true"
+                  >★</span
+                >
+              </div>
+              <div class="sa-factor">
+                <span class="sa-factor-label"
+                  >{{ 'sa.rating.tenure' | flaT }}
+                  <em>{{
+                    rating.months
+                      ? ('sa.rating.months' | flaT: { n: rating.months })
+                      : ('sa.rating.new' | flaT)
+                  }}</em></span
+                >
+                <span class="sa-bar"
+                  ><span [style.width.%]="rating.tenure"></span
+                ></span>
+              </div>
+              <div class="sa-factor">
+                <span class="sa-factor-label"
+                  >{{ 'sa.rating.punctuality' | flaT }}
+                  <em>{{
+                    'sa.rating.paid' | flaT: { n: paidCount, total: paidCount }
+                  }}</em></span
+                >
+                <span class="sa-bar"
+                  ><span [style.width.%]="rating.punctuality"></span
+                ></span>
+              </div>
+              <p class="sa-muted sa-rating-note">
+                {{ 'sa.rating.note' | flaT }}
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </ng-container>
+  </ng-container>
+</section>
+
+<!-- escudo listrado vermelho e preto (o mesmo do selo do header) -->
+<ng-template #shield>
+  <svg viewBox="0 0 24 28" focusable="false">
+    <defs>
+      <clipPath id="fla-sa-shield">
+        <path
+          d="M12 1.5 21.5 4.8V13c0 6.2-4.1 10.9-9.5 13.5C6.6 23.9 2.5 19.2 2.5 13V4.8Z"
+        />
+      </clipPath>
+    </defs>
+    <g clip-path="url(#fla-sa-shield)">
+      <rect width="24" height="28" fill="#1b1b1b" />
+      <rect y="7" width="24" height="3.4" fill="#d70000" />
+      <rect y="13.4" width="24" height="3.4" fill="#d70000" />
+      <rect y="19.8" width="24" height="3.4" fill="#d70000" />
+    </g>
+    <path
+      d="M12 1.5 21.5 4.8V13c0 6.2-4.1 10.9-9.5 13.5C6.6 23.9 2.5 19.2 2.5 13V4.8Z"
+      fill="none"
+      stroke="#f2c14e"
+      stroke-width="1.6"
+      stroke-linejoin="round"
+    />
+  </svg>
+</ng-template>
