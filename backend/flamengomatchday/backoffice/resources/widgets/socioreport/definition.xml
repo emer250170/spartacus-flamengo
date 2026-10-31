@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Relatórios do sócio-torcedor (perspectiva "Sócio-Torcedor"): painel no modelo
+  do "Dashboard - Base" do clube.
+-->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.socioreport">
+	<name>Sócio-Torcedor - Relatórios</name>
+	<description>Painel do programa sócio-torcedor do Flamengo</description>
+	<defaultTitle>Relatórios</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="socioreport.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.socioreport.SocioReportController"/>
+	<sockets>
+		<!-- recarrega os números (clique em "Relatórios" na árvore) -->
+		<input id="refresh" type="java.lang.Object"/>
+	</sockets>
+	<keywords>
+		<keyword>Socio</keyword>
+		<keyword>Report</keyword>
+	</keywords>
+</widget-definition>

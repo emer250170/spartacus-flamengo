@@ -12,6 +12,8 @@
   O centro é um perspectiveContainer com duas telas: a lista com a ficha
   (matchdayContainer, para Jogos e Reservas de poltrona) e os relatórios
   (matchdayReport, para Relatórios), trocadas pelo clique na árvore.
+  Perspectiva "Sócio-Torcedor" (mais abaixo): mesmo desenho, com menu Planos
+  (contexto socio-explorer-tree), para o papel "Gestor do sócio-torcedor" e o admin.
 -->
 <widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widgets.xsd">
@@ -76,7 +78,7 @@
 				<virtual-sockets/>
 			</widget>
 
-			<!-- Centro: lista com ficha ou relatórios -->
+			<!-- Centro: Planos -> lista com ficha; Relatórios -> relatórios ou relatórios -->
 			<widget id="matchdayContent" widgetDefinitionId="com.hybris.backoffice.perspectiveContainer"
 					slotId="centerSlot" template="false">
 
@@ -184,6 +186,176 @@
 			<setting key="widgetMold" type="String" value="light"/>
 			<virtual-sockets/>
 		</widget>
+
+		<!-- Perspectiva "Sócio-Torcedor": planos do programa (gestor do sócio-torcedor e admin) -->
+		<widget id="socioPerspective" widgetDefinitionId="com.hybris.cockpitng.borderlayout" slotId="perspectives"
+				title="Sócio-Torcedor" template="false" access="socioperspective">
+
+			<!-- Menu à esquerda -->
+			<widget id="socioExplorerTree" widgetDefinitionId="com.hybris.cockpitng.widgets.common.explorertree"
+					slotId="leftSlot" template="false" title="Sócio-Torcedor">
+				<!-- clique num tipo (Jogos, Reservas): manda o tipo para a busca -->
+				<widget id="socioTreeSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="socioTypeName" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">name</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root instanceof T(com.hybris.cockpitng.tree.node.TypeNode)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- clique em Jogos ou Reservas: mostra a lista -->
+				<widget id="socioShowList" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<setting key="expression" type="String">'socioContainer'</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- clique em "Relatórios": mostra os relatórios -->
+				<widget id="socioReportsSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="socioShowReport" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">'socioReport'</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "socio.tree.reports".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- ao abrir a perspectiva, seleciona "Planos" -->
+				<widget id="socioPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="socioGamesSelector" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("socio.tree.plans", true)</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "socioPerspective".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<setting key="explorerTreeConfigCtx" type="String">socio-explorer-tree</setting>
+				<setting key="allowFilteringEntries" type="Boolean">false</setting>
+				<setting key="widgetStyleClass" type="String">yw-explorerTree-sideNavigation</setting>
+				<setting key="widgetMold" type="String" value="light"/>
+				<virtual-sockets/>
+			</widget>
+
+			<!-- Centro: lista com ficha ou relatórios -->
+			<widget id="socioContent" widgetDefinitionId="com.hybris.backoffice.perspectiveContainer"
+					slotId="centerSlot" template="false">
+
+				<!-- Busca e lista no centro, ficha embaixo (primeira tela: aparece por padrão) -->
+				<widget id="socioContainer" widgetDefinitionId="com.hybris.cockpitng.collapsiblecontainer"
+						slotId="perspectives" template="false">
+					<widget id="socioAdvancedSearch" widgetDefinitionId="com.hybris.cockpitng.advancedsearch"
+							slotId="center" template="false">
+						<widget id="socioHeaderTitle" widgetDefinitionId="com.hybris.backoffice.widgets.title"
+								slotId="pageTitle" template="false"/>
+						<widget id="socioSearchEngine" widgetDefinitionId="com.hybris.cockpitng.widgets.common.advancedsearchengine"
+								slotId="cockpitWidgetChildrenInvisible" template="false">
+							<setting key="defaultPageSize" type="Integer">50</setting>
+							<virtual-sockets/>
+						</widget>
+						<widget id="socioList" widgetDefinitionId="com.hybris.cockpitng.collectionBrowser"
+								slotId="nestedWidget" template="false">
+							<setting key="listSubtitle" type="String">emptylist</setting>
+							<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+							<setting key="pageSize" type="Integer">20</setting>
+							<setting key="maxCharsInCell" type="Integer">70</setting>
+							<setting key="actionSlotComponentId" type="String">listviewactions</setting>
+							<setting key="multiSelect" type="Boolean">true</setting>
+							<setting key="colConfigCtxCode" type="String">listview</setting>
+							<setting key="itemRenderer" type="String">listViewRenderer</setting>
+							<setting key="listTitle" type="String"></setting>
+							<setting key="sortableListHeader" type="Boolean">true</setting>
+							<setting key="asyncLoading" type="Boolean">true</setting>
+							<setting key="sendItemsOnSelect" type="Boolean">true</setting>
+							<setting key="widgetStyleClass" type="String">yw-collection-browser-inset</setting>
+						</widget>
+						<setting key="advancedSearchConfigCtxCode" type="String">advanced-search</setting>
+						<setting key="simpleSearchConfigCtxCode" type="String">simple-search</setting>
+						<setting key="addRowPosition" type="String">Bottom</setting>
+						<setting key="enableNestedWidgetView" type="Boolean">true</setting>
+						<setting key="isNestedObjectCreationDisabled" type="Boolean">true</setting>
+						<virtual-sockets/>
+					</widget>
+					<widget id="socioEditorArea" widgetDefinitionId="com.hybris.cockpitng.backoffice.defaultEditorArea"
+							slotId="bottom" template="false">
+						<widget id="socioPreviousItem" widgetDefinitionId="com.hybris.cockpitng.previousItemSelector"
+								slotId="previousItemSelectorSlot" template="false">
+							<virtual-sockets/>
+						</widget>
+						<widget id="socioNextItem" widgetDefinitionId="com.hybris.cockpitng.nextItemSelector"
+								slotId="nextItemSelectorSlot" template="false">
+							<virtual-sockets/>
+						</widget>
+						<setting key="viewModeBtnVisible" type="Boolean">false</setting>
+						<setting key="initViewMode" type="String">fluid</setting>
+						<setting key="fluidViewCode" type="String">fluid</setting>
+						<setting key="editorAreaConfigCtx" type="String">editor-area</setting>
+						<setting key="bottomToolbar" type="Boolean">false</setting>
+						<setting key="actionSlotComponentId" type="String">editorareaactions</setting>
+						<virtual-sockets>
+							<output id="com.hybris.cockpitng.action.delete.success" type="java.lang.Object"/>
+							<output id="com.hybris.cockpitng.action.clone.success" type="java.lang.Object"/>
+						</virtual-sockets>
+					</widget>
+					<widget id="socioSpaceManagement" widgetDefinitionId="com.hybris.backoffice.spaceManagement"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<virtual-sockets/>
+					</widget>
+					<setting key="allowLockingCenterPanel" type="Boolean">false</setting>
+					<setting key="bottomPanelCollapsed" type="Boolean">false</setting>
+					<setting key="topHeight" type="String">33%</setting>
+					<setting key="centerCaption" type="String">List</setting>
+					<setting key="bottomPanelInitiallyLocked" type="Boolean">false</setting>
+					<setting key="centerHeight" type="String">50%</setting>
+					<setting key="topPanelInitiallyLocked" type="Boolean">false</setting>
+					<setting key="thirdSectionDisabled" type="Boolean">true</setting>
+					<setting key="allowLockingBottomPanel" type="Boolean">false</setting>
+					<setting key="bottomCaption" type="String">Edit</setting>
+					<setting key="centerPanelCollapsed" type="Boolean">false</setting>
+					<setting key="widgetStyleClass" type="String">yw-collapsibleContainer-caption-large-font-size</setting>
+					<setting key="topCaption" type="String">Search</setting>
+					<setting key="topPanelCollapsed" type="Boolean">true</setting>
+					<setting key="allowLockingTopPanel" type="Boolean">false</setting>
+					<setting key="centerPanelInitiallyLocked" type="Boolean">true</setting>
+					<virtual-sockets/>
+				</widget>
+
+				<!-- Relatórios do sócio-torcedor -->
+				<widget id="socioReport" widgetDefinitionId="br.com.flamengo.matchday.widgets.socioreport"
+						slotId="perspectives" template="false">
+					<virtual-sockets/>
+				</widget>
+
+
+				<virtual-sockets/>
+				</widget>
+
+			<setting key="northDisabled" type="Boolean">true</setting>
+			<setting key="southDisabled" type="Boolean">true</setting>
+			<setting key="eastDisabled" type="Boolean">true</setting>
+			<setting key="westDisabled" type="Boolean">false</setting>
+			<setting key="westWidth" type="String">260px</setting>
+			<setting key="westCollapsible" type="Boolean">false</setting>
+			<setting key="westSplittable" type="String">false</setting>
+			<setting key="westBorder" type="String">none</setting>
+			<setting key="centerBorder" type="String">none</setting>
+			<setting key="border" type="String">none</setting>
+			<setting key="broadcastHorizontalResize" type="Boolean">true</setting>
+			<setting key="opaqueBG" type="String">true</setting>
+			<setting key="widgetStyleClass" type="String" value="yw-borderlayout-opaque"/>
+			<setting key="widgetMold" type="String" value="light"/>
+			<virtual-sockets/>
+		</widget>
 	</widget-extension>
 
 	<!-- Menu -->
@@ -226,5 +398,48 @@
 	<widget-connection sourceWidgetId="matchdayList" outputId="previousItemSelectorContext" targetWidgetId="matchdayPreviousItem" inputId="previousItemSelectorContext"/>
 	<widget-connection sourceWidgetId="matchdayNextItem" outputId="nextItemSelectorInvocation" targetWidgetId="matchdayList" inputId="nextItemSelectorInvocation"/>
 	<widget-connection sourceWidgetId="matchdayList" outputId="nextItemSelectorContext" targetWidgetId="matchdayNextItem" inputId="nextItemSelectorContext"/>
+
+
+	<!-- ===== Sócio-Torcedor ===== -->
+	<!-- Menu -->
+	<widget-connection sourceWidgetId="backofficeMainSlot" outputId="perspectiveSelected" targetWidgetId="socioPerspectiveChecker" inputId="input"/>
+	<widget-connection sourceWidgetId="socioPerspectiveChecker" outputId="true" targetWidgetId="socioGamesSelector" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="socioGamesSelector" outputId="genericOutput" targetWidgetId="socioExplorerTree" inputId="nodeIdSelected"/>
+	<widget-connection sourceWidgetId="socioExplorerTree" outputId="nodeSelected" targetWidgetId="socioTreeSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="socioTreeSelection" outputId="true" targetWidgetId="socioTypeName" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="socioTypeName" outputId="genericOutput" targetWidgetId="socioAdvancedSearch" inputId="type"/>
+	<widget-connection sourceWidgetId="socioTreeSelection" outputId="true" targetWidgetId="socioHeaderTitle" inputId="nodeSelected"/>
+	<widget-connection sourceWidgetId="socioExplorerTree" outputId="dataSelected" targetWidgetId="socioSpaceManagement" inputId="navigationTreeSelectedObject"/>
+
+	<!-- Centro: lista com ficha -->
+	<widget-connection sourceWidgetId="socioTreeSelection" outputId="true" targetWidgetId="socioShowList" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="socioShowList" outputId="genericOutput" targetWidgetId="socioContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="socioExplorerTree" outputId="nodeSelected" targetWidgetId="socioReportsSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="socioReportsSelection" outputId="true" targetWidgetId="socioShowReport" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="socioShowReport" outputId="genericOutput" targetWidgetId="socioContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="socioReportsSelection" outputId="true" targetWidgetId="socioReport" inputId="refresh"/>
+
+	<!-- Busca e lista -->
+	<widget-connection sourceWidgetId="socioSpaceManagement" outputId="collapseState" targetWidgetId="socioContainer" inputId="collapseState"/>
+	<widget-connection sourceWidgetId="socioContainer" outputId="centerPanelLocked" targetWidgetId="socioAdvancedSearch" inputId="centerPanelLocked"/>
+	<widget-connection sourceWidgetId="socioList" outputId="sortData" targetWidgetId="socioAdvancedSearch" inputId="sortData"/>
+	<widget-connection sourceWidgetId="socioAdvancedSearch" outputId="searchData" targetWidgetId="socioSearchEngine" inputId="searchData"/>
+	<widget-connection sourceWidgetId="socioAdvancedSearch" outputId="searchData" targetWidgetId="socioSpaceManagement" inputId="searchData"/>
+	<widget-connection sourceWidgetId="socioAdvancedSearch" outputId="reset" targetWidgetId="socioList" inputId="reset"/>
+	<widget-connection sourceWidgetId="socioAdvancedSearch" outputId="autosuggestionQuery" targetWidgetId="socioSearchEngine" inputId="autosuggestionQuery"/>
+	<widget-connection sourceWidgetId="socioSearchEngine" outputId="pageable" targetWidgetId="socioList" inputId="pageable"/>
+	<widget-connection sourceWidgetId="socioSearchEngine" outputId="fullTextSearchData" targetWidgetId="socioAdvancedSearch" inputId="fullTextSearchData"/>
+	<widget-connection sourceWidgetId="socioSearchEngine" outputId="autosuggestions" targetWidgetId="socioAdvancedSearch" inputId="autosuggestions"/>
+
+	<!-- Ficha -->
+	<widget-connection sourceWidgetId="socioList" outputId="focusedItem" targetWidgetId="socioEditorArea" inputId="inputObject"/>
+	<widget-connection sourceWidgetId="socioList" outputId="focusedItem" targetWidgetId="socioSpaceManagement" inputId="listSelectedObject"/>
+	<widget-connection sourceWidgetId="socioEditorArea" outputId="com.hybris.cockpitng.action.delete.success" targetWidgetId="socioSpaceManagement" inputId="navigationTreeSelectedObject"/>
+	<widget-connection sourceWidgetId="socioEditorArea" outputId="com.hybris.cockpitng.action.clone.success" targetWidgetId="socioList" inputId="focusItem"/>
+	<widget-connection sourceWidgetId="socioPerspective" outputId="resized" targetWidgetId="socioEditorArea" inputId="resize"/>
+	<widget-connection sourceWidgetId="socioPreviousItem" outputId="previousItemSelectorInvocation" targetWidgetId="socioList" inputId="previousItemSelectorInvocation"/>
+	<widget-connection sourceWidgetId="socioList" outputId="previousItemSelectorContext" targetWidgetId="socioPreviousItem" inputId="previousItemSelectorContext"/>
+	<widget-connection sourceWidgetId="socioNextItem" outputId="nextItemSelectorInvocation" targetWidgetId="socioList" inputId="nextItemSelectorInvocation"/>
+	<widget-connection sourceWidgetId="socioList" outputId="nextItemSelectorContext" targetWidgetId="socioNextItem" inputId="nextItemSelectorContext"/>
 
 </widgets>

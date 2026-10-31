@@ -20,18 +20,23 @@
     <ng-container *ngIf="!loading && !loadError && catalog as cat">
       <div class="md-socio-bar">
         <p class="md-socio-status">
-          <ng-container *ngIf="memberLevel; else notMember">
+          <ng-container *ngIf="memberPlan; else notMember">
             <span
               [innerHTML]="
                 (planInCart ? 'md.planInCart' : 'md.member')
-                  | flaT: { n: memberLevel }
+                  | flaT: { plan: memberPlan.name }
               "
             ></span>
-            · {{ 'md.discountLine' | flaT: { d: memberDiscount } }} ·
-            {{ waveLabel(myWave) }}
+            <ng-container *ngIf="memberDiscount">
+              · {{ 'md.discountLine' | flaT: { d: memberDiscount } }}
+            </ng-container>
+            · {{ waveLabel(myWave) }}
           </ng-container>
           <ng-template #notMember>
-            {{ 'md.beMember' | flaT }}
+            {{
+              (maxDiscount ? 'md.beMember' : 'md.beMemberNoOff')
+                | flaT: { d: maxDiscount }
+            }}
             <a
               routerLink="/socio-torcedor"
               [queryParams]="match ? { jogo: match.code } : {}"
@@ -136,12 +141,12 @@
                   </li>
                 </ol>
                 <a
-                  *ngIf="!memberLevel || memberLevel > 1"
+                  *ngIf="canUpgrade"
                   class="btn btn-primary"
                   routerLink="/socio-torcedor"
                   [queryParams]="{ jogo: match.code }"
                   >{{
-                    (memberLevel ? 'md.lock.upgrade' : 'md.lock.join') | flaT
+                    (memberPlan ? 'md.lock.upgrade' : 'md.lock.join') | flaT
                   }}</a
                 >
               </div>

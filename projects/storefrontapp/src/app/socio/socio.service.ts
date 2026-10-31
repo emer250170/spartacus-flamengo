@@ -15,12 +15,10 @@ import {
   GENERAL_SALE_WAVE,
   Membership,
   SOCIO_CATEGORY,
-  SOCIO_GROUP_PREFIX,
-  SOCIO_PENDING_PREFIX,
-  SOCIO_PLAN_PREFIX,
   SOCIO_RULES,
   SocioGuest,
   SocioPlan,
+  SocioPlanRules,
   WaveStatus,
 } from './socio.model';
 
@@ -33,12 +31,18 @@ interface OccProduct {
   stock?: { stockLevel?: number; stockLevelStatus?: string };
 }
 
+/** Marcador com as regras do plano no fim da descrição do produto */
+const PLAN_MARKER = /<!--\s*socio-plan\s*([\s\S]*?)-->/i;
+/** Código dos planos antigos (compatibilidade, ver SOCIO_RULES) */
+const LEGACY_PLAN_CODE = /^NACAO-MARACA-(\d+)$/;
+
 /**
  * Planos de sócio-torcedor e a situação do torcedor logado.
  *
  * - Planos: busca da categoria socio_torcedor (traz o preço) + detalhe de
- *   cada plano (traz os benefícios na descrição).
- * - Plano do torcedor: grupos de clientes do SAP Commerce (nacao-maraca-N).
+ *   cada produto (traz os benefícios e o marcador de regras na descrição).
+ * - Plano do torcedor: grupos de clientes do SAP Commerce (grupo do plano sem
+ *   o marcador de pendente).
  * - Ondas de venda: datas cadastradas em cada jogo (Backoffice, tela Jogos).
  */
 @Injectable({ providedIn: 'root' })
@@ -67,21 +71,28 @@ export class SocioService {
 
   // ---------- planos ----------
 
+  /** Planos na ordem dos cards (order, depois código) */
   getPlans(): Observable<SocioPlan[]> {
     if (!this.plans$) {
       this.plans$ = this.search().pipe(
         switchMap((products) => {
-          const plans = products
-            .filter((p) => p.code.startsWith(SOCIO_PLAN_PREFIX))
-            .sort((a, b) => a.code.localeCompare(b.code));
-          if (!plans.length) {
+          if (!products.length) {
             return of([] as SocioPlan[]);
           }
+          // só a descrição diz se o produto é plano (tem o marcador) ou convidado
           return forkJoin(
-            plans.map((p) =>
+            products.map((p) =>
               this.loadDescription(p.code).pipe(
                 map((description) => this.toPlan(p, description, products))
               )
+            )
+          ).pipe(
+            map((plans) =>
+              plans
+                .filter((p): p is SocioPlan => p !== null)
+                .sort(
+                  (a, b) => a.order - b.order || a.code.localeCompare(b.code)
+                )
             )
           );
         }),
@@ -94,39 +105,45 @@ export class SocioService {
   // ---------- plano do torcedor ----------
 
   /** Plano que vale para ingressos (comprado ou no carrinho) ou null */
-  getMemberLevel(): Observable<number | null> {
+  getMemberPlan(): Observable<SocioPlan | null> {
     return this.getMembership().pipe(
-      map((m) => m.level),
-      distinctUntilChanged()
+      map((m) => m.plan),
+      distinctUntilChanged((a, b) => a?.code === b?.code)
     );
   }
 
   /**
    * Plano comprado, plano no carrinho e o que vale agora. Lido de novo quando o
-   * plano do carrinho muda (o SAP Commerce acerta os grupos nessa hora).
+   * plano do carrinho muda (o SAP Commerce acerta os grupos nessa hora) e na
+   * troca de idioma (os planos vêm de novo, com o nome no idioma do site).
    */
   getMembership(): Observable<Membership> {
     if (!this.membership$) {
-      const inCart$ = this.activeCart.getEntries().pipe(
-        map((entries) => {
-          const levels = entries
-            .map((e) => e.product?.code ?? '')
-            .filter((code) => code.startsWith(SOCIO_PLAN_PREFIX))
-            .map((code) => Number(code.substring(SOCIO_PLAN_PREFIX.length)))
-            .filter((n) => SOCIO_RULES[n] !== undefined);
-          return levels.length ? Math.min(...levels) : null;
+      // planos no idioma atual (o cache é zerado na troca de idioma)
+      const plans$ = this.i18n.lang$.pipe(switchMap(() => this.getPlans()));
+      const cart$ = combineLatest([plans$, this.activeCart.getEntries()]).pipe(
+        map(([plans, entries]) => {
+          const codes = entries.map((e) => e.product?.code ?? '');
+          return {
+            plans,
+            inCart: this.best(plans.filter((p) => codes.includes(p.code))),
+          };
         }),
-        distinctUntilChanged()
+        distinctUntilChanged(
+          (a, b) => a.plans === b.plans && a.inCart?.code === b.inCart?.code
+        )
       );
       this.membership$ = combineLatest([
         this.auth.isUserLoggedIn().pipe(distinctUntilChanged()),
         this.refresh$,
-        inCart$,
+        cart$,
       ]).pipe(
-        switchMap(([loggedIn, , inCart]) =>
+        switchMap(([loggedIn, , { plans, inCart }]) =>
           loggedIn
-            ? this.loadMember().pipe(
-                map((member) => this.membership(member, inCart))
+            ? this.loadGroups().pipe(
+                map((uids) =>
+                  this.membership(this.memberPlan(plans, uids), inCart)
+                )
               )
             : of(this.membership(null, null))
         ),
@@ -142,19 +159,40 @@ export class SocioService {
   }
 
   protected membership(
-    member: number | null,
-    inCart: number | null
+    member: SocioPlan | null,
+    inCart: SocioPlan | null
   ): Membership {
-    const levels = [member, inCart].filter((n): n is number => n !== null);
+    // no empate de onda vale o comprado (vem primeiro na lista)
     return {
       member,
       inCart,
-      level: levels.length ? Math.min(...levels) : null,
+      plan: this.best([member, inCart].filter((p): p is SocioPlan => !!p)),
     };
   }
 
-  /** Plano comprado: grupo nacao-maraca-N sem o marcador nacao-pendente-N */
-  protected loadMember(): Observable<number | null> {
+  /** Plano de melhor onda (onda 0 = venda geral); no empate, o primeiro */
+  protected best(plans: SocioPlan[]): SocioPlan | null {
+    return plans.reduce<SocioPlan | null>(
+      (best, p) =>
+        !best || this.memberWave(p) < this.memberWave(best) ? p : best,
+      null
+    );
+  }
+
+  /** Plano comprado: grupo do plano sem o grupo marcador de pendente */
+  protected memberPlan(plans: SocioPlan[], uids: string[]): SocioPlan | null {
+    return this.best(
+      plans.filter(
+        (p) =>
+          !!p.group &&
+          uids.includes(p.group) &&
+          !(p.pending && uids.includes(p.pending))
+      )
+    );
+  }
+
+  /** Grupos de clientes do torcedor logado */
+  protected loadGroups(): Observable<string[]> {
     const base = this.occEndpoints.getBaseUrl();
     return this.http
       .get<{ uid?: string }>(`${base}/users/current`, {
@@ -169,32 +207,32 @@ export class SocioService {
               )
             : of({ userGroups: [] })
         ),
-        map((res) => {
-          const uids = (res.userGroups ?? []).map((g) => g.uid ?? '');
-          const levels = uids
-            .filter((uid) => uid.startsWith(SOCIO_GROUP_PREFIX))
-            .map((uid) => Number(uid.substring(SOCIO_GROUP_PREFIX.length)))
-            .filter(
-              (n) =>
-                SOCIO_RULES[n] !== undefined &&
-                !uids.includes(SOCIO_PENDING_PREFIX + n)
-            );
-          return levels.length ? Math.min(...levels) : null;
-        }),
-        catchError(() => of(null))
+        map((res) => (res.userGroups ?? []).map((g) => g.uid ?? '')),
+        catchError(() => of([] as string[]))
       );
   }
 
   // ---------- ondas de venda ----------
 
-  /** Onda do torcedor: a do plano, ou venda geral para quem não é sócio */
-  memberWave(level: number | null): number {
-    return level ? SOCIO_RULES[level].wave : GENERAL_SALE_WAVE;
+  /** Onda do torcedor: a do plano, ou venda geral (sem plano ou onda 0) */
+  memberWave(plan: SocioPlan | null): number {
+    return plan && plan.wave >= 1 && plan.wave < GENERAL_SALE_WAVE
+      ? plan.wave
+      : GENERAL_SALE_WAVE;
   }
 
   /** % de desconto do plano na inteira (0 para quem não é sócio) */
-  discount(level: number | null): number {
-    return level ? SOCIO_RULES[level].discount : 0;
+  discount(plan: SocioPlan | null): number {
+    return plan?.discount ?? 0;
+  }
+
+  /** "Onda 1 · Nação Maraca 1" com os planos que compram na onda */
+  waveLabel(wave: number, plans: SocioPlan[]): string {
+    const names = plans
+      .filter((p) => p.wave === wave)
+      .map((p) => p.name)
+      .join(', ');
+    return this.i18n.waveLabel(wave, names);
   }
 
   /**
@@ -204,10 +242,10 @@ export class SocioService {
    */
   waveStatus(
     waveStarts: string[] | undefined,
-    level: number | null,
+    plan: SocioPlan | null,
     now = new Date()
   ): WaveStatus {
-    const mine = this.memberWave(level);
+    const mine = this.memberWave(plan);
     if (!waveStarts || waveStarts.length < GENERAL_SALE_WAVE) {
       return { current: GENERAL_SALE_WAVE, mine, open: true };
     }
@@ -234,7 +272,7 @@ export class SocioService {
         {
           params: {
             query: `:relevance:allCategories:${SOCIO_CATEGORY}`,
-            pageSize: '20',
+            pageSize: '50',
             fields:
               'products(code,name,summary,price(value),stock(stockLevel,stockLevelStatus))',
           },
@@ -259,14 +297,21 @@ export class SocioService {
       );
   }
 
+  /** Plano a partir do produto, ou null se o produto não é plano (convidado) */
   protected toPlan(
     p: OccProduct,
     description: string,
     all: OccProduct[]
-  ): SocioPlan {
-    const level = Number(p.code.substring(SOCIO_PLAN_PREFIX.length)) || 3;
-    const rules = SOCIO_RULES[level] ?? SOCIO_RULES[3];
-    const guestProduct = all.find((g) => g.code === rules.guestCode);
+  ): SocioPlan | null {
+    const rules =
+      this.parseRules(description) ?? this.legacyRules(p.code) ?? null;
+    if (!rules) {
+      return null;
+    }
+    const guestProduct =
+      rules.maxGuests > 0 && rules.guest
+        ? all.find((g) => g.code === rules.guest)
+        : undefined;
     const guest: SocioGuest | undefined = guestProduct
       ? {
           code: guestProduct.code,
@@ -276,18 +321,80 @@ export class SocioService {
       : undefined;
     return {
       code: p.code,
-      level,
       name: this.clean(p.name),
       summary: this.clean(p.summary),
-      benefits: this.benefits(description),
+      benefits: this.benefits(description.replace(PLAN_MARKER, '')),
       price: p.price?.value ?? 0,
       soldOut:
         p.stock?.stockLevelStatus === 'outOfStock' || p.stock?.stockLevel === 0,
       guest,
-      maxGuests: rules.maxGuests,
+      maxGuests: guest ? rules.maxGuests : 0,
       discount: rules.discount,
       wave: rules.wave,
+      group: rules.group,
+      pending: rules.pending,
+      family: rules.family,
+      order: rules.order,
     };
+  }
+
+  /** Regras do marcador <!--socio-plan {...}-->; null se não há ou é inválido */
+  protected parseRules(description: string): SocioPlanRules | null {
+    const json = description.match(PLAN_MARKER)?.[1];
+    if (!json) {
+      return null;
+    }
+    let raw: unknown;
+    try {
+      raw = JSON.parse(json);
+    } catch {
+      return null;
+    }
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      return null;
+    }
+    const r = raw as Record<string, unknown>;
+    const int = (v: unknown, min: number, max: number, fallback: number) => {
+      const n = Number(v);
+      return Number.isInteger(n) && n >= min && n <= max ? n : fallback;
+    };
+    const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+    const group = str(r.group);
+    if (!group) {
+      // sem grupo não dá para saber quem é sócio do plano
+      return null;
+    }
+    return {
+      wave: int(r.wave, 0, GENERAL_SALE_WAVE - 1, 0),
+      discount: int(r.discount, 0, 100, 0),
+      maxGuests: int(r.maxGuests, 0, 99, 0),
+      guest: str(r.guest),
+      group,
+      pending: str(r.pending),
+      family: str(r.family),
+      order: int(r.order, -9999, 9999, 9999),
+    };
+  }
+
+  /**
+   * Compatibilidade (até a migração do backend): NACAO-MARACA-N sem marcador
+   * usa as regras antigas de SOCIO_RULES.
+   */
+  protected legacyRules(code: string): SocioPlanRules | null {
+    const n = Number(code.match(LEGACY_PLAN_CODE)?.[1]);
+    const old = SOCIO_RULES[n];
+    return old
+      ? {
+          wave: old.wave,
+          discount: old.discount,
+          maxGuests: old.maxGuests,
+          guest: old.guestCode,
+          group: `nacao-maraca-${n}`,
+          pending: `nacao-pendente-${n}`,
+          family: 'Nação Maraca',
+          order: n,
+        }
+      : null;
   }
 
   /** "<ul><li>a</li><li>b</li></ul>" -> ["a", "b"] */
@@ -295,11 +402,16 @@ export class SocioService {
     const items = Array.from(html.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)).map(
       (m) => this.clean(m[1])
     );
-    return items.length ? items : html ? [this.clean(html)] : [];
+    if (items.length) {
+      return items;
+    }
+    const text = this.clean(html);
+    return text ? [text] : [];
   }
 
   protected clean(text?: string): string {
     return (text ?? '')
+      .replace(/<!--[\s\S]*?-->/g, '')
       .replace(/<[^>]+>/g, '')
       .replace(/&amp;/g, '&')
       .replace(/&nbsp;/g, ' ')

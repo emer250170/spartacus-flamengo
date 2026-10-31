@@ -60,6 +60,7 @@
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 		<property name="seatHoldService" ref="seatHoldService"/>
 		<property name="commerceCartCalculationStrategy" ref="commerceCartCalculationStrategy"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
 	</bean>
 	<bean id="socioCartHooks" class="br.com.flamengo.matchday.socio.SocioCartHooks">
 		<property name="socioCartService" ref="socioCartService"/>
@@ -106,6 +107,38 @@
 	<!-- Rotina que libera reservas vencidas (CronJob seatHoldExpiryCronJob) -->
 	<bean id="seatHoldExpiryJob" class="br.com.flamengo.matchday.job.SeatHoldExpiryJob" parent="abstractJobPerformable">
 		<property name="seatHoldService" ref="seatHoldService"/>
+	</bean>
+
+	<!-- Planos de sócio-torcedor (Backoffice > Sócio-Torcedor > Planos) -->
+	<bean id="socioPlanService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioPlanService">
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="userService" ref="userService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
+		<property name="importService" ref="importService"/>
+		<property name="mediaService" ref="mediaService"/>
+		<property name="cronJobService" ref="cronJobService"/>
+		<property name="enumerationService" ref="enumerationService"/>
+	</bean>
+	<bean id="socioPlanInterceptor" class="br.com.flamengo.matchday.socio.SocioPlanInterceptor">
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
+	<bean id="socioPlanInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="socioPlanInterceptor"/>
+		<property name="typeCode" value="SocioPlan"/>
+	</bean>
+	<bean id="socioPlanMembersHandler" class="br.com.flamengo.matchday.socio.SocioPlanMembersAttributeHandler">
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
+
+	<!-- Relatórios do sócio-torcedor (Backoffice > Sócio-Torcedor > Relatórios) -->
+	<bean id="socioReportService" class="br.com.flamengo.matchday.report.socio.impl.DefaultSocioReportService">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
 	<!-- Relatório de ingressos (Backoffice > Matchday Flamengo > Relatórios) -->

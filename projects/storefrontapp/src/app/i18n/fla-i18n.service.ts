@@ -78,8 +78,20 @@ export class FlaI18nService {
     return this.t(full ? 'weekdaysFull' : 'weekdays').split(',')[day] ?? '';
   }
 
-  waveLabel(wave: number): string {
-    return wave <= 0 ? this.t('wave.notOpen') : this.t('wave.label.' + wave);
+  /**
+   * Nome da onda: "Onda 1 · {planos}" (planos que compram nela, separados por
+   * vírgula), "Onda 1" sem planos, "Venda geral" (onda 4).
+   */
+  waveLabel(wave: number, plans?: string): string {
+    if (wave <= 0) {
+      return this.t('wave.notOpen');
+    }
+    if (wave >= 4) {
+      return this.t('wave.general');
+    }
+    return plans
+      ? this.t('wave.plans', { n: wave, plans })
+      : this.t('wave.n', { n: wave });
   }
 }
 

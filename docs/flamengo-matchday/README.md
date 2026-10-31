@@ -282,6 +282,70 @@ Não faça o reset antes do `ant all`: sem o widget compilado, a tela de relató
 
 Os textos do widget (`backoffice/resources/widgets/matchdayreport/labels/*.properties`) ficam em **UTF-8 puro**, com acento direto, e não em `\u00e9`. O Backoffice lê esses arquivos sem converter os `\uXXXX` e mostraria o código na tela. Outra regra: uma chave usada no zul (`${labels.pdf}`) não pode ser o começo de outra chave com ponto (`pdf.file`). O ZK transforma a chave em grupo e o botão mostra `{file=...}`.
 
+## Perspectiva Sócio-Torcedor: cadastro de planos (30/10)
+
+O gestor do programa cria e mantém os planos no Backoffice, sem script. A loja e o desconto no ingresso seguem o cadastro.
+
+- **Perspectiva "Sócio-Torcedor"**, com o menu **Planos**. Aparece para o admin e para o papel **Gestor do sócio-torcedor** (`sociomanagerrole`, autoridade `socioperspective`). O usuário `gestor.socio` é criado **sem senha**: defina a senha no Backoffice (Usuário › Funcionários). O gestor não vê a aba técnica Administração.
+- **Plano** (`SocioPlan`):
+  - nome, programa (Nação Maraca, Nação Sem Fronteiras...), resumo do card e benefícios (um por linha);
+  - mensalidade e vagas (em branco = sem limite);
+  - onda de compra: 1, 2, 3, ou 0 = sem prioridade (venda geral);
+  - desconto na inteira (%), convidados e mensalidade do convidado;
+  - situação: Rascunho, À venda ou Fora da loja;
+  - titulares simulados (só para os relatórios) e sócios na loja (calculado).
+- **Novo plano:** assistente de 4 passos (plano, ingressos e convidados, card, publicação).
+- **Ao salvar "À venda"** (`SocioPlanInterceptor` → `SocioPlanService.publish`, executado como admin):
+  - produto de assinatura com 1ª mensalidade no ato + 11 recorrentes;
+  - estoque de vagas, grupo dos titulares e grupo marcador de carrinho;
+  - convidado (`NACAO-CONVIDADO-<valor>`, reaproveitado entre planos com o mesmo valor);
+  - benefícios (Entitlement);
+  - promoção `X% no ingresso` para o grupo, publicada no módulo de regras numa thread alguns segundos depois de salvar;
+  - reindexação da busca.
+- **"Fora da loja":** o produto sai da loja (`unapproved`, categoria `socio_torcedor_fora`). Quem já é sócio continua com os benefícios. Plano que já foi para a loja não pode ser apagado.
+- **Regras que a loja lê:** ficam num comentário no fim da descrição do produto: `<!--socio-plan {"wave":1,"discount":75,"maxGuests":3,"guest":"NACAO-CONVIDADO-60","group":"nacao-maraca-1","pending":"nacao-pendente-1","family":"Nação Maraca","order":1}-->`.
+  - O Spartacus (`socio.service.ts`) monta os planos e o plano do torcedor a partir delas. Não há mais regra fixa no código, exceto a compatibilidade com `NACAO-MARACA-N` sem marcador.
+  - A API pode levar alguns segundos para mostrar uma descrição nova (cache).
+- **Carrinho e pedido:** o `SocioCartService` e o order-process (`socioPlanService.applyOrder`) usam o cadastro de planos, então valem para qualquer plano novo.
+- **Migração:** `scripts/socio-planos-migracao.groovy`.
+  - Põe Nação Maraca 1, 2 e 3 no cadastro, ligados aos produtos, grupos e promoções existentes.
+  - Cria Nação Sem Fronteiras Anual e Mensal **fora da loja**, só com base simulada para os relatórios.
+  - Troca o bloco do sócio no order-process e cria o papel e o `gestor.socio`.
+  - Backup em `/backup/antes-socio-planos-<data>/`.
+
+Deploy (nesta ordem):
+1. `ant all` e reiniciar (Java e `items.xml` novos).
+2. HAC › Platform › Update: **Update running system** + **Localize types**.
+3. HAC › Console: rodar `scripts/socio-planos-migracao.groovy` em modo commit.
+4. Backoffice › F4 › ☰ › os dois *Reset to Defaults* (widgets.xml e cockpit-config.xml) e entrar de novo.
+5. Publicar a loja (`publicar-flamengo.sh`).
+
+Para voltar: código anterior em `/backup/antes-socio-planos-codigo-20261030/`; dados e order-process em `/backup/antes-socio-planos-<data>/`.
+
+## Relatórios do sócio-torcedor (30/10)
+
+Ficam em Backoffice › perspectiva **Sócio-Torcedor** › **Relatórios**: um painel no modelo do "Dashboard - Base" do clube, com **Atualizar** e **Gerar PDF** (impressão do navegador em A4 deitado).
+
+Blocos:
+- **Total da base ativa:** ativos total (titulares + convidados) e contratos ativos, com a variação sobre ontem. Também um cartão por programa (Nação Maraca, Nação Sem Fronteiras) com contratos, inativos e adimplentes / inadimplentes / não renovado.
+- **Novos contratos por operação** (renovação, adesão, upgrade) e **por horário**, por programa, com o acumulado do dia.
+- **Receita do mês:** evolução diária, competências pagas, recorrências futuras e receita prevista.
+- **Base ativa** por onda de abertura e por plano (titulares, convidados, ativos total).
+- **Cupons**, **churn mensal por plano** (com a diferença para a média móvel de 12 meses), **adesões por plano** (abandono de carrinho, hoje, no mês, mês passado e %) e **top 10 estados** do Sem Fronteiras.
+
+De onde vêm os números (`DefaultSocioReportService`):
+- **Base simulada (demonstração):** o campo "Titulares simulados" de cada plano define a base.
+  - Os convidados seguem o máximo de convidados do plano, nas proporções do painel do clube.
+  - A partir da base são gerados adimplência, adesões, receita (mensalidade × base), churn, cupons e estados.
+  - Os valores são determinísticos: no mesmo dia saem iguais e mudam ao longo das horas.
+- **Dados reais da loja**, somados à base:
+  - sócios no grupo de cada plano;
+  - pedidos com plano: adesões de hoje, do mês e do mês passado, receita do mês e estado de entrega;
+  - carrinhos com plano sem pedido nos últimos 30 dias, como abandono.
+- O rodapé do painel informa quanto veio da loja.
+
+Deploy: `ant all` e reiniciar, depois Backoffice › F4 › ☰ › os dois *Reset to Defaults* (o nó Relatórios e o widget entram na perspectiva). Não precisa de update do sistema.
+
 ## Sócio-Torcedor Nação Maraca
 
 Os três planos de https://nacao.flamengo.com.br/home/nacao-maraca, com os preços dos cards, como **produtos de assinatura** do SAP Commerce, e ligados à compra de ingressos.
