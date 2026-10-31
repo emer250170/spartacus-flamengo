@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "flamengo-torcedor": {
+      "command": "node",
+      "args": ["C:\\Users\\I844870\\Downloads\\flamengo-mcp\\flamengo-mcp.mjs"],
+      "env": {
+        "FLAMENGO_PERSONA": "torcedor",
+        "TORCEDOR_EMAIL": "torcedor1@example.com",
+        "TORCEDOR_SENHA": "COLOQUE_AQUI"
+      }
+    },
+    "flamengo-gestor-socio": {
+      "command": "node",
+      "args": ["C:\\Users\\I844870\\Downloads\\flamengo-mcp\\flamengo-mcp.mjs"],
+      "env": {
+        "FLAMENGO_PERSONA": "socio",
+        "GESTOR_USUARIO": "gestor.socio",
+        "GESTOR_SENHA": "COLOQUE_AQUI"
+      }
+    },
+    "flamengo-gestor-jogos": {
+      "command": "node",
+      "args": ["C:\\Users\\I844870\\Downloads\\flamengo-mcp\\flamengo-mcp.mjs"],
+      "env": {
+        "FLAMENGO_PERSONA": "jogos",
+        "GESTOR_USUARIO": "gestor.jogos",
+        "GESTOR_SENHA": "COLOQUE_AQUI"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "flamengo-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Loja Flamengo (SAP Commerce Cloud) como servidor MCP: personas torcedor, gestor do sócio-torcedor e gestor de jogos",
+  "scripts": {
+    "build": "esbuild src/server.mjs --bundle --platform=node --format=esm --target=node20 --outfile=dist/flamengo-mcp.mjs --banner:js=\"import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);\""
+  },
+  "dependencies": { "@modelcontextprotocol/sdk": "1.32.2" },
+  "devDependencies": { "esbuild": "0.28.2" }
+}

@@ -1,0 +1,212 @@
+# MCP "Loja Flamengo": acesso dos gestores pela Integration API (OData).
+# Aplicado no servidor em 31/10/2026 pelo HAC (ImpEx). NÃO fica em resources/impex de propósito:
+# rode à mão no HAC > Console > ImpEx Import quando precisar recriar.
+#  - 8 objetos de integração (planos, chamados, mensagens, pedidos, jogos, cupons, uso de cupons, torcedores)
+#  - canal de entrada BASIC para cada um (sem ele a OData responde 403)
+#  - grupos socioapigroup e jogosapigroup com permissão por tipo (os papéis do Backoffice são BackofficeRole,
+#    que só valem com o papel ativo numa sessão do Backoffice; por isso os grupos próprios para a API)
+#  - gestor.socio e gestor.jogos entram nesses grupos (as senhas continuam as do Backoffice)
+
+INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
+; FlamengoPlano ; INBOUND
+; FlamengoChamado ; INBOUND
+; FlamengoMensagem ; INBOUND
+; FlamengoPedido ; INBOUND
+; FlamengoJogo ; INBOUND
+; FlamengoCupom ; INBOUND
+; FlamengoCupomUso ; INBOUND
+; FlamengoTorcedor ; INBOUND
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
+; FlamengoPlano ; SocioPlan ; SocioPlan ; true
+; FlamengoPlano ; SocioPlanStatus ; SocioPlanStatus ; false
+; FlamengoPlano ; UserGroup ; UserGroup ; false
+; FlamengoPlano ; Principal ; Principal ; false
+; FlamengoChamado ; CsTicket ; CsTicket ; true
+; FlamengoChamado ; CsTicketState ; CsTicketState ; false
+; FlamengoChamado ; CsTicketCategory ; CsTicketCategory ; false
+; FlamengoChamado ; CsTicketPriority ; CsTicketPriority ; false
+; FlamengoChamado ; User ; User ; false
+; FlamengoMensagem ; CsTicketEvent ; CsTicketEvent ; true
+; FlamengoPedido ; Order ; Order ; true
+; FlamengoPedido ; OrderEntry ; OrderEntry ; false
+; FlamengoPedido ; Product ; Product ; false
+; FlamengoPedido ; CatalogVersion ; CatalogVersion ; false
+; FlamengoPedido ; Catalog ; Catalog ; false
+; FlamengoPedido ; OrderStatus ; OrderStatus ; false
+; FlamengoPedido ; User ; User ; false
+; FlamengoJogo ; MatchdayGame ; MatchdayGame ; true
+; FlamengoJogo ; MatchdayGameStatus ; MatchdayGameStatus ; false
+; FlamengoCupom ; SingleCodeCoupon ; SingleCodeCoupon ; true
+; FlamengoCupomUso ; CouponRedemption ; CouponRedemption ; true
+; FlamengoCupomUso ; AbstractOrder ; AbstractOrder ; false
+; FlamengoCupomUso ; User ; User ; false
+; FlamengoTorcedor ; Customer ; Customer ; true
+; FlamengoTorcedor ; PrincipalGroup ; PrincipalGroup ; false
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
+; FlamengoPlano:SocioPlan ; code ; SocioPlan:code ;  ; true
+; FlamengoPlano:SocioPlan ; name ; SocioPlan:name ;  ; false
+; FlamengoPlano:SocioPlan ; family ; SocioPlan:family ;  ; false
+; FlamengoPlano:SocioPlan ; summary ; SocioPlan:summary ;  ; false
+; FlamengoPlano:SocioPlan ; benefits ; SocioPlan:benefits ;  ; false
+; FlamengoPlano:SocioPlan ; monthlyPrice ; SocioPlan:monthlyPrice ;  ; false
+; FlamengoPlano:SocioPlan ; ticketDiscount ; SocioPlan:ticketDiscount ;  ; false
+; FlamengoPlano:SocioPlan ; storeDiscount ; SocioPlan:storeDiscount ;  ; false
+; FlamengoPlano:SocioPlan ; wave ; SocioPlan:wave ;  ; false
+; FlamengoPlano:SocioPlan ; maxGuests ; SocioPlan:maxGuests ;  ; false
+; FlamengoPlano:SocioPlan ; guestPrice ; SocioPlan:guestPrice ;  ; false
+; FlamengoPlano:SocioPlan ; slots ; SocioPlan:slots ;  ; false
+; FlamengoPlano:SocioPlan ; sortOrder ; SocioPlan:sortOrder ;  ; false
+; FlamengoPlano:SocioPlan ; statusMessage ; SocioPlan:statusMessage ;  ; false
+; FlamengoPlano:SocioPlan ; promotionCode ; SocioPlan:promotionCode ;  ; false
+; FlamengoPlano:SocioPlan ; demoBase ; SocioPlan:demoBase ;  ; false
+; FlamengoPlano:SocioPlan ; status ; SocioPlan:status ; FlamengoPlano:SocioPlanStatus ; false
+; FlamengoPlano:SocioPlan ; customerGroup ; SocioPlan:customerGroup ; FlamengoPlano:UserGroup ; false
+; FlamengoPlano:SocioPlan ; pendingGroup ; SocioPlan:pendingGroup ; FlamengoPlano:UserGroup ; false
+; FlamengoPlano:SocioPlanStatus ; code ; SocioPlanStatus:code ;  ; true
+; FlamengoPlano:UserGroup ; uid ; UserGroup:uid ;  ; true
+; FlamengoPlano:UserGroup ; name ; UserGroup:name ;  ; false
+; FlamengoPlano:UserGroup ; members ; UserGroup:members ; FlamengoPlano:Principal ; false
+; FlamengoPlano:Principal ; uid ; Principal:uid ;  ; true
+; FlamengoPlano:Principal ; name ; Principal:name ;  ; false
+; FlamengoChamado:CsTicket ; ticketID ; CsTicket:ticketID ;  ; true
+; FlamengoChamado:CsTicket ; headline ; CsTicket:headline ;  ; false
+; FlamengoChamado:CsTicket ; creationtime ; CsTicket:creationtime ;  ; false
+; FlamengoChamado:CsTicket ; modifiedtime ; CsTicket:modifiedtime ;  ; false
+; FlamengoChamado:CsTicket ; state ; CsTicket:state ; FlamengoChamado:CsTicketState ; false
+; FlamengoChamado:CsTicket ; category ; CsTicket:category ; FlamengoChamado:CsTicketCategory ; false
+; FlamengoChamado:CsTicket ; priority ; CsTicket:priority ; FlamengoChamado:CsTicketPriority ; false
+; FlamengoChamado:CsTicket ; customer ; CsTicket:customer ; FlamengoChamado:User ; false
+; FlamengoChamado:CsTicketState ; code ; CsTicketState:code ;  ; true
+; FlamengoChamado:CsTicketCategory ; code ; CsTicketCategory:code ;  ; true
+; FlamengoChamado:CsTicketPriority ; code ; CsTicketPriority:code ;  ; true
+; FlamengoChamado:User ; uid ; User:uid ;  ; true
+; FlamengoChamado:User ; name ; User:name ;  ; false
+; FlamengoMensagem:CsTicketEvent ; code ; CsTicketEvent:code ;  ; true
+; FlamengoMensagem:CsTicketEvent ; subject ; CsTicketEvent:subject ;  ; false
+; FlamengoMensagem:CsTicketEvent ; text ; CsTicketEvent:text ;  ; false
+; FlamengoMensagem:CsTicketEvent ; creationtime ; CsTicketEvent:creationtime ;  ; false
+; FlamengoPedido:Order ; code ; Order:code ;  ; true
+; FlamengoPedido:Order ; versionID ; Order:versionID ;  ; true
+; FlamengoPedido:Order ; date ; Order:date ;  ; false
+; FlamengoPedido:Order ; totalPrice ; Order:totalPrice ;  ; false
+; FlamengoPedido:Order ; subtotal ; Order:subtotal ;  ; false
+; FlamengoPedido:Order ; totalDiscounts ; Order:totalDiscounts ;  ; false
+; FlamengoPedido:Order ; appliedCouponCodes ; Order:appliedCouponCodes ;  ; false
+; FlamengoPedido:Order ; status ; Order:status ; FlamengoPedido:OrderStatus ; false
+; FlamengoPedido:Order ; user ; Order:user ; FlamengoPedido:User ; false
+; FlamengoPedido:Order ; entries ; Order:entries ; FlamengoPedido:OrderEntry ; false
+; FlamengoPedido:OrderEntry ; order ; OrderEntry:order ; FlamengoPedido:Order ; true
+; FlamengoPedido:OrderEntry ; entryNumber ; OrderEntry:entryNumber ;  ; true
+; FlamengoPedido:OrderEntry ; quantity ; OrderEntry:quantity ;  ; false
+; FlamengoPedido:OrderEntry ; basePrice ; OrderEntry:basePrice ;  ; false
+; FlamengoPedido:OrderEntry ; totalPrice ; OrderEntry:totalPrice ;  ; false
+; FlamengoPedido:OrderEntry ; product ; OrderEntry:product ; FlamengoPedido:Product ; false
+; FlamengoPedido:Product ; code ; Product:code ;  ; true
+; FlamengoPedido:Product ; catalogVersion ; Product:catalogVersion ; FlamengoPedido:CatalogVersion ; true
+; FlamengoPedido:Product ; name ; Product:name ;  ; false
+; FlamengoPedido:CatalogVersion ; version ; CatalogVersion:version ;  ; true
+; FlamengoPedido:CatalogVersion ; catalog ; CatalogVersion:catalog ; FlamengoPedido:Catalog ; true
+; FlamengoPedido:Catalog ; id ; Catalog:id ;  ; true
+; FlamengoPedido:OrderStatus ; code ; OrderStatus:code ;  ; true
+; FlamengoPedido:User ; uid ; User:uid ;  ; true
+; FlamengoPedido:User ; name ; User:name ;  ; false
+; FlamengoJogo:MatchdayGame ; code ; MatchdayGame:code ;  ; true
+; FlamengoJogo:MatchdayGame ; opponent ; MatchdayGame:opponent ;  ; false
+; FlamengoJogo:MatchdayGame ; kickoff ; MatchdayGame:kickoff ;  ; false
+; FlamengoJogo:MatchdayGame ; competition ; MatchdayGame:competition ;  ; false
+; FlamengoJogo:MatchdayGame ; venue ; MatchdayGame:venue ;  ; false
+; FlamengoJogo:MatchdayGame ; presale ; MatchdayGame:presale ;  ; false
+; FlamengoJogo:MatchdayGame ; priceNorte ; MatchdayGame:priceNorte ;  ; false
+; FlamengoJogo:MatchdayGame ; priceSul ; MatchdayGame:priceSul ;  ; false
+; FlamengoJogo:MatchdayGame ; priceLeste ; MatchdayGame:priceLeste ;  ; false
+; FlamengoJogo:MatchdayGame ; priceOeste ; MatchdayGame:priceOeste ;  ; false
+; FlamengoJogo:MatchdayGame ; wave1Start ; MatchdayGame:wave1Start ;  ; false
+; FlamengoJogo:MatchdayGame ; wave2Start ; MatchdayGame:wave2Start ;  ; false
+; FlamengoJogo:MatchdayGame ; wave3Start ; MatchdayGame:wave3Start ;  ; false
+; FlamengoJogo:MatchdayGame ; generalSaleStart ; MatchdayGame:generalSaleStart ;  ; false
+; FlamengoJogo:MatchdayGame ; simulatedSoldPercent ; MatchdayGame:simulatedSoldPercent ;  ; false
+; FlamengoJogo:MatchdayGame ; statusMessage ; MatchdayGame:statusMessage ;  ; false
+; FlamengoJogo:MatchdayGame ; seatsTotal ; MatchdayGame:seatsTotal ;  ; false
+; FlamengoJogo:MatchdayGame ; seatsAvailable ; MatchdayGame:seatsAvailable ;  ; false
+; FlamengoJogo:MatchdayGame ; seatsSold ; MatchdayGame:seatsSold ;  ; false
+; FlamengoJogo:MatchdayGame ; status ; MatchdayGame:status ; FlamengoJogo:MatchdayGameStatus ; false
+; FlamengoJogo:MatchdayGameStatus ; code ; MatchdayGameStatus:code ;  ; true
+; FlamengoCupom:SingleCodeCoupon ; couponId ; SingleCodeCoupon:couponId ;  ; true
+; FlamengoCupom:SingleCodeCoupon ; name ; SingleCodeCoupon:name ;  ; false
+; FlamengoCupom:SingleCodeCoupon ; active ; SingleCodeCoupon:active ;  ; false
+; FlamengoCupom:SingleCodeCoupon ; maxRedemptionsPerCustomer ; SingleCodeCoupon:maxRedemptionsPerCustomer ;  ; false
+; FlamengoCupom:SingleCodeCoupon ; maxTotalRedemptions ; SingleCodeCoupon:maxTotalRedemptions ;  ; false
+; FlamengoCupom:SingleCodeCoupon ; startDate ; SingleCodeCoupon:startDate ;  ; false
+; FlamengoCupom:SingleCodeCoupon ; endDate ; SingleCodeCoupon:endDate ;  ; false
+; FlamengoCupomUso:CouponRedemption ; couponCode ; CouponRedemption:couponCode ;  ; true
+; FlamengoCupomUso:CouponRedemption ; order ; CouponRedemption:order ; FlamengoCupomUso:AbstractOrder ; true
+; FlamengoCupomUso:CouponRedemption ; creationtime ; CouponRedemption:creationtime ;  ; false
+; FlamengoCupomUso:CouponRedemption ; user ; CouponRedemption:user ; FlamengoCupomUso:User ; false
+; FlamengoCupomUso:AbstractOrder ; code ; AbstractOrder:code ;  ; true
+; FlamengoCupomUso:AbstractOrder ; date ; AbstractOrder:date ;  ; false
+; FlamengoCupomUso:AbstractOrder ; totalPrice ; AbstractOrder:totalPrice ;  ; false
+; FlamengoCupomUso:User ; uid ; User:uid ;  ; true
+; FlamengoCupomUso:User ; name ; User:name ;  ; false
+; FlamengoTorcedor:Customer ; uid ; Customer:uid ;  ; true
+; FlamengoTorcedor:Customer ; name ; Customer:name ;  ; false
+; FlamengoTorcedor:Customer ; customerID ; Customer:customerID ;  ; false
+; FlamengoTorcedor:Customer ; creationtime ; Customer:creationtime ;  ; false
+; FlamengoTorcedor:Customer ; groups ; Customer:groups ; FlamengoTorcedor:PrincipalGroup ; false
+; FlamengoTorcedor:PrincipalGroup ; uid ; PrincipalGroup:uid ;  ; true
+; FlamengoTorcedor:PrincipalGroup ; name ; PrincipalGroup:name ;  ; false
+
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+; FlamengoPlano ; BASIC
+; FlamengoChamado ; BASIC
+; FlamengoMensagem ; BASIC
+; FlamengoPedido ; BASIC
+; FlamengoJogo ; BASIC
+; FlamengoCupom ; BASIC
+; FlamengoCupomUso ; BASIC
+; FlamengoTorcedor ; BASIC
+
+INSERT_UPDATE UserGroup; uid[unique = true]; name; groups(uid)
+; socioapigroup ; Gestor do sócio-torcedor - API (MCP) ; integrationviewgroup,integrationcreategroup
+; jogosapigroup ; Gestor de jogos - API (MCP) ; integrationviewgroup,integrationcreategroup
+
+UPDATE Employee; uid[unique = true]; groups(uid)[mode = append]
+; gestor.socio ; socioapigroup
+; gestor.jogos ; jogosapigroup
+
+$START_USERRIGHTS
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+UserGroup;socioapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;SocioPlan;+;+;-;-;-
+;;;;SocioPlanStatus;+;-;-;-;-
+;;;;UserGroup;+;-;-;-;-
+;;;;Principal;+;-;-;-;-
+;;;;PrincipalGroup;+;-;-;-;-
+;;;;CsTicket;+;+;-;-;-
+;;;;CsTicketState;+;-;-;-;-
+;;;;CsTicketCategory;+;-;-;-;-
+;;;;CsTicketPriority;+;-;-;-;-
+;;;;User;+;-;-;-;-
+;;;;Customer;+;-;-;-;-
+;;;;CsTicketEvent;+;-;-;-;-
+;;;;Order;+;-;-;-;-
+;;;;AbstractOrder;+;-;-;-;-
+;;;;OrderEntry;+;-;-;-;-
+;;;;Product;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;OrderStatus;+;-;-;-;-
+;;;;SingleCodeCoupon;+;+;-;-;-
+;;;;CouponRedemption;+;-;-;-;-
+UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;MatchdayGame;+;+;+;-;-
+;;;;MatchdayGameStatus;+;-;-;-;-
+;;;;Order;+;-;-;-;-
+;;;;OrderEntry;+;-;-;-;-
+;;;;Product;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;OrderStatus;+;-;-;-;-
+;;;;User;+;-;-;-;-
+$END_USERRIGHTS
