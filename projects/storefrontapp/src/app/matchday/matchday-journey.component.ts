@@ -631,7 +631,15 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
             .map((seat) => this.data.matchCodeOfSeat(seat))
             .find((c) => !!c && catalog.matches.some((m) => m.code === c));
           if (code) {
+            // retoma a jornada quando as poltronas desse jogo chegarem
             this.loadSeats(code);
+          } else {
+            // sem poltrona no carrinho (por exemplo, a reserva venceu):
+            // estacionamento, comidas e camisa que ficaram nele aparecem no
+            // resumo. Navegando pela loja, o carrinho já está carregado e chega
+            // antes da lista de jogos; só na carga da página (Ctrl+F5) ele
+            // chegava depois e o resumo era montado.
+            this.restoreHold(entries);
           }
         })
     );
