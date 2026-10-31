@@ -94,6 +94,53 @@ export const ptProduto: TranslationResources = {
         addOneMore: 'Mais um',
         quantity: 'Quantidade',
       },
+      // página de busca e de categoria
+      productList: {
+        filterBy: {
+          label: 'Filtrar por',
+          action: 'Filtrar por',
+        },
+        activeFilter: 'Filtro {{filter}}; clique para remover o filtro',
+        appliedFilter: 'Filtro aplicado:',
+        showLess: 'Ver menos...',
+        showMore: 'Ver mais...',
+        sortBy: 'Ordenar por',
+        sortResults: 'Ordenar resultados',
+        backToTopBtn: 'VOLTAR AO TOPO',
+        showMoreBtn: 'VER MAIS',
+        productSearchPagination: 'Paginação da busca de produtos',
+        productListResults: 'Lista de produtos encontrados',
+      },
+      productFacetNavigation: {
+        filterBy: {
+          label: 'Filtrar por',
+          action: 'Filtrar por',
+          facet: 'Filtrar resultados',
+          name: 'Filtrar por {{name}}',
+        },
+        appliedFilter: 'Filtro aplicado:',
+        showLess: 'Ver menos...',
+        showMore: 'Ver mais...',
+        sortBy: 'Ordenar por',
+        ariaLabelShowLess:
+          'Ver menos; mostra menos opções do grupo selecionado',
+        ariaLabelShowMore:
+          'Ver mais; mostra todas as opções do grupo selecionado',
+        ariaLabelItemsAvailable:
+          '{{name}}, {{state}} {{count}} item disponível',
+        ariaLabelItemsAvailable_other:
+          '{{name}}, {{state}} {{count}} itens disponíveis',
+        decreaseOptionsVisibility:
+          'Algumas opções do grupo foram ocultadas; volte com Tab para lê-las ou avance para o próximo grupo',
+        increaseOptionsVisibility:
+          'Mais opções foram adicionadas ao grupo; volte com Tab para lê-las ou avance para o próximo grupo',
+        backToResults: 'Voltar aos resultados',
+        productFacets: 'Filtros de produtos',
+      },
+      productView: {
+        gridView: 'Mostrar em grade',
+        listView: 'Mostrar em lista',
+      },
     },
     pickupInStore: {
       pickupOptions: {
@@ -155,7 +202,12 @@ export const ptProduto: TranslationResources = {
       },
     },
     common: {
-      common: { search: 'Buscar' },
+      common: {
+        search: 'Buscar',
+        expand: 'Expandir',
+        collapse: 'Recolher',
+        selected: 'Selecionado',
+      },
       searchBox: {
         placeholder: 'Busque por produto ou código',
         productSearch: 'Encontre um produto',

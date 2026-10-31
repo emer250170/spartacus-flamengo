@@ -116,7 +116,7 @@ async () => {
 - Groovy do HAC: `Date.format(...)` não existe, usar `java.text.SimpleDateFormat`.
 - ImpEx com `$` (macros, `$START_USERRIGHTS`): passar o texto em base64 e importar
   com `ImportConfig` + `importService.importData`, para evitar escape.
-- Texto com acento dentro do Groovy: usar `á` etc. quando montado por código.
+- Texto com acento dentro do Groovy montado por código: usar escapes Unicode (`\u00e1` para á, `\u00e7` para ç).
 
 ## Integration API (OData) e MCP
 
