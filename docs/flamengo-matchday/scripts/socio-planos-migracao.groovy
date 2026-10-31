@@ -32,7 +32,7 @@ def en = Locale.ENGLISH
 def log = []
 def one = { String q, Map p = [:] -> def r = fs.search(new FlexibleSearchQuery(q, p)).result; r ? r[0] : null }
 def product = { String code -> one('SELECT {pk} FROM {Product} WHERE {code}=?c AND {catalogVersion}=?cv', [c: code, cv: online]) }
-def bk = new File('/backup/antes-socio-planos-' + new Date().format('yyyyMMdd-HHmm'))
+def bk = new File('/backup/antes-socio-planos-' + new java.text.SimpleDateFormat('yyyyMMdd-HHmm').format(new Date()))
 bk.mkdirs()
 
 def impex = { List<String> lines ->

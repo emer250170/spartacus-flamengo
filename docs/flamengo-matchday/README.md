@@ -316,6 +316,7 @@ O gestor do programa cria e mantém os planos no Backoffice, sem script. A loja 
 Deploy (nesta ordem):
 1. `ant all` e reiniciar (Java e `items.xml` novos).
 2. HAC › Platform › Update: **Update running system** + **Localize types**.
+   - **Reiniciar de novo depois do update.** Tipo novo (`SocioPlan`) que não existia no start fica sem interceptor e sem rótulos no Backoffice até o próximo restart (em 30/10 o interceptor foi registrado em memória pelo HAC: `interceptorRegistry.registerInterceptor(socioPlanInterceptorMapping)`).
 3. HAC › Console: rodar `scripts/socio-planos-migracao.groovy` em modo commit.
 4. Backoffice › F4 › ☰ › os dois *Reset to Defaults* (widgets.xml e cockpit-config.xml) e entrar de novo.
 5. Publicar a loja (`publicar-flamengo.sh`).

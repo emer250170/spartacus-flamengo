@@ -432,7 +432,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 		final ItemModel oneTime = modelService.create("OneTimeChargeEntry");
 		modelService.setAttributeValue(oneTime, "id", code + "-adesao");
 		modelService.setAttributeValue(oneTime, "name", localized("1ª mensalidade", "1st monthly fee"));
-		modelService.setAttributeValue(oneTime, "billingEvent", item("SELECT {pk} FROM {BillingEvent} WHERE {code}='paynow'"));
+		modelService.setAttributeValue(oneTime, "billingEvent", (Object) item("SELECT {pk} FROM {BillingEvent} WHERE {code}='paynow'"));
 		modelService.setAttributeValue(oneTime, "price", Double.valueOf(price));
 		modelService.setAttributeValue(oneTime, "subscriptionPricePlanOneTime", plan);
 		modelService.save(oneTime);
@@ -631,7 +631,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 			}
 			final Object result = compile.invoke(maintenance, Collections.singletonList(rule), RULE_MODULE, Boolean.TRUE);
 			modelService.refresh(rule);
-			modelService.setAttributeValue(rule, "status", enumerationService.getEnumerationValue("RuleStatus", "PUBLISHED"));
+			modelService.setAttributeValue(rule, "status", (Object) enumerationService.getEnumerationValue("RuleStatus", "PUBLISHED"));
 			modelService.save(rule);
 			LOG.info("Promoção {} publicada: {}", code, result);
 		}
