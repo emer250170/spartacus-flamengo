@@ -81,6 +81,10 @@
               <strong>{{ plan.discount }}%</strong>
               <span>{{ 'st.offFull' | flaT }}</span>
             </li>
+            <li *ngIf="plan.storeDiscount">
+              <strong>{{ plan.storeDiscount }}%</strong>
+              <span>{{ 'st.offStore' | flaT }}</span>
+            </li>
             <li *ngIf="plan.wave; else noPriority">
               <strong>{{ 'wave.n' | flaT: { n: plan.wave } }}</strong>
               <span>{{ 'st.priority' | flaT }}</span>

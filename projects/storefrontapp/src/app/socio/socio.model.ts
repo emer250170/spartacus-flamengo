@@ -4,14 +4,14 @@
  * Os planos são produtos de assinatura do SAP Commerce (categoria
  * socio_torcedor, preço no plano de preço da assinatura). Os usuários de
  * negócio criam e editam quantos planos quiserem no Backoffice: as regras de
- * cada plano (onda, desconto, convidados, grupos de clientes, família e ordem)
+ * cada plano (onda, descontos, convidados, grupos de clientes, família e ordem)
  * vêm num marcador no fim da descrição do produto:
  *
- *   <ul><li>benefício</li></ul><!--socio-plan {"wave":1,"discount":75,...}-->
+ *   <ul><li>benefício</li></ul><!--socio-plan {"wave":1,"discount":75,"storeDiscount":10,...}-->
  *
  * Quem compra um plano entra no grupo de clientes do plano (passo
  * completeOrder do order-process) e as promoções do SAP Commerce dão o
- * desconto no ingresso. Produto da categoria sem o marcador é complemento de
+ * desconto no ingresso e nos produtos da loja. Produto da categoria sem o marcador é complemento de
  * convidado (NACAO-CONVIDADO-60/35), não plano.
  */
 
@@ -31,6 +31,11 @@ export interface SocioPlan {
   maxGuests: number;
   /** % de desconto na inteira (0 = sem desconto) */
   discount: number;
+  /**
+   * % de desconto nos produtos da loja (0 = sem desconto); não vale para
+   * alimentos e bebidas, estacionamento, planos e ingressos
+   */
+  storeDiscount: number;
   /** Onda de vendas do titular: 1 a 3, ou 0 = sem prioridade (venda geral) */
   wave: number;
   /** Grupo de clientes de quem tem o plano */
@@ -53,6 +58,7 @@ export interface SocioGuest {
 export interface SocioPlanRules {
   wave: number;
   discount: number;
+  storeDiscount: number;
   maxGuests: number;
   guest: string;
   group: string;

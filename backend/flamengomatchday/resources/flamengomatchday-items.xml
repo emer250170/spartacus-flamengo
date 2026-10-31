@@ -172,6 +172,10 @@
 					<description>Desconto na inteira (%)</description>
 					<persistence type="property"/>
 				</attribute>
+				<attribute qualifier="storeDiscount" type="java.lang.Integer">
+					<description>Desconto nos produtos da loja (%); não vale para alimentos e bebidas, estacionamento, planos e ingressos</description>
+					<persistence type="property"/>
+				</attribute>
 				<attribute qualifier="wave" type="java.lang.Integer">
 					<description>Onda de compra de ingressos: 1, 2 ou 3; 0 = sem prioridade (venda geral)</description>
 					<persistence type="property"/>
