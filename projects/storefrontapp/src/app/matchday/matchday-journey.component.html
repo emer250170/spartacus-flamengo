@@ -161,6 +161,11 @@
           >
             <h2 id="md-s2" class="md-h2">{{ 'md.s2.title' | flaT }}</h2>
             <p class="md-muted">{{ match.title }} · {{ matchLine }}</p>
+            <fla-matchday-stadium-map
+              [sectors]="stadiumSectors"
+              [fieldLabel]="'md.field' | flaT"
+              (pick)="pickSector($event)"
+            ></fla-matchday-stadium-map>
             <div class="md-sectors">
               <button
                 type="button"

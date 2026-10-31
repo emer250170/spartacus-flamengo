@@ -1,0 +1,146 @@
+// Mapa do Maracanã (escolha do setor). Cores herdadas da jornada (--md-*).
+:host {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.sm {
+  padding: 16px;
+  border: 1px solid var(--md-line, #2e2e33);
+  border-radius: 10px;
+  background: var(--md-bg, #0b0b0c);
+}
+
+.sm-svg {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  margin: 0 auto;
+  font-family: inherit;
+  user-select: none;
+}
+
+.sm-shell {
+  fill: #121214;
+  stroke: var(--md-line, #2e2e33);
+  stroke-width: 2;
+}
+
+// ---------- setores ----------
+.sm-sector {
+  cursor: pointer;
+  outline: none;
+
+  .sm-area {
+    stroke: #0b0b0c;
+    stroke-width: 2;
+    transition: fill 0.15s ease, filter 0.15s ease;
+  }
+  text {
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .sm-name {
+    fill: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .sm-price {
+    fill: #fff;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  &.is-free .sm-area {
+    fill: var(--md-red-dark, #b40000);
+  }
+  &.is-low .sm-area {
+    fill: #b45309;
+  }
+  &.is-selected .sm-area {
+    fill: var(--md-red, #d70000);
+    stroke: #fff;
+    stroke-width: 3;
+  }
+  &.is-soldout {
+    cursor: not-allowed;
+    .sm-area {
+      fill: #3f3f46;
+    }
+    text {
+      fill: #a1a1aa;
+    }
+  }
+
+  &:not(.is-soldout):hover .sm-area {
+    filter: brightness(1.2);
+  }
+  &:focus-visible .sm-area {
+    stroke: #fff;
+    stroke-width: 3;
+  }
+}
+
+// ---------- gramado ----------
+.sm-pitch-bg {
+  fill: #14532d;
+}
+.sm-pitch {
+  rect,
+  line,
+  circle {
+    fill: none;
+    stroke: #bbf7d0;
+    stroke-width: 1.5;
+    opacity: 0.7;
+  }
+  text {
+    fill: #dcfce7;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-anchor: middle;
+    opacity: 0.6;
+  }
+}
+
+// ---------- legenda ----------
+.sm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--md-muted, #a1a1aa);
+  font-size: 13px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+.sm-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+
+  &.is-free {
+    background: var(--md-red-dark, #b40000);
+  }
+  &.is-low {
+    background: #b45309;
+  }
+  &.is-selected {
+    background: var(--md-red, #d70000);
+    outline: 2px solid #fff;
+  }
+  &.is-soldout {
+    background: #3f3f46;
+  }
+}

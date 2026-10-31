@@ -8,6 +8,7 @@ import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
 import { MatchdayJourneyComponent } from './matchday-journey.component';
 import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmation.component';
+import { MatchdayStadiumMapComponent } from './matchday-stadium-map.component';
 
 /**
  * Protótipo "jornada única de matchday" do Flamengo.
@@ -29,6 +30,7 @@ import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmatio
     MatchdayJourneyComponent,
     MatchdayHomeBannerComponent,
     MatchdayOrderConfirmationComponent,
+    MatchdayStadiumMapComponent,
   ],
   providers: [
     provideConfig(<CmsConfig>{
