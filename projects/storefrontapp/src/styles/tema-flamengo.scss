@@ -103,12 +103,31 @@ header cx-mini-cart a {
 }
 
 // selo de sócio-torcedor (fla-socio-badge, outlet do slot SiteLogin):
-// no desktop fica à esquerda do "Olá, Fulano"; no menu do celular, acima
+// no desktop fica acima do "Olá, Fulano", em coluna estreita; no menu do
+// celular, também acima.
+// MEDIDO: com selo e saudação lado a lado o slot ia a 335px e a linha
+// logo + busca + login + carrinho passava dos 1120px do cabeçalho, jogando
+// o carrinho para baixo do logo (de ~1250px de largura para cima).
+// Em coluna o slot fica com ~185px; a busca também pode encolher.
 @media (min-width: 992px) {
   header cx-page-slot.SiteLogin {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+  }
+  header cx-page-slot.SiteLogin > * {
+    flex: none;
+    width: auto !important;
+  }
+  header cx-page-slot.SearchBox {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  header cx-page-slot.MiniCart {
+    flex: none;
   }
 }
 @media (max-width: 991.98px) {
