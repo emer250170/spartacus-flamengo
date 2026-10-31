@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -44,7 +46,27 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DefaultSocioReportService implements SocioReportService
 {
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultSocioReportService.class);
 	private static final ZoneId ZONE = ZoneId.of("America/Sao_Paulo");
+	/** Assunto dos chamados de cancelamento abertos na loja (SocioAccountService no Spartacus) */
+	private static final String CANCEL_SUBJECT = "Cancelamento do plano";
+	/** Quantos pedidos de cancelamento listar no painel */
+	private static final int CANCEL_LIST = 10;
+	/** Motivos do formulário de cancelamento da loja (pt e en) → chave */
+	private static final Map<String, String> CANCEL_REASONS = new HashMap<>();
+	static
+	{
+		CANCEL_REASONS.put("o valor ficou alto", "price");
+		CANCEL_REASONS.put("it got too expensive", "price");
+		CANCEL_REASONS.put("não estou indo aos jogos", "games");
+		CANCEL_REASONS.put("i am not going to the games", "games");
+		CANCEL_REASONS.put("vou me mudar", "moving");
+		CANCEL_REASONS.put("i am moving", "moving");
+		CANCEL_REASONS.put("insatisfeito com o atendimento", "service");
+		CANCEL_REASONS.put("unhappy with the service", "service");
+		CANCEL_REASONS.put("outro motivo", "other");
+		CANCEL_REASONS.put("other reason", "other");
+	}
 	/** Convidados por titular, pelo máximo de convidados do plano (proporções do painel do clube) */
 	private static final double[] GUEST_FILL = { 0, 0.18, 0.685, 0.873 };
 	/** Peso de cada hora do dia nas adesões (pico de manhã, com campanha às 9h, e à noite) */
@@ -326,7 +348,112 @@ public class DefaultSocioReportService implements SocioReportService
 			}
 		}
 		report.states.sort((a, b) -> Integer.compare(b.count, a.count));
+		addCancellations(report, local);
 		return report;
+	}
+
+	// ------------------------------------------------------------ cancelamentos (chamados de atendimento)
+
+	/**
+	 * Pedidos de cancelamento feitos na loja: chamados "Cancelamento do plano X"
+	 * (sistema de tickets). A 1ª mensagem do chamado traz o motivo
+	 * ("Motivo: ..."), o comentário opcional e o plano. Se o sistema de tickets
+	 * não responder, o painel segue sem o quadro.
+	 */
+	protected void addCancellations(final SocioReport report, final LocalDateTime now)
+	{
+		try
+		{
+			final FlexibleSearchQuery tickets = new FlexibleSearchQuery(
+					"SELECT {t.ticketID}, {t.headline}, {t.creationtime}, {s.code}, {u.uid}, {u.name} FROM {CsTicket AS t"
+							+ " JOIN CsTicketState AS s ON {t.state}={s.pk} LEFT JOIN User AS u ON {t.customer}={u.pk}}"
+							+ " WHERE {t.headline} LIKE ?subject ORDER BY {t.creationtime} DESC");
+			tickets.addQueryParameter("subject", CANCEL_SUBJECT + "%");
+			tickets.setResultClassList(Arrays.asList(String.class, String.class, Date.class, String.class, String.class, String.class));
+			final Date monthStart = toDate(now.toLocalDate().withDayOfMonth(1));
+			final Map<String, Integer> reasons = new HashMap<>();
+			for (final List<Object> row : flexibleSearchService.<List<Object>> search(tickets).getResult())
+			{
+				final SocioReport.Cancellation c = new SocioReport.Cancellation();
+				c.ticketId = (String) row.get(0);
+				c.plan = StringUtils.trimToNull(StringUtils.removeStart(StringUtils.defaultString((String) row.get(1)), CANCEL_SUBJECT));
+				c.created = (Date) row.get(2);
+				c.open = !"closed".equalsIgnoreCase((String) row.get(3));
+				c.customerUid = (String) row.get(4);
+				c.customerName = StringUtils.defaultIfBlank((String) row.get(5), c.customerUid);
+				readCancelMessage(c);
+
+				report.cancelTotal++;
+				if (c.open)
+				{
+					report.cancelOpen++;
+				}
+				if (c.created != null && !c.created.before(monthStart))
+				{
+					report.cancelMonth++;
+				}
+				final String reasonKey = c.reasonKey != null ? c.reasonKey : StringUtils.defaultIfBlank(c.reason, "other");
+				reasons.merge(reasonKey, Integer.valueOf(1), (a, b) -> Integer.valueOf(a.intValue() + b.intValue()));
+				if (report.cancellations.size() < CANCEL_LIST)
+				{
+					report.cancellations.add(c);
+				}
+			}
+			reasons.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue().intValue(), a.getValue().intValue()))
+					.forEach(e -> report.cancelReasons.put(e.getKey(), e.getValue()));
+		}
+		catch (final RuntimeException e)
+		{
+			LOG.warn("Relatório do sócio: não foi possível ler os pedidos de cancelamento: {}", e.getMessage());
+		}
+	}
+
+	/** Motivo, comentário e plano a partir da 1ª mensagem do chamado */
+	protected void readCancelMessage(final SocioReport.Cancellation c)
+	{
+		final FlexibleSearchQuery events = new FlexibleSearchQuery(
+				"SELECT {e.text} FROM {CsTicketEvent AS e JOIN CommentItemRelation AS r ON {r.source}={e.pk}"
+						+ " JOIN CsTicket AS t ON {r.target}={t.pk}} WHERE {t.ticketID}=?id"
+						+ " ORDER BY {e.creationtime} ASC");
+		events.addQueryParameter("id", c.ticketId);
+		events.setResultClassList(Arrays.asList(String.class));
+		events.setCount(1);
+		final List<String> texts = flexibleSearchService.<String> search(events).getResult();
+		final String text = texts.isEmpty() ? null : texts.get(0);
+		if (StringUtils.isBlank(text))
+		{
+			return;
+		}
+		final List<String> lines = new ArrayList<>();
+		for (final String line : text.split("\\r?\\n"))
+		{
+			if (StringUtils.isNotBlank(line))
+			{
+				lines.add(line.trim());
+			}
+		}
+		if (lines.isEmpty())
+		{
+			return;
+		}
+		int first = 0;
+		final String head = lines.get(0);
+		if (head.matches("(?i)^(motivo|reason)\\s*:.*"))
+		{
+			c.reason = StringUtils.trimToNull(StringUtils.substringAfter(head, ":"));
+			c.reasonKey = c.reason == null ? null : CANCEL_REASONS.get(c.reason.toLowerCase(new Locale("pt")));
+			first = 1;
+		}
+		// última linha: "Plano (CÓDIGO) · Sócio desde dd/mm/aaaa"; o que fica no meio é o comentário
+		int last = lines.size();
+		if (last > first && lines.get(last - 1).contains("·"))
+		{
+			last--;
+		}
+		if (last > first)
+		{
+			c.comment = String.join(" ", lines.subList(first, last));
+		}
 	}
 
 	// ------------------------------------------------------------ dados reais da loja

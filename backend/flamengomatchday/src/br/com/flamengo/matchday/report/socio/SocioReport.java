@@ -2,7 +2,9 @@ package br.com.flamengo.matchday.report.socio;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -58,6 +60,19 @@ public class SocioReport
 	public final List<Join> joinsByPlan = new ArrayList<>();
 	/** Top 10 estados das adesões Nação Sem Fronteiras no mês */
 	public final List<State> states = new ArrayList<>();
+
+	// ------------------------------------------------------------ cancelamentos pedidos na loja (reais)
+	/**
+	 * Chamados de atendimento "Cancelamento do plano ..." abertos pelos sócios em
+	 * Minha conta › Meu sócio-torcedor.
+	 */
+	public int cancelOpen;
+	public int cancelMonth;
+	public int cancelTotal;
+	/** Motivo (price, games, moving, service, other ou o texto livre) → pedidos, do mais citado ao menos */
+	public final Map<String, Integer> cancelReasons = new LinkedHashMap<>();
+	/** Últimos pedidos (mais novos primeiro) */
+	public final List<Cancellation> cancellations = new ArrayList<>();
 
 	// ------------------------------------------------------------ origem dos números
 	public int realMembers;
@@ -133,6 +148,22 @@ public class SocioReport
 		{
 			return lastMonth == 0 ? 0 : (month - lastMonth) / (double) lastMonth;
 		}
+	}
+
+	public static class Cancellation
+	{
+		public String ticketId;
+		public Date created;
+		public String customerName;
+		public String customerUid;
+		public String plan;
+		/** price, games, moving, service, other; null quando o texto não é um motivo conhecido */
+		public String reasonKey;
+		/** Texto do motivo como o sócio viu */
+		public String reason;
+		public String comment;
+		/** Chamado ainda não fechado */
+		public boolean open;
 	}
 
 	public static class State
