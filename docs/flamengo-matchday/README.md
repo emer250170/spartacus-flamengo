@@ -150,11 +150,11 @@ segurança.
 
 ### Deploy da extensão
 
-No servidor (host do Docker), com o repositório atualizado na branch `matchday`:
+No servidor (host do Docker), com o repositório atualizado na branch `flamengo`:
 
 ```bash
 cd <pasta do repositório>
-git fetch origin && git checkout matchday && git pull
+git fetch origin && git checkout flamengo && git pull
 ./backend/deploy-flamengomatchday.sh          # container "flamengo"
 ```
 
@@ -188,6 +188,12 @@ Quando o HAC voltar:
 
 Para atualizar depois: rodar o script de novo e reiniciar; o Update só é
 necessário quando o `flamengomatchday-items.xml` mudar.
+
+**Atualizar sem acesso ao servidor (pelo HAC):** `backend/hac-deploy/gerar.py`
+gera um Groovy que confere o md5 dos arquivos no servidor, faz backup da
+extensão em `/backup/flamengomatchday-antes-<rótulo>-<data>/fontes.tgz`, grava
+só os arquivos alterados e confere o md5 final. Depois basta parar o servidor,
+`ant all` e subir. Detalhes em `backend/hac-deploy/README.md`.
 
 Para remover: tirar a linha do `localextensions.xml`, `ant all`, reiniciar e
 desativar o gatilho do `seatHoldExpiryCronJob`; a reserva volta a acontecer só na
