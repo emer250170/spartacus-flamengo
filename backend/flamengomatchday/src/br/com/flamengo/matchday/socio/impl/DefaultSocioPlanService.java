@@ -254,6 +254,35 @@ public class DefaultSocioPlanService implements SocioPlanService
 		LOG.info("Pedido {}: {} agora é sócio {}", order.getCode(), customer.getUid(), best.getCode());
 	}
 
+	@Override
+	public List<String> removeMembership(final CustomerModel customer)
+	{
+		final List<String> removed = new ArrayList<>();
+		if (customer == null || customer.getGroups() == null || customer.getGroups().isEmpty())
+		{
+			return removed;
+		}
+		final Set<PrincipalGroupModel> groups = new HashSet<>(customer.getGroups());
+		boolean changed = false;
+		for (final SocioPlanModel plan : getPlans())
+		{
+			if (plan.getCustomerGroup() != null && groups.remove(plan.getCustomerGroup()))
+			{
+				removed.add(plan.getCode());
+				changed = true;
+			}
+			if (plan.getPendingGroup() != null && groups.remove(plan.getPendingGroup()))
+			{
+				changed = true;
+			}
+		}
+		if (changed)
+		{
+			customer.setGroups(groups);
+		}
+		return removed;
+	}
+
 	/** Onda 1 primeiro; sem prioridade (0) por último */
 	protected static int waveRank(final SocioPlanModel plan)
 	{

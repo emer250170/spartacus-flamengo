@@ -129,6 +129,14 @@
 		<property name="interceptor" ref="socioPlanInterceptor"/>
 		<property name="typeCode" value="SocioPlan"/>
 	</bean>
+	<!-- Cancelamento: atendimento fecha o chamado "Cancelamento do plano ..." e o torcedor deixa de ser sócio -->
+	<bean id="socioCancelTicketInterceptor" class="br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor">
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
+	<bean id="socioCancelTicketInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="socioCancelTicketInterceptor"/>
+		<property name="typeCode" value="CsTicket"/>
+	</bean>
 	<bean id="socioPlanMembersHandler" class="br.com.flamengo.matchday.socio.SocioPlanMembersAttributeHandler">
 		<property name="socioPlanService" ref="socioPlanService"/>
 	</bean>

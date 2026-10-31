@@ -40,4 +40,12 @@ public interface SocioPlanService
 
 	/** Titulares ativos (no grupo do plano e sem o marcador de carrinho) */
 	int countMembers(SocioPlanModel plan);
+
+	/**
+	 * Cancelamento confirmado: tira o torcedor dos grupos de todos os planos (e
+	 * dos grupos de plano no carrinho). Não salva o cliente.
+	 *
+	 * @return códigos dos planos de que ele era sócio (vazio se não era)
+	 */
+	List<String> removeMembership(de.hybris.platform.core.model.user.CustomerModel customer);
 }
