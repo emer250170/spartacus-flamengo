@@ -91,7 +91,7 @@
               <dd>{{ date(ended.closedAt) }}</dd>
             </div>
             <div>
-              <dt>{{ 'sa.monthly' | flaT }}</dt>
+              <dt>{{ (ended ? 'sa.monthlyLast' : 'sa.monthly') | flaT }}</dt>
               <dd>
                 {{ brl(monthly) }}
                 <small *ngIf="guests">{{
