@@ -19,11 +19,14 @@ import {
   Observable,
   Subscription,
   combineLatest,
+  concat,
+  defer,
   interval,
+  of,
   raceWith,
   timer,
 } from 'rxjs';
-import { filter, map, switchMap, take } from 'rxjs/operators';
+import { filter, last, map, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { SocioPlan, WaveStatus } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
@@ -91,6 +94,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   food: Record<string, number> = {};
   foodDelivery: 'seat' | 'pickup' = 'seat';
   addShirt = false;
+  /** Quantidade da camisa (1 na jornada; mais se já havia mais no carrinho) */
+  shirtQty = 1;
   shirtSize = 'M';
   shirtName = '';
   shirtNumber = '';
@@ -115,6 +120,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   socioPlans: SocioPlan[] = [];
   /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
   protected requestedMatch?: string;
+
+  /** Itens atuais do carrinho (base para ajustar o carrinho no fechamento) */
+  protected cartEntries: OrderEntry[] = [];
+  /** Estacionamento, comidas e camisa já lidos do carrinho nesta visita */
+  protected extrasRestored = false;
 
   private subscription = new Subscription();
 
@@ -158,6 +168,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     // e depois o busca de novo
     this.subscription.add(
       this.loadedEntries().subscribe((entries) => {
+        this.cartEntries = entries;
         this.dropRemovedHold(entries);
         this.restoreHold(entries);
       })
@@ -670,12 +681,81 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           this.seat = seat.label;
           this.ticketCode = seat.code;
           this.seatMap = this.buildSeatMap(sector);
+          this.restoreExtras(entries);
           this.tick();
           this.cd.markForCheck();
           return;
         }
       }
     }
+    // sem poltrona no carrinho: os outros itens da jornada que ficaram nele
+    // também aparecem (e não somem no fechamento)
+    this.restoreExtras(entries);
+    this.cd.markForCheck();
+  }
+
+  /**
+   * Na volta para a jornada (por exemplo, depois de ir ao pagamento), o resumo
+   * "Seu pedido" passa a refletir o carrinho: estacionamento, comidas e camisa
+   * que já estão nele. Placa, entrega das comidas e nome/número da camisa vêm
+   * da última escolha salva para o mesmo jogo.
+   */
+  protected restoreExtras(entries: OrderEntry[]): void {
+    const catalog = this.catalog;
+    if (!catalog || this.extrasRestored) {
+      return;
+    }
+    this.extrasRestored = true;
+    const inCart = this.quantitiesInCart(entries);
+    const saved = this.data.readSelection();
+    const sameMatch = !!saved && saved.matchCode === this.match?.code;
+
+    const parking = catalog.parking.find((p) => inCart.has(p.code));
+    if (parking) {
+      this.parking = parking.code;
+      if (sameMatch && saved?.parkingCode === parking.code && saved.plate) {
+        this.plate = saved.plate;
+      }
+    }
+
+    const food: Record<string, number> = {};
+    for (const item of catalog.food) {
+      const q = inCart.get(item.code) ?? 0;
+      if (q > 0) {
+        food[item.code] = q;
+      }
+    }
+    if (Object.keys(food).length) {
+      this.food = food;
+      if (sameMatch && saved) {
+        this.foodDelivery = saved.foodDelivery;
+      }
+    }
+
+    const shirt = catalog.shirt;
+    const size = shirt?.sizes.find((s) => inCart.has(s.code));
+    if (shirt && size) {
+      this.addShirt = true;
+      this.shirtSize = size.label;
+      this.shirtQty = inCart.get(size.code) ?? 1;
+      const pers = shirt.personalization;
+      if (pers && inCart.has(pers.code) && sameMatch && saved) {
+        this.shirtName = saved.shirtName ?? '';
+        this.shirtNumber = saved.shirtNumber ?? '';
+      }
+    }
+  }
+
+  /** Quantidade de cada produto no carrinho (soma das linhas do mesmo produto) */
+  protected quantitiesInCart(entries: OrderEntry[]): Map<string, number> {
+    const result = new Map<string, number>();
+    for (const e of entries) {
+      const code = e.product?.code;
+      if (code) {
+        result.set(code, (result.get(code) ?? 0) + (e.quantity ?? 0));
+      }
+    }
+    return result;
   }
 
   /**
@@ -872,9 +952,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     const shirt = this.catalog?.shirt;
     if (this.addShirt && shirt) {
       lines.push({
-        label: shirt.name,
+        label:
+          this.shirtQty > 1 ? `${this.shirtQty}x ${shirt.name}` : shirt.name,
         detail: this.i18n.t('md.line.size', { size: this.shirtSize }),
-        price: shirt.price,
+        price: this.shirtQty * shirt.price,
       });
       if (this.hasPersonalization && shirt.personalization) {
         lines.push({
@@ -895,7 +976,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     let count = this.sector ? 1 : 0;
     count += this.parkingProduct ? 1 : 0;
     count += Object.values(this.food).reduce((a, b) => a + b, 0);
-    count += this.addShirt ? 1 : 0;
+    count += this.addShirt ? this.shirtQty : 0;
     return count;
   }
 
@@ -919,27 +1000,23 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     ) {
       return;
     }
-    // a poltrona já está no carrinho desde que foi escolhida
-    const entries: OrderEntry[] =
-      this.held?.code === this.ticketCode
-        ? []
-        : [{ product: { code: this.ticketCode }, quantity: 1 }];
     const parking = this.parkingProduct;
-    if (parking) {
-      entries.push({ product: { code: parking.code }, quantity: 1 });
-    }
     const foodLines = (this.catalog?.food ?? []).filter(
       (f) => this.qty(f.code) > 0
     );
-    foodLines.forEach((f) =>
-      entries.push({ product: { code: f.code }, quantity: this.qty(f.code) })
-    );
     const shirtCode = this.addShirt ? this.shirtVariantCode : undefined;
+    const pers = this.catalog?.shirt?.personalization;
+
+    // quantidade que cada produto da jornada deve ter no carrinho
+    const desired = new Map<string, number>();
+    if (parking) {
+      desired.set(parking.code, 1);
+    }
+    foodLines.forEach((f) => desired.set(f.code, this.qty(f.code)));
     if (shirtCode) {
-      entries.push({ product: { code: shirtCode }, quantity: 1 });
-      const pers = this.catalog?.shirt?.personalization;
+      desired.set(shirtCode, this.shirtQty);
       if (this.hasPersonalization && pers) {
-        entries.push({ product: { code: pers.code }, quantity: 1 });
+        desired.set(pers.code, 1);
       }
     }
 
@@ -968,16 +1045,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     });
 
     this.submitting = true;
-    if (!entries.length) {
-      this.routing.go({ cxRoute: 'checkout' });
-      return;
-    }
-    this.activeCart.addEntries(entries);
-
-    // espera o carrinho processar as inclusões antes de seguir para o checkout
+    // espera o carrinho processar as alterações antes de seguir para o checkout
     this.subscription.add(
-      this.cartSettled().subscribe({
-        next: () => this.routing.go({ cxRoute: 'checkout' }),
+      this.syncCart(desired).subscribe({
+        complete: () => this.routing.go({ cxRoute: 'checkout' }),
         error: () => {
           this.submitting = false;
           this.globalMessages.add(
@@ -988,6 +1059,75 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         },
       })
     );
+  }
+
+  /**
+   * Deixa no carrinho exatamente o que está na jornada: inclui o que falta,
+   * ajusta quantidades e tira o que foi desmarcado. Vale só para os produtos da
+   * jornada (estacionamentos, comidas e bebidas, tamanhos da camisa e
+   * personalização) e para o ingresso escolhido; o resto do carrinho não muda.
+   * Antes, cada fechamento somava os itens de novo e as quantidades dobravam
+   * na volta do pagamento.
+   *
+   * Em fases, esperando o carrinho a cada uma, porque o número das linhas muda
+   * quando uma linha sai: 1) quantidades, 2) remoções de baixo para cima,
+   * 3) inclusões.
+   */
+  protected syncCart(desired: Map<string, number>): Observable<unknown> {
+    const catalog = this.catalog;
+    const shirt = catalog?.shirt;
+    const managed = new Set<string>([
+      ...(catalog?.parking ?? []).map((p) => p.code),
+      ...(catalog?.food ?? []).map((f) => f.code),
+      ...(shirt?.sizes ?? []).map((size) => size.code),
+      ...(shirt?.personalization ? [shirt.personalization.code] : []),
+    ]);
+    const updates: { entryNumber: number; quantity: number }[] = [];
+    const removals: OrderEntry[] = [];
+    const additions: OrderEntry[] = [];
+
+    // ingresso: a poltrona normalmente já está no carrinho desde que foi escolhida
+    if (
+      this.ticketCode &&
+      !this.cartEntries.some((e) => e.product?.code === this.ticketCode)
+    ) {
+      additions.push({ product: { code: this.ticketCode }, quantity: 1 });
+    }
+    for (const code of managed) {
+      const want = desired.get(code) ?? 0;
+      const lines = this.cartEntries.filter((e) => e.product?.code === code);
+      const have = lines.reduce((sum, e) => sum + (e.quantity ?? 0), 0);
+      if (want === have) {
+        continue;
+      }
+      if (!lines.length) {
+        additions.push({ product: { code }, quantity: want });
+        continue;
+      }
+      // ajusta a primeira linha do produto pela diferença
+      const first = lines[0];
+      const quantity = (first.quantity ?? 0) + (want - have);
+      if (quantity > 0) {
+        updates.push({ entryNumber: first.entryNumber as number, quantity });
+      } else {
+        removals.push(first);
+      }
+    }
+    removals.sort((a, b) => (b.entryNumber ?? 0) - (a.entryNumber ?? 0));
+
+    const phase = (count: number, run: () => void): Observable<unknown> =>
+      count ? defer(() => (run(), this.cartSettled())) : of(undefined);
+    return concat(
+      phase(updates.length, () =>
+        updates.forEach((u) =>
+          this.activeCart.updateEntry(u.entryNumber, u.quantity)
+        )
+      ),
+      phase(removals.length, () =>
+        removals.forEach((e) => this.activeCart.removeEntry(e))
+      ),
+      phase(additions.length, () => this.activeCart.addEntries(additions))
+    ).pipe(last(undefined, undefined));
   }
 
   protected scrollTop(): void {
