@@ -103,6 +103,21 @@ public class SocioReportHtml
 			+ ".fsr-t td.fsr-code{font-size:12px;letter-spacing:.02em}"
 			+ ".fsr-t .fsr-strong{font-weight:700}"
 			+ ".fsr-empty{color:" + MUTED + ";font-size:12px;padding:6px 0}"
+			// cancelamentos pedidos na loja
+			+ ".fsr-one{margin-bottom:12px}"
+			+ ".fsr-cx{border-top:4px solid " + RED + "}"
+			+ ".fsr-cx-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.4fr);gap:18px;align-items:start}"
+			+ ".fsr-cx-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}"
+			+ ".fsr-rs{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 26px;align-items:center;gap:6px 10px;font-size:12px}"
+			+ ".fsr-rs-bar{height:8px;background:" + SOFT + ";border-radius:4px;overflow:hidden}"
+			+ ".fsr-rs-bar span{display:block;height:100%;background:" + RED + "}"
+			+ ".fsr-rs b{text-align:right;font-variant-numeric:tabular-nums}"
+			+ ".fsr-tl th,.fsr-tl td{text-align:left}"
+			+ ".fsr-t td.fsr-wrap{white-space:normal;min-width:160px}"
+			+ ".fsr-pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}"
+			+ ".fsr-pill.open{background:#fff2d9;color:#9a5b00}.fsr-pill.closed{background:" + SOFT + ";color:" + MUTED + "}"
+			+ ".fsr-who{display:block;font-size:11px;color:" + MUTED + "}"
+			+ ".fsr-nw{white-space:nowrap}"
 			// rodapé
 			+ ".fsr-foot{display:flex;justify-content:space-between;align-items:baseline;gap:6px 24px;flex-wrap:wrap;"
 			+ "font-size:12px;color:" + MUTED + ";margin:2px 2px 24px;padding-top:10px;border-top:3px solid " + RED + "}"
@@ -117,6 +132,7 @@ public class SocioReportHtml
 			+ ".fsr-a-coupons{grid-area:coupons}.fsr-a-revenue{grid-area:revenue}.fsr-a-wave{grid-area:wave}"
 			+ ".fsr-a-states{grid-area:states}.fsr-a-plan{grid-area:plan}.fsr-a-churn{grid-area:churn}.fsr-a-joins{grid-area:joins}"
 			+ ".fsr-base-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}"
+			+ ".fsr-cx-body{grid-template-columns:minmax(0,1fr)}"
 			+ "}"
 			+ "@media screen and (max-width:700px){"
 			+ ".fsr-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:none}"
@@ -207,6 +223,7 @@ public class SocioReportHtml
 		html.append("</div>");
 
 		html.append("</div>");
+		cancellations(html);
 		footer(html);
 		html.append("</div>");
 		return html.toString();
@@ -770,6 +787,72 @@ public class SocioReportHtml
 		}
 		line(html, labelWidth, labelWidth, 2, height - 2, "#c9d0d6", false);
 		html.append("</svg></section>");
+	}
+
+	// ------------------------------------------------------------ cancelamentos (reais)
+
+	/** Pedidos de cancelamento feitos na loja: em aberto, no mês, por motivo e os últimos pedidos */
+	protected void cancellations(final StringBuilder html)
+	{
+		html.append("<div class=\"fsr-one\"><section class=\"fsr-card fsr-cx\"><div class=\"fsr-head\"><div><div class=\"fsr-h2\">")
+				.append(esc(label("cancel.title"))).append("</div><div class=\"fsr-sub\">").append(esc(label("cancel.sub")))
+				.append("</div></div></div>");
+		if (report.cancelTotal == 0)
+		{
+			html.append("<div class=\"fsr-empty\">").append(esc(label("cancel.none"))).append("</div></section></div>");
+			return;
+		}
+		html.append("<div class=\"fsr-cx-body\"><div><div class=\"fsr-cx-tiles\">");
+		cancelTile(html, report.cancelOpen, label("cancel.open"));
+		cancelTile(html, report.cancelMonth, label("cancel.month"));
+		cancelTile(html, report.cancelTotal, label("cancel.total"));
+		html.append("</div><div class=\"fsr-cap\" style=\"margin-bottom:8px\">").append(esc(label("cancel.byReason")))
+				.append("</div><div class=\"fsr-rs\">");
+		int max = 1;
+		for (final Integer count : report.cancelReasons.values())
+		{
+			max = Math.max(max, count.intValue());
+		}
+		for (final java.util.Map.Entry<String, Integer> entry : report.cancelReasons.entrySet())
+		{
+			final int count = entry.getValue().intValue();
+			html.append("<span>").append(esc(reasonLabel(entry.getKey(), entry.getKey()))).append("</span><span class=\"fsr-rs-bar\"><span style=\"width:")
+					.append(num(count * 100.0 / max)).append("%\"></span></span><b>").append(integer.format(count)).append("</b>");
+		}
+		html.append("</div></div><div><div class=\"fsr-cap\" style=\"margin-bottom:4px\">").append(esc(label("cancel.latest")))
+				.append("</div><table class=\"fsr-t fsr-tl\"><thead><tr><th>").append(esc(label("cancel.date"))).append("</th><th>")
+				.append(esc(label("cancel.member"))).append("</th><th>").append(esc(label("cancel.plan"))).append("</th><th>")
+				.append(esc(label("cancel.reason"))).append("</th><th>").append(esc(label("cancel.comment"))).append("</th><th>")
+				.append(esc(label("cancel.status"))).append("</th></tr></thead><tbody>");
+		final DateTimeFormatter day = DateTimeFormatter.ofPattern(portuguese ? "dd/MM/yyyy HH:mm" : "MMM d, h:mm a", locale);
+		for (final SocioReport.Cancellation c : report.cancellations)
+		{
+			html.append("<tr><td><span class=\"fsr-nw\">").append(c.created == null ? "" : esc(day.format(c.created.toInstant().atZone(ZONE))))
+					.append("</span>")
+					.append("<span class=\"fsr-who\">").append(esc(fmt("cancel.ticket", c.ticketId))).append("</span></td><td>")
+					.append(esc(c.customerName)).append("<span class=\"fsr-who\">").append(esc(c.customerUid)).append("</span></td><td>")
+					.append(esc(c.plan)).append("</td><td>").append(esc(reasonLabel(c.reasonKey, c.reason))).append("</td><td class=\"fsr-wrap\">")
+					.append(esc(c.comment == null ? "—" : c.comment)).append("</td><td><span class=\"fsr-pill ")
+					.append(c.open ? "open" : "closed").append("\">").append(esc(label(c.open ? "cancel.statusOpen" : "cancel.statusClosed")))
+					.append("</span></td></tr>");
+		}
+		html.append("</tbody></table></div></div></section></div>");
+	}
+
+	protected void cancelTile(final StringBuilder html, final int value, final String caption)
+	{
+		html.append("<div class=\"fsr-tile sm\"><div class=\"fsr-v\">").append(integer.format(value))
+				.append("</div><div class=\"fsr-l\"><span class=\"fsr-cap\">").append(esc(caption)).append("</span></div></div>");
+	}
+
+	/** Motivo conhecido no idioma do Backoffice; texto livre como veio */
+	protected String reasonLabel(final String key, final String fallback)
+	{
+		if (key != null && key.matches("price|games|moving|service|other"))
+		{
+			return label("cancel.reason." + key);
+		}
+		return fallback == null ? "—" : fallback;
 	}
 
 	// ------------------------------------------------------------ rodapé
