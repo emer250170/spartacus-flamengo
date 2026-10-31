@@ -106,6 +106,44 @@ export const ptProduto: TranslationResources = {
         freeReturn: 'Troca grátis',
         storeIsNotSelected: 'Nenhuma loja escolhida para retirada.',
       },
+      // janela "Retirar na loja" (escolha da loja de retirada)
+      pickupOptionDialog: {
+        close: 'Fechar',
+        modalHeader: 'Retirar na loja',
+      },
+      storeSearch: {
+        findAStore: 'Encontre uma loja',
+        findStores: 'Buscar lojas',
+        hideOutOfStockOptions: 'Ocultar lojas sem estoque',
+        searchPlaceholder: 'Digite o CEP, a cidade ou o endereço',
+        useMyLocation: 'Usar minha localização',
+      },
+      storeList: {
+        noStoresMessage: 'Nenhuma loja encontrada.',
+      },
+      store: {
+        pickupFromHere: 'Retirar aqui',
+        stockLevel_inStock: '{{ count }} em estoque',
+        stockLevel_outOfStock: 'Sem estoque',
+        viewHours: 'Ver horários',
+      },
+      storeSchedule: {
+        closed: 'Fechado',
+        storeHours: 'Horário de funcionamento',
+      },
+      setPreferredStore: {
+        makeThisMyStore: 'Definir como minha loja',
+        myStore: 'Minha loja',
+      },
+      storeFinderPickupInStore: {
+        heading: 'Minha loja',
+      },
+      addressBookPickupInStore: {
+        heading: 'Loja de retirada',
+      },
+      cardActions: {
+        getDirections: 'Como chegar (abre em uma nova janela)',
+      },
     },
     productImageZoom: {
       productImageZoomTrigger: { expand: 'Ampliar imagem' },
