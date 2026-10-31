@@ -12,6 +12,7 @@ import {
 } from '@angular/common/http';
 import localeDe from '@angular/common/locales/de';
 import localeJa from '@angular/common/locales/ja';
+import localePt from '@angular/common/locales/pt';
 import localeZh from '@angular/common/locales/zh';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgModule } from '@angular/core';
@@ -38,11 +39,14 @@ import { BrlPriceInterceptor } from './i18n/brl-price.interceptor';
 import { ptCarrinhoCheckout } from './i18n/pt-carrinho-checkout';
 import { ptCadastroSenha } from './i18n/pt-cadastro-senha';
 import { ptLogin } from './i18n/pt-login';
+import { ptMinhaConta } from './i18n/pt-minha-conta';
 import { ptProduto } from './i18n/pt-produto';
 import { SpartacusModule } from './spartacus/spartacus.module';
 
 registerLocaleData(localeDe);
 registerLocaleData(localeJa);
+// datas em português ("30 de out. de 2026"); sem isso o site em pt usava o formato inglês
+registerLocaleData(localePt);
 registerLocaleData(localeZh);
 
 const devImports = [];
@@ -98,6 +102,7 @@ if (!environment.production) {
     provideConfig(<I18nConfig>{ i18n: { resources: ptCarrinhoCheckout } }),
     provideConfig(<I18nConfig>{ i18n: { resources: ptLogin } }),
     provideConfig(<I18nConfig>{ i18n: { resources: ptCadastroSenha } }),
+    provideConfig(<I18nConfig>{ i18n: { resources: ptMinhaConta } }),
     // preços em R$ 229,99 com o site em português (a API manda R$229.99)
     { provide: HTTP_INTERCEPTORS, useClass: BrlPriceInterceptor, multi: true },
     provideConfig({ features: { level: '*' } }), // For the development environment and CI, feature level is always the highest.
