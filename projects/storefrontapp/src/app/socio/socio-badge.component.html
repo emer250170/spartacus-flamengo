@@ -1,0 +1,39 @@
+<a
+  *ngIf="plan$ | async as plan"
+  class="fla-sb"
+  routerLink="/socio-torcedor"
+  [attr.title]="details(plan)"
+  [attr.aria-label]="
+    ('sb.aria' | flaT: { plan: plan.name }) + '. ' + details(plan)
+  "
+>
+  <span class="fla-sb-seal" aria-hidden="true">
+    <!-- escudo listrado vermelho e preto, contorno dourado -->
+    <svg viewBox="0 0 24 28" focusable="false">
+      <defs>
+        <clipPath id="fla-sb-shield">
+          <path
+            d="M12 1.5 21.5 4.8V13c0 6.2-4.1 10.9-9.5 13.5C6.6 23.9 2.5 19.2 2.5 13V4.8Z"
+          />
+        </clipPath>
+      </defs>
+      <g clip-path="url(#fla-sb-shield)">
+        <rect width="24" height="28" fill="#1b1b1b" />
+        <rect y="7" width="24" height="3.4" fill="#d70000" />
+        <rect y="13.4" width="24" height="3.4" fill="#d70000" />
+        <rect y="19.8" width="24" height="3.4" fill="#d70000" />
+      </g>
+      <path
+        d="M12 1.5 21.5 4.8V13c0 6.2-4.1 10.9-9.5 13.5C6.6 23.9 2.5 19.2 2.5 13V4.8Z"
+        fill="none"
+        stroke="#f2c14e"
+        stroke-width="1.6"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </span>
+  <span class="fla-sb-text">
+    <span class="fla-sb-kicker">{{ 'sb.kicker' | flaT }}</span>
+    <span class="fla-sb-plan">{{ plan.name }}</span>
+  </span>
+</a>

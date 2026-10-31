@@ -1,0 +1,112 @@
+// Selo de sócio-torcedor: pílula preta (como o mini carrinho) com acento dourado
+$fla-ouro: #f2c14e;
+$fla-preto: #1b1b1b;
+
+:host {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.fla-sb {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px 4px 4px;
+  overflow: hidden;
+  border: 1px solid rgba($fla-ouro, 0.55);
+  border-radius: 999px;
+  background: $fla-preto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  color: #fff !important;
+  line-height: 1.05;
+  white-space: nowrap;
+  text-decoration: none !important;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  // brilho que atravessa o selo ao passar o mouse
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 35%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: $fla-ouro;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+
+    &::after {
+      animation: fla-sb-brilho 0.9s ease;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+}
+
+.fla-sb-seal {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #3b3b3b, #0e0e0e);
+  box-shadow: inset 0 0 0 1.5px $fla-ouro;
+
+  svg {
+    width: 17px;
+    height: 20px;
+  }
+}
+
+.fla-sb-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fla-sb-kicker {
+  color: $fla-ouro;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fla-sb-plan {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@keyframes fla-sb-brilho {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fla-sb,
+  .fla-sb:hover {
+    transform: none;
+    transition: none;
+  }
+
+  .fla-sb:hover::after {
+    animation: none;
+  }
+}

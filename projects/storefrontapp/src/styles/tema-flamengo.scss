@@ -102,6 +102,21 @@ header cx-mini-cart a {
   border-radius: 4px !important;
 }
 
+// selo de sócio-torcedor (fla-socio-badge, outlet do slot SiteLogin):
+// no desktop fica à esquerda do "Olá, Fulano"; no menu do celular, acima
+@media (min-width: 992px) {
+  header cx-page-slot.SiteLogin {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+@media (max-width: 991.98px) {
+  header cx-page-slot.SiteLogin fla-socio-badge {
+    margin-bottom: 10px;
+  }
+}
+
 header cx-searchbox > div, header cx-searchbox label, header cx-searchbox input {
   border-radius: 0 !important;
 }
