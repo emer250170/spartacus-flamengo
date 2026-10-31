@@ -511,10 +511,19 @@
   padding: 8px 0;
   cursor: pointer;
 
-  input {
-    accent-color: var(--sa-red);
+  // o Spartacus desenha os rádios com position:absolute e margem negativa
+  // (para o layout .form-check dele); aqui volta ao rádio nativo, em linha
+  input[type='radio'] {
+    position: static;
+    flex: none;
     width: 18px;
     height: 18px;
+    margin: 0;
+    border: 0;
+    appearance: auto;
+    -webkit-appearance: radio;
+    accent-color: var(--sa-red);
+    cursor: pointer;
   }
 
   em {
