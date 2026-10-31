@@ -188,6 +188,11 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.term': 'Contrato anual · 1ª mensalidade hoje + 11 mensais',
     'st.offFull': 'de desconto na inteira',
     'st.offStore': 'de desconto nos produtos da loja',
+    // selo de sócio no header
+    'sb.kicker': 'Sócio-Torcedor',
+    'sb.aria': 'Você é sócio-torcedor {plan}',
+    'sb.ticket': '{d}% no ingresso',
+    'sb.store': '{d}% na loja',
     'st.priority': 'prioridade na compra',
     'st.noPriority': 'Sem prioridade',
     'st.generalSale': 'compra na venda geral',
@@ -402,6 +407,11 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.term': 'Annual contract · 1st payment today + 11 monthly',
     'st.offFull': 'off full-price tickets',
     'st.offStore': 'off store products',
+    // member badge in the header
+    'sb.kicker': 'Member',
+    'sb.aria': 'You are a {plan} member',
+    'sb.ticket': '{d}% off tickets',
+    'sb.store': '{d}% off in the store',
     'st.priority': 'buying priority',
     'st.noPriority': 'No priority',
     'st.generalSale': 'buys in the general sale',
