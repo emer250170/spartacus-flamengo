@@ -36,6 +36,7 @@ import { MatchdayModule } from './matchday/matchday.module';
 import { SocioModule } from './socio/socio.module';
 import { BrlPriceInterceptor } from './i18n/brl-price.interceptor';
 import { ptCarrinhoCheckout } from './i18n/pt-carrinho-checkout';
+import { ptCadastroSenha } from './i18n/pt-cadastro-senha';
 import { ptLogin } from './i18n/pt-login';
 import { ptProduto } from './i18n/pt-produto';
 import { SpartacusModule } from './spartacus/spartacus.module';
@@ -96,6 +97,7 @@ if (!environment.production) {
     provideConfig(<I18nConfig>{ i18n: { resources: ptProduto } }),
     provideConfig(<I18nConfig>{ i18n: { resources: ptCarrinhoCheckout } }),
     provideConfig(<I18nConfig>{ i18n: { resources: ptLogin } }),
+    provideConfig(<I18nConfig>{ i18n: { resources: ptCadastroSenha } }),
     // preços em R$ 229,99 com o site em português (a API manda R$229.99)
     { provide: HTTP_INTERCEPTORS, useClass: BrlPriceInterceptor, multi: true },
     provideConfig({ features: { level: '*' } }), // For the development environment and CI, feature level is always the highest.
