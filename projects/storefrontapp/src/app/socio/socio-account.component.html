@@ -27,7 +27,7 @@
 
     <ng-container *ngIf="plan as p">
       <!-- cabeçalho -->
-      <header class="sa-hero">
+      <div class="sa-hero">
         <div class="sa-hero-main">
           <span class="sa-seal sa-seal--big" aria-hidden="true">
             <ng-container *ngTemplateOutlet="shield"></ng-container>
@@ -59,7 +59,7 @@
           }}</span>
           <span class="sa-hero-caption">{{ 'sa.rating.title' | flaT }}</span>
         </div>
-      </header>
+      </div>
 
       <div class="sa-grid">
         <!-- dados gerais -->
