@@ -1,5 +1,6 @@
 package br.com.flamengo.matchday.socio.impl;
 
+import br.com.flamengo.matchday.util.BackofficeRequestContext;
 import br.com.flamengo.matchday.enums.SocioPlanStatus;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -777,7 +778,17 @@ public class DefaultSocioPlanService implements SocioPlanService
 				new ByteArrayInputStream(String.join("\n", lines).getBytes(StandardCharsets.UTF_8)), "UTF-8"));
 		config.setSynchronous(true);
 		config.setLegacyMode(Boolean.FALSE);
-		final ImportResult result = importService.importData(config);
+		// o ImpEx abre e fecha uma sessão nesta thread; no Backoffice isso apaga o contexto da tela (ver BackofficeRequestContext)
+		final ImportResult result;
+		final Runnable restoreBackofficeContext = BackofficeRequestContext.capture();
+		try
+		{
+			result = importService.importData(config);
+		}
+		finally
+		{
+			restoreBackofficeContext.run();
+		}
 		if (!result.isSuccessful())
 		{
 			String detail = "";

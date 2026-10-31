@@ -323,6 +323,11 @@ Deploy (nesta ordem):
 
 Para voltar: código anterior em `/backup/antes-socio-planos-codigo-20261030/`; dados e order-process em `/backup/antes-socio-planos-<data>/`.
 
+### "Erro inesperado" depois de salvar no Backoffice (30/10)
+- **Sintoma:** ao salvar um plano (ou um jogo) que publica na loja, aparecia "Itens gravados" e logo depois "Ocorreu um erro: Erro inesperado"; a lista ficava vazia até atualizar.
+- **Causa:** o ImpEx síncrono roda como CronJob e abre e fecha uma sessão na própria thread. O Backoffice escuta o fechamento de sessão (`FallbackRequestOperationScopeController`) e apaga o contexto de operação da tela; a lista que se atualiza depois falha com `There is no context assigned to current thread`.
+- **Correção:** `BackofficeRequestContext` guarda o contexto antes do ImpEx e devolve depois (`DefaultSocioPlanService` e `DefaultMatchdayGameService`). Fora do Backoffice não faz nada.
+
 ## Relatórios do sócio-torcedor (30/10)
 
 Ficam em Backoffice › perspectiva **Sócio-Torcedor** › **Relatórios**: um painel no modelo do "Dashboard - Base" do clube, com **Atualizar** e **Gerar PDF** (impressão do navegador em A4 deitado).
