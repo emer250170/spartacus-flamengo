@@ -1,0 +1,52 @@
+<div class="sm" *ngIf="shapes.length">
+  <svg
+    class="sm-svg"
+    viewBox="0 0 400 300"
+    role="group"
+    [attr.aria-label]="'md.map.title' | flaT"
+  >
+    <!-- borda externa do estádio -->
+    <ellipse class="sm-shell" cx="200" cy="150" rx="198" ry="148"></ellipse>
+
+    <!-- setores -->
+    <g
+      *ngFor="let s of shapes; trackBy: trackByCode"
+      class="sm-sector"
+      [ngClass]="'is-' + s.state"
+      role="button"
+      [attr.tabindex]="s.state === 'soldout' ? -1 : 0"
+      [attr.aria-pressed]="s.state === 'selected'"
+      [attr.aria-disabled]="s.state === 'soldout'"
+      [attr.aria-label]="s.aria"
+      (click)="choose(s)"
+      (keydown)="onKey($event, s)"
+    >
+      <title>{{ s.aria }}</title>
+      <path class="sm-area" [attr.d]="s.path"></path>
+      <text class="sm-name" [attr.x]="s.labelX" [attr.y]="s.labelY - 4">
+        {{ s.name }}
+      </text>
+      <text class="sm-price" [attr.x]="s.labelX" [attr.y]="s.labelY + 12">
+        {{ s.state === 'soldout' ? s.status : s.price }}
+      </text>
+    </g>
+
+    <!-- gramado -->
+    <ellipse class="sm-pitch-bg" cx="200" cy="150" rx="124" ry="80"></ellipse>
+    <g class="sm-pitch" aria-hidden="true">
+      <rect x="120" y="102" width="160" height="96" rx="2"></rect>
+      <line x1="200" y1="102" x2="200" y2="198"></line>
+      <circle cx="200" cy="150" r="14"></circle>
+      <rect x="120" y="128" width="20" height="44"></rect>
+      <rect x="260" y="128" width="20" height="44"></rect>
+      <text x="200" y="186">{{ fieldLabel }}</text>
+    </g>
+  </svg>
+
+  <ul class="sm-legend" aria-hidden="true">
+    <li><span class="sm-dot is-free"></span>{{ 'md.map.free' | flaT }}</li>
+    <li><span class="sm-dot is-low"></span>{{ 'md.map.low' | flaT }}</li>
+    <li><span class="sm-dot is-selected"></span>{{ 'md.map.selected' | flaT }}</li>
+    <li><span class="sm-dot is-soldout"></span>{{ 'md.soldOut' | flaT }}</li>
+  </ul>
+</div>

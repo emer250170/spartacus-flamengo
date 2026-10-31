@@ -39,6 +39,7 @@ import {
   MatchdayProduct,
   MatchdaySector,
 } from './matchday.model';
+import { StadiumSectorView } from './matchday-stadium-map.component';
 
 interface SummaryLine {
   label: string;
@@ -493,6 +494,54 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     const m = Math.floor(this.remaining / 60);
     const s = this.remaining % 60;
     return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  /** Setores no formato do mapa do Maracanã (mesmos dados dos cartões) */
+  get stadiumSectors(): StadiumSectorView[] {
+    const view = (this.match?.sectors ?? []).map((s) => {
+      const stock = this.sectorStock(s);
+      const state: StadiumSectorView['state'] =
+        this.sector?.code === s.code
+          ? 'selected'
+          : stock === 0
+            ? 'soldout'
+            : stock !== undefined && stock < 20
+              ? 'low'
+              : 'free';
+      const status =
+        stock === 0
+          ? this.i18n.t('md.soldOut')
+          : stock !== undefined && stock < 20
+            ? this.stockText(s)
+            : stock !== undefined
+              ? this.i18n.t('md.free', { n: stock })
+              : '';
+      return {
+        code: s.code,
+        // modelo atual: código = LESTE; modelo antigo: ...-LESTE
+        key: s.code.split('-').pop()?.toUpperCase() ?? '',
+        name: s.name,
+        price: this.brl(this.ticketPrice(s.price)),
+        status,
+        state,
+      };
+    });
+    // mesma referência enquanto nada muda (evita redesenhar o mapa a cada ciclo)
+    const key = JSON.stringify(view);
+    if (this.stadiumCache && this.stadiumCache.key === key) {
+      return this.stadiumCache.view;
+    }
+    this.stadiumCache = { key, view };
+    return view;
+  }
+  private stadiumCache?: { key: string; view: StadiumSectorView[] };
+
+  /** Clique no mapa: escolhe o setor como o cartão */
+  pickSector(code: string): void {
+    const s = this.match?.sectors.find((x) => x.code === code);
+    if (s && this.sectorStock(s) !== 0) {
+      this.selectSector(s);
+    }
   }
 
   /** Lugares livres no setor, contando a poltrona que já é sua */
