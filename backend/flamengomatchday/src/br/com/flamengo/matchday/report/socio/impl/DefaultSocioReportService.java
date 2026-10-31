@@ -272,15 +272,17 @@ public class DefaultSocioReportService implements SocioReportService
 
 		// ---------------- cupons e estados
 		int monthJoins = 0;
-		int borderlessToday = 0;
+		int borderlessMonth = 0;
 		for (final PlanNumbers n : plans)
 		{
 			monthJoins += n.month;
 			if (n.family.toLowerCase(Locale.ROOT).contains("fronteira"))
 			{
-				borderlessToday += n.today;
+				borderlessMonth += n.month;
 			}
 		}
+		// n.month já inclui as adesões reais; a parte simulada é o restante, e as reais entram pelo estado de entrega
+		final int simulatedBorderlessMonth = Math.max(0, borderlessMonth - real.borderlessJoins);
 		for (int i = 0; i < COUPONS.length; i++)
 		{
 			final SocioReport.Coupon coupon = new SocioReport.Coupon();
@@ -304,10 +306,22 @@ public class DefaultSocioReportService implements SocioReportService
 		{
 			final SocioReport.State state = new SocioReport.State();
 			state.uf = UF[i];
-			state.count = (int) Math.round(borderlessToday * UF_WEIGHT[i] / ufWeights
-					* (0.8 + bucket(UF[i] + "#" + seed, 40) / 100.0)) + real.states.getOrDefault(UF[i], Integer.valueOf(0)).intValue();
+			state.count = (int) Math.round(simulatedBorderlessMonth * UF_WEIGHT[i] / ufWeights
+					* (0.8 + bucket(UF[i] + "#mes#" + today.getYear() + "-" + today.getMonthValue(), 40) / 100.0)) + real.states.getOrDefault(UF[i], Integer.valueOf(0)).intValue();
 			if (state.count > 0)
 			{
+				report.states.add(state);
+			}
+		}
+		// adesão real de um estado fora da lista simulada também aparece
+		final Set<String> listed = new HashSet<>(Arrays.asList(UF));
+		for (final Map.Entry<String, Integer> entry : real.states.entrySet())
+		{
+			if (!listed.contains(entry.getKey()))
+			{
+				final SocioReport.State state = new SocioReport.State();
+				state.uf = entry.getKey();
+				state.count = entry.getValue().intValue();
 				report.states.add(state);
 			}
 		}
@@ -321,6 +335,9 @@ public class DefaultSocioReportService implements SocioReportService
 	protected static class RealData
 	{
 		double revenue;
+		/** adesões reais Sem Fronteiras no mês, com ou sem estado no endereço */
+		int borderlessJoins;
+		/** adesões reais Sem Fronteiras no mês por estado de entrega */
 		final Map<String, Integer> states = new HashMap<>();
 	}
 
@@ -379,15 +396,17 @@ public class DefaultSocioReportService implements SocioReportService
 			if (day.equals(today))
 			{
 				n.today++;
-				if (n.family.toLowerCase(Locale.ROOT).contains("fronteira"))
+			}
+			// estados: adesões do mês inteiro, como diz o gráfico ("Adesões no mês")
+			if (n.family.toLowerCase(Locale.ROOT).contains("fronteira"))
+			{
+				real.borderlessJoins++;
+				final AddressModel address = order.getDeliveryAddress() != null ? order.getDeliveryAddress() : order.getPaymentAddress();
+				final String uf = address == null || address.getRegion() == null ? null
+						: StringUtils.substringAfterLast(StringUtils.defaultString(address.getRegion().getIsocode()), "-");
+				if (StringUtils.isNotBlank(uf))
 				{
-					final AddressModel address = order.getDeliveryAddress() != null ? order.getDeliveryAddress() : order.getPaymentAddress();
-					final String uf = address == null || address.getRegion() == null ? null
-							: StringUtils.substringAfterLast(StringUtils.defaultString(address.getRegion().getIsocode()), "-");
-					if (StringUtils.isNotBlank(uf))
-					{
-						real.states.merge(uf, Integer.valueOf(1), (a, b) -> Integer.valueOf(a.intValue() + b.intValue()));
-					}
+					real.states.merge(uf, Integer.valueOf(1), (a, b) -> Integer.valueOf(a.intValue() + b.intValue()));
 				}
 			}
 		}
