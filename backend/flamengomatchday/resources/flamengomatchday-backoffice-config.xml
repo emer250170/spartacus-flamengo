@@ -291,6 +291,7 @@
 			<list-view:column qualifier="family"/>
 			<list-view:column qualifier="monthlyPrice"/>
 			<list-view:column qualifier="ticketDiscount"/>
+			<list-view:column qualifier="storeDiscount"/>
 			<list-view:column qualifier="wave"/>
 			<list-view:column qualifier="maxGuests"/>
 			<list-view:column qualifier="members"/>
@@ -336,6 +337,7 @@
 					<wz:property-list root="newPlan">
 						<wz:property qualifier="wave" type="java.lang.Integer"/>
 						<wz:property qualifier="ticketDiscount" type="java.lang.Integer"/>
+						<wz:property qualifier="storeDiscount" type="java.lang.Integer"/>
 						<wz:property qualifier="maxGuests" type="java.lang.Integer"/>
 						<wz:property qualifier="guestPrice" type="java.lang.Double"/>
 					</wz:property-list>
@@ -411,6 +413,9 @@
 					<editorArea:attribute qualifier="maxGuests"/>
 					<editorArea:attribute qualifier="guestPrice"/>
 				</editorArea:section>
+				<editorArea:section name="socio.editor.store">
+					<editorArea:attribute qualifier="storeDiscount"/>
+				</editorArea:section>
 				<editorArea:section name="socio.editor.benefits">
 					<editorArea:attribute qualifier="benefits" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
 						<editorArea:editor-parameter>
@@ -458,6 +463,9 @@
 					<editorArea:attribute qualifier="ticketDiscount"/>
 					<editorArea:attribute qualifier="maxGuests"/>
 					<editorArea:attribute qualifier="guestPrice"/>
+				</editorArea:section>
+				<editorArea:section name="socio.editor.store">
+					<editorArea:attribute qualifier="storeDiscount"/>
 				</editorArea:section>
 				<editorArea:section name="socio.editor.benefits">
 					<editorArea:attribute qualifier="benefits" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">

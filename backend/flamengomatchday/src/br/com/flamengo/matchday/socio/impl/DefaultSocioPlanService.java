@@ -6,6 +6,7 @@ import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioPlanService;
 import de.hybris.platform.catalog.CatalogVersionService;
 import de.hybris.platform.catalog.model.CatalogVersionModel;
+import de.hybris.platform.category.model.CategoryModel;
 import de.hybris.platform.core.Registry;
 import de.hybris.platform.core.Tenant;
 import de.hybris.platform.core.model.ItemModel;
@@ -38,10 +39,13 @@ import de.hybris.platform.servicelayer.user.UserService;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -51,6 +55,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -60,12 +67,24 @@ import org.slf4j.LoggerFactory;
 /**
  * Publica os planos de sócio-torcedor na loja.
  * <p>
- * Produto, vagas, categoria e promoção vão por ImpEx; plano de preço e
+ * Produto, vagas, categoria e promoções vão por ImpEx; plano de preço e
  * benefícios por modelos genéricos (a extensão não depende das extensões de
- * assinatura e de regras, que já estão no servidor). A promoção é publicada no
+ * assinatura e de regras, que já estão no servidor). As promoções são publicadas no
  * módulo de regras numa thread separada, depois de gravar o plano (publicar dentro
- * da transação trava). As regras que a loja precisa conhecer (onda, desconto,
+ * da transação trava). As regras que a loja precisa conhecer (onda, descontos,
  * convidados, grupos) vão num comentário no fim da descrição do produto.
+ * <p>
+ * Promoções de cada plano:
+ * <ul>
+ * <li>ingresso: X% nas poltronas (grupo customerPromotionRuleGroup)</li>
+ * <li>loja: Y% nos produtos da loja, fora alimentos e bebidas, estacionamento, planos e
+ * ingressos (grupo flamengoLojaRuleGroup)</li>
+ * <li>loja + cupom: o motor não aplica duas promoções no mesmo item (consumo), então para
+ * cada cupom de loja (regra com cupom no grupo flamengoLojaRuleGroup, ex.: cupom_mengao_15)
+ * há uma regra com o desconto acumulado, um sobre o outro (10% + 15% = 23,5%)</li>
+ * </ul>
+ * Regra já publicada que muda ganha uma versão nova (versionamento do SAP Commerce): as
+ * consultas usam sempre a versão mais nova.
  */
 public class DefaultSocioPlanService implements SocioPlanService
 {
@@ -82,11 +101,26 @@ public class DefaultSocioPlanService implements SocioPlanService
 	private static final String PROMOTION_GROUP = "electronicsPromoGrp";
 	private static final String RULE_GROUP = "customerPromotionRuleGroup";
 	private static final String RULE_MODULE = "promotions-module";
+	/** Grupo das promoções da loja (sócio, cupons e acúmulo); não exclusivo */
+	private static final String STORE_RULE_GROUP = "flamengoLojaRuleGroup";
+	private static final int STORE_PRIORITY = 220;
+	/** Acúmulo sócio + cupom: acima do cupom (231) e do desconto de sócio, para valer primeiro */
+	private static final int STORE_COUPON_PRIORITY = 300;
+	/** Fora do desconto na loja: alimentos e bebidas, estacionamento, ingressos (jogos e poltronas) e planos */
+	private static final String[] STORE_EXCLUDED = { "flamengo_md_comidas", "flamengo_md_estacionamento", "flamengo_jogos_casa",
+			"setor", "setor-norte", "setor-sul", "setor-leste-inf", "setor-oeste-sup", "socio_torcedor", "socio_torcedor_fora" };
+	private static final Pattern COUPONS = Pattern.compile("\"coupons\"\\s*:\\s*\\{[^{}]*?\"value\"\\s*:\\s*\\[([^\\]]*)\\]");
+	private static final Pattern DISCOUNT_VALUE = Pattern
+			.compile("\"value\"\\s*:\\s*\\{[^{}]*?\"type\"\\s*:\\s*\"java\\.math\\.BigDecimal\"[^{}]*?\"value\"\\s*:\\s*([0-9.]+)");
 	/** Categorias das poltronas: o desconto vale só no ingresso */
 	private static final String[] SECTORS = { "setor-norte", "setor-sul", "setor-leste-inf", "setor-oeste-sup" };
 	/** Grupo sem membros: promoção de plano que passou a ter 0% de desconto não vale para ninguém */
 	private static final String NO_DISCOUNT_GROUP = "socio-sem-desconto";
 	private static final int UNLIMITED = 100000;
+	/** Promoção por ImpEx: código + versão (regra publicada que muda ganha versão nova) */
+	private static final String RULE_HEADER = "INSERT_UPDATE PromotionSourceRule;code[unique=true];version[unique=true];name[lang=pt];"
+			+ "name[lang=en];description[lang=pt];messageFired[lang=pt];messageFired[lang=en];priority;stackable;website(Identifier);"
+			+ "ruleGroup(code);conditions;actions";
 	/** Benefícios comuns a todos os planos (Entitlement criados no cadastro do sócio-torcedor) */
 	private static final String[] COMMON_ENTITLEMENTS = { "nacao-frete-gratis", "nacao-cashback", "nacao-personalizacao",
 			"nacao-premios", "nacao-parceiros", "nacao-pacote-maracana" };
@@ -267,11 +301,16 @@ public class DefaultSocioPlanService implements SocioPlanService
 		plan.setProduct(product);
 		replacePricePlan(product, doubleOf(plan.getMonthlyPrice()), plan.getCode());
 		replaceEntitlements(product, plan, guestCode);
-		final boolean publishRule = upsertPromotion(plan);
-		reindex();
-		if (publishRule)
+		final List<String> rules = new ArrayList<>();
+		if (upsertPromotion(plan))
 		{
-			schedulePromotionPublish(plan.getPromotionCode());
+			rules.add(plan.getPromotionCode());
+		}
+		rules.addAll(upsertStorePromotions(plan));
+		reindex();
+		if (!rules.isEmpty())
+		{
+			schedulePromotionPublish(plan.getCode(), rules);
 		}
 
 		final StringBuilder message = new StringBuilder();
@@ -282,6 +321,10 @@ public class DefaultSocioPlanService implements SocioPlanService
 			if (intOf(plan.getTicketDiscount()) > 0)
 			{
 				message.append(", ").append(plan.getTicketDiscount()).append("% no ingresso");
+			}
+			if (intOf(plan.getStoreDiscount()) > 0)
+			{
+				message.append(", ").append(plan.getStoreDiscount()).append("% na loja");
 			}
 			message.append(intOf(plan.getWave()) > 0 ? ", onda " + plan.getWave() : ", sem prioridade de compra");
 			if (guestCode != null)
@@ -294,9 +337,10 @@ public class DefaultSocioPlanService implements SocioPlanService
 		{
 			message.append("Fora da loja: o plano não aparece mais para novas assinaturas; quem já é sócio continua com os benefícios.");
 		}
-		if (publishRule)
+		if (!rules.isEmpty())
 		{
-			message.append(" Promoção de desconto sendo publicada (leva alguns segundos).");
+			message.append(rules.size() == 1 ? " Promoção de desconto sendo publicada" : " Promoções de desconto sendo publicadas")
+					.append(" (leva alguns segundos).");
 		}
 		message.append(" A busca da loja atualiza em alguns minutos.");
 		return message.toString();
@@ -517,7 +561,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 		}
 		final String code = plan.getPromotionCode();
 		final int discount = intOf(plan.getTicketDiscount());
-		final ItemModel existing = item("SELECT {pk} FROM {PromotionSourceRule} WHERE {code}='" + code.replace("'", "") + "'");
+		final ItemModel existing = latestRule(code);
 		if (existing == null && discount <= 0)
 		{
 			return false;
@@ -560,9 +604,8 @@ public class DefaultSocioPlanService implements SocioPlanService
 		final String actions = "[{\"definitionId\":\"y_order_entry_percentage_discount\",\"parameters\":{"
 				+ "\"value\":{\"type\":\"java.math.BigDecimal\",\"value\":" + discount + "}}}]";
 		final List<String> lines = new ArrayList<>();
-		lines.add("INSERT_UPDATE PromotionSourceRule;code[unique=true];name[lang=pt];name[lang=en];description[lang=pt];"
-				+ "messageFired[lang=pt];messageFired[lang=en];priority;stackable;website(Identifier);ruleGroup(code);conditions;actions");
-		lines.add(";" + code + ";" + q(name + ": " + discount + "% no ingresso") + ";" + q(name + ": " + discount + "% off tickets") + ";"
+		lines.add(RULE_HEADER);
+		lines.add(";" + code + ";" + ruleVersion(existing) + ";" + q(name + ": " + discount + "% no ingresso") + ";" + q(name + ": " + discount + "% off tickets") + ";"
 				+ q("Sócio " + name + " paga " + (100 - discount) + "% da inteira") + ";"
 				+ q("Sócio " + name + ": " + discount + "% de desconto no ingresso") + ";"
 				+ q(name + " member: " + discount + "% off tickets") + ";100;false;" + PROMOTION_GROUP + ";" + RULE_GROUP + ";" + q(conditions)
@@ -571,10 +614,259 @@ public class DefaultSocioPlanService implements SocioPlanService
 		return true;
 	}
 
-	/** Publica a promoção depois que o plano foi gravado (dentro da transação do salvamento trava) */
-	protected void schedulePromotionPublish(final String code)
+	// ------------------------------------------------------------ promoções da loja
+
+	/** nacao_maraca_1_desconto_ingresso -> nacao_maraca_1_desconto_loja */
+	protected String storeRuleCode(final SocioPlanModel plan)
+	{
+		return plan.getPromotionCode().replaceFirst("_desconto_ingresso$", "") + "_desconto_loja";
+	}
+
+	/**
+	 * Promoção "Y% nos produtos da loja" para o grupo do plano e, para cada cupom de loja, a
+	 * promoção do desconto acumulado (sócio + cupom). Plano que passa a 0% fica com as regras
+	 * apontando para um grupo sem membros.
+	 *
+	 * @return códigos que mudaram e precisam ser publicados
+	 */
+	protected List<String> upsertStorePromotions(final SocioPlanModel plan)
+	{
+		final List<String> changed = new ArrayList<>();
+		final String code = storeRuleCode(plan);
+		final int discount = intOf(plan.getStoreDiscount());
+		final boolean active = discount > 0;
+		final List<StoreCoupon> coupons = storeCoupons();
+		final boolean anyExisting = latestRule(code) != null
+				|| coupons.stream().anyMatch(coupon -> latestRule(code + "_" + coupon.rule) != null);
+		if (!active && !anyExisting)
+		{
+			return changed;
+		}
+		final String groupUid;
+		if (active)
+		{
+			groupUid = plan.getCustomerGroup().getUid();
+		}
+		else
+		{
+			group(NO_DISCOUNT_GROUP, "Sem desconto de sócio (sem membros)", "No member discount (no members)", false);
+			groupUid = NO_DISCOUNT_GROUP;
+		}
+		final String name = StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode());
+		final String nameEn = StringUtils.defaultIfBlank(plan.getName(EN), name);
+		final BigDecimal value = BigDecimal.valueOf(Math.max(1, discount));
+		final String categories = storeCategoriesCondition();
+		final String target = targetCustomersCondition(groupUid);
+
+		if (upsertRule(code, name + ": " + discount + "% nos produtos da loja", nameEn + ": " + discount + "% off store products",
+				"Sócio " + name + ": " + discount + "% nos produtos da loja (fora alimentos e bebidas, estacionamento, planos e ingressos)",
+				"Sócio " + name + ": " + discount + "% de desconto nos produtos da loja",
+				nameEn + " member: " + discount + "% off store products", STORE_PRIORITY,
+				"[" + target + "," + categories + "]", entryDiscount(value)))
+		{
+			changed.add(code);
+		}
+		for (final StoreCoupon coupon : coupons)
+		{
+			final String comboCode = code + "_" + coupon.rule;
+			// um sobre o outro: 10% e depois 15% = 23,5%
+			final BigDecimal combined = BigDecimal.valueOf(100).subtract(BigDecimal.valueOf(100).subtract(value)
+					.multiply(BigDecimal.valueOf(100).subtract(coupon.discount)).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP))
+					.stripTrailingZeros();
+			final String label = String.join(", ", coupon.codes).toUpperCase(Locale.ROOT);
+			final String detail = " (" + discount + "% + " + pct(coupon.discount) + "%)";
+			if (upsertRule(comboCode, name + " + cupom " + label + ": " + pct(combined) + "% nos produtos da loja",
+					nameEn + " + " + label + " coupon: " + pct(combined).replace(',', '.') + "% off store products",
+					"Acúmulo do desconto de sócio na loja com o cupom " + label + ", um sobre o outro" + detail,
+					"Sócio " + name + " + cupom " + label + ": " + pct(combined) + "% de desconto nos produtos da loja" + detail,
+					nameEn + " member + " + label + " coupon: " + pct(combined).replace(',', '.') + "% off store products"
+							+ detail.replace(',', '.'),
+					STORE_COUPON_PRIORITY, "[" + target + "," + couponsCondition(coupon.codes) + "," + categories + "]",
+					entryDiscount(combined)))
+			{
+				changed.add(comboCode);
+			}
+		}
+		return changed;
+	}
+
+	/** Cupom de loja: regra com cupom no grupo da loja que dá X% nos itens (ex.: cupom_mengao_15) */
+	protected static class StoreCoupon
+	{
+		final String rule;
+		final List<String> codes;
+		final BigDecimal discount;
+
+		StoreCoupon(final String rule, final List<String> codes, final BigDecimal discount)
+		{
+			this.rule = rule;
+			this.codes = codes;
+			this.discount = discount;
+		}
+	}
+
+	protected List<StoreCoupon> storeCoupons()
+	{
+		final List<ItemModel> rules = flexibleSearchService.<ItemModel> search(new FlexibleSearchQuery(
+				"SELECT {r.pk} FROM {PromotionSourceRule AS r JOIN RuleGroup AS g ON {r.ruleGroup}={g.pk}} WHERE {g.code}='"
+						+ STORE_RULE_GROUP + "' AND {r.conditions} LIKE '%y_qualifying_coupons%' "
+						+ "AND {r.conditions} NOT LIKE '%y_target_customers%' ORDER BY {r.code}, {r.version} DESC"))
+				.getResult();
+		final List<StoreCoupon> coupons = new ArrayList<>();
+		final Set<String> seen = new HashSet<>();
+		for (final ItemModel rule : rules)
+		{
+			final String code = (String) modelService.getAttributeValue(rule, "code");
+			if (!seen.add(code))
+			{
+				continue; // versão antiga
+			}
+			final Object status = modelService.getAttributeValue(rule, "status");
+			final String actions = StringUtils.defaultString((String) modelService.getAttributeValue(rule, "actions"));
+			final Matcher couponMatch = COUPONS.matcher(StringUtils.defaultString((String) modelService.getAttributeValue(rule, "conditions")));
+			final Matcher valueMatch = DISCOUNT_VALUE.matcher(actions);
+			if (status == null || !"PUBLISHED".equals(status.toString()) || !actions.contains("y_order_entry_percentage_discount")
+					|| !couponMatch.find() || !valueMatch.find())
+			{
+				continue;
+			}
+			final List<String> codes = new ArrayList<>();
+			for (final String id : couponMatch.group(1).split(","))
+			{
+				final String clean = id.replace("\"", "").trim();
+				if (!clean.isEmpty())
+				{
+					codes.add(clean);
+				}
+			}
+			if (!codes.isEmpty())
+			{
+				coupons.add(new StoreCoupon(code, codes, new BigDecimal(valueMatch.group(1))));
+			}
+		}
+		return coupons;
+	}
+
+	/**
+	 * Cria ou atualiza a promoção no grupo da loja.
+	 *
+	 * @return true se mudou (precisa publicar)
+	 */
+	protected boolean upsertRule(final String code, final String namePt, final String nameEn, final String descriptionPt,
+			final String messagePt, final String messageEn, final int priority, final String conditions, final String actions)
+	{
+		final ItemModel existing = latestRule(code);
+		if (existing != null)
+		{
+			final Object status = modelService.getAttributeValue(existing, "status");
+			final Object group = modelService.getAttributeValue(existing, "ruleGroup");
+			final Object currentPriority = modelService.getAttributeValue(existing, "priority");
+			final String currentMessage = modelService.getAttributeValue(existing, "messageFired", PT);
+			if (status != null && "PUBLISHED".equals(status.toString()) && group != null
+					&& STORE_RULE_GROUP.equals(modelService.getAttributeValue(group, "code"))
+					&& currentPriority != null && ((Integer) currentPriority).intValue() == priority
+					&& StringUtils.equals(currentMessage, messagePt)
+					&& compact(conditions).equals(compact((String) modelService.getAttributeValue(existing, "conditions")))
+					&& compact(actions).equals(compact((String) modelService.getAttributeValue(existing, "actions"))))
+			{
+				return false;
+			}
+		}
+		final List<String> lines = new ArrayList<>();
+		lines.add("INSERT_UPDATE RuleGroup;code[unique=true];exclusive");
+		lines.add(";" + STORE_RULE_GROUP + ";false");
+		lines.add(RULE_HEADER);
+		lines.add(";" + code + ";" + ruleVersion(existing) + ";" + q(namePt) + ";" + q(nameEn) + ";" + q(descriptionPt) + ";"
+				+ q(messagePt) + ";" + q(messageEn) + ";" + priority + ";true;" + PROMOTION_GROUP + ";" + STORE_RULE_GROUP + ";"
+				+ q(conditions) + ";" + q(actions));
+		runImpex(lines, code);
+		return true;
+	}
+
+	/** Todas as categorias de topo do catálogo (as novas entram sozinhas); as de fora vão em STORE_EXCLUDED */
+	protected String storeCategoriesCondition()
+	{
+		final CatalogVersionModel online = catalogVersionService.getCatalogVersion(CATALOG, "Online");
+		final FlexibleSearchQuery query = new FlexibleSearchQuery("SELECT {pk} FROM {Category} WHERE {catalogVersion}=?cv");
+		query.addQueryParameter("cv", online);
+		final Set<String> roots = new TreeSet<>();
+		for (final CategoryModel category : flexibleSearchService.<CategoryModel> search(query).getResult())
+		{
+			if (category.getSupercategories() == null || category.getSupercategories().isEmpty())
+			{
+				roots.add(category.getCode());
+			}
+		}
+		return "{\"definitionId\":\"y_qualifying_categories\",\"parameters\":{"
+				+ "\"quantity\":{\"type\":\"java.lang.Integer\",\"value\":1},"
+				+ "\"operator\":{\"type\":\"Enum(de.hybris.platform.ruledefinitions.AmountOperator)\",\"value\":\"GREATER_THAN_OR_EQUAL\"},"
+				+ "\"categories_operator\":{\"type\":\"Enum(de.hybris.platform.ruledefinitions.CollectionOperator)\",\"value\":\"CONTAINS_ANY\"},"
+				+ "\"categories\":{\"type\":\"List(ItemType(Category))\",\"value\":" + jsonList(roots) + "},"
+				+ "\"excluded_categories\":{\"type\":\"List(ItemType(Category))\",\"value\":" + jsonList(Arrays.asList(STORE_EXCLUDED)) + "},"
+				+ "\"excluded_products\":{\"type\":\"List(ItemType(Product))\",\"value\":[]}},\"children\":[]}";
+	}
+
+	protected static String targetCustomersCondition(final String groupUid)
+	{
+		return "{\"definitionId\":\"y_target_customers\",\"parameters\":{"
+				+ "\"customer_groups_operator\":{\"type\":\"Enum(de.hybris.platform.ruledefinitions.CollectionOperator)\",\"value\":\"CONTAINS_ANY\"},"
+				+ "\"customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[\"" + groupUid + "\"]},"
+				+ "\"customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[]},"
+				+ "\"excluded_customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[]},"
+				+ "\"excluded_customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[]}},\"children\":[]}";
+	}
+
+	protected static String couponsCondition(final List<String> coupons)
+	{
+		return "{\"definitionId\":\"y_qualifying_coupons\",\"parameters\":{\"coupons\":{\"type\":\"List(ItemType(AbstractCoupon))\","
+				+ "\"value\":" + jsonList(coupons) + "}},\"children\":[]}";
+	}
+
+	protected static String entryDiscount(final BigDecimal value)
+	{
+		return "[{\"definitionId\":\"y_order_entry_percentage_discount\",\"parameters\":{"
+				+ "\"value\":{\"type\":\"java.math.BigDecimal\",\"value\":" + value.stripTrailingZeros().toPlainString() + "}}}]";
+	}
+
+	protected static String jsonList(final Collection<String> values)
+	{
+		final StringBuilder json = new StringBuilder("[");
+		for (final String value : values)
+		{
+			json.append(json.length() > 1 ? "," : "").append('"').append(value.replace("\"", "")).append('"');
+		}
+		return json.append(']').toString();
+	}
+
+	/** 23.5 -> "23,5" */
+	protected static String pct(final BigDecimal value)
+	{
+		return value.stripTrailingZeros().toPlainString().replace('.', ',');
+	}
+
+	protected static String compact(final String json)
+	{
+		return StringUtils.defaultString(json).replaceAll("\\s+", "");
+	}
+
+	/** Versão mais nova da promoção (regra publicada que muda ganha versão nova) */
+	protected ItemModel latestRule(final String code)
+	{
+		return item("SELECT {pk} FROM {PromotionSourceRule} WHERE {code}='" + code.replace("'", "") + "' ORDER BY {version} DESC");
+	}
+
+	/** Versão a atualizar no ImpEx (0 para regra nova) */
+	protected String ruleVersion(final ItemModel rule)
+	{
+		final Object version = rule == null ? null : modelService.getAttributeValue(rule, "version");
+		return version == null ? "0" : version.toString();
+	}
+
+	/** Publica as promoções depois que o plano foi gravado (dentro da transação trava) */
+	protected void schedulePromotionPublish(final String planCode, final List<String> codes)
 	{
 		final Tenant tenant = Registry.getCurrentTenant();
+		final List<String> rules = new ArrayList<>(codes);
 		final Thread thread = new Thread(() -> {
 			Registry.setCurrentTenant(tenant);
 			try
@@ -586,7 +878,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 					public void executeWithoutResult()
 					{
 						userService.setCurrentUser(userService.getAdminUser());
-						publishRule(code);
+						publishRules(rules);
 					}
 				});
 			}
@@ -596,21 +888,30 @@ public class DefaultSocioPlanService implements SocioPlanService
 			}
 			catch (final Exception e)
 			{
-				LOG.error("Falha ao publicar a promoção " + code, e);
+				LOG.error("Falha ao publicar as promoções " + rules, e);
 			}
 			finally
 			{
 				Registry.unsetCurrentTenant();
 			}
-		}, "socio-promocao-" + code);
+		}, "socio-promocao-" + planCode);
 		thread.setDaemon(true);
 		thread.start();
 	}
 
-	protected void publishRule(final String code)
+	/** Compila e publica todas de uma vez (publicações simultâneas no mesmo módulo esperam umas pelas outras) */
+	protected void publishRules(final List<String> codes)
 	{
-		final ItemModel rule = item("SELECT {pk} FROM {PromotionSourceRule} WHERE {code}='" + code.replace("'", "") + "'");
-		if (rule == null)
+		final List<ItemModel> rules = new ArrayList<>();
+		for (final String code : codes)
+		{
+			final ItemModel rule = latestRule(code);
+			if (rule != null)
+			{
+				rules.add(rule);
+			}
+		}
+		if (rules.isEmpty())
 		{
 			return;
 		}
@@ -630,15 +931,18 @@ public class DefaultSocioPlanService implements SocioPlanService
 				LOG.error("ruleMaintenanceService sem compileAndPublishRulesWithBlocking");
 				return;
 			}
-			final Object result = compile.invoke(maintenance, Collections.singletonList(rule), RULE_MODULE, Boolean.TRUE);
-			modelService.refresh(rule);
-			modelService.setAttributeValue(rule, "status", (Object) enumerationService.getEnumerationValue("RuleStatus", "PUBLISHED"));
-			modelService.save(rule);
-			LOG.info("Promoção {} publicada: {}", code, result);
+			final Object result = compile.invoke(maintenance, rules, RULE_MODULE, Boolean.TRUE);
+			for (final ItemModel rule : rules)
+			{
+				modelService.refresh(rule);
+				modelService.setAttributeValue(rule, "status", (Object) enumerationService.getEnumerationValue("RuleStatus", "PUBLISHED"));
+				modelService.save(rule);
+			}
+			LOG.info("Promoções {} publicadas: {}", codes, result);
 		}
 		catch (final Exception e)
 		{
-			LOG.error("Falha ao publicar a promoção " + code, e);
+			LOG.error("Falha ao publicar as promoções " + codes, e);
 		}
 	}
 
@@ -666,6 +970,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 		final Map<String, Object> rules = new LinkedHashMap<>();
 		rules.put("wave", Integer.valueOf(Math.max(0, intOf(plan.getWave()))));
 		rules.put("discount", Integer.valueOf(intOf(plan.getTicketDiscount())));
+		rules.put("storeDiscount", Integer.valueOf(intOf(plan.getStoreDiscount())));
 		rules.put("maxGuests", Integer.valueOf(guestCode == null ? 0 : intOf(plan.getMaxGuests())));
 		rules.put("guest", guestCode);
 		rules.put("group", plan.getCustomerGroup() == null ? null : plan.getCustomerGroup().getUid());
@@ -723,6 +1028,11 @@ public class DefaultSocioPlanService implements SocioPlanService
 		if (discount > 0)
 		{
 			parts.add(portuguese ? discount + "% de desconto na inteira" : discount + "% off the full ticket price");
+		}
+		final int storeDiscount = intOf(plan.getStoreDiscount());
+		if (storeDiscount > 0)
+		{
+			parts.add(portuguese ? storeDiscount + "% na loja" : storeDiscount + "% off in the store");
 		}
 		if (parts.isEmpty())
 		{

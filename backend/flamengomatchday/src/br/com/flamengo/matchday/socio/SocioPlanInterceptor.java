@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Liga a tela "Planos" do Backoffice (perspectiva Sócio-Torcedor) à loja.
  * <ul>
- * <li>novo plano: rascunho, programa Nação Maraca, onda 3, sem desconto nem convidados</li>
- * <li>salvar "À venda": cria ou atualiza o produto de assinatura, a promoção e os grupos</li>
+ * <li>novo plano: rascunho, programa Nação Maraca, onda 3, sem descontos nem convidados</li>
+ * <li>salvar "À venda": cria ou atualiza o produto de assinatura, as promoções (ingresso e loja) e os grupos</li>
  * <li>"Fora da loja" ou "Rascunho" com produto: tira o plano da loja (quem já é sócio continua)</li>
  * <li>apagar: só plano que nunca foi para a loja</li>
  * </ul>
@@ -35,7 +35,7 @@ public class SocioPlanInterceptor implements InitDefaultsInterceptor<SocioPlanMo
 
 	/** Campos que mudam o produto, a promoção ou o que a loja mostra */
 	private static final List<String> CONTENT = Arrays.asList(SocioPlanModel.NAME, SocioPlanModel.FAMILY, SocioPlanModel.SUMMARY,
-			SocioPlanModel.BENEFITS, SocioPlanModel.MONTHLYPRICE, SocioPlanModel.TICKETDISCOUNT, SocioPlanModel.WAVE,
+			SocioPlanModel.BENEFITS, SocioPlanModel.MONTHLYPRICE, SocioPlanModel.TICKETDISCOUNT, SocioPlanModel.STOREDISCOUNT, SocioPlanModel.WAVE,
 			SocioPlanModel.MAXGUESTS, SocioPlanModel.GUESTPRICE, SocioPlanModel.SLOTS, SocioPlanModel.SORTORDER,
 			SocioPlanModel.STATUS);
 
@@ -59,6 +59,10 @@ public class SocioPlanInterceptor implements InitDefaultsInterceptor<SocioPlanMo
 		if (plan.getTicketDiscount() == null)
 		{
 			plan.setTicketDiscount(Integer.valueOf(0));
+		}
+		if (plan.getStoreDiscount() == null)
+		{
+			plan.setStoreDiscount(Integer.valueOf(0));
 		}
 		if (plan.getMaxGuests() == null)
 		{
@@ -136,6 +140,11 @@ public class SocioPlanInterceptor implements InitDefaultsInterceptor<SocioPlanMo
 		if (discount < 0 || discount > 100)
 		{
 			throw new InterceptorException("O desconto no ingresso vai de 0 a 100%.");
+		}
+		final int storeDiscount = plan.getStoreDiscount() == null ? 0 : plan.getStoreDiscount().intValue();
+		if (storeDiscount < 0 || storeDiscount > 100)
+		{
+			throw new InterceptorException("O desconto na loja vai de 0 a 100%.");
 		}
 		final int wave = plan.getWave() == null ? 0 : plan.getWave().intValue();
 		if (wave < 0 || wave > 3)

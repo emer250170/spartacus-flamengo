@@ -330,6 +330,7 @@ export class SocioService {
       guest,
       maxGuests: guest ? rules.maxGuests : 0,
       discount: rules.discount,
+      storeDiscount: rules.storeDiscount,
       wave: rules.wave,
       group: rules.group,
       pending: rules.pending,
@@ -367,6 +368,7 @@ export class SocioService {
     return {
       wave: int(r.wave, 0, GENERAL_SALE_WAVE - 1, 0),
       discount: int(r.discount, 0, 100, 0),
+      storeDiscount: int(r.storeDiscount, 0, 100, 0),
       maxGuests: int(r.maxGuests, 0, 99, 0),
       guest: str(r.guest),
       group,
@@ -387,6 +389,7 @@ export class SocioService {
       ? {
           wave: old.wave,
           discount: old.discount,
+          storeDiscount: 0,
           maxGuests: old.maxGuests,
           guest: old.guestCode,
           group: `nacao-maraca-${n}`,
