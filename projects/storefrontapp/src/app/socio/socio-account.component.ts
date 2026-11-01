@@ -7,7 +7,11 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { ActiveCartFacade, OrderEntry } from '@spartacus/cart/base/root';
-import { GlobalMessageService, GlobalMessageType } from '@spartacus/core';
+import {
+  GlobalMessageService,
+  GlobalMessageType,
+  WindowRef,
+} from '@spartacus/core';
 import {
   Observable,
   Subscription,
@@ -124,7 +128,8 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     protected globalMessages: GlobalMessageService,
     protected router: Router,
     protected i18n: FlaI18nService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected winRef: WindowRef
   ) {}
 
   ngOnInit(): void {
@@ -225,17 +230,48 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     return `${card.typeName || card.type} •••• ${last}`;
   }
 
-  /** Situação do plano: ativo, cancelamento solicitado ou inativo (encerrado) */
+  /** Sócio com os benefícios suspensos por mensalidade em atraso */
+  get suspended(): boolean {
+    return (
+      !this.ended &&
+      !!this.membership?.suspended &&
+      !!this.membership?.member
+    );
+  }
+
+  /** Situação do plano: ativo, suspenso, cancelamento solicitado ou inativo (encerrado) */
   get statusKey(): string {
     return this.ended
       ? 'sa.status.inactive'
       : this.cancellation
         ? 'sa.status.cancelling'
-        : 'sa.status.active';
+        : this.suspended
+          ? 'sa.status.suspended'
+          : 'sa.status.active';
   }
 
   get statusTone(): 'ok' | 'warn' | 'off' {
-    return this.ended ? 'off' : this.cancellation ? 'warn' : 'ok';
+    return this.ended
+      ? 'off'
+      : this.cancellation || this.suspended
+        ? 'warn'
+        : 'ok';
+  }
+
+  /**
+   * Regularizar: abre o cadastro de cartão novo; ao salvar, o SAP Commerce cobra
+   * a mensalidade em atraso nele (simulado) e devolve os benefícios.
+   */
+  regularize(): void {
+    this.cardPanel = true;
+    this.newCardForm = true;
+    this.cardError = '';
+    this.cd.markForCheck();
+    setTimeout(() =>
+      this.winRef.document
+        ?.getElementById('sa-card-panel')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    );
   }
 
   get defaultCard(): SocioCard | undefined {
@@ -312,7 +348,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
         .addCard({ ...this.newCard, type: this.cardType(digits) })
         .pipe(switchMap(() => this.account.cards()))
         .subscribe({
-          next: (cards) => this.cardSaved(cards),
+          next: (cards) => this.cardSaved(cards, true),
           error: (e) =>
             this.cardFailed(
               e?.message === 'no-address' ? 'sa.card.noAddress' : undefined
@@ -332,16 +368,24 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     return 'visa';
   }
 
-  protected cardSaved(cards: SocioCard[]): void {
+  protected cardSaved(cards: SocioCard[], added = false): void {
+    const regularized = added && this.suspended;
     this.cards = cards;
     this.cardBusy = false;
     this.cardPanel = false;
     this.newCardForm = false;
     this.newCard = this.emptyCard();
     this.globalMessages.add(
-      this.t('sa.card.saved', { card: this.cardLabel(this.defaultCard) }),
+      regularized
+        ? this.t('sa.regularized', { card: this.cardLabel(this.defaultCard) })
+        : this.t('sa.card.saved', { card: this.cardLabel(this.defaultCard) }),
       GlobalMessageType.MSG_TYPE_CONFIRMATION
     );
+    if (regularized) {
+      // o SAP Commerce já tirou o torcedor dos suspensos: selo, ondas e descontos voltam
+      this.socio.refreshMembership();
+      this.activeCart.reloadActiveCart();
+    }
     this.cd.markForCheck();
   }
 

@@ -1,10 +1,11 @@
 <a
-  *ngIf="plan$ | async as plan"
+  *ngIf="membership$ | async as m"
   class="fla-sb"
-  routerLink="/socio-torcedor"
-  [attr.title]="details(plan)"
+  [class.fla-sb--suspended]="m.suspended"
+  [routerLink]="m.suspended ? '/my-account/socio-torcedor' : '/socio-torcedor'"
+  [attr.title]="details(m)"
   [attr.aria-label]="
-    ('sb.aria' | flaT: { plan: plan.name }) + '. ' + details(plan)
+    ('sb.aria' | flaT: { plan: m.member?.name }) + '. ' + details(m)
   "
 >
   <span class="fla-sb-seal" aria-hidden="true">
@@ -33,7 +34,9 @@
     </svg>
   </span>
   <span class="fla-sb-text">
-    <span class="fla-sb-kicker">{{ 'sb.kicker' | flaT }}</span>
-    <span class="fla-sb-plan">{{ plan.name }}</span>
+    <span class="fla-sb-kicker">{{
+      (m.suspended ? 'sb.suspended' : 'sb.kicker') | flaT
+    }}</span>
+    <span class="fla-sb-plan">{{ m.member?.name }}</span>
   </span>
 </a>

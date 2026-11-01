@@ -441,6 +441,20 @@ Regra do Termo: os benefícios valem com o contrato ativo e adimplente; a inadim
 
 Depois do `ant all`: Update no HAC (tipo novo `SocioEvent` e enum `SocioEventType`), ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`) e republicar os planos à venda para as promoções ganharem a exclusão.
 
+- **Republicar vários planos**: chamar `publish` de cada plano em sequência faz as publicações de regras competirem e só a última publica (as outras ficam `UNPUBLISHED`, a versão anterior continua valendo). Publique as regras de uma vez (`publishRules` com todos os códigos). Cada publicação também reindexa a busca: o servidor tem 2 GB de heap e caiu depois de três reindexações seguidas (01/11).
+- Testado em 01/11 com o torcedor21 (sócio Maraca 2 simulado): suspensão tira o ingresso do Bahia (onda de sócio) do carrinho e põe o do Fluminense a preço cheio (R$ 80); regularização pelo Backoffice e por cartão novo devolvem o desconto (R$ 28); suspender quem não é sócio é recusado.
+
+**Loja e Claude (PR B)**
+
+| Onde | O que aparece |
+|---|---|
+| Selo no header | "Benefícios suspensos" em âmbar, leva a Meu sócio-torcedor |
+| Meu sócio-torcedor | Situação "Benefícios suspensos" e aviso com **Regularizar agora**, que abre o cadastro de cartão novo; ao salvar, mensagem "Pagamento regularizado…" e selo, ondas e descontos voltam |
+| Jornada de matchday | Barra "Plano X com benefícios suspensos · Regularizar"; jogo fora da venda geral mostra o bloqueio com o motivo e o botão Regularizar |
+| `SocioService` | `Membership.suspended` (grupo `socio-suspenso` pela API `customergroups`); suspenso vale como venda geral, sem desconto |
+| Claude, gestor do sócio | `situacao_socio`, `suspender_socio`, `regularizar_socio` (objeto de integração `FlamengoEventoSocio`, permissão no `socioapigroup`); `buscar_torcedor` mostra a situação |
+| Claude, torcedor | `minha_conta` mostra "Benefícios suspensos" e como regularizar |
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

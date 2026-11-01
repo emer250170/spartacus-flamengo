@@ -128,6 +128,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   // sócio-torcedor: plano do torcedor e ondas de venda
   /** Plano de sócio que vale para ingressos (comprado ou no carrinho) */
   memberPlan: SocioPlan | null = null;
+  /** Plano do sócio com os benefícios suspensos (mensalidade em atraso) ou null */
+  suspendedPlan: SocioPlan | null = null;
   /** O plano que vale está só no carrinho (ainda não comprado) */
   planInCart = false;
   /** Planos de sócio (nomes das ondas e maior desconto) */
@@ -203,6 +205,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.socio.getMembership().subscribe((m) => {
         this.memberPlan = m.plan;
+        this.suspendedPlan = m.suspended ? m.member : null;
         this.planInCart =
           !!m.plan &&
           m.plan.code === m.inCart?.code &&
@@ -357,6 +360,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   /** Aviso de onda fechada: quando a onda do torcedor abre */
   lockText(w: WaveStatus): string {
     const date = this.shortDate(w.opensAt);
+    if (this.suspendedPlan) {
+      return this.i18n.t('md.lock.suspended', { date });
+    }
     if (!this.memberPlan) {
       return this.i18n.t('md.lock.nonMember', { date });
     }
@@ -367,7 +373,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   /** Sugere subir de plano: não é sócio, ou o plano não compra na onda 1 */
   get canUpgrade(): boolean {
-    return this.memberPlan?.wave !== 1;
+    return !this.suspendedPlan && this.memberPlan?.wave !== 1;
   }
 
   /** Maior desconto entre os planos (convite para ser sócio) */

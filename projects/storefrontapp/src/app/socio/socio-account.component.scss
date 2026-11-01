@@ -180,6 +180,41 @@
   margin-bottom: 24px;
 }
 
+// benefícios suspensos (mensalidade em atraso)
+.sa-suspended {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -8px 0 24px;
+  padding: 16px 20px;
+  border: 1px solid #f0b54a;
+  border-left: 6px solid #e08a00;
+  border-radius: 12px;
+  background: #fff7e8;
+  color: #4a3200;
+
+  .sa-btn {
+    flex-shrink: 0;
+  }
+}
+
+.sa-suspended-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.sa-suspended-text {
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  .sa-suspended {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 // ex-sócio: listras apagadas
 .sa-hero--off {
   background: repeating-linear-gradient(

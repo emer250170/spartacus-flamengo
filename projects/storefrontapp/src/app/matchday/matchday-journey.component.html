@@ -33,6 +33,19 @@
             · {{ waveLabel(myWave) }}
           </ng-container>
           <ng-template #notMember>
+            <ng-container *ngIf="suspendedPlan; else notMemberAtAll">
+              <span
+                [innerHTML]="
+                  'md.suspended' | flaT: { plan: suspendedPlan.name }
+                "
+              ></span>
+              ·
+              <a routerLink="/my-account/socio-torcedor">{{
+                'md.regularize' | flaT
+              }}</a>
+            </ng-container>
+          </ng-template>
+          <ng-template #notMemberAtAll>
             {{
               (maxDiscount ? 'md.beMember' : 'md.beMemberNoOff')
                 | flaT: { d: maxDiscount }
@@ -140,6 +153,12 @@
                     <span>{{ shortDate(s.at) }}</span>
                   </li>
                 </ol>
+                <a
+                  *ngIf="suspendedPlan"
+                  class="btn btn-primary"
+                  routerLink="/my-account/socio-torcedor"
+                  >{{ 'md.regularize' | flaT }}</a
+                >
                 <a
                   *ngIf="canUpgrade"
                   class="btn btn-primary"

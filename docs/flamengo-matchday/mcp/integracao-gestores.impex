@@ -1,7 +1,8 @@
 # MCP "Loja Flamengo": acesso dos gestores pela Integration API (OData).
 # Aplicado no servidor em 31/10/2026 pelo HAC (ImpEx). NÃO fica em resources/impex de propósito:
 # rode à mão no HAC > Console > ImpEx Import quando precisar recriar.
-#  - 8 objetos de integração (planos, chamados, mensagens, pedidos, jogos, cupons, uso de cupons, torcedores)
+#  - 9 objetos de integração (planos, chamados, mensagens, pedidos, jogos, cupons, uso de cupons, torcedores,
+#    eventos do sócio)
 #  - canal de entrada BASIC para cada um (sem ele a OData responde 403)
 #  - grupos socioapigroup e jogosapigroup com permissão por tipo (os papéis do Backoffice são BackofficeRole,
 #    que só valem com o papel ativo numa sessão do Backoffice; por isso os grupos próprios para a API)
@@ -16,6 +17,7 @@ INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
 ; FlamengoCupom ; INBOUND
 ; FlamengoCupomUso ; INBOUND
 ; FlamengoTorcedor ; INBOUND
+; FlamengoEventoSocio ; INBOUND
 
 INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
 ; FlamengoPlano ; SocioPlan ; SocioPlan ; true
@@ -43,6 +45,10 @@ INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; cod
 ; FlamengoCupomUso ; User ; User ; false
 ; FlamengoTorcedor ; Customer ; Customer ; true
 ; FlamengoTorcedor ; PrincipalGroup ; PrincipalGroup ; false
+; FlamengoEventoSocio ; SocioEvent ; SocioEvent ; true
+; FlamengoEventoSocio ; SocioEventType ; SocioEventType ; false
+; FlamengoEventoSocio ; Customer ; Customer ; false
+; FlamengoEventoSocio ; SocioPlan ; SocioPlan ; false
 
 INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
 ; FlamengoPlano:SocioPlan ; code ; SocioPlan:code ;  ; true
@@ -156,6 +162,20 @@ INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationO
 ; FlamengoTorcedor:Customer ; groups ; Customer:groups ; FlamengoTorcedor:PrincipalGroup ; false
 ; FlamengoTorcedor:PrincipalGroup ; uid ; PrincipalGroup:uid ;  ; true
 ; FlamengoTorcedor:PrincipalGroup ; name ; PrincipalGroup:name ;  ; false
+# Linha do tempo do sócio (item 1 do plano de evolução): suspender e regularizar = criar evento
+; FlamengoEventoSocio:SocioEvent ; customer ; SocioEvent:customer ; FlamengoEventoSocio:Customer ; true
+; FlamengoEventoSocio:SocioEvent ; date ; SocioEvent:date ;  ; true
+; FlamengoEventoSocio:SocioEvent ; type ; SocioEvent:type ; FlamengoEventoSocio:SocioEventType ; false
+; FlamengoEventoSocio:SocioEvent ; plan ; SocioEvent:plan ; FlamengoEventoSocio:SocioPlan ; false
+; FlamengoEventoSocio:SocioEvent ; origin ; SocioEvent:origin ;  ; false
+; FlamengoEventoSocio:SocioEvent ; author ; SocioEvent:author ;  ; false
+; FlamengoEventoSocio:SocioEvent ; note ; SocioEvent:note ;  ; false
+; FlamengoEventoSocio:SocioEvent ; result ; SocioEvent:result ;  ; false
+; FlamengoEventoSocio:SocioEventType ; code ; SocioEventType:code ;  ; true
+; FlamengoEventoSocio:Customer ; uid ; Customer:uid ;  ; true
+; FlamengoEventoSocio:Customer ; name ; Customer:name ;  ; false
+; FlamengoEventoSocio:SocioPlan ; code ; SocioPlan:code ;  ; true
+; FlamengoEventoSocio:SocioPlan ; name ; SocioPlan:name ;  ; false
 
 INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
 ; FlamengoPlano ; BASIC
@@ -166,6 +186,7 @@ INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true
 ; FlamengoCupom ; BASIC
 ; FlamengoCupomUso ; BASIC
 ; FlamengoTorcedor ; BASIC
+; FlamengoEventoSocio ; BASIC
 
 INSERT_UPDATE UserGroup; uid[unique = true]; name; groups(uid)
 ; socioapigroup ; Gestor do sócio-torcedor - API (MCP) ; integrationviewgroup,integrationcreategroup
@@ -199,6 +220,8 @@ UserGroup;socioapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
 ;;;;OrderStatus;+;-;-;-;-
 ;;;;SingleCodeCoupon;+;+;-;-;-
 ;;;;CouponRedemption;+;-;-;-;-
+;;;;SocioEvent;+;-;+;-;-
+;;;;SocioEventType;+;-;-;-;-
 UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
 ;;;;MatchdayGame;+;+;+;-;-
 ;;;;MatchdayGameStatus;+;-;-;-;-
