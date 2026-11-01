@@ -6,9 +6,12 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import {
   MATCHDAY_HOLD_KEY,
+  MATCHDAY_HOLD_MINUTES,
+  MATCHDAY_LOGIN_KEY,
   MATCHDAY_STORAGE_KEY,
   MatchdayCatalog,
   MatchdayHold,
+  MatchdayLoginIntent,
   MatchdayMatch,
   MatchdayProduct,
   MatchdaySeat,
@@ -199,6 +202,44 @@ export class MatchdayDataService {
   clearHold(): void {
     try {
       this.winRef.localStorage?.removeItem(MATCHDAY_HOLD_KEY);
+    } catch {
+      // nada a limpar
+    }
+  }
+
+  /** Jogo, setor e poltrona escolhidos antes de ir para o login */
+  saveLoginIntent(intent: MatchdayLoginIntent): void {
+    try {
+      this.winRef.localStorage?.setItem(
+        MATCHDAY_LOGIN_KEY,
+        JSON.stringify(intent)
+      );
+    } catch {
+      // sem armazenamento a volta do login só não reabre a poltrona
+    }
+  }
+
+  /** A escolha guardada, se ainda estiver no prazo da reserva */
+  readLoginIntent(): MatchdayLoginIntent | undefined {
+    try {
+      const raw = this.winRef.localStorage?.getItem(MATCHDAY_LOGIN_KEY);
+      const intent = raw ? (JSON.parse(raw) as MatchdayLoginIntent) : undefined;
+      if (
+        intent?.matchCode &&
+        Date.now() - (intent.savedAt ?? 0) < MATCHDAY_HOLD_MINUTES * 60_000
+      ) {
+        return intent;
+      }
+      this.clearLoginIntent();
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  clearLoginIntent(): void {
+    try {
+      this.winRef.localStorage?.removeItem(MATCHDAY_LOGIN_KEY);
     } catch {
       // nada a limpar
     }

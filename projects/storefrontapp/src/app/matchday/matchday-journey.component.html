@@ -232,9 +232,9 @@
                     *ngFor="let c of r.seats"
                     class="md-seat"
                     [class.is-occupied]="c.occupied"
-                    [class.is-mine]="seat === c.id"
+                    [class.is-mine]="isMine(c)"
                     [disabled]="c.occupied || holding"
-                    [attr.aria-pressed]="seat === c.id"
+                    [attr.aria-pressed]="isMine(c)"
                     [attr.aria-label]="seatAria(r.row, c)"
                     (click)="selectSeat(c)"
                   >
