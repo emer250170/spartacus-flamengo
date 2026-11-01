@@ -84,6 +84,7 @@ public class SocioReportHtml
 			+ ".fsr-split b{display:block;line-height:1.15}"
 			+ ".fsr-split i{display:block;font-style:normal;font-size:12px;font-weight:700;color:" + DARK + ";margin-top:1px}"
 			+ ".fsr-split .fsr-cap{display:block;margin-top:2px;text-transform:none;letter-spacing:0;font-weight:400}"
+			+ ".fsr-real{display:block;margin-top:4px;font-size:11px;font-weight:700;color:" + RED + "}"
 			// números do cabeçalho (receita, acumulado do dia)
 			+ ".fsr-nums{display:flex;gap:6px 26px;flex-wrap:wrap;text-align:right}"
 			+ ".fsr-num b{display:block;font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}"
@@ -296,7 +297,19 @@ public class SocioReportHtml
 			html.append("<div><b>").append(integer.format(values[i])).append("</b><i>")
 					.append(esc(percent(whole <= 0 ? 0 : values[i] / (double) whole, 1))).append("</i><span class=\"fsr-cap\">")
 					.append("<span class=\"fsr-sw\" style=\"background:").append(colors[i]).append(";width:8px;height:8px;margin-right:5px\"></span>")
-					.append(esc(names[i])).append("</span></div>");
+					.append(esc(names[i])).append("</span>");
+			if (i == 1 && family.realSuspended > 0)
+			{
+				// suspensos agora na loja (Sócio-Torcedor › Sócios): o que dá para apontar na demo
+				final List<String> who = family.suspendedNames;
+				final String list = who.size() <= 3 ? String.join(", ", who)
+						: String.join(", ", who.subList(0, 3)) + " +" + (who.size() - 3);
+				html.append("<span class=\"fsr-real\">")
+						.append(esc(fmt(family.realSuspended == 1 ? "family.realSuspended.one" : "family.realSuspended",
+								integer.format(family.realSuspended), list)))
+						.append("</span>");
+			}
+			html.append("</div>");
 		}
 		html.append("</div></section>");
 	}

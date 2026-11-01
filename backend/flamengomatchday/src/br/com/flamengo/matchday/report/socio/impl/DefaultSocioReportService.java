@@ -9,6 +9,7 @@ import de.hybris.platform.core.enums.OrderStatus;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
 import de.hybris.platform.core.model.user.AddressModel;
+import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.search.restriction.SearchRestrictionService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
 import de.hybris.platform.servicelayer.search.FlexibleSearchService;
@@ -119,6 +120,7 @@ public class DefaultSocioReportService implements SocioReportService
 		double churnVsAverage;
 		/** Sócios reais da loja com os benefícios suspensos (inadimplentes) */
 		int suspended;
+		final List<String> suspendedNames = new ArrayList<>();
 	}
 
 	protected SocioReport build(final Date now, final Locale locale)
@@ -149,7 +151,8 @@ public class DefaultSocioReportService implements SocioReportService
 			n.family = StringUtils.defaultIfBlank(plan.getFamily(), "Nação Maraca");
 			n.wave = plan.getWave() == null ? 0 : Math.max(0, plan.getWave().intValue());
 			n.holders = demo + real;
-			n.suspended = Math.min(real, socioPlanService.countSuspended(plan));
+			n.suspendedNames.addAll(suspendedNames(plan));
+			n.suspended = Math.min(real, n.suspendedNames.size());
 			final int maxGuests = plan.getMaxGuests() == null ? 0 : plan.getMaxGuests().intValue();
 			n.guests = (int) Math.round(demo * maxGuests * GUEST_FILL[Math.min(maxGuests, GUEST_FILL.length - 1)]);
 			n.price = plan.getMonthlyPrice() == null ? 0 : plan.getMonthlyPrice().doubleValue();
@@ -173,6 +176,7 @@ public class DefaultSocioReportService implements SocioReportService
 		// ---------------- cartões
 		final Map<String, SocioReport.Family> families = new LinkedHashMap<>();
 		final Map<String, Integer> realOverdue = new LinkedHashMap<>();
+		final Map<String, List<String>> realOverdueNames = new LinkedHashMap<>();
 		int churnedToday = 0;
 		for (final PlanNumbers n : plans)
 		{
@@ -185,6 +189,7 @@ public class DefaultSocioReportService implements SocioReportService
 			});
 			family.contracts += n.holders;
 			realOverdue.merge(n.family, n.suspended, Integer::sum);
+			realOverdueNames.computeIfAbsent(n.family, k -> new ArrayList<>()).addAll(n.suspendedNames);
 			final int churned = (int) Math.round(n.holders * n.churn / report.daysInMonth * profileSoFar);
 			churnedToday += churned;
 			family.delta += n.today - churned; // ajustado para fração abaixo
@@ -194,11 +199,13 @@ public class DefaultSocioReportService implements SocioReportService
 			final boolean borderless = family.name.toLowerCase(Locale.ROOT).contains("fronteira");
 			final double upToDate = borderless ? 0.767 : 0.868;
 			final double overdue = borderless ? 0.228 : 0.127;
-			// base simulada pelas taxas + suspensos reais da loja (sempre inadimplentes)
+			// base simulada pelas taxas; cada sócio suspenso na loja passa de adimplente a
+			// inadimplente (o número de inadimplentes sobe exatamente com cada suspensão)
 			final int suspended = realOverdue.getOrDefault(family.name, 0);
-			final int simulated = Math.max(0, family.contracts - suspended);
-			family.upToDate = (int) Math.round(simulated * upToDate);
-			family.overdue = (int) Math.round(simulated * overdue) + suspended;
+			family.realSuspended = suspended;
+			family.suspendedNames.addAll(realOverdueNames.getOrDefault(family.name, new ArrayList<>()));
+			family.upToDate = Math.max(0, (int) Math.round(family.contracts * upToDate) - suspended);
+			family.overdue = (int) Math.round(family.contracts * overdue) + suspended;
 			family.notRenewed = Math.max(0, family.contracts - family.upToDate - family.overdue);
 			family.inactive = (int) Math.round(family.contracts * (borderless ? 0.359 : 0.368));
 			family.delta = family.contracts == 0 ? 0 : family.delta / family.contracts;
@@ -639,6 +646,29 @@ public class DefaultSocioReportService implements SocioReportService
 		h *= 0xc2b2ae35;
 		h ^= h >>> 16;
 		return Math.floorMod(h, mod);
+	}
+
+	/** Nomes dos titulares do plano com os benefícios suspensos (sócios reais da loja) */
+	protected List<String> suspendedNames(final SocioPlanModel plan)
+	{
+		final List<String> names = new ArrayList<>();
+		if (plan.getCustomerGroup() == null || plan.getCustomerGroup().getMembers() == null)
+		{
+			return names;
+		}
+		for (final Object member : plan.getCustomerGroup().getMembers())
+		{
+			if (member instanceof CustomerModel)
+			{
+				final CustomerModel customer = (CustomerModel) member;
+				if (socioPlanService.isSuspended(customer) && socioPlanService.memberPlan(customer) != null)
+				{
+					names.add(StringUtils.defaultIfBlank(customer.getName(), customer.getUid()));
+				}
+			}
+		}
+		names.sort(String::compareToIgnoreCase);
+		return names;
 	}
 
 	public void setSocioPlanService(final SocioPlanService socioPlanService)

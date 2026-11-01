@@ -435,7 +435,7 @@ Regra do Termo: os benefícios valem com o contrato ativo e adimplente; a inadim
 | Suspender / regularizar | Criar um evento **Suspensão** ou **Regularização** (Backoffice ou Claude) aplica a mudança na hora (`SocioEventInterceptor`). Suspensão de quem não é sócio é recusada. |
 | Regularização pelo torcedor | Cartão novo salvo na conta (Meu sócio-torcedor › trocar cartão, ou no pagamento) de um sócio suspenso: "mensalidade em atraso cobrada no cartão novo" e os benefícios voltam (`SocioCardRegularizationInterceptor`, tipo CreditCardPaymentInfo, só cartão salvo e não duplicado). |
 | Eventos automáticos | Adesão ou mudança de plano no pedido (`applyOrder`) e cancelamento ao fechar o chamado (`SocioCancelTicketInterceptor`). O cancelamento tira também o grupo `socio-suspenso`. |
-| Relatório | Inadimplentes = base simulada pelas taxas + suspensos reais da loja. |
+| Relatório | Cartão de cada família (Relatórios): Inadimplentes = base simulada pelas taxas + suspensos reais da loja, que saem de Adimplentes (cada suspensão sobe Inadimplentes em 1). Embaixo de Inadimplentes, em vermelho: "dos quais N suspenso(s) agora na loja: nomes" (até 3 nomes). |
 | Chave | `flamengo.socio.suspensao.ativa` (padrão `true`). `false`: ninguém novo é suspenso; regularizar continua funcionando. |
 | Papel | `sociomanagerrole`: lê e cria `SocioEvent`, lê `SocioEventType`. |
 
