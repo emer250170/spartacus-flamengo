@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -6,6 +7,7 @@ import { CmsConfig, provideConfig } from '@spartacus/core';
 import { SpinnerModule } from '@spartacus/storefront';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
+import { MatchdayDeliveryTextInterceptor } from './matchday-delivery-text.interceptor';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import { MatchdayJourneyComponent } from './matchday-journey.component';
 import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmation.component';
@@ -34,6 +36,12 @@ import { MatchdayStadiumMapComponent } from './matchday-stadium-map.component';
     MatchdayStadiumMapComponent,
   ],
   providers: [
+    // descrição da entrega "Ingresso digital e retirada no estádio" conforme o carrinho
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MatchdayDeliveryTextInterceptor,
+      multi: true,
+    },
     provideConfig(<CmsConfig>{
       cmsComponents: {
         MatchdayJourneyComponent: { component: MatchdayJourneyComponent },
