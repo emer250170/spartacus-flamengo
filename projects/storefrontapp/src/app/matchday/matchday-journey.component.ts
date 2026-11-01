@@ -672,23 +672,31 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.pendingSeat = undefined;
     this.cd.markForCheck();
     const previousCode = this.held?.code;
+    const matchCode = this.data.matchCodeOfSeat(code);
     // troca de poltrona: a anterior sai do carrinho a pedido da jornada
     this.holdWatcher.paused = true;
-    if (previousCode) {
-      this.data.clearHold();
-    }
+    this.data.clearHold();
     this.subscription.add(
       this.activeCart
         .getEntries()
         .pipe(
           take(1),
           switchMap((entries) => {
+            // um ingresso por jornada: sai do carrinho qualquer outra poltrona
+            // do mesmo jogo (a anterior, uma retomada do carrinho depois do
+            // login ou sobra de outra visita), não só a que a jornada segurava
             entries
-              .filter(
-                (e) =>
-                  e.product?.code === code ||
-                  (previousCode && e.product?.code === previousCode)
-              )
+              .filter((e) => {
+                const c = e.product?.code;
+                return (
+                  !!c &&
+                  (c === code ||
+                    c === previousCode ||
+                    (!!matchCode && this.data.matchCodeOfSeat(c) === matchCode))
+                );
+              })
+              // da última linha para a primeira: tirar uma renumera as seguintes
+              .sort((a, b) => (b.entryNumber ?? 0) - (a.entryNumber ?? 0))
               .forEach((e) => this.activeCart.removeEntry(e));
             this.activeCart.addEntry(code, 1);
             return this.cartSettled();
