@@ -4,6 +4,9 @@ import br.com.flamengo.matchday.model.MatchdayGameModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.service.SeatHoldService;
 import de.hybris.platform.commerceservices.order.CommerceCartCalculationStrategy;
+import de.hybris.platform.core.PK;
+import de.hybris.platform.core.Registry;
+import de.hybris.platform.core.Tenant;
 import de.hybris.platform.commerceservices.service.data.CommerceCartParameter;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
 import de.hybris.platform.core.model.order.CartModel;
@@ -13,10 +16,14 @@ import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.core.model.user.UserGroupModel;
 import de.hybris.platform.core.model.user.UserModel;
 import de.hybris.platform.servicelayer.exceptions.UnknownIdentifierException;
+import de.hybris.platform.servicelayer.i18n.CommonI18NService;
 import de.hybris.platform.servicelayer.model.ModelService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
 import de.hybris.platform.servicelayer.search.FlexibleSearchService;
+import de.hybris.platform.servicelayer.session.SessionExecutionBody;
+import de.hybris.platform.servicelayer.session.SessionService;
 import de.hybris.platform.servicelayer.user.UserService;
+import de.hybris.platform.site.BaseSiteService;
 import de.hybris.platform.variants.model.VariantProductModel;
 
 import java.util.ArrayList;
@@ -47,6 +54,8 @@ public class SocioCartService
 
 	/** Onda 4 = venda geral (quem não é sócio ou plano sem prioridade) */
 	private static final int GENERAL_SALE = 4;
+	/** Espera a suspensão ou regularização ser gravada antes de recalcular os carrinhos */
+	private static final long CART_REFRESH_DELAY_MS = 2000;
 
 	private UserService userService;
 	private ModelService modelService;
@@ -54,6 +63,9 @@ public class SocioCartService
 	private SeatHoldService seatHoldService;
 	private CommerceCartCalculationStrategy commerceCartCalculationStrategy;
 	private SocioPlanService socioPlanService;
+	private SessionService sessionService;
+	private BaseSiteService baseSiteService;
+	private CommonI18NService commonI18NService;
 
 	/** O produto é um plano de sócio-torcedor? */
 	public boolean isPlan(final ProductModel product)
@@ -171,6 +183,92 @@ public class SocioCartService
 		return removed;
 	}
 
+	/**
+	 * Suspensão ou regularização do sócio: depois que a mudança foi gravada, recalcula
+	 * os carrinhos do torcedor (o desconto de sócio sai ou volta) e, na suspensão, tira
+	 * os ingressos de jogos cuja venda geral ainda não abriu.
+	 */
+	public void refreshCartsLater(final CustomerModel customer, final boolean suspended)
+	{
+		if (customer == null || customer.getPk() == null)
+		{
+			return;
+		}
+		final PK customerPk = customer.getPk();
+		final String uid = customer.getUid();
+		final Tenant tenant = Registry.getCurrentTenant();
+		final Thread thread = new Thread(() -> {
+			Registry.setCurrentTenant(tenant);
+			try
+			{
+				Thread.sleep(CART_REFRESH_DELAY_MS);
+				sessionService.executeInLocalView(new SessionExecutionBody()
+				{
+					@Override
+					public void executeWithoutResult()
+					{
+						userService.setCurrentUser(userService.getAdminUser());
+						refreshCarts(customerPk, suspended);
+					}
+				});
+			}
+			catch (final InterruptedException e)
+			{
+				Thread.currentThread().interrupt();
+			}
+			catch (final Exception e)
+			{
+				LOG.error("Falha ao recalcular os carrinhos de " + uid, e);
+			}
+			finally
+			{
+				Registry.unsetCurrentTenant();
+			}
+		}, "socio-situacao-" + uid);
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	protected void refreshCarts(final PK customerPk, final boolean suspended)
+	{
+		final CustomerModel customer = modelService.get(customerPk);
+		modelService.refresh(customer);
+		if (customer.getCarts() == null || customer.getCarts().isEmpty())
+		{
+			return;
+		}
+		final Set<PrincipalGroupModel> groups = new HashSet<>();
+		if (customer.getGroups() != null)
+		{
+			groups.addAll(customer.getGroups());
+		}
+		for (final CartModel cart : new ArrayList<>(customer.getCarts()))
+		{
+			if (cart.getEntries() == null || cart.getEntries().isEmpty())
+			{
+				continue;
+			}
+			// recálculo com o site, o usuário e a moeda do carrinho (preço e promoções de sócio)
+			if (cart.getSite() != null)
+			{
+				baseSiteService.setCurrentBaseSite(cart.getSite(), true);
+			}
+			userService.setCurrentUser(customer);
+			if (cart.getCurrency() != null)
+			{
+				commonI18NService.setCurrentCurrency(cart.getCurrency());
+			}
+			final List<String> removed = suspended ? removeLockedSeats(cart, memberWave(groups)) : Collections.emptyList();
+			modelService.refresh(cart);
+			final CommerceCartParameter parameter = new CommerceCartParameter();
+			parameter.setEnableHooks(true);
+			parameter.setCart(cart);
+			commerceCartCalculationStrategy.recalculateCart(parameter);
+			LOG.info("Sócio {} {}: carrinho {} recalculado{}", customer.getUid(), suspended ? "suspenso" : "regularizado",
+					cart.getCode(), removed.isEmpty() ? "" : ", ingressos retirados " + removed);
+		}
+	}
+
 	/** Onda aberta agora no jogo (4 = venda geral; jogo sem datas está em venda geral) */
 	public int currentWave(final MatchdayGameModel game, final Date now)
 	{
@@ -194,10 +292,14 @@ public class SocioCartService
 		return current;
 	}
 
-	/** Onda do torcedor: a do melhor plano que ele tem (1 a 3) ou a venda geral */
+	/** Onda do torcedor: a do melhor plano que ele tem (1 a 3) ou a venda geral; suspenso compra na venda geral */
 	protected int memberWave(final Set<PrincipalGroupModel> groups)
 	{
 		int wave = GENERAL_SALE;
+		if (groups.stream().anyMatch(group -> SocioPlanService.SUSPENDED_GROUP.equals(group.getUid())))
+		{
+			return wave;
+		}
 		for (final SocioPlanModel plan : socioPlanService.getPlans())
 		{
 			final int planWave = plan.getWave() == null ? 0 : plan.getWave().intValue();
@@ -307,5 +409,20 @@ public class SocioCartService
 	public void setSocioPlanService(final SocioPlanService socioPlanService)
 	{
 		this.socioPlanService = socioPlanService;
+	}
+
+	public void setSessionService(final SessionService sessionService)
+	{
+		this.sessionService = sessionService;
+	}
+
+	public void setBaseSiteService(final BaseSiteService baseSiteService)
+	{
+		this.baseSiteService = baseSiteService;
+	}
+
+	public void setCommonI18NService(final CommonI18NService commonI18NService)
+	{
+		this.commonI18NService = commonI18NService;
 	}
 }

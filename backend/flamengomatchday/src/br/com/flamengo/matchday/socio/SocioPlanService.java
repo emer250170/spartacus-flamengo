@@ -48,4 +48,38 @@ public interface SocioPlanService
 	 * @return códigos dos planos de que ele era sócio (vazio se não era)
 	 */
 	List<String> removeMembership(de.hybris.platform.core.model.user.CustomerModel customer);
+
+	// ------------------------------------------------------------ situação do sócio
+
+	/** Grupo de quem está com os benefícios suspensos por inadimplência (continua sócio) */
+	String SUSPENDED_GROUP = "socio-suspenso";
+
+	/** Liga e desliga a suspensão por inadimplência (padrão: ligada) */
+	String SUSPENSION_PROPERTY = "flamengo.socio.suspensao.ativa";
+
+	/** A suspensão por inadimplência está ligada? */
+	boolean isSuspensionEnabled();
+
+	/** Plano comprado pelo torcedor (melhor onda), sem contar plano só no carrinho; null se não é sócio */
+	SocioPlanModel memberPlan(de.hybris.platform.core.model.user.CustomerModel customer);
+
+	/** O torcedor está com os benefícios suspensos? */
+	boolean isSuspended(de.hybris.platform.core.model.user.CustomerModel customer);
+
+	/**
+	 * Põe ou tira o torcedor do grupo de suspensos. Não salva o cliente.
+	 *
+	 * @return true se mudou alguma coisa
+	 */
+	boolean setSuspended(de.hybris.platform.core.model.user.CustomerModel customer, boolean suspended);
+
+	/** Titulares do plano que estão com os benefícios suspensos */
+	int countSuspended(SocioPlanModel plan);
+
+	/**
+	 * Evento novo (não salvo) na linha do tempo do torcedor, com o plano atual, a
+	 * data de agora e o usuário da sessão como autor.
+	 */
+	br.com.flamengo.matchday.model.SocioEventModel newEvent(de.hybris.platform.core.model.user.CustomerModel customer,
+			br.com.flamengo.matchday.enums.SocioEventType type, String origin, String note);
 }

@@ -1,7 +1,9 @@
 package br.com.flamengo.matchday.socio.impl;
 
 import br.com.flamengo.matchday.util.BackofficeRequestContext;
+import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.enums.SocioPlanStatus;
+import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioPlanService;
 import de.hybris.platform.catalog.CatalogVersionService;
@@ -36,6 +38,7 @@ import de.hybris.platform.servicelayer.search.FlexibleSearchService;
 import de.hybris.platform.servicelayer.session.SessionExecutionBody;
 import de.hybris.platform.servicelayer.session.SessionService;
 import de.hybris.platform.servicelayer.user.UserService;
+import de.hybris.platform.util.Config;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
@@ -49,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -225,6 +229,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 				.thenComparing(p -> -(p.getMonthlyPrice() == null ? 0 : p.getMonthlyPrice().doubleValue())));
 		final SocioPlanModel best = bought.get(0);
 		final CustomerModel customer = (CustomerModel) order.getUser();
+		final SocioPlanModel previous = memberPlan(customer);
 		final Set<String> planGroups = new HashSet<>();
 		for (final SocioPlanModel plan : getPlans())
 		{
@@ -252,6 +257,39 @@ public class DefaultSocioPlanService implements SocioPlanService
 		customer.setGroups(groups);
 		modelService.save(customer);
 		LOG.info("Pedido {}: {} agora é sócio {}", order.getCode(), customer.getUid(), best.getCode());
+		recordJoin(order, customer, best, previous);
+	}
+
+	/** Linha do tempo: adesão ou mudança de plano (falha aqui não desfaz o pedido) */
+	protected void recordJoin(final AbstractOrderModel order, final CustomerModel customer, final SocioPlanModel plan,
+			final SocioPlanModel previous)
+	{
+		try
+		{
+			final String name = StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode());
+			final String note;
+			if (previous == null)
+			{
+				note = "Adesão ao " + name + " (pedido " + order.getCode() + ")";
+			}
+			else if (previous.equals(plan))
+			{
+				note = "Nova compra do " + name + " (pedido " + order.getCode() + ")";
+			}
+			else
+			{
+				note = "Mudança de plano: " + StringUtils.defaultIfBlank(previous.getName(PT), previous.getCode()) + " para " + name
+						+ " (pedido " + order.getCode() + ")";
+			}
+			final SocioEventModel event = newEvent(customer, SocioEventType.ADESAO, "Loja", note);
+			event.setPlan(plan);
+			event.setResult(isSuspended(customer) ? "Sócio " + name + " (benefícios continuam suspensos)" : "Sócio " + name);
+			modelService.save(event);
+		}
+		catch (final Exception e)
+		{
+			LOG.warn("Pedido {}: não gravou o evento de adesão de {}: {}", order.getCode(), customer.getUid(), e.getMessage());
+		}
 	}
 
 	@Override
@@ -276,11 +314,121 @@ public class DefaultSocioPlanService implements SocioPlanService
 				changed = true;
 			}
 		}
+		// ex-sócio não fica marcado como suspenso
+		if (groups.removeIf(group -> SUSPENDED_GROUP.equals(group.getUid())))
+		{
+			changed = true;
+		}
 		if (changed)
 		{
 			customer.setGroups(groups);
 		}
 		return removed;
+	}
+
+	// ------------------------------------------------------------ situação do sócio
+
+	@Override
+	public boolean isSuspensionEnabled()
+	{
+		return Config.getBoolean(SUSPENSION_PROPERTY, true);
+	}
+
+	@Override
+	public SocioPlanModel memberPlan(final CustomerModel customer)
+	{
+		if (customer == null || customer.getGroups() == null || customer.getGroups().isEmpty())
+		{
+			return null;
+		}
+		final List<SocioPlanModel> plans = new ArrayList<>();
+		for (final SocioPlanModel plan : getPlans())
+		{
+			if (plan.getCustomerGroup() != null && customer.getGroups().contains(plan.getCustomerGroup())
+					&& (plan.getPendingGroup() == null || !customer.getGroups().contains(plan.getPendingGroup())))
+			{
+				plans.add(plan);
+			}
+		}
+		if (plans.isEmpty())
+		{
+			return null;
+		}
+		plans.sort(Comparator.comparingInt(DefaultSocioPlanService::waveRank)
+				.thenComparing(p -> -(p.getMonthlyPrice() == null ? 0 : p.getMonthlyPrice().doubleValue())));
+		return plans.get(0);
+	}
+
+	@Override
+	public boolean isSuspended(final CustomerModel customer)
+	{
+		return customer != null && customer.getGroups() != null
+				&& customer.getGroups().stream().anyMatch(group -> SUSPENDED_GROUP.equals(group.getUid()));
+	}
+
+	@Override
+	public boolean setSuspended(final CustomerModel customer, final boolean suspended)
+	{
+		if (customer == null || isSuspended(customer) == suspended)
+		{
+			return false;
+		}
+		final Set<PrincipalGroupModel> groups = new HashSet<>();
+		if (customer.getGroups() != null)
+		{
+			groups.addAll(customer.getGroups());
+		}
+		if (suspended)
+		{
+			groups.add(suspendedGroup());
+		}
+		else
+		{
+			groups.removeIf(group -> SUSPENDED_GROUP.equals(group.getUid()));
+		}
+		customer.setGroups(groups);
+		return true;
+	}
+
+	@Override
+	public int countSuspended(final SocioPlanModel plan)
+	{
+		final UserGroupModel group = plan.getCustomerGroup();
+		if (group == null || group.getMembers() == null)
+		{
+			return 0;
+		}
+		int count = 0;
+		for (final Object member : group.getMembers())
+		{
+			if (member instanceof CustomerModel && isSuspended((CustomerModel) member) && memberPlan((CustomerModel) member) != null)
+			{
+				count++;
+			}
+		}
+		return count;
+	}
+
+	@Override
+	public SocioEventModel newEvent(final CustomerModel customer, final SocioEventType type, final String origin, final String note)
+	{
+		final SocioEventModel event = modelService.create(SocioEventModel.class);
+		event.setCustomer(customer);
+		event.setType(type);
+		event.setDate(new Date());
+		event.setPlan(memberPlan(customer));
+		event.setOrigin(origin);
+		final UserModel current = userService.getCurrentUser();
+		event.setAuthor(current == null ? null : current.getUid());
+		event.setNote(note);
+		return event;
+	}
+
+	/** Grupo dos suspensos, dentro de customergroup (a API da loja só lista esses) */
+	protected UserGroupModel suspendedGroup()
+	{
+		return group(SUSPENDED_GROUP, "Sócios com benefícios suspensos (inadimplência)", "Members with suspended benefits (overdue)",
+				true);
 	}
 
 	/** Onda 1 primeiro; sem prioridade (0) por último */
@@ -388,6 +536,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 		{
 			plan.setPendingGroup(group("socio-pendente-" + slug, name + " no carrinho", name + " in cart", true));
 		}
+		suspendedGroup();
 	}
 
 	protected UserGroupModel group(final String uid, final String namePt, final String nameEn, final boolean customerGroup)
@@ -610,7 +759,8 @@ public class DefaultSocioPlanService implements SocioPlanService
 			final String conditions = StringUtils.defaultString((String) modelService.getAttributeValue(existing, "conditions"));
 			final String actions = StringUtils.defaultString((String) modelService.getAttributeValue(existing, "actions"));
 			final Object status = modelService.getAttributeValue(existing, "status");
-			if (conditions.contains("\"" + groupUid + "\"") && actions.replace(" ", "").contains("\"value\":" + discount)
+			if (conditions.contains("\"" + groupUid + "\"") && conditions.contains("\"" + SUSPENDED_GROUP + "\"")
+					&& actions.replace(" ", "").contains("\"value\":" + discount)
 					&& status != null && "PUBLISHED".equals(status.toString()))
 			{
 				return false;
@@ -621,7 +771,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 				+ "\"customer_groups_operator\":{\"type\":\"Enum(de.hybris.platform.ruledefinitions.CollectionOperator)\",\"value\":\"CONTAINS_ANY\"},"
 				+ "\"customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[\"" + groupUid + "\"]},"
 				+ "\"customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[]},"
-				+ "\"excluded_customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[]},"
+				+ "\"excluded_customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[\"" + SUSPENDED_GROUP + "\"]},"
 				+ "\"excluded_customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[]}},\"children\":[]},"
 				+ "{\"definitionId\":\"y_qualifying_categories\",\"parameters\":{"
 				+ "\"quantity\":{\"type\":\"java.lang.Integer\",\"value\":1},"
@@ -841,7 +991,7 @@ public class DefaultSocioPlanService implements SocioPlanService
 				+ "\"customer_groups_operator\":{\"type\":\"Enum(de.hybris.platform.ruledefinitions.CollectionOperator)\",\"value\":\"CONTAINS_ANY\"},"
 				+ "\"customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[\"" + groupUid + "\"]},"
 				+ "\"customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[]},"
-				+ "\"excluded_customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[]},"
+				+ "\"excluded_customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[\"" + SUSPENDED_GROUP + "\"]},"
 				+ "\"excluded_customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[]}},\"children\":[]}";
 	}
 

@@ -77,6 +77,9 @@
 		<property name="seatHoldService" ref="seatHoldService"/>
 		<property name="commerceCartCalculationStrategy" ref="commerceCartCalculationStrategy"/>
 		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="baseSiteService" ref="baseSiteService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
 	</bean>
 	<bean id="socioCartHooks" class="br.com.flamengo.matchday.socio.SocioCartHooks">
 		<property name="socioCartService" ref="socioCartService"/>
@@ -152,6 +155,29 @@
 	<bean id="socioCancelTicketInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
 		<property name="interceptor" ref="socioCancelTicketInterceptor"/>
 		<property name="typeCode" value="CsTicket"/>
+	</bean>
+	<!--
+		Linha do tempo do sócio (SocioEvent): Suspensão e Regularização mudam o
+		torcedor (grupo socio-suspenso: sem onda de sócio e sem descontos, mantém a vaga).
+		Chave liga/desliga: flamengo.socio.suspensao.ativa
+	-->
+	<bean id="socioEventInterceptor" class="br.com.flamengo.matchday.socio.SocioEventInterceptor">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="socioCartService" ref="socioCartService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+	<bean id="socioEventInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="socioEventInterceptor"/>
+		<property name="typeCode" value="SocioEvent"/>
+	</bean>
+	<!-- Sócio suspenso cadastra cartão novo: a mensalidade em atraso é cobrada nele e os benefícios voltam -->
+	<bean id="socioCardRegularizationInterceptor" class="br.com.flamengo.matchday.socio.SocioCardRegularizationInterceptor">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="socioEventInterceptor" ref="socioEventInterceptor"/>
+	</bean>
+	<bean id="socioCardRegularizationInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="socioCardRegularizationInterceptor"/>
+		<property name="typeCode" value="CreditCardPaymentInfo"/>
 	</bean>
 	<bean id="socioPlanMembersHandler" class="br.com.flamengo.matchday.socio.SocioPlanMembersAttributeHandler">
 		<property name="socioPlanService" ref="socioPlanService"/>

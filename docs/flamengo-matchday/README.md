@@ -422,6 +422,25 @@ Mudou o `flamengomatchday-items.xml` (4 datas no jogo), então precisa:
   - Sem o plano: os grupos saem e o ingresso do Bahia sai do carrinho.
   - Maraca 1 + Fluminense: R$ 20 com o plano, R$ 80 depois de tirar o plano.
 
+### Sócio suspenso por inadimplência e linha do tempo (item 1 do plano de evolução)
+
+Regra do Termo: os benefícios valem com o contrato ativo e adimplente; a inadimplência suspende os benefícios e a regularização os devolve.
+
+| O quê | Como funciona |
+|---|---|
+| Situação | Grupo `socio-suspenso` (dentro de `customergroup`, a loja lê pela API). O torcedor continua no grupo do plano: mantém o vínculo e a vaga (o Maraca 1 não libera vaga). |
+| Desconto | As promoções de ingresso e de loja de cada plano excluem `socio-suspenso` (`excluded_customer_groups` na condição `y_target_customers`). Regra antiga sem a exclusão é republicada na próxima publicação do plano. |
+| Onda | `SocioCartService.memberWave`: suspenso compra na venda geral. Na suspensão, os carrinhos do torcedor são recalculados em segundo plano (2 s) e os ingressos de jogos cuja venda geral ainda não abriu saem do carrinho. Na regularização, os carrinhos são recalculados e o desconto volta. |
+| Linha do tempo | Tipo `SocioEvent` (torcedor, tipo, data, plano, origem, autor, motivo, resultado). Backoffice › Sócio-Torcedor › **Eventos do sócio**. |
+| Suspender / regularizar | Criar um evento **Suspensão** ou **Regularização** (Backoffice ou Claude) aplica a mudança na hora (`SocioEventInterceptor`). Suspensão de quem não é sócio é recusada. |
+| Regularização pelo torcedor | Cartão novo salvo na conta (Meu sócio-torcedor › trocar cartão, ou no pagamento) de um sócio suspenso: "mensalidade em atraso cobrada no cartão novo" e os benefícios voltam (`SocioCardRegularizationInterceptor`, tipo CreditCardPaymentInfo, só cartão salvo e não duplicado). |
+| Eventos automáticos | Adesão ou mudança de plano no pedido (`applyOrder`) e cancelamento ao fechar o chamado (`SocioCancelTicketInterceptor`). O cancelamento tira também o grupo `socio-suspenso`. |
+| Relatório | Inadimplentes = base simulada pelas taxas + suspensos reais da loja. |
+| Chave | `flamengo.socio.suspensao.ativa` (padrão `true`). `false`: ninguém novo é suspenso; regularizar continua funcionando. |
+| Papel | `sociomanagerrole`: lê e cria `SocioEvent`, lê `SocioEventType`. |
+
+Depois do `ant all`: Update no HAC (tipo novo `SocioEvent` e enum `SocioEventType`), ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`) e republicar os planos à venda para as promoções ganharem a exclusão.
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.
