@@ -123,8 +123,11 @@ Garante que duas pessoas não comprem a mesma poltrona.
 | Carrinho abandonado | depois de 15 min o CronJob `seatHoldExpiryCronJob` (a cada minuto) libera a poltrona |
 | Pagamento | o servidor confere a reserva (se venceu e a poltrona continua livre, reserva de novo; se outra pessoa pegou, recusa) e, antes de o processo do pedido começar, converte a reserva em venda e baixa o estoque de todos os itens |
 
-Reservar exige login (ingresso é nominal): sem login a jornada pede para entrar e
-volta para a mesma página. As reservas ativas aparecem no Backoffice como
+Reservar exige login (ingresso é nominal): sem login, a poltrona clicada fica
+marcada e a jornada pede para entrar. Na volta do login, ela reabre o mesmo jogo
+na etapa Setor e poltrona e reserva a poltrona escolhida; se outra pessoa a pegou
+nesse meio-tempo, avisa e deixa o setor aberto (a escolha vale por 15 min, em
+`localStorage`, chave `fla-matchday-login`). As reservas ativas aparecem no Backoffice como
 **Reserva de poltrona** (`SeatHold`).
 
 Peças da extensão (`backend/flamengomatchday`):

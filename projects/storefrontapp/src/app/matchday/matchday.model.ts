@@ -116,5 +116,20 @@ export interface MatchdayHold {
 }
 
 export const MATCHDAY_HOLD_KEY = 'fla-matchday-hold';
+
+/**
+ * Escolha feita sem login: ao clicar em "Entrar" no aviso da poltrona, a
+ * jornada guarda jogo, setor e poltrona e, na volta do login, reabre o setor
+ * e reserva aquela poltrona.
+ */
+export interface MatchdayLoginIntent {
+  matchCode: string;
+  sectorCode?: string;
+  seatCode?: string;
+  /** Instante (ms) em que foi guardada; vale por MATCHDAY_HOLD_MINUTES */
+  savedAt: number;
+}
+
+export const MATCHDAY_LOGIN_KEY = 'fla-matchday-login';
 /** Igual a flamengomatchday.seathold.minutes no servidor */
 export const MATCHDAY_HOLD_MINUTES = 15;

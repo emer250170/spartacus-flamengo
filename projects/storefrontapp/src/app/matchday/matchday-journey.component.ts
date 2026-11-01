@@ -26,7 +26,14 @@ import {
   raceWith,
   timer,
 } from 'rxjs';
-import { filter, last, map, switchMap, take } from 'rxjs/operators';
+import {
+  debounceTime,
+  filter,
+  last,
+  map,
+  switchMap,
+  take,
+} from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { SocioPlan, WaveStatus } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
@@ -35,6 +42,7 @@ import {
   MATCHDAY_HOLD_MINUTES,
   MatchdayCatalog,
   MatchdayHold,
+  MatchdayLoginIntent,
   MatchdayMatch,
   MatchdayProduct,
   MatchdaySector,
@@ -111,6 +119,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   remaining = 0;
   needLogin = false;
   holdMessage?: string;
+  /** Poltrona clicada sem login: fica marcada e é reservada na volta do login */
+  pendingSeat?: string;
+  /** Escolha guardada antes do login, retomada quando o jogo carregar */
+  protected loginIntent?: MatchdayLoginIntent;
 
   // sócio-torcedor: plano do torcedor e ondas de venda
   /** Plano de sócio que vale para ingressos (comprado ou no carrinho) */
@@ -146,6 +158,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.requestedMatch =
       this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
+    // volta do login: reabre o jogo, o setor e a poltrona escolhidos antes
+    this.loginIntent = this.data.readLoginIntent();
+    if (this.loginIntent && !this.requestedMatch) {
+      this.requestedMatch = this.loginIntent.matchCode;
+    }
     // recarrega a cada visita (a ocupação das poltronas muda a cada venda) e
     // a cada troca de idioma (nomes e datas vêm da API no idioma do site)
     this.subscription.add(
@@ -159,6 +176,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         this.loggedIn = loggedIn;
         if (loggedIn) {
           this.needLogin = false;
+          this.resumeLoginIntent();
         }
         this.cd.markForCheck();
       })
@@ -355,10 +373,15 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       : this.i18n.t('md.left.many', { n });
   }
 
+  /** Poltrona do torcedor: reservada, ou clicada antes do login */
+  isMine(c: SeatCell): boolean {
+    return this.seat === c.id || (!!c.code && this.pendingSeat === c.code);
+  }
+
   seatAria(row: string, c: SeatCell): string {
     const state = c.occupied
       ? 'md.seat.occupied'
-      : this.seat === c.id
+      : this.isMine(c)
         ? 'md.seat.selected'
         : 'md.seat.free';
     return this.i18n.t('md.seatAria', {
@@ -391,6 +414,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       this.sector = undefined;
       this.seat = undefined;
       this.ticketCode = undefined;
+      this.pendingSeat = undefined;
+      this.needLogin = false;
       this.seatMap = [];
     }
     if (!this.match.seatsLoaded) {
@@ -436,6 +461,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         this.loadedEntries()
           .pipe(take(1))
           .subscribe((entries) => this.restoreHold(entries));
+        this.resumeLoginIntent();
         this.cd.markForCheck();
       })
     );
@@ -449,6 +475,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       this.sector = sector;
       this.seat = undefined;
       this.ticketCode = undefined;
+      this.pendingSeat = undefined;
+      this.needLogin = false;
       this.seatMap = this.buildSeatMap(sector);
     }
   }
@@ -468,16 +496,81 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       return;
     }
     if (!this.loggedIn) {
+      // fica marcada; na volta do login ela é reservada
+      this.pendingSeat = cell.code;
       this.needLogin = true;
       return;
     }
     this.holdSeat(cell);
   }
 
-  /** Entrar e voltar para esta mesma página */
+  /**
+   * Entrar e voltar para a jornada no mesmo ponto: guarda jogo, setor e
+   * poltrona e volta para /matchday?jogo=... (sem isso a volta abria a
+   * lista de jogos).
+   */
   login(): void {
-    this.authRedirect.setRedirectUrl(this.router.url);
+    const url = this.router.parseUrl(this.router.url);
+    if (this.match) {
+      this.data.saveLoginIntent({
+        matchCode: this.match.code,
+        sectorCode: this.sector?.code,
+        seatCode: this.pendingSeat,
+        savedAt: Date.now(),
+      });
+      url.queryParams = { ...url.queryParams, jogo: this.match.code };
+    }
+    this.authRedirect.setRedirectUrl(this.router.serializeUrl(url));
     this.routing.go({ cxRoute: 'login' });
+  }
+
+  /**
+   * Volta do login: com o torcedor logado e as poltronas do jogo carregadas,
+   * abre a etapa Setor e poltrona no setor escolhido e reserva a poltrona.
+   * Se outra pessoa a pegou nesse meio-tempo, avisa e deixa o setor aberto.
+   */
+  protected resumeLoginIntent(): void {
+    const intent = this.loginIntent;
+    const match = this.match;
+    if (
+      !intent ||
+      !this.loggedIn ||
+      !match?.seatsLoaded ||
+      match.code !== intent.matchCode
+    ) {
+      return;
+    }
+    this.loginIntent = undefined;
+    this.data.clearLoginIntent();
+    const sector = match.sectors.find((s) => s.code === intent.sectorCode);
+    if (!sector || (!this.waveFor(match).open && !this.held)) {
+      // sem setor guardado, ou o jogo não está aberto para a onda deste
+      // torcedor: fica no jogo, com o aviso da onda
+      return;
+    }
+    this.step = 1;
+    if (this.held?.code === intent.seatCode) {
+      // a poltrona já estava reservada neste carrinho
+      this.cd.markForCheck();
+      return;
+    }
+    this.selectSector(sector);
+    const cell = this.seatMap
+      .flatMap((r) => r.seats)
+      .find((c) => c.code === intent.seatCode);
+    if (cell && !cell.occupied) {
+      // espera o carrinho do torcedor logado assentar (junção com o carrinho
+      // anônimo); torcedor sem carrinho também segue: o addEntry cria um
+      this.subscription.add(
+        this.activeCart
+          .isStable()
+          .pipe(debounceTime(300), filter(Boolean), take(1))
+          .subscribe(() => this.holdSeat(cell))
+      );
+    } else if (cell) {
+      this.holdMessage = this.i18n.t('md.holdTaken');
+    }
+    this.cd.markForCheck();
   }
 
   /** Reserva vencida: tenta segurar a mesma poltrona de novo */
@@ -566,6 +659,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     }
     this.holding = true;
     this.needLogin = false;
+    this.pendingSeat = undefined;
     this.cd.markForCheck();
     const previousCode = this.held?.code;
     this.subscription.add(
