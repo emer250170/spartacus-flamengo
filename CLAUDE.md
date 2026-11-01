@@ -16,6 +16,11 @@ do Claude Docs).
   ler o item e a tabela "Acompanhamento" (status, PR e decisões já tomadas).
 - Ao fim de cada etapa (desenho, código, PR, instalação, teste), atualizar a tabela:
   Status, PR e a coluna **Decisões** (data + uma linha do que foi decidido).
+- Roteiro de demo (Claude Doc **Roteiro de demonstração**):
+  https://claude.ai/artifact/9fzhPtXPxJPnp4FoU9qB9N. Cada funcionalidade nova entra
+  nele **só depois que o Emerson testar e aprovar**, no ato da jornada
+  correspondente (onde clicar, usuário, o que mostrar, frase para o cliente); anotar
+  na coluna Roteiro do Acompanhamento onde entrou. Nunca gravar senha nova no roteiro.
 - Cautelas do plano: modelo de dados só cresce (nada renomeado/removido no
   `items.xml`), regra nova com chave liga/desliga por propriedade, comportamento atual
   como padrão quando não há dado novo.
