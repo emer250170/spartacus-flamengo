@@ -12,12 +12,12 @@ import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { MatchdayDataService } from './matchday-data.service';
 
 /** De quanto em quanto tempo o carrinho é relido enquanto há poltrona reservada */
-const POLL_MS = 20_000;
+const POLL_MS = 3_000;
 
 /**
  * Vigia a poltrona reservada em qualquer página da loja.
  *
- * Enquanto há reserva (guardada pela jornada), relê o carrinho a cada 20 s.
+ * Enquanto há reserva (guardada pela jornada), relê o carrinho a cada 3 s.
  * Se a poltrona some do carrinho sem a jornada ter pedido (o administrador
  * apagou a reserva no Backoffice, ou ela saiu junto com o plano de sócio),
  * avisa o torcedor para reservar de novo: dentro da jornada pelo `lost$`, que
