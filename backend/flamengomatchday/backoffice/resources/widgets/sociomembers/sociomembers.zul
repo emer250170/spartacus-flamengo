@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sócios: busca à esquerda, ficha do plano, ações e histórico à direita (SocioMembersController) -->
+<widget xmlns="http://www.zkoss.org/2005/zul"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.zkoss.org/2005/zul http://www.hybris.com/schema/cockpitng/zul/zul.xsd"
+		height="100%">
+	<div height="100%" style="overflow:auto; box-sizing:border-box; padding:18px 24px; background:#f5f6f7;">
+		<div style="margin-bottom:12px;">
+			<label value="${labels.title}" style="font-size:22px; font-weight:700; color:#1d2d3e;"/>
+			<separator/>
+			<label value="${labels.subtitle}" style="color:#556b82;"/>
+		</div>
+
+		<!-- Busca -->
+		<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+			<textbox id="searchBox" placeholder="${labels.searchPlaceholder}" width="280px"/>
+			<listbox id="planFilter" mold="select" rows="1"/>
+			<listbox id="statusFilter" mold="select" rows="1"/>
+			<button id="searchButton" label="${labels.searchButton}"/>
+			<label id="countLabel" style="color:#556b82;"/>
+		</div>
+
+		<div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+			<!-- Resultado -->
+			<div style="flex:1 1 380px; max-width:520px; background:#fff; border:1px solid #d9dde3; border-radius:8px;">
+				<listbox id="resultList" mold="paging" pageSize="15" emptyMessage="${labels.listEmpty}">
+					<listhead>
+						<listheader label="${labels.listName}" hflex="3"/>
+						<listheader label="${labels.listPlan}" hflex="2"/>
+						<listheader label="${labels.listStatus}" hflex="2"/>
+						<listheader label="${labels.listSince}" hflex="1"/>
+					</listhead>
+				</listbox>
+			</div>
+
+			<!-- Ficha, ações e histórico -->
+			<div style="flex:2 1 520px; min-width:0;">
+				<html id="detailContent"/>
+				<div id="actionsPanel" visible="false"
+						style="background:#fff; border:1px solid #d9dde3; border-radius:8px; padding:14px 16px; margin:12px 0;">
+					<label value="${labels.actionsTitle}" style="font-size:15px; font-weight:700; color:#1d2d3e;"/>
+					<separator/>
+					<textbox id="noteBox" rows="2" width="100%" placeholder="${labels.notePlaceholder}"/>
+					<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+						<button id="suspendButton" label="${labels.actSuspend}" tooltiptext="${labels.actSuspendHint}"/>
+						<button id="regularizeButton" label="${labels.actRegularize}" tooltiptext="${labels.actRegularizeHint}"/>
+						<button id="noteButton" label="${labels.actNote}" tooltiptext="${labels.actNoteHint}"/>
+						<button id="cancelButton" label="${labels.actCancel}" tooltiptext="${labels.actCancelHint}"/>
+					</div>
+				</div>
+				<html id="historyContent"/>
+			</div>
+		</div>
+	</div>
+</widget>

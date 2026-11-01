@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Atendimento do sócio (perspectiva "Sócio-Torcedor" › Sócios): busca o torcedor,
+  abre a ficha do plano e executa as ações (simular mensalidade atrasada,
+  regularizar, observação, confirmar cancelamento).
+-->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.sociomembers">
+	<name>Sócio-Torcedor - Sócios</name>
+	<description>Busca, ficha do plano e ações sobre o sócio-torcedor</description>
+	<defaultTitle>Sócios</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="sociomembers.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.sociomembers.SocioMembersController"/>
+	<sockets>
+		<!-- refaz a busca (clique em "Sócios" na árvore) -->
+		<input id="refresh" type="java.lang.Object"/>
+	</sockets>
+	<keywords>
+		<keyword>Socio</keyword>
+		<keyword>Member</keyword>
+	</keywords>
+</widget-definition>

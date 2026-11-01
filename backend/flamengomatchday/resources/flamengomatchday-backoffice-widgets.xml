@@ -214,6 +214,19 @@
 					<setting key="socketDataType_$T" type="String">java.lang.String</setting>
 					<virtual-sockets/>
 				</widget>
+				<!-- clique em "Sócios": mostra a busca e a ficha do sócio -->
+				<widget id="socioMembersSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="socioShowMembers" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">'socioMembers'</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "socio.tree.members".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
 				<!-- clique em "Relatórios": mostra os relatórios -->
 				<widget id="socioReportsSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
@@ -330,6 +343,12 @@
 					<virtual-sockets/>
 				</widget>
 
+				<!-- Sócios: busca, ficha do plano e ações do atendimento -->
+				<widget id="socioMembers" widgetDefinitionId="br.com.flamengo.matchday.widgets.sociomembers"
+						slotId="perspectives" template="false">
+					<virtual-sockets/>
+				</widget>
+
 				<!-- Relatórios do sócio-torcedor -->
 				<widget id="socioReport" widgetDefinitionId="br.com.flamengo.matchday.widgets.socioreport"
 						slotId="perspectives" template="false">
@@ -418,6 +437,10 @@
 	<widget-connection sourceWidgetId="socioReportsSelection" outputId="true" targetWidgetId="socioShowReport" inputId="genericInput"/>
 	<widget-connection sourceWidgetId="socioShowReport" outputId="genericOutput" targetWidgetId="socioContent" inputId="selectPerspectiveById"/>
 	<widget-connection sourceWidgetId="socioReportsSelection" outputId="true" targetWidgetId="socioReport" inputId="refresh"/>
+	<widget-connection sourceWidgetId="socioExplorerTree" outputId="nodeSelected" targetWidgetId="socioMembersSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="socioMembersSelection" outputId="true" targetWidgetId="socioShowMembers" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="socioShowMembers" outputId="genericOutput" targetWidgetId="socioContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="socioMembersSelection" outputId="true" targetWidgetId="socioMembers" inputId="refresh"/>
 
 	<!-- Busca e lista -->
 	<widget-connection sourceWidgetId="socioSpaceManagement" outputId="collapseState" targetWidgetId="socioContainer" inputId="collapseState"/>
