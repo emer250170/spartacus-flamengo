@@ -90,6 +90,10 @@ public class SocioReport
 		public int upToDate;
 		public int overdue;
 		public int notRenewed;
+		/** Sócios reais da loja com os benefícios suspensos (já contados em overdue) */
+		public int realSuspended;
+		/** Nomes desses sócios, para mostrar no cartão */
+		public final List<String> suspendedNames = new ArrayList<>();
 	}
 
 	public static class Hourly
