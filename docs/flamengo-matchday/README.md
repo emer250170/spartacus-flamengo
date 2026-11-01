@@ -121,7 +121,7 @@ Garante que duas pessoas não comprem a mesma poltrona.
 | Durante a compra | a poltrona aparece ocupada para todo mundo; a jornada mostra "reservada por 14:59" |
 | Troca de poltrona, setor ou jogo | a anterior sai do carrinho e é liberada na hora |
 | Carrinho abandonado | depois de 15 min o CronJob `seatHoldExpiryCronJob` (a cada minuto) libera a poltrona |
-| Administrador apaga a reserva (Backoffice › Reservas de poltrona) | `SeatHoldRemoveInterceptor`: em ~2 s a poltrona volta à venda e sai do carrinho do torcedor (total recalculado). A loja relê o carrinho a cada 20 s enquanto há reserva e avisa "Houve um problema com a reserva da poltrona X… Faça uma nova reserva": na jornada, volta para Setor e poltrona; fora dela, mensagem no topo |
+| Administrador apaga a reserva (Backoffice › Reservas de poltrona) | `SeatHoldRemoveInterceptor`: em ~2 s a poltrona volta à venda e sai do carrinho do torcedor (total recalculado). A loja relê o carrinho a cada 3 s enquanto há reserva e avisa "Houve um problema com a reserva da poltrona X… Faça uma nova reserva": na jornada, volta para Setor e poltrona; fora dela, mensagem no topo |
 | Pagamento | o servidor confere a reserva (se venceu e a poltrona continua livre, reserva de novo; se outra pessoa pegou, recusa) e, antes de o processo do pedido começar, converte a reserva em venda e baixa o estoque de todos os itens |
 
 Reservar exige login (ingresso é nominal): sem login, a poltrona clicada fica
