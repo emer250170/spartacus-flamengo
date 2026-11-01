@@ -469,6 +469,8 @@ Atendimento do sócio sem sair do Backoffice, para a demo mostrar o fluxo pelo s
 | Histórico | Linha do tempo (eventos), pedidos do plano e chamados do torcedor. |
 | Código | `SocioMemberService` / `DefaultSocioMemberService` (busca e ficha sem restrições de busca; ações com o usuário da sessão) e `SocioMembersController` + `SocioMemberHtml` no Backoffice. |
 
+Cuidado: nenhum valor de rótulo do widget pode ter `\n`. O Backoffice vira quebra de linha real e, se a linha seguinte tiver `{` (ex.: "O chamado {1}…"), o leitor do ZK recusa e o login do Backoffice inteiro dá erro 500 (aconteceu na primeira subida do PR #63; corrigido trocando por espaço).
+
 Deploy: sem tipo novo, então `ant all` e subir (sem Update no HAC); depois Backoffice › F4 › ☰ › os dois *Reset to Defaults* (widgets.xml e cockpit-config.xml) para o nó Sócios e o widget entrarem na perspectiva. Não fazer o reset antes do `ant all`.
 
 ### Página de produto em português (30/10)
