@@ -266,11 +266,12 @@
 
 	<!-- ============================ Sócio-Torcedor ============================ -->
 
-	<!-- Menu da perspectiva "Sócio-Torcedor" (flamengomatchday-backoffice-widgets.xml); "Relatórios" abre o widget socioReport -->
+	<!-- Menu da perspectiva "Sócio-Torcedor" (flamengomatchday-backoffice-widgets.xml); "Sócios" abre o widget socioMembers e "Relatórios" o socioReport -->
 	<context component="socio-explorer-tree">
 		<explorer-tree:explorer-tree>
 			<explorer-tree:navigation-node id="socio.tree.root">
 				<explorer-tree:type-node id="socio.tree.plans" code="SocioPlan"/>
+				<explorer-tree:navigation-node id="socio.tree.members"/>
 				<explorer-tree:type-node id="socio.tree.events" code="SocioEvent"/>
 				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>

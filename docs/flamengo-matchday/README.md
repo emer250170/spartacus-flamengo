@@ -455,6 +455,22 @@ Depois do `ant all`: Update no HAC (tipo novo `SocioEvent` e enum `SocioEventTyp
 | Claude, gestor do sócio | `situacao_socio`, `suspender_socio`, `regularizar_socio` (objeto de integração `FlamengoEventoSocio`, permissão no `socioapigroup`); `buscar_torcedor` mostra a situação |
 | Claude, torcedor | `minha_conta` mostra "Benefícios suspensos" e como regularizar |
 
+**Tela Sócio-Torcedor › Sócios no Backoffice (PR C)**
+
+Atendimento do sócio sem sair do Backoffice, para a demo mostrar o fluxo pelo sistema e deixar o Claude para o final.
+
+| Parte | Como funciona |
+|---|---|
+| Menu | Sócio-Torcedor › **Sócios**, entre Planos e Eventos do sócio (nó `socio.tree.members`, widget `sociomembers`). |
+| Busca | Nome ou e-mail (sem acento e sem maiúsculas), filtro de plano e de situação. Lista quem é ou já foi sócio: grupo de algum plano, evento na linha do tempo ou chamado de cancelamento. Até 200 por busca. |
+| Situação | Em dia · Benefícios suspensos · Cancelamento pedido (chamado "Cancelamento do plano…" aberto) · Ex-sócio. |
+| Ficha | Plano, família, sócio desde (primeiro pedido do plano ou adesão registrada), vigência (12 meses), mensalidade, convidados (do último pedido), total por mês, onda, descontos, próxima mensalidade (mesmo dia do mês da adesão), cartão padrão (final) e chamado de cancelamento aberto. |
+| Ações | **Simular mensalidade atrasada** (evento Suspensão), **Regularizar pagamento** (Regularização), **Registrar observação** e **Confirmar cancelamento** (fecha o chamado aberto; o `SocioCancelTicketInterceptor` tira o torcedor do plano). Cada ação pede confirmação, aceita um motivo e grava o evento com o gestor logado como autor e origem Backoffice. Botões desligados quando a ação não cabe (ex.: regularizar quem não está suspenso). |
+| Histórico | Linha do tempo (eventos), pedidos do plano e chamados do torcedor. |
+| Código | `SocioMemberService` / `DefaultSocioMemberService` (busca e ficha sem restrições de busca; ações com o usuário da sessão) e `SocioMembersController` + `SocioMemberHtml` no Backoffice. |
+
+Deploy: sem tipo novo, então `ant all` e subir (sem Update no HAC); depois Backoffice › F4 › ☰ › os dois *Reset to Defaults* (widgets.xml e cockpit-config.xml) para o nó Sócios e o widget entrarem na perspectiva. Não fazer o reset antes do `ant all`.
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.
