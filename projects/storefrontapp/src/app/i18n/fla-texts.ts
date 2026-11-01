@@ -92,6 +92,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Essa poltrona acabou de ser reservada por outra pessoa. Escolha outra.',
     'md.holdRemoved':
       'A poltrona saiu do seu carrinho. Se você tirou o plano de sócio, a compra deste jogo só abre na sua onda.',
+    'md.holdLost':
+      'Houve um problema com a reserva da poltrona {seat} e ela saiu do seu carrinho. Faça uma nova reserva.',
+    'md.holdLostGlobal':
+      'Houve um problema com a reserva da poltrona {seat} e ela saiu do seu carrinho. Faça uma nova reserva em Ingressos.',
     'md.s3.title': 'Estacionamento',
     'md.s3.lead':
       'Garanta a vaga junto com o ingresso. A placa é lida na entrada — sem papel.',
@@ -436,6 +440,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Someone else has just taken this seat. Please choose another one.',
     'md.holdRemoved':
       'The seat left your cart. If you removed the membership plan, this match only opens in your wave.',
+    'md.holdLost':
+      'There was a problem with the hold on seat {seat} and it was removed from your cart. Please hold a seat again.',
+    'md.holdLostGlobal':
+      'There was a problem with the hold on seat {seat} and it was removed from your cart. Please hold a seat again under Tickets.',
     'md.s3.title': 'Parking',
     'md.s3.lead':
       'Book your spot with the ticket. The plate is read at the entrance — no paper.',

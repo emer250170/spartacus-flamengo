@@ -6,6 +6,7 @@ import { CmsConfig, provideConfig } from '@spartacus/core';
 import { SpinnerModule } from '@spartacus/storefront';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
+import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import { MatchdayJourneyComponent } from './matchday-journey.component';
 import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmation.component';
 import { MatchdayStadiumMapComponent } from './matchday-stadium-map.component';
@@ -44,4 +45,9 @@ import { MatchdayStadiumMapComponent } from './matchday-stadium-map.component';
     }),
   ],
 })
-export class MatchdayModule {}
+export class MatchdayModule {
+  // vigia a poltrona reservada em qualquer página (aviso se ela sair do carrinho)
+  constructor(holdWatcher: MatchdayHoldWatcherService) {
+    holdWatcher.start();
+  }
+}

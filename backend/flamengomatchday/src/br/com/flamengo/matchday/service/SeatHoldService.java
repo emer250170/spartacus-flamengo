@@ -1,5 +1,6 @@
 package br.com.flamengo.matchday.service;
 
+import br.com.flamengo.matchday.model.SeatHoldModel;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
 import de.hybris.platform.core.model.product.ProductModel;
 
@@ -35,4 +36,10 @@ public interface SeatHoldService
 
 	/** Solta as reservas vencidas; devolve quantas. */
 	int releaseExpired();
+
+	/**
+	 * A reserva foi apagada fora deste servico (Backoffice): em segundo plano,
+	 * devolve a poltrona a venda e a tira do carrinho que a segurava.
+	 */
+	void handleExternalRemoval(SeatHoldModel hold);
 }

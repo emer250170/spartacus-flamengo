@@ -38,6 +38,7 @@ import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { SocioPlan, WaveStatus } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
 import { MatchdayDataService } from './matchday-data.service';
+import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import {
   MATCHDAY_HOLD_MINUTES,
   MatchdayCatalog,
@@ -152,10 +153,14 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     protected authRedirect: AuthRedirectService,
     protected router: Router,
     protected socio: SocioService,
-    public i18n: FlaI18nService
+    public i18n: FlaI18nService,
+    protected holdWatcher: MatchdayHoldWatcherService
   ) {}
 
   ngOnInit(): void {
+    // a reserva some do carrinho por fora: o aviso aparece aqui, não no topo
+    this.holdWatcher.start();
+    this.holdWatcher.journeyOpen++;
     this.requestedMatch =
       this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
     // volta do login: reabre o jogo, o setor e a poltrona escolhidos antes
@@ -245,6 +250,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    this.holdWatcher.journeyOpen = Math.max(
+      0,
+      this.holdWatcher.journeyOpen - 1
+    );
+    this.holdWatcher.paused = false;
   }
 
   // ---------- navegação entre etapas ----------
@@ -662,6 +672,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.pendingSeat = undefined;
     this.cd.markForCheck();
     const previousCode = this.held?.code;
+    // troca de poltrona: a anterior sai do carrinho a pedido da jornada
+    this.holdWatcher.paused = true;
+    if (previousCode) {
+      this.data.clearHold();
+    }
     this.subscription.add(
       this.activeCart
         .getEntries()
@@ -682,6 +697,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         )
         .subscribe((entries) => {
           this.holding = false;
+          this.holdWatcher.paused = false;
           if (entries.some((e) => e.product?.code === code)) {
             this.held = {
               code,
@@ -802,8 +818,14 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     ) {
       return;
     }
+    const seat = this.seat ?? this.holdWatcher.seatLabel(code);
+    const waveOpen = !this.match || this.waveFor(this.match).open;
     this.clearHeld();
-    this.holdMessage = this.i18n.t('md.holdRemoved');
+    // a reserva caiu (por exemplo, apagada pelo administrador): reservar de
+    // novo; se o plano de sócio saiu do carrinho, o jogo só abre na onda dele
+    this.holdMessage = waveOpen
+      ? this.i18n.t('md.holdLost', { seat })
+      : this.i18n.t('md.holdRemoved');
     this.step = Math.min(this.step, 1);
     this.refreshSeats();
     this.cd.markForCheck();
@@ -1196,12 +1218,14 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     });
 
     this.submitting = true;
+    this.holdWatcher.paused = true;
     // espera o carrinho processar as alterações antes de seguir para o checkout
     this.subscription.add(
       this.syncCart(desired).subscribe({
         complete: () => this.routing.go({ cxRoute: 'checkout' }),
         error: () => {
           this.submitting = false;
+          this.holdWatcher.paused = false;
           this.globalMessages.add(
             this.i18n.t('md.orderError'),
             GlobalMessageType.MSG_TYPE_ERROR
