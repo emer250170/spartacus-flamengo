@@ -10,6 +10,22 @@
 		<property name="stockService" ref="stockService"/>
 		<property name="userService" ref="userService"/>
 		<property name="configurationService" ref="configurationService"/>
+		<property name="commerceCartService" ref="commerceCartService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
+		<property name="baseSiteService" ref="baseSiteService"/>
+	</bean>
+
+	<!--
+		Reserva apagada fora do servico (ex.: pelo administrador no Backoffice):
+		a poltrona volta a venda e sai do carrinho do torcedor.
+	-->
+	<bean id="seatHoldRemoveInterceptor" class="br.com.flamengo.matchday.interceptor.SeatHoldRemoveInterceptor">
+		<property name="seatHoldService" ref="seatHoldService"/>
+	</bean>
+	<bean id="seatHoldRemoveInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="seatHoldRemoveInterceptor"/>
+		<property name="typeCode" value="SeatHold"/>
 	</bean>
 
 	<!-- Adicionar ao carrinho: reserva a poltrona -->

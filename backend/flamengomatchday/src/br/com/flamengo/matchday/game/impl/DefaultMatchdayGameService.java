@@ -5,6 +5,7 @@ import br.com.flamengo.matchday.enums.MatchdayGameStatus;
 import br.com.flamengo.matchday.game.MatchdayGameService;
 import br.com.flamengo.matchday.model.MatchdayGameModel;
 import br.com.flamengo.matchday.model.SeatHoldModel;
+import br.com.flamengo.matchday.service.SeatHoldRemovalContext;
 import de.hybris.platform.catalog.CatalogVersionService;
 import de.hybris.platform.catalog.enums.ArticleApprovalStatus;
 import de.hybris.platform.catalog.model.CatalogVersionModel;
@@ -426,7 +427,8 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 		final FlexibleSearchQuery query = new FlexibleSearchQuery(
 				"SELECT {pk} FROM {" + SeatHoldModel._TYPECODE + "} WHERE {" + SeatHoldModel.PRODUCT + "}=?p");
 		query.addQueryParameter("p", seat);
-		modelService.removeAll(flexibleSearchService.search(query).getResult());
+		// remocao do proprio jogo encerrado: o carrinho ja e tratado aqui
+		SeatHoldRemovalContext.runInternal(() -> modelService.removeAll(flexibleSearchService.search(query).getResult()));
 	}
 
 	protected void removeProductData(final String productCode)
