@@ -11,6 +11,11 @@ INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];
 UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
 ;backofficeadministratorrole;socioperspective
 
+# Sócios com os benefícios suspensos por inadimplência (evento "Suspensão" em
+# Sócio-Torcedor › Eventos do sócio). Dentro de customergroup: a API da loja lista o grupo.
+INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];groups(uid)[mode=append]
+;socio-suspenso;Sócios com benefícios suspensos (inadimplência);Members with suspended benefits (overdue);customergroup
+
 # A publicação na loja (produto, preço, promoção, grupos) roda como admin no
 # SocioPlanService; o papel só precisa do cadastro de planos.
 $START_USERRIGHTS;;;;;;;;;
@@ -18,6 +23,8 @@ Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
 BackofficeRole;sociomanagerrole;;;;;;;;
 ;;;;SocioPlan;+;+;+;+;-
 ;;;;SocioPlanStatus;+;-;-;-;-
+;;;;SocioEvent;+;+;+;-;-
+;;;;SocioEventType;+;-;-;-;-
 ;;;;Product;+;-;-;-;-
 ;;;;UserGroup;+;-;-;-;-
 ;;;;Catalog;+;-;-;-;-

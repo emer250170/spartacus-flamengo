@@ -1,5 +1,7 @@
 package br.com.flamengo.matchday.socio;
 
+import br.com.flamengo.matchday.enums.SocioEventType;
+import br.com.flamengo.matchday.model.SocioEventModel;
 import de.hybris.platform.core.HybrisEnumValue;
 import de.hybris.platform.core.model.ItemModel;
 import de.hybris.platform.core.model.user.CustomerModel;
@@ -58,6 +60,9 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 		{
 			return;
 		}
+		// evento criado antes de sair dos grupos, para guardar o plano que ele tinha
+		final SocioEventModel event = socioPlanService.newEvent((CustomerModel) customer, SocioEventType.CANCELAMENTO,
+				"Atendimento", "Chamado fechado: " + headline);
 		final List<String> plans = socioPlanService.removeMembership((CustomerModel) customer);
 		if (plans.isEmpty())
 		{
@@ -65,6 +70,8 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 			return;
 		}
 		ctx.registerElementFor(customer, PersistenceOperation.SAVE);
+		event.setResult("Deixou de ser sócio (" + String.join(", ", plans) + ")");
+		ctx.registerElementFor(event, PersistenceOperation.SAVE);
 		LOG.info("Chamado de cancelamento fechado: {} deixa de ser sócio ({})", ((CustomerModel) customer).getUid(), plans);
 	}
 

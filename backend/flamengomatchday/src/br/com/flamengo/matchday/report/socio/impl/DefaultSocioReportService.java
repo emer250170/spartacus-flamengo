@@ -117,6 +117,8 @@ public class DefaultSocioReportService implements SocioReportService
 		int abandoned;
 		double churn;
 		double churnVsAverage;
+		/** Sócios reais da loja com os benefícios suspensos (inadimplentes) */
+		int suspended;
 	}
 
 	protected SocioReport build(final Date now, final Locale locale)
@@ -147,6 +149,7 @@ public class DefaultSocioReportService implements SocioReportService
 			n.family = StringUtils.defaultIfBlank(plan.getFamily(), "Nação Maraca");
 			n.wave = plan.getWave() == null ? 0 : Math.max(0, plan.getWave().intValue());
 			n.holders = demo + real;
+			n.suspended = Math.min(real, socioPlanService.countSuspended(plan));
 			final int maxGuests = plan.getMaxGuests() == null ? 0 : plan.getMaxGuests().intValue();
 			n.guests = (int) Math.round(demo * maxGuests * GUEST_FILL[Math.min(maxGuests, GUEST_FILL.length - 1)]);
 			n.price = plan.getMonthlyPrice() == null ? 0 : plan.getMonthlyPrice().doubleValue();
@@ -169,6 +172,7 @@ public class DefaultSocioReportService implements SocioReportService
 
 		// ---------------- cartões
 		final Map<String, SocioReport.Family> families = new LinkedHashMap<>();
+		final Map<String, Integer> realOverdue = new LinkedHashMap<>();
 		int churnedToday = 0;
 		for (final PlanNumbers n : plans)
 		{
@@ -180,6 +184,7 @@ public class DefaultSocioReportService implements SocioReportService
 				return f;
 			});
 			family.contracts += n.holders;
+			realOverdue.merge(n.family, n.suspended, Integer::sum);
 			final int churned = (int) Math.round(n.holders * n.churn / report.daysInMonth * profileSoFar);
 			churnedToday += churned;
 			family.delta += n.today - churned; // ajustado para fração abaixo
@@ -189,8 +194,11 @@ public class DefaultSocioReportService implements SocioReportService
 			final boolean borderless = family.name.toLowerCase(Locale.ROOT).contains("fronteira");
 			final double upToDate = borderless ? 0.767 : 0.868;
 			final double overdue = borderless ? 0.228 : 0.127;
-			family.upToDate = (int) Math.round(family.contracts * upToDate);
-			family.overdue = (int) Math.round(family.contracts * overdue);
+			// base simulada pelas taxas + suspensos reais da loja (sempre inadimplentes)
+			final int suspended = realOverdue.getOrDefault(family.name, 0);
+			final int simulated = Math.max(0, family.contracts - suspended);
+			family.upToDate = (int) Math.round(simulated * upToDate);
+			family.overdue = (int) Math.round(simulated * overdue) + suspended;
 			family.notRenewed = Math.max(0, family.contracts - family.upToDate - family.overdue);
 			family.inactive = (int) Math.round(family.contracts * (borderless ? 0.359 : 0.368));
 			family.delta = family.contracts == 0 ? 0 : family.delta / family.contracts;

@@ -271,6 +271,7 @@
 		<explorer-tree:explorer-tree>
 			<explorer-tree:navigation-node id="socio.tree.root">
 				<explorer-tree:type-node id="socio.tree.plans" code="SocioPlan"/>
+				<explorer-tree:type-node id="socio.tree.events" code="SocioEvent"/>
 				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -483,6 +484,88 @@
 				</editorArea:section>
 				<editorArea:section name="socio.editor.demo">
 					<editorArea:attribute qualifier="demoBase"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- ===================== Eventos do sócio (linha do tempo) ===================== -->
+	<!-- Suspensão e Regularização criadas aqui mudam o torcedor na hora (SocioEventInterceptor) -->
+
+	<context merge-by="type" parent="GenericItem" type="SocioEvent" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>customer.uid + ' - ' + type</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioEvent" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="date"/>
+			<list-view:column qualifier="customer"/>
+			<list-view:column qualifier="type"/>
+			<list-view:column qualifier="plan"/>
+			<list-view:column qualifier="note"/>
+			<list-view:column qualifier="result"/>
+			<list-view:column qualifier="origin"/>
+			<list-view:column qualifier="author"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioEvent" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="customer" selected="true"/>
+				<advanced-search:field name="type" selected="true"/>
+				<advanced-search:field name="plan" selected="false"/>
+				<advanced-search:field name="date" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="date" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<!-- Evento novo: torcedor, tipo e motivo (data, autor, origem, plano e resultado são preenchidos ao salvar) -->
+	<context type="SocioEvent" component="create-wizard">
+		<wz:flow id="SocioEventWizard" title="create.title(ctx.TYPE_CODE)">
+			<wz:prepare id="socioEventPrepare">
+				<wz:initialize property="newEvent" type="ctx.TYPE_CODE"/>
+			</wz:prepare>
+			<wz:step id="socioEventStep1" label="socio.event.wizard.step1" sublabel="socio.event.wizard.step1.sub">
+				<wz:content id="socioEventStep1.content">
+					<wz:property-list root="newEvent">
+						<wz:property qualifier="customer"/>
+						<wz:property qualifier="type" editor="com.hybris.cockpitng.editor.nonoptionalenum"/>
+						<wz:property qualifier="note" type="java.lang.String"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="socioEventStep1.navigation">
+					<wz:cancel/>
+					<wz:done visible="newEvent.customer != null AND newEvent.type != null">
+						<wz:save property="newEvent"/>
+					</wz:done>
+				</wz:navigation>
+			</wz:step>
+		</wz:flow>
+	</context>
+
+	<!-- Ficha do evento: só leitura depois de criado (o efeito já foi aplicado) -->
+	<context type="SocioEvent" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.event.editor.essentials">
+					<editorArea:attribute qualifier="customer" readonly="true"/>
+					<editorArea:attribute qualifier="type" readonly="true"/>
+					<editorArea:attribute qualifier="date" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.event.editor.tab">
+				<editorArea:section name="socio.event.editor.details">
+					<editorArea:attribute qualifier="plan" readonly="true"/>
+					<editorArea:attribute qualifier="note" readonly="true"/>
+					<editorArea:attribute qualifier="result" readonly="true"/>
+					<editorArea:attribute qualifier="origin" readonly="true"/>
+					<editorArea:attribute qualifier="author" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>
