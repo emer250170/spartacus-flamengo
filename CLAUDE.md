@@ -94,6 +94,7 @@ O resto é o Spartacus padrão: não mexer sem necessidade.
 - Interceptors sem dependência de compilação de outras extensões: mapear por
   `typeCode` e ler atributos com `modelService.getAttributeValue`.
 - Salvar outro item dentro de interceptor: `ctx.registerElementFor(item, PersistenceOperation.SAVE)`.
+- Rótulos de widget do Backoffice (`backoffice/resources/widgets/*/labels/*.properties`): nunca usar `\n` nos valores. O Backoffice transforma em quebra real e, se a linha seguinte tiver `{`, o leitor do ZK falha e o login inteiro dá erro 500 (PR #63).
 - Código de jogo `JOGO-AAAAMMDD-ADV`; poltronas com o código do jogo como prefixo.
 - Cancelamento de plano: chamado (`CsTicket`) com headline "Cancelamento do plano…";
   ao fechar o chamado, `SocioCancelTicketInterceptor` tira o torcedor dos grupos do plano.
