@@ -5,6 +5,21 @@ matchday (ingresso com poltrona + estacionamento + comida + camisa num só
 carrinho), programa sócio-torcedor Nação Maraca e MCP para LLMs. Sempre
 responder e escrever em **português**.
 
+## Plano de evolução do sócio-torcedor
+
+O que falta cobrir do programa Nação (a partir da apresentação de arquitetura de
+negócios) está no Claude Doc **Plano de evolução da demo — Nação Sócio-Torcedor**:
+https://claude.ai/artifact/DrAbpraEa5gqLCFZMemBVZ (ler e editar com as ferramentas
+do Claude Docs).
+
+- Itens feitos **um por vez**, na ordem do plano; antes de começar ou continuar um,
+  ler o item e a tabela "Acompanhamento" (status, PR e decisões já tomadas).
+- Ao fim de cada etapa (desenho, código, PR, instalação, teste), atualizar a tabela:
+  Status, PR e a coluna **Decisões** (data + uma linha do que foi decidido).
+- Cautelas do plano: modelo de dados só cresce (nada renomeado/removido no
+  `items.xml`), regra nova com chave liga/desliga por propriedade, comportamento atual
+  como padrão quando não há dado novo.
+
 ## Regras de trabalho (não negociáveis)
 
 - **Nunca** commitar/dar push direto na `flamengo` (branch principal). Sempre
