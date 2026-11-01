@@ -47,6 +47,7 @@ set FLAMENGO_PERSONA=jogos& set GESTOR_USUARIO=gestor.jogos& set GESTOR_SENHA=..
 - "Como estão os planos? Quantas vagas restam no Nação Maraca 1?"
 - "Quantos cancelamentos tivemos este mês e por quê?"
 - "Confirma o cancelamento que acabou de chegar" → o torcedor perde selo e descontos na hora (mostre a loja).
+- "O torcedor21 está com a mensalidade de outubro atrasada, suspende os benefícios" → resumo → confirmar → o selo dele vira "Benefícios suspensos", o desconto some do carrinho e a jornada pede para regularizar (`suspender_socio`). Depois: "Ele pagou, regulariza" (`regularizar_socio`) e "Mostra a linha do tempo dele" (`situacao_socio`).
 - "Aumenta o desconto na loja do Nação Maraca 2 para 12%" → o Commerce republica as promoções sozinho.
 - "Quantas vezes o cupom mengao foi usado?"
 - Mostre o bloqueio: "Cria um jogo contra o Vasco" → ele não tem essa ferramenta nem acesso.

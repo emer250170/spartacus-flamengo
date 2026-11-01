@@ -135,7 +135,17 @@ export interface Membership {
   inCart: SocioPlan | null;
   /**
    * O que vale para ingressos: o de melhor onda entre os dois (onda 0 conta
-   * como venda geral; no empate, o comprado)
+   * como venda geral; no empate, o comprado). Sócio com os benefícios
+   * suspensos: null (compra na venda geral, sem desconto).
    */
   plan: SocioPlan | null;
+  /**
+   * Benefícios suspensos por inadimplência (grupo socio-suspenso no SAP
+   * Commerce): continua sócio, mas sem onda de sócio e sem descontos até
+   * regularizar.
+   */
+  suspended: boolean;
 }
+
+/** Grupo de clientes de quem está com os benefícios suspensos (inadimplência) */
+export const SUSPENDED_GROUP = 'socio-suspenso';

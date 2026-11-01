@@ -34,6 +34,9 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.loadError': 'Não encontramos jogos com ingressos à venda agora.',
     'md.planInCart': 'Plano <strong>{plan}</strong> no carrinho',
     'md.member': 'Sócio <strong>{plan}</strong>',
+    'md.suspended':
+      'Plano <strong>{plan}</strong> com benefícios suspensos (mensalidade em atraso)',
+    'md.regularize': 'Regularizar',
     'md.discountLine': '{d}% de desconto no ingresso',
     'md.beMember': 'Seja sócio e compre antes, com até {d}% de desconto.',
     'md.beMemberNoOff': 'Seja sócio e compre antes.',
@@ -61,6 +64,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Quem não é sócio compra na venda geral, a partir de {date}.',
     'md.lock.upgrade': 'Subir de plano',
     'md.lock.join': 'Seja sócio e compre antes',
+    'md.lock.suspended':
+      'Seu plano está com os benefícios suspensos por mensalidade em atraso: você compra na venda geral, a partir de {date}.',
     'md.s2.title': 'Setor e poltrona',
     'md.memberOff': 'Sócio {d}% off',
     'md.soldOut': 'Esgotado',
@@ -201,6 +206,9 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sb.aria': 'Você é sócio-torcedor {plan}',
     'sb.ticket': '{d}% no ingresso',
     'sb.store': '{d}% na loja',
+    'sb.suspended': 'Benefícios suspensos',
+    'sb.suspendedHint':
+      'Mensalidade em atraso: regularize em Meu sócio-torcedor',
     'st.priority': 'prioridade na compra',
     'st.noPriority': 'Sem prioridade',
     'st.generalSale': 'compra na venda geral',
@@ -245,6 +253,13 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.status.active': 'Ativo',
     'sa.status.cancelling': 'Cancelamento solicitado',
     'sa.status.inactive': 'Inativo',
+    'sa.status.suspended': 'Benefícios suspensos',
+    'sa.suspended.title': 'Seus benefícios estão suspensos',
+    'sa.suspended.text':
+      'Há uma mensalidade do {plan} em atraso. Enquanto ela não for paga, você compra ingressos na venda geral e sem desconto de sócio. Cadastre um cartão para pagar agora: os benefícios voltam na hora.',
+    'sa.suspended.action': 'Regularizar agora',
+    'sa.regularized':
+      'Pagamento regularizado no cartão {card}. Seus benefícios de sócio estão de volta.',
     'sa.ended.on': 'Cancelado em {date}',
     'sa.ended.label': 'Plano encerrado em',
     'sa.ended.note':
@@ -383,6 +398,9 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.loadError': 'No matches with tickets on sale right now.',
     'md.planInCart': '<strong>{plan}</strong> plan in your cart',
     'md.member': '<strong>{plan}</strong> member',
+    'md.suspended':
+      '<strong>{plan}</strong> plan with suspended benefits (overdue payment)',
+    'md.regularize': 'Settle payment',
     'md.discountLine': '{d}% off tickets',
     'md.beMember': 'Become a member and buy first, with up to {d}% off.',
     'md.beMemberNoOff': 'Become a member and buy first.',
@@ -409,6 +427,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.lock.nonMember': 'Non-members buy in the general sale, from {date}.',
     'md.lock.upgrade': 'Upgrade your plan',
     'md.lock.join': 'Become a member and buy first',
+    'md.lock.suspended':
+      'Your plan benefits are suspended due to an overdue payment: you buy in the general sale, from {date}.',
     'md.s2.title': 'Sector and seat',
     'md.memberOff': 'Member {d}% off',
     'md.soldOut': 'Sold out',
@@ -546,6 +566,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sb.aria': 'You are a {plan} member',
     'sb.ticket': '{d}% off tickets',
     'sb.store': '{d}% off in the store',
+    'sb.suspended': 'Benefits suspended',
+    'sb.suspendedHint': 'Overdue payment: settle it in My membership',
     'st.priority': 'buying priority',
     'st.noPriority': 'No priority',
     'st.generalSale': 'buys in the general sale',
@@ -589,6 +611,13 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.status.active': 'Active',
     'sa.status.cancelling': 'Cancellation requested',
     'sa.status.inactive': 'Inactive',
+    'sa.status.suspended': 'Benefits suspended',
+    'sa.suspended.title': 'Your benefits are suspended',
+    'sa.suspended.text':
+      'A {plan} monthly payment is overdue. Until it is paid, you buy tickets in the general sale with no member discount. Add a card to pay now: your benefits come back right away.',
+    'sa.suspended.action': 'Settle now',
+    'sa.regularized':
+      'Payment settled on card {card}. Your member benefits are back.',
     'sa.ended.on': 'Cancelled on {date}',
     'sa.ended.label': 'Membership ended on',
     'sa.ended.note':

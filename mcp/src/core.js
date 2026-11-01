@@ -18,6 +18,8 @@ const MATCHES_CATEGORY = 'flamengo_jogos_casa';
 const SERVICES_CATEGORY = 'flamengo_matchday';
 const PLAN_MARKER = /<!--\s*socio-plan\s*([\s\S]*?)-->/i;
 const CANCEL_SUBJECT = 'Cancelamento do plano';
+/** Grupo de quem está com os benefícios suspensos (mensalidade em atraso) */
+const SUSPENDED_GROUP = 'socio-suspenso';
 const CANCEL_REASONS = {
   price: 'O valor ficou alto',
   games: 'Não estou indo aos jogos',
@@ -224,7 +226,7 @@ function torcedorTools(cfg, http) {
     const all = await plans();
     const member = all.find((p) => groups.includes(p._group) && !(p._pending && groups.includes(p._pending))) ?? null;
     const inCart = all.find((p) => p._pending && groups.includes(p._pending)) ?? null;
-    return { member, inCart };
+    return { member, inCart, suspended: !!member && groups.includes(SUSPENDED_GROUP) };
   }
 
   const publicPlan = (p) => p && Object.fromEntries(Object.entries(p).filter(([k]) => !k.startsWith('_')));
@@ -305,7 +307,7 @@ function torcedorTools(cfg, http) {
     },
     {
       name: 'minha_conta',
-      description: 'Dados do torcedor logado: nome, e-mail e situação no sócio-torcedor (plano, onda de compra, descontos).',
+      description: 'Dados do torcedor logado: nome, e-mail e situação no sócio-torcedor (plano, onda de compra, descontos, benefícios suspensos por mensalidade em atraso).',
       inputSchema: obj(),
       handler: async () => {
         const me = await occ('GET', '/users/current', { query: { fields: 'name,uid' } });
@@ -313,11 +315,16 @@ function torcedorTools(cfg, http) {
         const tickets = await occ('GET', '/users/current/tickets', { query: { fields: 'tickets(id,subject,status(id),createdAt)', pageSize: 50 } }).catch(() => ({}));
         const cancel = (tickets.tickets ?? []).filter((t) => (t.subject ?? '').startsWith(CANCEL_SUBJECT)).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
         const situacao = m.member
-          ? (cancel && cancel.status?.id !== 'CLOSED' ? 'Ativo · cancelamento solicitado' : 'Ativo')
+          ? (cancel && cancel.status?.id !== 'CLOSED' ? 'Ativo · cancelamento solicitado'
+            : m.suspended ? 'Benefícios suspensos (mensalidade em atraso): compra na venda geral, sem desconto de sócio' : 'Ativo')
           : cancel?.status?.id === 'CLOSED' ? 'Inativo (plano cancelado)' : m.inCart ? 'Plano no carrinho (ainda não é sócio)' : 'Não é sócio';
         return {
           torcedor: me.name, email: me.uid,
-          socioTorcedor: { situacao, plano: publicPlan(m.member), planoNoCarrinho: m.inCart?.nome ?? null, chamadoCancelamento: cancel ? { id: cancel.id, situacao: cancel.status?.id, aberto: fmtDate(cancel.createdAt) } : null },
+          socioTorcedor: {
+            situacao, plano: publicPlan(m.member), planoNoCarrinho: m.inCart?.nome ?? null,
+            chamadoCancelamento: cancel ? { id: cancel.id, situacao: cancel.status?.id, aberto: fmtDate(cancel.createdAt) } : null,
+            ...(m.suspended ? { comoRegularizar: 'Em Minha conta › Meu sócio-torcedor, botão "Regularizar agora": cadastrar um cartão novo cobra a mensalidade em atraso e devolve os benefícios na hora.' } : {}),
+          },
           areaDoSocio: `${cfg.storeUrl}/my-account/socio-torcedor`,
         };
       },
@@ -671,6 +678,40 @@ function socioTools(cfg, http) {
     return list;
   }
 
+  const typeName = { ADESAO: 'Adesão', SUSPENSAO: 'Suspensão', REGULARIZACAO: 'Regularização', CANCELAMENTO: 'Cancelamento', OBSERVACAO: 'Observação' };
+
+  async function customer(email) {
+    const cs = results(await odata('GET', '/FlamengoTorcedor/Customers', { query: { $filter: `uid eq '${String(email).toLowerCase().replace(/'/g, "''")}'`, $expand: 'groups' } }));
+    if (!cs.length) throw new UserError('Torcedor não encontrado.');
+    return cs[0];
+  }
+
+  async function events(uid) {
+    const es = await odata('GET', '/FlamengoEventoSocio/SocioEvents', { query: { $filter: `customer/uid eq '${uid.replace(/'/g, "''")}'`, $expand: 'type,plan', $top: 200 } });
+    return results(es).map((e) => ({ data: toDate(e.date), tipo: typeName[e.type?.code] ?? e.type?.code, plano: e.plan?.name ?? e.plan?.code ?? null, origem: e.origin, registradoPor: e.author, motivo: e.note, resultado: e.result }))
+      .sort((a, b) => (a.data?.getTime() ?? 0) - (b.data?.getTime() ?? 0))
+      .map((e) => ({ ...e, data: fmtDate(e.data) }));
+  }
+
+  /** Cria Suspensão ou Regularização: o Commerce aplica na hora (SocioEventInterceptor) */
+  async function statusEvent(a, type) {
+    const c = await customer(a.email);
+    const plan = (await planList()).find((p) => p._members.includes(c.uid));
+    if (!plan) throw new UserError(`${c.uid} não é sócio.`);
+    const suspended = results(c.groups).some((g) => g.uid === SUSPENDED_GROUP);
+    if (type === 'SUSPENSAO' && suspended) throw new UserError(`${c.name} já está com os benefícios suspensos.`);
+    if (type === 'REGULARIZACAO' && !suspended) throw new UserError(`${c.name} não está suspenso.`);
+    const summary = type === 'SUSPENSAO'
+      ? `Suspender os benefícios de ${c.name} (${c.uid}), sócio ${plan.nome}: perde a onda de sócio e os descontos na hora (continua sócio e mantém a vaga). Motivo: ${a.motivo ?? 'mensalidade em atraso'}.`
+      : `Regularizar ${c.name} (${c.uid}), sócio ${plan.nome}: onda de sócio e descontos voltam na hora. Motivo: ${a.motivo ?? 'pagamento confirmado'}.`;
+    const conf = needConfirm(a, summary);
+    if (conf) return conf;
+    const ev = await odata('POST', '/FlamengoEventoSocio/SocioEvents', {
+      body: { customer: { uid: c.uid }, date: `/Date(${Date.now()})/`, type: { code: type }, origin: 'Claude', note: a.motivo ?? (type === 'SUSPENSAO' ? 'Mensalidade em atraso' : 'Pagamento confirmado') },
+    });
+    return { executado: true, torcedor: c.name, email: c.uid, plano: plan.nome, resultado: ev?.result ?? null, linhaDoTempo: await events(c.uid) };
+  }
+
   const showTicket = (t) => ({ ...t, aberto: fmtDate(t.aberto), atualizado: fmtDate(t.atualizado), situacao: t.situacao === 'Closed' ? 'Fechado' : t.situacao === 'Open' ? 'Em atendimento' : 'Novo' });
 
   async function orders() {
@@ -739,8 +780,32 @@ function socioTools(cfg, http) {
         const plan = plans.find((p) => p._members.includes(c.uid));
         const ts = (await tickets()).filter((t) => t.email === c.uid).map(showTicket);
         const os = (await orders()).filter((o) => o.email === c.uid).map((o) => ({ pedido: o.pedido, data: fmtDate(o.data), total: brl(o.total), itens: o.itens.map((i) => `${i.quantidade}x ${i.produto}`) }));
-        return { torcedor: c.name, email: c.uid, clienteDesde: fmtDate(c.creationtime, false), plano: plan ? plan.nome : 'não é sócio', grupos: groups, pedidos: os, chamados: ts };
+        const suspenso = !!plan && groups.includes(SUSPENDED_GROUP);
+        return { torcedor: c.name, email: c.uid, clienteDesde: fmtDate(c.creationtime, false), plano: plan ? plan.nome : 'não é sócio', situacao: plan ? (suspenso ? 'Benefícios suspensos (mensalidade em atraso)' : 'Ativo') : null, grupos: groups, pedidos: os, chamados: ts };
       },
+    },
+    {
+      name: 'situacao_socio',
+      description: 'Situação de um sócio (ativo ou com benefícios suspensos por mensalidade em atraso) e a linha do tempo: adesão, suspensões, regularizações, cancelamento, com data, origem, quem registrou e motivo.',
+      inputSchema: obj({ email: S.str('E-mail do torcedor') }, ['email']),
+      handler: async ({ email }) => {
+        const c = await customer(email);
+        const plan = (await planList()).find((p) => p._members.includes(c.uid));
+        const suspenso = !!plan && results(c.groups).some((g) => g.uid === SUSPENDED_GROUP);
+        return { torcedor: c.name, email: c.uid, plano: plan ? plan.nome : 'não é sócio', situacao: plan ? (suspenso ? 'Benefícios suspensos (mensalidade em atraso): sem onda de sócio e sem descontos; mantém a vaga' : 'Ativo') : null, linhaDoTempo: await events(c.uid) };
+      },
+    },
+    {
+      name: 'suspender_socio',
+      description: 'Suspende os benefícios de um sócio por mensalidade em atraso: perde a onda de sócio e os descontos na hora, continua sócio e mantém a vaga. Ingressos de jogos que ainda não abriram para a venda geral saem do carrinho dele.',
+      inputSchema: obj({ email: S.str('E-mail do torcedor'), motivo: S.str('Motivo (ex.: mensalidade de outubro em atraso)'), confirmar: S.confirm }, ['email']),
+      handler: async (a) => statusEvent(a, 'SUSPENSAO'),
+    },
+    {
+      name: 'regularizar_socio',
+      description: 'Regulariza um sócio suspenso (pagamento confirmado): onda de sócio e descontos voltam na hora.',
+      inputSchema: obj({ email: S.str('E-mail do torcedor'), motivo: S.str('Observação (ex.: pagamento confirmado pelo financeiro)'), confirmar: S.confirm }, ['email']),
+      handler: async (a) => statusEvent(a, 'REGULARIZACAO'),
     },
     {
       name: 'chamados',

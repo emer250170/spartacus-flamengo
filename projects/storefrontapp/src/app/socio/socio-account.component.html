@@ -42,7 +42,9 @@
               <span class="sa-chip" *ngIf="ended">{{
                 'sa.ended.on' | flaT: { date: date(ended.closedAt) }
               }}</span>
-              <span class="sa-chip" *ngIf="!ended">{{ waveLabel(p) }}</span>
+              <span class="sa-chip" *ngIf="!ended && !suspended">{{
+                waveLabel(p)
+              }}</span>
               <span class="sa-chip" *ngIf="start"
                 >{{ 'sa.since' | flaT }} {{ monthYear(start) }}</span
               >
@@ -56,6 +58,23 @@
           }}</span>
           <span class="sa-hero-caption">{{ 'sa.rating.title' | flaT }}</span>
         </div>
+      </div>
+
+      <!-- benefícios suspensos por mensalidade em atraso -->
+      <div class="sa-suspended" *ngIf="suspended" role="alert">
+        <div>
+          <p class="sa-suspended-title">{{ 'sa.suspended.title' | flaT }}</p>
+          <p class="sa-suspended-text">
+            {{ 'sa.suspended.text' | flaT: { plan: p.name } }}
+          </p>
+        </div>
+        <button
+          type="button"
+          class="sa-btn sa-btn--primary"
+          (click)="regularize()"
+        >
+          {{ 'sa.suspended.action' | flaT }}
+        </button>
       </div>
 
       <div class="sa-grid">
@@ -213,7 +232,7 @@
           </div>
 
           <!-- trocar cartão -->
-          <div class="sa-panel" *ngIf="cardPanel && !ended">
+          <div class="sa-panel" id="sa-card-panel" *ngIf="cardPanel && !ended">
             <ng-container *ngIf="!newCardForm">
               <p class="sa-panel-title">{{ 'sa.card.choose' | flaT }}</p>
               <label class="sa-radio" *ngFor="let c of cards">
