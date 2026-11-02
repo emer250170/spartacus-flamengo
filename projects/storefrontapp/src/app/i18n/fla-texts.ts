@@ -399,6 +399,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Multa de {amount} ({pct}% de {n} mensalidades restantes de {monthly})',
     'sa.exit.fineDone': 'multa de {amount}.',
     'sa.exit.noFine': 'Sem multa (contrato no último mês)',
+    'sa.exit.endOfTerm': 'fim da vigência sem renovação, sem multa.',
     'sa.exit.ruleIn':
       'Você está no prazo de arrependimento de {days} dias depois da adesão: o valor pago na adesão é devolvido.',
     'sa.exit.ruleOut':
@@ -902,6 +903,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Fee of {amount} ({pct}% of {n} remaining monthly fees of {monthly})',
     'sa.exit.fineDone': 'fee of {amount}.',
     'sa.exit.noFine': 'No fee (last month of the contract)',
+    'sa.exit.endOfTerm': 'end of term without renewal, no fee.',
     'sa.exit.ruleIn':
       'You are within the {days}-day cooling-off period after joining: the amount paid at sign-up is refunded.',
     'sa.exit.ruleOut':

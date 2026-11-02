@@ -45,6 +45,8 @@ public class SocioExitWsDTO implements Serializable
 	private Boolean confirmed;
 	/** Chamado de cancelamento em aberto */
 	private String openTicket;
+	/** A saída foi o fim da vigência sem renovação (sem multa) */
+	private Boolean endOfTerm;
 	/** Último cancelamento confirmado (ex-sócio) */
 	private SocioExitWsDTO settlement;
 
@@ -266,6 +268,16 @@ public class SocioExitWsDTO implements Serializable
 	public void setOpenTicket(final String openTicket)
 	{
 		this.openTicket = openTicket;
+	}
+
+	public Boolean getEndOfTerm()
+	{
+		return endOfTerm;
+	}
+
+	public void setEndOfTerm(final Boolean endOfTerm)
+	{
+		this.endOfTerm = endOfTerm;
 	}
 
 	public SocioExitWsDTO getSettlement()

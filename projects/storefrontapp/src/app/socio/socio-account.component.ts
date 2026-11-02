@@ -584,6 +584,9 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
 
   /** "Reembolso de R$ 67,10 (arrependimento até 09/11/2026)" / "Multa de R$ 60,39 (…)" */
   exitText(e: SocioExit): string {
+    if (e.endOfTerm) {
+      return this.t('sa.exit.endOfTerm');
+    }
     if (e.withinWithdrawal) {
       return e.confirmed
         ? this.t('sa.exit.refundDone', { amount: this.brl(e.refund) })

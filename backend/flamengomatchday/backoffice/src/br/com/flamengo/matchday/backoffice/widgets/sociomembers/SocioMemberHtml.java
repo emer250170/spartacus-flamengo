@@ -325,7 +325,11 @@ public class SocioMemberHtml
 	{
 		final SocioExitQuote q = m.exit;
 		final String text;
-		if (q.withinWithdrawal)
+		if (q.endOfTerm)
+		{
+			text = l("detail.exit.endOfTerm");
+		}
+		else if (q.withinWithdrawal)
 		{
 			text = q.confirmed ? MessageFormat.format(l("detail.exit.refundDone"), money.format(q.refund))
 					: MessageFormat.format(l("detail.exit.refund"), money.format(q.refund), date(q.withdrawalUntil));
@@ -340,7 +344,7 @@ public class SocioMemberHtml
 					: MessageFormat.format(l("detail.exit.fine"), money.format(q.fine), percent(q.finePercent),
 							String.valueOf(q.remainingInstallments), money.format(q.monthly));
 		}
-		return "<span style=\"color:" + (q.withinWithdrawal ? "#107e3e" : "#b45309") + ";font-weight:600\">" + esc(text) + "</span>";
+		return "<span style=\"color:" + (q.withinWithdrawal || q.endOfTerm ? "#107e3e" : "#b45309") + ";font-weight:600\">" + esc(text) + "</span>";
 	}
 
 	protected static String percent(final double value)

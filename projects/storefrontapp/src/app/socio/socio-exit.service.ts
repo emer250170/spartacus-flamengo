@@ -30,6 +30,8 @@ export interface SocioExit {
   /** Valor de cancelamento confirmado (ex-sócio) */
   confirmed: boolean;
   openTicket?: string;
+  /** A saída foi o fim da vigência sem renovação (sem multa) */
+  endOfTerm: boolean;
 }
 
 /** Regras de saída na área do sócio: simulação e o último cancelamento confirmado */
@@ -99,6 +101,7 @@ function toExit(r: OccSocioExit): SocioExit {
     summary: r.summary,
     confirmed: !!r.confirmed,
     openTicket: r.openTicket,
+    endOfTerm: !!r.endOfTerm,
   };
 }
 
@@ -124,5 +127,6 @@ interface OccSocioExit {
   summary?: string;
   confirmed?: boolean;
   openTicket?: string;
+  endOfTerm?: boolean;
   settlement?: OccSocioExit;
 }

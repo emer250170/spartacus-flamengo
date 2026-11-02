@@ -45,6 +45,8 @@ public class SocioExitQuote
 
 	/** Valor de um cancelamento já confirmado (evento CANCELAMENTO), não uma simulação */
 	public boolean confirmed;
+	/** A saída foi o fim da vigência sem renovação (evento FIM_VIGENCIA): sem multa */
+	public boolean endOfTerm;
 	/** Chamado de cancelamento em aberto (a data-base é a abertura dele) */
 	public String openTicket;
 }

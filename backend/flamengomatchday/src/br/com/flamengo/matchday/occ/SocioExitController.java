@@ -96,6 +96,7 @@ public class SocioExitController
 		dto.setSummary(socioExitService.describe(q));
 		dto.setConfirmed(Boolean.valueOf(q.confirmed));
 		dto.setOpenTicket(q.openTicket);
+		dto.setEndOfTerm(Boolean.valueOf(q.endOfTerm));
 	}
 
 	protected static String format(final Date date)
