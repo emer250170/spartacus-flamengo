@@ -160,10 +160,15 @@ export const BIOMETRY_GROUP = 'biometria-validada';
  * jogo" na jornada). A mesma regra roda no SAP Commerce
  * (SocioEligibilityService), que grava cada tentativa; estes valores espelham
  * as chaves do servidor:
+ * - blocking: flamengo.socio.elegibilidade.bloqueio (padrão do servidor: false;
+ *   ligado no servidor da demo pelo local.properties). Ligado, a jornada não deixa
+ *   escolher poltrona com uma condição não atendida (✕), como já fazia com a onda.
+ *   Desligado, só a onda bloqueia e o cartão apenas informa.
  * - biometryRequired: flamengo.socio.biometria.exigida
  * - generalLimit: flamengo.ingressos.limite.geral (sócio: titular + convidados do plano)
  */
 export const ELIGIBILITY = {
+  blocking: true,
   biometryRequired: false,
   generalLimit: 4,
 };

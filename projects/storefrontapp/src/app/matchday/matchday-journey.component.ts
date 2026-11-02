@@ -284,8 +284,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (!this.match || !this.match.seatsLoaded) {
       return false;
     }
-    // a venda do jogo ainda não chegou na onda do torcedor
-    if (!this.waveFor(this.match).open && !this.held) {
+    // a venda do jogo ainda não chegou na onda do torcedor, ou (com o
+    // bloqueio ligado) outra condição do cartão de elegibilidade não é atendida
+    if (!this.canBuy(this.match) && !this.held) {
       return false;
     }
     return index <= 1 || !!(this.sector && this.seat);
@@ -518,6 +519,31 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     return checks.every((c) => c.state !== 'no');
   }
 
+  /**
+   * Pode escolher poltrona: a onda do torcedor chegou e, com o bloqueio ligado
+   * (ELIGIBILITY.blocking, o mesmo do servidor), todas as condições do cartão
+   * são atendidas. Sem login ainda não sabemos: o login é pedido na poltrona.
+   */
+  canBuy(match: MatchdayMatch): boolean {
+    if (!this.waveFor(match).open) {
+      return false;
+    }
+    return (
+      !ELIGIBILITY.blocking ||
+      !this.loggedIn ||
+      this.isEligible(this.eligibility(match))
+    );
+  }
+
+  /** Motivo da recusa da poltrona pelo servidor, a partir do cartão de elegibilidade */
+  protected deniedReason(): string | undefined {
+    if (!this.match || !this.loggedIn) {
+      return undefined;
+    }
+    const denied = this.eligibility(this.match).filter((c) => c.state === 'no');
+    return denied.length ? denied.map((c) => c.text).join(' ') : undefined;
+  }
+
   /** Sugere subir de plano: não é sócio, ou o plano não compra na onda 1 */
   get canUpgrade(): boolean {
     return !this.suspendedPlan && this.memberPlan?.wave !== 1;
@@ -706,7 +732,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.loginIntent = undefined;
     this.data.clearLoginIntent();
     const sector = match.sectors.find((s) => s.code === intent.sectorCode);
-    if (!sector || (!this.waveFor(match).open && !this.held)) {
+    if (!sector || (!this.canBuy(match) && !this.held)) {
       // sem setor guardado, ou o jogo não está aberto para a onda deste
       // torcedor: fica no jogo, com o aviso da onda
       return;
@@ -871,7 +897,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
             this.tick();
           } else {
             this.clearHeld();
-            this.holdMessage = this.i18n.t('md.holdTaken');
+            // recusada pela regra de elegibilidade (bloqueio ligado no servidor)
+            // ou pega por outra pessoa no mesmo instante
+            const reason = this.deniedReason();
+            this.holdMessage = reason
+              ? this.i18n.t('md.holdDenied', { reason })
+              : this.i18n.t('md.holdTaken');
             this.refreshSeats();
           }
           this.cd.markForCheck();

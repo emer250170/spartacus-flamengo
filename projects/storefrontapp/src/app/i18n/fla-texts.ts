@@ -121,6 +121,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.login': 'Entrar',
     'md.holdTaken':
       'Essa poltrona acabou de ser reservada por outra pessoa. Escolha outra.',
+    'md.holdDenied': 'Não foi possível reservar a poltrona: {reason}',
     'md.holdRemoved':
       'A poltrona saiu do seu carrinho. Se você tirou o plano de sócio, a compra deste jogo só abre na sua onda.',
     'md.holdLost':
@@ -511,6 +512,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.login': 'Sign in',
     'md.holdTaken':
       'Someone else has just taken this seat. Please choose another one.',
+    'md.holdDenied': 'The seat could not be held: {reason}',
     'md.holdRemoved':
       'The seat left your cart. If you removed the membership plan, this match only opens in your wave.',
     'md.holdLost':
