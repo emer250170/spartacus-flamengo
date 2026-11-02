@@ -10,6 +10,12 @@
   --st-warn-bg: #fff2d9;
 
   display: block;
+  // No checkout o slot SideContent é flex em coluna com quebra e dá
+  // flex: 1 1 100% a componentes sem regra própria: a caixa ocupava a altura
+  // toda e empurrava o "Finalizar pedido" para outra coluna (rolagem lateral).
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
   color: var(--st-black);
 }
 
