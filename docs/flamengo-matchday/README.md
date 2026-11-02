@@ -650,6 +650,28 @@ Desenho aprovado em 02/11: a forma de pagamento só aparece com plano no carrinh
 
 Deploy (PR 7a): `ant all`; Update no HAC (atributos e valores novos, só "Update running system" + "Localize types"); reiniciar antes de testar o Backoffice.
 
+### Pontos, experiências e carteirinha (item 8 do plano de evolução)
+
+Desenho aprovado em 02/11: pontos calculados no servidor (nada de saldo gravado), vitrine de experiências cadastrada no Backoffice e resgate com voucher; carteirinha digital na área do sócio e numa página para o celular (PR 8b, loja).
+
+| Regra | Como funciona |
+|---|---|
+| Ganho | Cada ingresso dá `flamengo.socio.pontos.porIngresso` (100) e cada real em produtos dá `flamengo.socio.pontos.porReal` (1). Plano e convidados não contam. Contam os pedidos fechados desde a adesão (primeiro pedido com plano; sem pedido, o primeiro evento Adesão). Pix/boleto aguardando e pedidos cancelados não contam. Igual para todos os planos. |
+| Saldo | Ganhos menos os resgates não cancelados. Calculado a cada consulta. |
+| Resgate | Só sócio em dia (nem suspenso, nem aguardando pagamento, nem ex-sócio), experiência na vitrine, plano com mensalidade igual ou maior que a do plano mínimo, vaga sobrando e saldo suficiente. Gera `SocioRedemption` com voucher `NACAO-XXXX-XXXX` e o evento **Resgate de pontos** na linha do tempo. |
+| Cancelar resgate | No Backoffice (Resgates de pontos), preencher **Cancelado em**: os pontos e a vaga voltam. |
+| Chave | `flamengo.socio.pontos.ativo` (true); false = sem pontos na loja, na ficha e no Claude. |
+
+| Parte | Como funciona |
+|---|---|
+| Tipos | `SocioExperience` (código, nome, descrição, pontos, quantidade, plano mínimo, na vitrine, ordem) e `SocioRedemption` (voucher, torcedor, experiência, pontos, data, plano, origem, cancelado em); valor `RESGATE_PONTOS` em `SocioEventType`. Nada renomeado. |
+| Vitrine inicial | `07-socio-experiencias.impex`: tour do Maracanã (500), treino aberto no Ninho (800), manto autografado (1.500, Maraca 2), visita com foto com jogador (2.500, Maraca 1) e entrada em campo com o time (4.000, Maraca 1). |
+| API de comércio | `GET /{baseSiteId}/users/current/sociopoints` (saldo, pedidos que deram pontos, resgates, vitrine com o que pode resgatar e por quê); `POST /users/current/sociopoints/redemptions` `{"experience":"TOUR-MARACANA"}` (voucher e saldo novo). Recusa: 400 `SocioPointsError`. |
+| Backoffice | Sócio-Torcedor › **Experiências** (cadastro) e **Resgates de pontos**; na ficha do sócio, campo **Pontos** (saldo, ganhos, resgatados) e seção **Pontos e resgates** (regra, ganhos, vouchers). Papel do gestor: cria e edita experiências, cancela resgates. |
+| Claude (MCP) | Torcedor: `meus_pontos` e `resgatar_experiencia` (com confirmação). |
+
+Deploy (PR 8a): `ant all`; Update no HAC (tipos novos, só "Update running system" + "Localize types"); ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`) e da vitrine (`07-socio-experiencias.impex`) importadas à parte; reiniciar antes de testar o Backoffice (rótulos dos tipos novos).
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

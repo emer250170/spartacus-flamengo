@@ -630,7 +630,48 @@ function torcedorTools(cfg, http) {
         };
       },
     },
+    {
+      name: 'meus_pontos',
+      description: 'Pontos do sócio-torcedor: saldo, como ganha (ingressos e compras na loja desde a adesão), pedidos que deram pontos, resgates com voucher e a vitrine de experiências que pode resgatar.',
+      inputSchema: obj(),
+      handler: async () => pointsView(await occ('GET', '/users/current/sociopoints')),
+    },
+    {
+      name: 'resgatar_experiencia',
+      description: 'Resgata uma experiência da vitrine com os pontos do sócio (só sócio em dia). Gera um voucher. Códigos em meus_pontos.',
+      inputSchema: obj({ experiencia: S.str('Código da experiência (de meus_pontos)'), confirmar: S.confirm }, ['experiencia']),
+      handler: async (a) => {
+        const p = await occ('GET', '/users/current/sociopoints');
+        const x = (p.experiences ?? []).find((e) => e.code === a.experiencia);
+        if (!x) throw new UserError('Experiência não encontrada. Veja os códigos em meus_pontos.');
+        if (!x.redeemable) throw new UserError(`${x.name}: ${x.reason}`);
+        const c = needConfirm(a, `Resgatar "${x.name}" por ${pts(x.points)} pontos. Saldo depois: ${pts(p.balance - x.points)} pontos.`);
+        if (c) return c;
+        const r = await occ('POST', '/users/current/sociopoints/redemptions', { body: { experience: x.code, origin: 'Claude' } });
+        return { executado: true, experiencia: x.name, voucher: r.voucher, pontosUsados: r.points, saldo: r.status?.balance, verNaLoja: `${cfg.storeUrl}/my-account/socio-torcedor` };
+      },
+    },
   ];
+
+  function pts(n) {
+    return Number(n ?? 0).toLocaleString('pt-BR');
+  }
+
+  function pointsView(p) {
+    if (!p.enabled) return { pontos: 'Os pontos do sócio estão desligados na loja.' };
+    return {
+      saldo: p.balance,
+      ganhos: p.earned,
+      resgatados: p.redeemed,
+      regra: `${pts(p.perTicket)} pontos por ingresso e ${pts(p.perReal)} por real em produtos (plano e convidados não contam), nos pedidos desde ${fmtDate(p.since, false) ?? 'a adesão'}.`,
+      podeResgatar: p.canRedeem,
+      ...(p.reason ? { motivo: p.reason } : {}),
+      pedidosQueDeramPontos: (p.earnings ?? []).map((e) => ({ pedido: e.orderCode, data: fmtDate(e.date, false), ingressos: e.tickets, produtos: brl(e.productsAmount), pontos: e.points })),
+      resgates: (p.redemptions ?? []).map((r) => ({ experiencia: r.experienceName, pontos: r.points, voucher: r.voucher, data: fmtDate(r.date), origem: r.origin, ...(r.cancelledAt ? { cancelado: fmtDate(r.cancelledAt, false) } : {}) })),
+      vitrine: (p.experiences ?? []).map((e) => ({ code: e.code, nome: e.name, descricao: e.description, pontos: e.points, vagas: e.available ?? 'sem limite', planoMinimo: e.minPlanName ?? 'qualquer plano', podeResgatar: e.redeemable, ...(e.reason ? { motivo: e.reason } : {}) })),
+      areaDoSocio: `${cfg.storeUrl}/my-account/socio-torcedor`,
+    };
+  }
 }
 
 // ================================================================ GESTORES (OData)

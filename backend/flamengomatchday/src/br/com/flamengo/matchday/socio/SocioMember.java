@@ -78,6 +78,8 @@ public class SocioMember
 	public SocioPayment payment;
 	/** Vigência (item 6): contrato gravado ou calculado do pedido; null com a chave desligada */
 	public SocioContractStatus contract;
+	/** Pontos e resgates (item 8); null com a chave desligada */
+	public SocioPoints points;
 	/** Últimas tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */
 	public final List<Attempt> attempts = new ArrayList<>();
 	/** Convidados nominais (SocioGuest): ativos primeiro, depois os encerrados mais novos */

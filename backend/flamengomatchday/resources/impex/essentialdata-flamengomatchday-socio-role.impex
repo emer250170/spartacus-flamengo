@@ -35,6 +35,8 @@ BackofficeRole;sociomanagerrole;;;;;;;;
 ;;;;SocioTermVersion;+;+;+;-;-
 ;;;;SocioTermAcceptance;+;-;-;-;-
 ;;;;SocioContract;+;-;-;-;-
+;;;;SocioExperience;+;+;+;+;-
+;;;;SocioRedemption;+;+;-;-;-
 ;;;;Product;+;-;-;-;-
 ;;;;UserGroup;+;-;-;-;-
 ;;;;Catalog;+;-;-;-;-

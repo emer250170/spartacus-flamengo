@@ -214,6 +214,7 @@
 		<property name="socioExitService" ref="socioExitService"/>
 		<property name="socioContractService" ref="socioContractService"/>
 		<property name="socioPaymentService" ref="socioPaymentService"/>
+		<property name="socioPointsService" ref="socioPointsService"/>
 	</bean>
 
 	<!--
@@ -356,6 +357,24 @@
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 		<property name="socioExitService" ref="socioExitService"/>
+	</bean>
+
+	<!--
+		Pontos, experiências e carteirinha (item 8): saldo calculado dos pedidos desde a
+		adesão (ingressos e produtos), vitrine de experiências cadastradas no Backoffice e
+		resgate com voucher (evento Resgate de pontos). Endpoints na API de comércio
+		(sociopoints). Chave: flamengo.socio.pontos.ativo.
+	-->
+	<bean id="socioPointsService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioPointsService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="socioPaymentService" ref="socioPaymentService"/>
+		<property name="seatHoldService" ref="seatHoldService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
 	<!-- Relatório de ingressos (Backoffice > Matchday Flamengo > Relatórios) -->

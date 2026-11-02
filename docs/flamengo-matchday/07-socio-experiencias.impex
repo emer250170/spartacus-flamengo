@@ -1,0 +1,12 @@
+# =====================================================================
+#  Sócio-torcedor (item 8): vitrine de experiências resgatáveis com pontos
+#  Depois do Update que cria SocioExperience. O gestor mantém em
+#  Backoffice › Sócio-Torcedor › Experiências. Rodar de novo só atualiza os textos e regras.
+#  Pontos: 100 por ingresso e 1 por real em produtos (flamengo.socio.pontos.*).
+# =====================================================================
+INSERT_UPDATE SocioExperience;code[unique=true];name[lang=pt];name[lang=en];description[lang=pt];description[lang=en];points;stock;minPlan(code);active[default=true];sortOrder
+;TOUR-MARACANA;Tour do Maracanã com acompanhante;Maracanã tour with a companion;Visita guiada ao Maracanã para você e um acompanhante: vestiário, túnel e beira do gramado. O voucher vale para qualquer dia sem jogo.;Guided tour of the Maracanã for you and a companion: dressing room, tunnel and pitchside. The voucher is valid on any non-match day.;500;;;;1
+;TREINO-CT;Treino aberto no Ninho do Urubu;Open training at Ninho do Urubu;Assista a um treino do time profissional no CT George Helal. O clube avisa a data por e-mail; apresente o voucher na portaria.;Watch a first-team training session at the George Helal training centre. The club emails you the date; show the voucher at the gate.;800;30;;;2
+;MANTO-AUTOGRAFADO;Manto autografado pelo elenco;Shirt signed by the squad;Camisa Jogo 1 da temporada com as assinaturas do elenco, entregue no endereço da sua conta.;This season's home shirt signed by the squad, delivered to your account address.;1500;10;NACAO-MARACA-2;;3
+;FOTO-JOGADOR;Visita ao Ninho com foto com jogador;Ninho visit with a player photo;Visita ao CT com foto ao lado de um jogador do elenco profissional, para você e um acompanhante.;Training-centre visit with a photo next to a first-team player, for you and a companion.;2500;5;NACAO-MARACA-1;;4
+;ENTRADA-EM-CAMPO;Entrada em campo com o time (criança);Walk out with the team (child);Uma criança de 6 a 12 anos entra em campo de mãos dadas com um jogador num jogo no Maracanã. O clube combina o jogo com você.;A child aged 6 to 12 walks out holding a player's hand at a Maracanã match. The club agrees the match with you.;4000;2;NACAO-MARACA-1;;5

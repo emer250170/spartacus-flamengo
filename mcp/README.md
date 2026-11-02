@@ -42,6 +42,7 @@ set FLAMENGO_PERSONA=jogos& set GESTOR_USUARIO=gestor.jogos& set GESTOR_SENHA=..
 - "Aplica o cupom mengao. Quanto ficou?" (sócio 10% + cupom 15% nos produtos da loja)
 - "Finaliza a compra" → resumo com endereço e cartão final 1111 → confirmar → pedido criado, aparece em Minha conta.
 - "Quero cancelar meu plano, vou me mudar" → abre o chamado.
+- "Quantos pontos eu tenho? O que dá para resgatar?" → saldo, de onde vieram (ingressos e compras desde a adesão) e a vitrine com o que ele pode resgatar ou quantos pontos faltam (`meus_pontos`). "Resgata o tour do Maracanã" → resumo → confirmar → voucher `NACAO-…`, que aparece na área do sócio e na ficha do Backoffice (`resgatar_experiencia`).
 
 **2. Gestor do sócio-torcedor (ligue só `flamengo-gestor-socio`)**
 - "Como estão os planos? Quantas vagas restam no Nação Maraca 1?"
