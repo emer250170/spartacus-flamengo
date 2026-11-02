@@ -4,8 +4,14 @@
   </div>
 
   <ng-container *ngIf="!loading">
+    <!-- Pix ou boleto do plano aguardando pagamento (item 7) -->
+    <fla-socio-payment-status
+      *ngIf="pending"
+      [payment]="pending"
+    ></fla-socio-payment-status>
+
     <!-- ainda não é sócio -->
-    <div *ngIf="!plan" class="sa-empty">
+    <div *ngIf="!plan && !pending" class="sa-empty">
       <span class="sa-seal sa-seal--big" aria-hidden="true">
         <ng-container *ngTemplateOutlet="shield"></ng-container>
       </span>

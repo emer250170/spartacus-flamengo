@@ -16,6 +16,9 @@ import { SocioAccountComponent } from './socio-account.component';
 import { SocioBadgeComponent } from './socio-badge.component';
 import { SocioGuestsComponent } from './socio-guests.component';
 import { SocioNavigationService } from './socio-navigation.service';
+import { SocioPaymentChoiceComponent } from './socio-payment-choice.component';
+import { SocioPaymentReviewComponent } from './socio-payment-review.component';
+import { SocioPaymentStatusComponent } from './socio-payment-status.component';
 import { SocioPlansComponent } from './socio-plans.component';
 import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
 import { SocioTermCheckoutComponent } from './socio-term-checkout.component';
@@ -33,6 +36,9 @@ import { SocioTermPageComponent } from './socio-term-page.component';
  * Termo do Nação: SocioTermCheckoutComponent (antes do Finalizar pedido),
  *   SocioTermNoticeComponent (Meu sócio-torcedor) e SocioTermPageComponent
  *   (/socio-torcedor/termo).
+ * Pix e boleto (item 7): SocioPaymentChoiceComponent (pagamento do checkout),
+ *   SocioPaymentReviewComponent (revisão) e SocioPaymentStatusComponent (QR Code
+ *   ou boleto na confirmação e em Meu sócio-torcedor).
  * O SocioService também é usado pela jornada de matchday (ondas e desconto).
  */
 @NgModule({
@@ -60,6 +66,9 @@ import { SocioTermPageComponent } from './socio-term-page.component';
     SocioTermCheckoutComponent,
     SocioTermNoticeComponent,
     SocioTermPageComponent,
+    SocioPaymentChoiceComponent,
+    SocioPaymentReviewComponent,
+    SocioPaymentStatusComponent,
   ],
   providers: [
     provideConfig(<CmsConfig>{
@@ -89,6 +98,22 @@ import { SocioTermPageComponent } from './socio-term-page.component';
       id: 'CheckoutPlaceOrder',
       position: OutletPosition.BEFORE,
       component: SocioTermCheckoutComponent,
+    }),
+    // Pix e boleto (item 7): forma de pagamento do plano no checkout, na revisão e na confirmação
+    provideOutlet({
+      id: 'CheckoutPaymentDetails',
+      position: OutletPosition.BEFORE,
+      component: SocioPaymentChoiceComponent,
+    }),
+    provideOutlet({
+      id: 'CheckoutPlaceOrder',
+      position: OutletPosition.BEFORE,
+      component: SocioPaymentReviewComponent,
+    }),
+    provideOutlet({
+      id: 'OrderConfirmationThankMessageComponent',
+      position: OutletPosition.AFTER,
+      component: SocioPaymentStatusComponent,
     }),
   ],
 })

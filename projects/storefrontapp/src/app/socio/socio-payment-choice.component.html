@@ -1,0 +1,72 @@
+<section *ngIf="visible && opts as o" class="spay" aria-labelledby="spay-title">
+  <h3 id="spay-title" class="spay-title">
+    {{ 'spay.title' | flaT: { plan: o.planName } }}
+  </h3>
+  <p class="spay-sub">{{ 'spay.sub' | flaT }}</p>
+
+  <div
+    class="spay-list"
+    role="radiogroup"
+    [attr.aria-label]="'spay.title' | flaT: { plan: o.planName }"
+  >
+    <label
+      *ngFor="let m of o.methods"
+      class="spay-opt"
+      [class.spay-on]="selected === m"
+    >
+      <input
+        type="radio"
+        name="spay-method"
+        [value]="m"
+        [checked]="selected === m"
+        [disabled]="busy"
+        (change)="pick(m)"
+      />
+      <span class="spay-body">
+        <span class="spay-name">{{ 'spay.m.' + m | flaT }}</span>
+        <span class="spay-amount">{{ amount(m) }}</span>
+        <small class="spay-hint">{{ 'spay.h.' + m | flaT }}</small>
+      </span>
+    </label>
+  </div>
+
+  <div *ngIf="selected === 'CARTAO_ANUAL'" class="spay-inst">
+    <label for="spay-inst">{{ 'spay.installments' | flaT }}</label>
+    <select
+      id="spay-inst"
+      class="form-control"
+      [disabled]="busy"
+      (change)="setInstallments($any($event.target).value)"
+    >
+      <option
+        *ngFor="let n of parcels"
+        [value]="n"
+        [selected]="n === installments"
+      >
+        {{ parcelText(n) }}
+      </option>
+    </select>
+    <small>{{ 'spay.cardBelow' | flaT }}</small>
+  </div>
+
+  <p *ngIf="error" class="spay-error" role="alert">{{ error }}</p>
+
+  <div *ngIf="upfront" class="spay-upfront">
+    <p>
+      {{ (selected === 'PIX' ? 'spay.pixNext' : 'spay.boletoNext') | flaT }}
+    </p>
+    <div class="spay-actions">
+      <button type="button" class="btn btn-secondary" (click)="back()">
+        {{ 'spay.back' | flaT }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="busy"
+        (click)="next()"
+      >
+        {{ 'spay.next' | flaT }}
+      </button>
+    </div>
+  </div>
+</section>

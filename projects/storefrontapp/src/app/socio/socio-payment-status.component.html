@@ -1,0 +1,88 @@
+<section
+  *ngIf="visible && payment as p"
+  class="spay spay-status"
+  [class.spay-wait]="p.awaiting"
+>
+  <!-- Pix ou boleto aguardando pagamento -->
+  <ng-container *ngIf="p.awaiting; else done">
+    <p class="spay-kind">{{ 'spay.s.awaiting' | flaT }}</p>
+    <h3 class="spay-title">
+      {{
+        (p.method === 'PIX' ? 'spay.s.pixTitle' : 'spay.s.boletoTitle')
+          | flaT: { plan: p.planName }
+      }}
+    </h3>
+    <p class="spay-sub">
+      {{
+        'spay.s.amount'
+          | flaT: { amount: brl(p.total), order: p.orderCode, due: when(p.due) }
+      }}
+    </p>
+    <div class="spay-code">
+      <svg
+        *ngIf="p.method === 'PIX'"
+        class="spay-qr"
+        viewBox="0 0 25 25"
+        role="img"
+        [attr.aria-label]="'spay.s.qr' | flaT"
+        shape-rendering="crispEdges"
+      >
+        <rect width="25" height="25" fill="#fff"></rect>
+        <ng-container *ngFor="let row of qr; let r = index">
+          <ng-container *ngFor="let on of row; let c = index">
+            <rect
+              *ngIf="on"
+              [attr.x]="c"
+              [attr.y]="r"
+              width="1"
+              height="1"
+              fill="#0b0b0c"
+            ></rect>
+          </ng-container>
+        </ng-container>
+      </svg>
+      <div class="spay-copy">
+        <label class="spay-kind" for="spay-code-{{ p.orderCode }}">
+          {{
+            (p.method === 'PIX' ? 'spay.s.pixCode' : 'spay.s.boletoLine') | flaT
+          }}
+        </label>
+        <textarea
+          id="spay-code-{{ p.orderCode }}"
+          class="form-control spay-codebox"
+          rows="3"
+          readonly
+          [value]="p.code"
+        ></textarea>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="copy()">
+          {{ (copied ? 'spay.s.copied' : 'spay.s.copy') | flaT }}
+        </button>
+        <small>{{ 'spay.s.fake' | flaT }}</small>
+      </div>
+    </div>
+    <p class="spay-note">
+      {{ 'spay.s.activates' | flaT: { plan: p.planName } }}
+    </p>
+  </ng-container>
+
+  <ng-template #done>
+    <ng-container *ngIf="upfront; else card">
+      <p class="spay-kind">{{ 'spay.s.paid' | flaT }}</p>
+      <p class="spay-line">
+        {{
+          'spay.s.paidLine'
+            | flaT
+              : {
+                  name: ('spay.m.' + p.method | flaT),
+                  amount: brl(p.total),
+                  date: when(p.confirmedAt),
+                }
+        }}
+      </p>
+    </ng-container>
+    <ng-template #card>
+      <p class="spay-kind">{{ 'spay.r.title' | flaT: { plan: p.planName } }}</p>
+      <p class="spay-line">{{ cardLine() }}</p>
+    </ng-template>
+  </ng-template>
+</section>

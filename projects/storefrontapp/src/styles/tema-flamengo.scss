@@ -308,3 +308,13 @@ html[lang='pt'] header cx-site-context-selector label > span::before {
   content: 'Idioma:';
   font-size: 14px;
 }
+
+// Pix e boleto (item 7): com o plano em Pix/boleto, o cartão do Spartacus some do
+// pagamento e da revisão (classe posta pelo SocioPaymentService)
+body.fla-pay-upfront {
+  cx-payment-method,
+  cx-checkout-review-payment,
+  .cx-review-card-payment {
+    display: none !important;
+  }
+}
