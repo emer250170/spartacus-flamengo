@@ -643,7 +643,7 @@ Desenho aprovado em 02/11: a forma de pagamento só aparece com plano no carrinh
 | Parte | Como funciona |
 |---|---|
 | Tipos | Enum `SocioPaymentMethod`; valores novos `AGUARDANDO_PAGAMENTO` e `PAGAMENTO_CONFIRMADO` em `SocioEventType`; `SocioPlan.upfrontPayment`; atributos `socioPayment*` no `AbstractOrder`. Nada renomeado. |
-| API de comércio | `GET/PUT /{baseSiteId}/users/current/carts/{cartId}/sociopayment` (opções e escolha `{"method":"PIX"}` / `{"method":"CARTAO_ANUAL","installments":10}`); `POST .../sociopayment/order` (Pix/boleto); `GET /users/current/orders/{code}/sociopayment` (código, vencimento, confirmação). Recusa: 400 `SocioPaymentError`. |
+| API de comércio | `GET/PUT /{baseSiteId}/users/current/carts/{cartId}/sociopayment` (opções e escolha `{"method":"PIX"}` / `{"method":"CARTAO_ANUAL","installments":10}`); `POST .../sociopayment/order` (Pix/boleto); `GET /users/current/orders/{code}/sociopayment` (código, vencimento, confirmação); `GET /users/current/sociopayment` (Pix/boleto mais novo aguardando). Recusa: 400 `SocioPaymentError`. |
 | Backoffice | Situação **Aguardando pagamento** na lista e na ficha (aviso laranja), campo **Pagamento do plano** e botão **Confirmar pagamento**. Cadastro do plano: campo novo na seção de preço. |
 | Claude (MCP) | Gestor do sócio: `confirmar_pagamento` (com confirmação) e `pagamentoPendente` em `situacao_socio`. |
 

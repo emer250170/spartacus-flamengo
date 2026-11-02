@@ -38,6 +38,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * oferece (cartão mensal, cartão com o ano inteiro em até 12x, Pix e boleto) e a forma escolhida;</li>
  * <li>PUT .../carts/{cartId}/sociopayment {"method","installments"}: escolhe e recalcula o carrinho;</li>
  * <li>POST .../carts/{cartId}/sociopayment/order: fecha o pedido com Pix ou boleto (sem cartão);</li>
+ * <li>GET /{baseSiteId}/users/current/sociopayment: o Pix ou boleto mais novo ainda não pago
+ * ({"awaiting": false} se não há);</li>
  * <li>GET /{baseSiteId}/users/current/orders/{code}/sociopayment: situação do pagamento do pedido
  * (Pix copia e cola ou linha digitável, vencimento, confirmação).</li>
  * </ul>
@@ -139,6 +141,28 @@ public class SocioPaymentController
 		final Map<String, Object> body = status == null ? new LinkedHashMap<>() : toMap(status);
 		body.put("orderCode", code);
 		return ResponseEntity.ok(body);
+	}
+
+	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
+	@RequestMapping(value = "/sociopayment", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<Object> pending(@PathVariable final String baseSiteId, @PathVariable final String userId)
+	{
+		final CustomerModel customer = currentCustomer();
+		if (customer == null)
+		{
+			return error(HttpStatus.UNAUTHORIZED, "Entre na sua conta.");
+		}
+		final OrderModel order = socioPaymentService.awaitingOrder(customer);
+		final SocioPayment status = order == null ? null : socioPaymentService.status(order);
+		if (status == null)
+		{
+			final Map<String, Object> body = new LinkedHashMap<>();
+			body.put("enabled", Boolean.valueOf(socioPaymentService.isEnabled()));
+			body.put("awaiting", Boolean.FALSE);
+			return ResponseEntity.ok(body);
+		}
+		return ResponseEntity.ok(toMap(status));
 	}
 
 	// ------------------------------------------------------------ apoio
