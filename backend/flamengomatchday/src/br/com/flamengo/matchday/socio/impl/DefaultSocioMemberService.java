@@ -1,9 +1,11 @@
 package br.com.flamengo.matchday.socio.impl;
 
 import br.com.flamengo.matchday.enums.SocioEventType;
+import br.com.flamengo.matchday.model.SocioEligibilityDecisionModel;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
+import br.com.flamengo.matchday.socio.SocioEligibilityService;
 import br.com.flamengo.matchday.socio.SocioMember;
 import br.com.flamengo.matchday.socio.SocioMemberService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -53,6 +55,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private static final Locale PT = new Locale("pt");
 	private static final String GUEST_PREFIX = "NACAO-CONVIDADO-";
 	private static final int MAX_RESULTS = 200;
+	private static final int MAX_ATTEMPTS = 10;
 
 	private SocioPlanService socioPlanService;
 	private FlexibleSearchService flexibleSearchService;
@@ -61,6 +64,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private SessionService sessionService;
 	private SearchRestrictionService searchRestrictionService;
 	private EnumerationService enumerationService;
+	private SocioEligibilityService socioEligibilityService;
 
 	// ------------------------------------------------------------ leitura
 
@@ -205,6 +209,18 @@ public class DefaultSocioMemberService implements SocioMemberService
 		}
 		m.card = card(customer);
 		m.openCancelTicket = openTicket == null ? null : (String) modelService.getAttributeValue(openTicket, "ticketID");
+		m.biometry = socioEligibilityService.hasBiometry(customer);
+		for (final SocioEligibilityDecisionModel decision : attempts(customer))
+		{
+			final SocioMember.Attempt a = new SocioMember.Attempt();
+			a.date = decision.getDate() != null ? decision.getDate() : decision.getCreationtime();
+			a.game = decision.getGameCode();
+			a.seat = decision.getProduct() == null ? null : decision.getProduct().getCode();
+			a.eligible = Boolean.TRUE.equals(decision.getEligible());
+			a.blocked = Boolean.TRUE.equals(decision.getBlocked());
+			a.reasons = decision.getReasons();
+			m.attempts.add(a);
+		}
 
 		for (final OrderModel order : planOrders)
 		{
@@ -255,6 +271,16 @@ public class DefaultSocioMemberService implements SocioMemberService
 				"SELECT {pk} FROM {SocioEvent} WHERE {customer}=?c ORDER BY {date} DESC, {creationtime} DESC");
 		q.addQueryParameter("c", customer);
 		return flexibleSearchService.<SocioEventModel> search(q).getResult();
+	}
+
+	/** Últimas tentativas de pôr ingresso no carrinho, mais nova primeiro */
+	protected List<SocioEligibilityDecisionModel> attempts(final CustomerModel customer)
+	{
+		final FlexibleSearchQuery q = new FlexibleSearchQuery(
+				"SELECT {pk} FROM {SocioEligibilityDecision} WHERE {customer}=?c ORDER BY {date} DESC, {creationtime} DESC");
+		q.addQueryParameter("c", customer);
+		q.setCount(MAX_ATTEMPTS);
+		return flexibleSearchService.<SocioEligibilityDecisionModel> search(q).getResult();
 	}
 
 	protected List<ItemModel> allTickets(final CustomerModel customer)
@@ -430,6 +456,28 @@ public class DefaultSocioMemberService implements SocioMemberService
 				+ (plan == null ? "" : " do " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())) + ".";
 	}
 
+	@Override
+	public String setBiometry(final String uid, final boolean validated, final String note)
+	{
+		final CustomerModel customer = customer(uid);
+		if (customer == null)
+		{
+			throw new IllegalStateException("Torcedor não encontrado.");
+		}
+		if (!socioEligibilityService.setBiometry(customer, validated))
+		{
+			throw new IllegalStateException(customer.getName()
+					+ (validated ? " já está com a biometria validada." : " já está com a biometria pendente."));
+		}
+		modelService.save(customer);
+		final String text = validated ? "Biometria facial validada" : "Biometria facial marcada como pendente";
+		final SocioEventModel event = socioPlanService.newEvent(customer, SocioEventType.OBSERVACAO, "Backoffice",
+				StringUtils.isBlank(note) ? text : text + ": " + note.trim());
+		event.setResult(text);
+		modelService.save(event);
+		return text + ": " + customer.getName() + ".";
+	}
+
 	protected String record(final CustomerModel customer, final SocioEventType type, final String note)
 	{
 		final SocioEventModel event = socioPlanService.newEvent(customer, type, "Backoffice", note);
@@ -519,6 +567,11 @@ public class DefaultSocioMemberService implements SocioMemberService
 	public void setSearchRestrictionService(final SearchRestrictionService searchRestrictionService)
 	{
 		this.searchRestrictionService = searchRestrictionService;
+	}
+
+	public void setSocioEligibilityService(final SocioEligibilityService socioEligibilityService)
+	{
+		this.socioEligibilityService = socioEligibilityService;
 	}
 
 	public void setEnumerationService(final EnumerationService enumerationService)

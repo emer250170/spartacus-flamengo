@@ -75,6 +75,10 @@ public class SocioMembersController extends DefaultWidgetController
 	@Wire
 	private Button cancelButton;
 	@Wire
+	private Button biometryButton;
+	@Wire
+	private Button biometryPendingButton;
+	@Wire
 	private Html historyContent;
 
 	@WireVariable
@@ -227,6 +231,8 @@ public class SocioMembersController extends DefaultWidgetController
 		regularizeButton.setDisabled(!member || !m.suspended);
 		noteButton.setDisabled(false);
 		cancelButton.setDisabled(!member || m.openCancelTicket == null);
+		biometryButton.setDisabled(m.biometry);
+		biometryPendingButton.setDisabled(!m.biometry);
 	}
 
 	// ------------------------------------------------------------ ações
@@ -265,6 +271,22 @@ public class SocioMembersController extends DefaultWidgetController
 		final SocioMember m = current;
 		confirm(MessageFormat.format(label("actions.cancel.confirm"), m.name, m.openCancelTicket),
 				() -> socioMemberService.confirmCancellation(m.uid));
+	}
+
+	@ViewEvent(componentID = "biometryButton", eventName = Events.ON_CLICK)
+	public void onBiometry()
+	{
+		final SocioMember m = current;
+		confirm(MessageFormat.format(label("actions.biometry.confirm"), m.name),
+				() -> socioMemberService.setBiometry(m.uid, true, note()));
+	}
+
+	@ViewEvent(componentID = "biometryPendingButton", eventName = Events.ON_CLICK)
+	public void onBiometryPending()
+	{
+		final SocioMember m = current;
+		confirm(MessageFormat.format(label("actions.biometryPending.confirm"), m.name),
+				() -> socioMemberService.setBiometry(m.uid, false, note()));
 	}
 
 	protected String note()

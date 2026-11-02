@@ -75,6 +75,8 @@ public class SocioMemberHtml
 		field(h, l("detail.storeDiscount"), m.storeDiscount + "%" + suspendedNote);
 		field(h, l("detail.nextCharge"), date(m.nextCharge));
 		field(h, l("detail.card"), esc(StringUtils.defaultIfBlank(m.card, l("detail.noCard"))));
+		field(h, l("detail.biometry"), m.biometry ? "<span style=\"color:#107e3e;font-weight:600\">" + esc(l("detail.biometry.ok")) + "</span>"
+				: "<span style=\"color:#b45309;font-weight:600\">" + esc(l("detail.biometry.pending")) + "</span>");
 		if (m.openCancelTicket != null)
 		{
 			field(h, l("detail.cancelTicket"), esc(m.openCancelTicket));
@@ -102,6 +104,28 @@ public class SocioMemberHtml
 						.append(td("<b style=\"color:" + eventColor(e.type) + "\">" + esc(l("event." + e.type)) + "</b>", ""))
 						.append(td(esc(e.origin), "")).append(td(esc(e.author), "")).append(td(esc(e.note), ""))
 						.append(td(esc(e.result), "color:#556b82")).append("</tr>");
+			}
+			h.append("</table></div>");
+		}
+		h.append("</div>");
+
+		h.append(section(l("history.attempts")));
+		if (m.attempts.isEmpty())
+		{
+			h.append(empty(l("history.attempts.empty")));
+		}
+		else
+		{
+			h.append(tableStart(l("history.date"), l("history.game"), l("history.seat"), l("history.decision"),
+					l("history.reasons")));
+			for (final SocioMember.Attempt a : m.attempts)
+			{
+				final String decision = a.eligible ? "attempt.ok" : a.blocked ? "attempt.blocked" : "attempt.denied";
+				final String color = a.eligible ? "#107e3e" : a.blocked ? "#bb0000" : "#b45309";
+				h.append("<tr>").append(td(dateTime(a.date), "white-space:nowrap")).append(td(esc(a.game), "white-space:nowrap"))
+						.append(td(esc(a.seat), "white-space:nowrap"))
+						.append(td("<b style=\"color:" + color + "\">" + esc(l(decision)) + "</b>", "white-space:nowrap"))
+						.append(td(esc(a.reasons).replace("\n", "<br/>"), "")).append("</tr>");
 			}
 			h.append("</table></div>");
 		}
