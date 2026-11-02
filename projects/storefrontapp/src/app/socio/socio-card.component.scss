@@ -1,0 +1,231 @@
+// Carteirinha digital do sócio (item 8): Meu sócio-torcedor e /socio-torcedor/carteirinha.
+// Usa também socio-account.component.scss (styleUrls) para o botão.
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.sc-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px 28px;
+
+  &--full {
+    justify-content: center;
+
+    .sc {
+      max-width: 440px;
+    }
+  }
+}
+
+.sc {
+  position: relative;
+  flex: 0 1 380px;
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1.586; // proporção de cartão
+  min-height: 220px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  overflow: hidden;
+  color: #fff;
+  text-align: left;
+  background: radial-gradient(circle at 85% 0%, #3a0000 0%, #1b1b1b 55%, #0b0b0c 100%);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+
+  &--off {
+    filter: grayscale(1);
+    opacity: 0.8;
+  }
+}
+
+// listras rubro-negras na diagonal, no canto
+.sc-stripes {
+  position: absolute;
+  top: -40%;
+  right: -18%;
+  width: 55%;
+  height: 180%;
+  transform: rotate(18deg);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--fla-vermelho, #d70000) 0 14px,
+    transparent 14px 28px
+  );
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.sc-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sc-seal svg {
+  display: block;
+  width: 30px;
+  height: 35px;
+}
+
+.sc-brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sc-kicker {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f2c14e;
+}
+
+.sc-plan {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.sc-body {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.sc-data {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sc-label {
+  margin-top: 6px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.sc-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-number {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.sc-valid {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sc-qr-box {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sc-qr {
+  width: 86px;
+  height: 86px;
+  padding: 4px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.sc-timer {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.sc-wrap--full .sc-qr {
+  width: 120px;
+  height: 120px;
+}
+
+.sc-off {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  padding: 6px 14px;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.sc-side {
+  flex: 1 1 240px;
+  min-width: 0;
+
+  p {
+    margin: 0 0 12px;
+  }
+}
+
+.sc-side-warn {
+  color: var(--sa-warn, #9a5b00);
+  font-weight: 600;
+}
+
+@media (max-width: 420px) {
+  .sc {
+    padding: 14px 16px;
+  }
+
+  .sc-qr {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+// ---------- página /socio-torcedor/carteirinha ----------
+.sc-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  text-align: center;
+}
+
+.sc-page-title {
+  margin: 0 0 24px;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.sc-page-hint {
+  margin: 20px 0 0;
+  font-size: 0.875rem;
+}
+
+.sc-page-none p {
+  margin: 0 0 14px;
+}
+
+.sc-page-back {
+  margin: 28px 0 0;
+}

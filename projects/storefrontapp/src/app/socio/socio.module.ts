@@ -14,12 +14,15 @@ import {
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { SocioAccountComponent } from './socio-account.component';
 import { SocioBadgeComponent } from './socio-badge.component';
+import { SocioCardComponent } from './socio-card.component';
+import { SocioCardPageComponent } from './socio-card-page.component';
 import { SocioGuestsComponent } from './socio-guests.component';
 import { SocioNavigationService } from './socio-navigation.service';
 import { SocioPaymentChoiceComponent } from './socio-payment-choice.component';
 import { SocioPaymentReviewComponent } from './socio-payment-review.component';
 import { SocioPaymentStatusComponent } from './socio-payment-status.component';
 import { SocioPlansComponent } from './socio-plans.component';
+import { SocioPointsComponent } from './socio-points.component';
 import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
 import { SocioTermCheckoutComponent } from './socio-term-checkout.component';
 import { SocioTermNoticeComponent } from './socio-term-notice.component';
@@ -39,6 +42,9 @@ import { SocioTermPageComponent } from './socio-term-page.component';
  * Pix e boleto (item 7): SocioPaymentChoiceComponent (pagamento do checkout),
  *   SocioPaymentReviewComponent (revisão) e SocioPaymentStatusComponent (QR Code
  *   ou boleto na confirmação e em Meu sócio-torcedor).
+ * Pontos e carteirinha (item 8): SocioPointsComponent (saldo, vitrine e vouchers)
+ *   e SocioCardComponent (carteirinha) em Meu sócio-torcedor; SocioCardPageComponent
+ *   (/socio-torcedor/carteirinha, para o celular).
  * O SocioService também é usado pela jornada de matchday (ondas e desconto).
  */
 @NgModule({
@@ -51,6 +57,13 @@ import { SocioTermPageComponent } from './socio-term-page.component';
         path: 'socio-torcedor/termo',
         component: SocioTermPageComponent,
         canActivate: [CmsPageGuard],
+        data: { pageLabel: '/socio-torcedor' },
+      },
+      // Carteirinha digital (item 8): tela cheia para o celular, só logado
+      {
+        path: 'socio-torcedor/carteirinha',
+        component: SocioCardPageComponent,
+        canActivate: [AuthGuard, CmsPageGuard],
         data: { pageLabel: '/socio-torcedor' },
       },
     ]),
@@ -69,6 +82,9 @@ import { SocioTermPageComponent } from './socio-term-page.component';
     SocioPaymentChoiceComponent,
     SocioPaymentReviewComponent,
     SocioPaymentStatusComponent,
+    SocioPointsComponent,
+    SocioCardComponent,
+    SocioCardPageComponent,
   ],
   providers: [
     provideConfig(<CmsConfig>{

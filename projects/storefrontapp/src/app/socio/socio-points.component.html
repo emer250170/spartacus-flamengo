@@ -1,0 +1,167 @@
+<article class="sa-card sp" *ngIf="visible && data as d">
+  <h3 class="sa-card-title">{{ 'sp.title' | flaT }}</h3>
+
+  <div class="sp-top">
+    <div class="sp-balance">
+      <span class="sp-balance-value">{{ num(d.balance) }}</span>
+      <span class="sp-balance-label">{{ 'sp.points' | flaT }}</span>
+    </div>
+    <div class="sp-summary">
+      <p class="sp-summary-line">
+        {{ 'sp.summary' | flaT: { earned: num(d.earned), redeemed: num(d.redeemed) } }}
+      </p>
+      <p class="sa-muted sp-rule">
+        {{
+          (d.bonus ? 'sp.ruleBonus' : 'sp.rule')
+            | flaT: { ticket: num(d.perTicket), real: num(d.perReal), bonus: num(d.bonus) }
+        }}
+      </p>
+      <button type="button" class="sa-link sp-toggle" (click)="showEarnings = !showEarnings">
+        {{ (showEarnings ? 'sp.earningsHide' : 'sp.earningsShow') | flaT }}
+      </button>
+    </div>
+  </div>
+
+  <!-- de onde vieram os pontos -->
+  <div class="sa-table-wrap sp-earnings" *ngIf="showEarnings">
+    <table class="sa-table">
+      <thead>
+        <tr>
+          <th>{{ 'sp.col.date' | flaT }}</th>
+          <th>{{ 'sp.col.origin' | flaT }}</th>
+          <th>{{ 'sp.col.tickets' | flaT }}</th>
+          <th>{{ 'sp.col.products' | flaT }}</th>
+          <th class="sp-num">{{ 'sp.col.points' | flaT }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of d.earnings">
+          <td>{{ day(e.date) }}</td>
+          <td>
+            {{ e.bonus ? ('sp.bonus' | flaT) : ('sp.order' | flaT: { code: e.orderCode }) }}
+          </td>
+          <td>{{ e.bonus ? '—' : e.tickets }}</td>
+          <td>{{ e.bonus ? '—' : brl(e.productsAmount) }}</td>
+          <td class="sp-num">+{{ num(e.points) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="sa-note sa-note--warn" *ngIf="!d.canRedeem && d.reason" role="status">
+    {{ d.reason }}
+  </p>
+
+  <div class="sp-done" *ngIf="done" role="status">
+    <p class="sp-done-title">{{ 'sp.done' | flaT: { name: done.name } }}</p>
+    <p class="sp-done-voucher">
+      <span>{{ 'sp.voucher' | flaT }}</span> <code>{{ done.voucher }}</code>
+    </p>
+    <p class="sa-muted sp-done-hint">{{ 'sp.doneHint' | flaT }}</p>
+  </div>
+
+  <!-- vitrine -->
+  <h4 class="sa-subtitle">{{ 'sp.showcase' | flaT }}</h4>
+  <p class="sa-muted" *ngIf="!d.experiences.length">{{ 'sp.noExperiences' | flaT }}</p>
+  <div class="sp-grid">
+    <div
+      class="sp-exp"
+      *ngFor="let x of d.experiences"
+      [class.sp-exp--ok]="x.redeemable"
+    >
+      <div class="sp-exp-head">
+        <span class="sp-exp-points">{{ num(x.points) }} <small>{{ 'sp.pts' | flaT }}</small></span>
+        <span class="sp-exp-chip" *ngIf="x.minPlanName">{{
+          'sp.minPlan' | flaT: { plan: x.minPlanName }
+        }}</span>
+      </div>
+      <p class="sp-exp-name">{{ x.name }}</p>
+      <p class="sp-exp-desc" *ngIf="x.description">{{ x.description }}</p>
+      <p class="sa-muted sp-exp-stock">
+        {{
+          x.available === undefined
+            ? ('sp.unlimited' | flaT)
+            : x.available === 0
+              ? ('sp.soldOut' | flaT)
+              : ('sp.left' | flaT: { n: x.available })
+        }}
+      </p>
+
+      <div class="sp-bar" *ngIf="!x.redeemable && missing(x) > 0 && d.canRedeem" aria-hidden="true">
+        <span [style.width.%]="progress(x)"></span>
+      </div>
+
+      <ng-container *ngIf="confirming !== x.code; else confirmBox">
+        <button
+          type="button"
+          class="sa-btn sa-btn--primary sp-exp-btn"
+          [disabled]="!x.redeemable || busy"
+          (click)="ask(x)"
+        >
+          {{ 'sp.redeem' | flaT }}
+        </button>
+        <p class="sp-exp-reason" *ngIf="!x.redeemable && x.reason && d.canRedeem">
+          {{ x.reason }}
+        </p>
+      </ng-container>
+
+      <ng-template #confirmBox>
+        <div class="sp-confirm">
+          <p>
+            {{
+              'sp.confirm'
+                | flaT: { points: num(x.points), after: num(d.balance - x.points) }
+            }}
+          </p>
+          <p class="sa-error" *ngIf="error" role="alert">{{ error }}</p>
+          <div class="sp-confirm-actions">
+            <button type="button" class="sa-btn" [disabled]="busy" (click)="cancel()">
+              {{ 'sp.cancel' | flaT }}
+            </button>
+            <button
+              type="button"
+              class="sa-btn sa-btn--primary"
+              [disabled]="busy"
+              (click)="redeem(x)"
+            >
+              {{ (busy ? 'sp.redeeming' : 'sp.confirmBtn') | flaT }}
+            </button>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- vouchers -->
+  <ng-container *ngIf="d.redemptions.length">
+    <h4 class="sa-subtitle">{{ 'sp.mine' | flaT }}</h4>
+    <div class="sa-table-wrap">
+      <table class="sa-table">
+        <thead>
+          <tr>
+            <th>{{ 'sp.col.experience' | flaT }}</th>
+            <th>{{ 'sp.col.voucher' | flaT }}</th>
+            <th>{{ 'sp.col.date' | flaT }}</th>
+            <th class="sp-num">{{ 'sp.col.points' | flaT }}</th>
+            <th>{{ 'sp.col.status' | flaT }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of redemptions" [class.sp-off]="r.cancelledAt">
+            <td>{{ r.experienceName }}</td>
+            <td><code class="sp-code">{{ r.voucher }}</code></td>
+            <td>{{ day(r.date) }}</td>
+            <td class="sp-num">−{{ num(r.points) }}</td>
+            <td>
+              {{
+                r.cancelledAt
+                  ? ('sp.cancelled' | flaT: { date: day(r.cancelledAt) })
+                  : ('sp.valid' | flaT)
+              }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</article>

@@ -1,0 +1,87 @@
+<ng-container *ngIf="visible && membership?.member as plan">
+  <div class="sc-wrap" [class.sc-wrap--full]="full">
+    <div
+      class="sc"
+      [class.sc--off]="suspended"
+      role="group"
+      [attr.aria-label]="'sc.aria' | flaT: { plan: plan.name, name: name }"
+    >
+      <div class="sc-stripes" aria-hidden="true"></div>
+      <div class="sc-top">
+        <span class="sc-seal" aria-hidden="true">
+          <svg viewBox="0 0 24 28" focusable="false">
+            <defs>
+              <clipPath id="fla-sc-shield">
+                <path d="M12 1.5 21.5 4.8V13c0 6.2-4.1 10.9-9.5 13.5C6.6 23.9 2.5 19.2 2.5 13V4.8Z" />
+              </clipPath>
+            </defs>
+            <g clip-path="url(#fla-sc-shield)">
+              <rect width="24" height="28" fill="#1b1b1b" />
+              <rect y="7" width="24" height="3.4" fill="#d70000" />
+              <rect y="13.4" width="24" height="3.4" fill="#d70000" />
+              <rect y="19.8" width="24" height="3.4" fill="#d70000" />
+            </g>
+            <path
+              d="M12 1.5 21.5 4.8V13c0 6.2-4.1 10.9-9.5 13.5C6.6 23.9 2.5 19.2 2.5 13V4.8Z"
+              fill="none"
+              stroke="#f2c14e"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <div class="sc-brand">
+          <span class="sc-kicker">{{ 'sc.kicker' | flaT }}</span>
+          <span class="sc-plan">{{ plan.name }}</span>
+        </div>
+      </div>
+
+      <div class="sc-body">
+        <div class="sc-data">
+          <span class="sc-label">{{ 'sc.holder' | flaT }}</span>
+          <span class="sc-name">{{ name }}</span>
+          <span class="sc-label">{{ 'sc.number' | flaT }}</span>
+          <span class="sc-number">{{ number }}</span>
+          <span class="sc-label">{{ 'sc.valid' | flaT }}</span>
+          <span class="sc-valid">{{
+            validUntil ? month(validUntil) : ('sc.validActive' | flaT)
+          }}</span>
+        </div>
+        <div class="sc-qr-box">
+          <svg
+            class="sc-qr"
+            viewBox="0 0 25 25"
+            role="img"
+            [attr.aria-label]="'sc.qr' | flaT"
+            shape-rendering="crispEdges"
+          >
+            <rect width="25" height="25" fill="#fff"></rect>
+            <ng-container *ngFor="let row of qr; let r = index">
+              <ng-container *ngFor="let on of row; let c = index">
+                <rect
+                  *ngIf="on"
+                  [attr.x]="c"
+                  [attr.y]="r"
+                  width="1"
+                  height="1"
+                  fill="#0b0b0c"
+                ></rect>
+              </ng-container>
+            </ng-container>
+          </svg>
+          <span class="sc-timer">{{ 'sc.timer' | flaT: { s: secondsLeft } }}</span>
+        </div>
+      </div>
+
+      <div class="sc-off" *ngIf="suspended">{{ 'sc.suspended' | flaT }}</div>
+    </div>
+
+    <div class="sc-side" *ngIf="!full">
+      <p class="sc-side-text">{{ 'sc.text' | flaT }}</p>
+      <p class="sc-side-warn" *ngIf="suspended">{{ 'sc.suspendedText' | flaT }}</p>
+      <a class="sa-btn sa-btn--primary" routerLink="/socio-torcedor/carteirinha">{{
+        'sc.open' | flaT
+      }}</a>
+    </div>
+  </div>
+</ng-container>
