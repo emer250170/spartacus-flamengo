@@ -138,7 +138,7 @@ Peças da extensão (`backend/flamengomatchday`):
 | `SeatHold` (items.xml) | poltrona, carrinho, torcedor e quando vence; uma reserva por poltrona (índice único) |
 | `SeatHoldAddToCartMethodHook` | reserva ao adicionar; recusa sem login; desfaz no empate |
 | `SeatHoldUpdateCartEntryHook` | libera ao tirar do carrinho |
-| `SeatHoldCartValidationStrategy` | para o carrinho dono, a poltrona reservada continua válida (para os outros está esgotada) |
+| `SeatHoldCartValidationStrategy` | para o carrinho dono, a poltrona reservada continua válida (para os outros está esgotada). Vale também na API de comércio: o `commerceWebServicesCartService` (usado pela loja Spartacus ao validar e fechar o pedido) é redefinido para usar esta estratégia; sem isso a poltrona reservada saía do carrinho como "sem estoque" |
 | `SeatHoldPlaceOrderMethodHook` | confere a reserva e converte em venda ao fechar o pedido |
 | `SeatHoldExpiryJob` | libera reservas vencidas |
 | `SeatHoldRemoveInterceptor` + `SeatHoldRemovalContext` | reserva apagada fora do serviço (Backoffice): devolve a unidade e tira a poltrona do carrinho em segundo plano; remoções internas (venda, vencimento, troca, jogo encerrado) são marcadas e não disparam nada |

@@ -66,6 +66,18 @@
 	</bean>
 
 	<!--
+		A API de comércio (OCC, usada pela loja Spartacus) valida o carrinho com
+		outro serviço, commerceWebServicesCartService, que o commerceservices liga
+		direto na defaultCartValidationStrategy (sem passar pelo alias acima). Sem
+		isto, ao fechar o pedido na loja a poltrona reservada pelo próprio
+		carrinho aparecia como "sem estoque" e saía do carrinho.
+	-->
+	<alias name="seatHoldCommerceWebServicesCartService" alias="commerceWebServicesCartService"/>
+	<bean id="seatHoldCommerceWebServicesCartService" parent="defaultCommerceWebServicesCartService">
+		<property name="cartValidationStrategy" ref="cartValidationStrategy"/>
+	</bean>
+
+	<!--
 		Sócio-torcedor: plano Nação Maraca no carrinho já vale como sócio (grupo do
 		plano + marcador nacao-pendente-N); se o plano sai, os grupos saem e os
 		ingressos fora da onda do torcedor saem do carrinho.
