@@ -9,6 +9,8 @@ import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
 import br.com.flamengo.matchday.socio.SocioEligibilityService;
 import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.socio.SocioGuestTicket;
+import br.com.flamengo.matchday.socio.SocioTermService;
+import br.com.flamengo.matchday.socio.SocioTermStatus;
 import br.com.flamengo.matchday.socio.SocioMember;
 import br.com.flamengo.matchday.socio.SocioMemberService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -69,6 +71,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private EnumerationService enumerationService;
 	private SocioEligibilityService socioEligibilityService;
 	private SocioGuestService socioGuestService;
+	private SocioTermService socioTermService;
 
 	// ------------------------------------------------------------ leitura
 
@@ -224,6 +227,16 @@ public class DefaultSocioMemberService implements SocioMemberService
 			a.blocked = Boolean.TRUE.equals(decision.getBlocked());
 			a.reasons = decision.getReasons();
 			m.attempts.add(a);
+		}
+		if (socioTermService != null && socioTermService.isEnabled())
+		{
+			final SocioTermStatus term = socioTermService.status(customer);
+			m.termVersion = term.version;
+			m.termAccepted = term.accepted;
+			m.termAcceptedVersion = term.acceptedVersion;
+			m.termAcceptedAt = term.acceptedAt;
+			m.termAcceptedOrigin = term.acceptedOrigin;
+			m.termAcceptedOrder = term.acceptedOrder;
 		}
 		if (socioGuestService != null)
 		{
@@ -609,6 +622,11 @@ public class DefaultSocioMemberService implements SocioMemberService
 	public void setEnumerationService(final EnumerationService enumerationService)
 	{
 		this.enumerationService = enumerationService;
+	}
+
+	public void setSocioTermService(final SocioTermService socioTermService)
+	{
+		this.socioTermService = socioTermService;
 	}
 
 	public void setSocioGuestService(final SocioGuestService socioGuestService)

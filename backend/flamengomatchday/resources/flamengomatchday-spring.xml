@@ -207,6 +207,7 @@
 		<property name="enumerationService" ref="enumerationService"/>
 		<property name="socioEligibilityService" ref="socioEligibilityService"/>
 		<property name="socioGuestService" ref="socioGuestService"/>
+		<property name="socioTermService" ref="socioTermService"/>
 	</bean>
 
 	<!--
@@ -231,6 +232,25 @@
 	</bean>
 	<bean id="socioGuestPlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
 		<property name="add" ref="socioGuestPlaceOrderMethodHook"/>
+	</bean>
+
+	<!--
+		Termo do Nação versionado (item 4): pedido com plano só fecha com o aceite da
+		versão atual; o aceite vira evento na linha do tempo. Endpoints na API de
+		comércio (socioterm). Chave: flamengo.socio.termo.ativo (true).
+	-->
+	<bean id="socioTermService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioTermService">
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
+	<bean id="socioTermPlaceOrderMethodHook" class="br.com.flamengo.matchday.hook.SocioTermPlaceOrderMethodHook">
+		<property name="socioTermService" ref="socioTermService"/>
+	</bean>
+	<bean id="socioTermPlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="socioTermPlaceOrderMethodHook"/>
 	</bean>
 
 	<!--
