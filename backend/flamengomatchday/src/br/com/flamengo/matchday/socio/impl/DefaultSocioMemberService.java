@@ -8,6 +8,7 @@ import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
 import br.com.flamengo.matchday.socio.SocioEligibilityService;
 import br.com.flamengo.matchday.socio.SocioGuestService;
+import br.com.flamengo.matchday.socio.SocioGuestTicket;
 import br.com.flamengo.matchday.socio.SocioMember;
 import br.com.flamengo.matchday.socio.SocioMemberService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -226,6 +227,8 @@ public class DefaultSocioMemberService implements SocioMemberService
 		}
 		if (socioGuestService != null)
 		{
+			final List<SocioGuestTicket> guestTickets = socioGuestService.tickets(customer);
+			final SimpleDateFormat day = new SimpleDateFormat("dd/MM", PT);
 			final List<SocioGuestModel> guests = new ArrayList<>(socioGuestService.guests(customer, false));
 			guests.sort(Comparator.comparing((SocioGuestModel g) -> !Boolean.TRUE.equals(g.getActive()))); // ativos primeiro
 			for (final SocioGuestModel guest : guests)
@@ -239,6 +242,14 @@ public class DefaultSocioMemberService implements SocioMemberService
 				g.active = Boolean.TRUE.equals(guest.getActive());
 				g.until = guest.getUntil();
 				g.endReason = guest.getEndReason();
+				for (final SocioGuestTicket t : guestTickets)
+				{
+					if (guest.getPk().toString().equals(t.guestId))
+					{
+						g.tickets.add(t.gameName + (t.kickoff == null ? "" : " " + day.format(t.kickoff)) + " · " + t.seatCode
+								+ (t.orderCode != null ? ", pedido " + t.orderCode : ", no carrinho"));
+					}
+				}
 				m.guestList.add(g);
 			}
 		}

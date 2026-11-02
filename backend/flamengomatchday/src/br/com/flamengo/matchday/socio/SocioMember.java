@@ -100,6 +100,8 @@ public class SocioMember
 		public boolean active;
 		public Date until;
 		public String endReason;
+		/** Ingressos para jogos ainda não realizados ("Flamengo x Bahia 15/11 · SUL-H13, pedido 00013002") */
+		public final List<String> tickets = new ArrayList<>();
 	}
 
 	public static class Event

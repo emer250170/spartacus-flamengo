@@ -22,6 +22,7 @@ public class SocioGuestListWsDTO implements Serializable
 	private String reason;
 	private List<SocioGuestWsDTO> guests = new ArrayList<>();
 	private List<SocioGuestWsDTO> ended = new ArrayList<>();
+	private List<SocioGuestTicketWsDTO> tickets = new ArrayList<>();
 
 	public Boolean getEnabled()
 	{
@@ -141,5 +142,15 @@ public class SocioGuestListWsDTO implements Serializable
 	public void setEnded(final List<SocioGuestWsDTO> ended)
 	{
 		this.ended = ended;
+	}
+
+	public List<SocioGuestTicketWsDTO> getTickets()
+	{
+		return tickets;
+	}
+
+	public void setTickets(final List<SocioGuestTicketWsDTO> tickets)
+	{
+		this.tickets = tickets;
 	}
 }

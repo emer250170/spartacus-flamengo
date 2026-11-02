@@ -7,6 +7,7 @@ import br.com.flamengo.matchday.service.SeatHoldService;
 import br.com.flamengo.matchday.socio.SocioCartService;
 import br.com.flamengo.matchday.socio.SocioEligibility;
 import br.com.flamengo.matchday.socio.SocioEligibilityService;
+import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
 import de.hybris.platform.commerceservices.order.CommerceCartModificationException;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
@@ -57,6 +58,7 @@ public class DefaultSocioEligibilityService implements SocioEligibilityService
 	private FlexibleSearchService flexibleSearchService;
 	private UserService userService;
 	private ConfigurationService configurationService;
+	private SocioGuestService socioGuestService;
 
 	// ------------------------------------------------------------ conferência
 
@@ -138,14 +140,18 @@ public class DefaultSocioEligibilityService implements SocioEligibilityService
 			e.warn("Biometria facial pendente (ainda não exigida)");
 		}
 
-		// 5. limite de ingressos por jogo: titular + convidados do plano; quem não é sócio, o limite geral
+		// 5. limite de ingressos por jogo: titular + vagas de convidado contratadas (ou o máximo do
+		// plano, com flamengo.socio.convidados.limiteContratado=false); quem não é sócio, o limite geral
+		final boolean contracted = socioGuestService != null && configurationService.getConfiguration()
+				.getBoolean(SocioGuestService.CONTRACTED_LIMIT_PROPERTY, true);
 		e.ticketLimit = e.plan != null && !e.suspended
-				? 1 + (e.plan.getMaxGuests() == null ? 0 : Math.max(0, e.plan.getMaxGuests().intValue()))
+				? 1 + (contracted ? socioGuestService.ticketGuestSlots(customer, cart)
+						: e.plan.getMaxGuests() == null ? 0 : Math.max(0, e.plan.getMaxGuests().intValue()))
 				: configurationService.getConfiguration().getInt(GENERAL_LIMIT_PROPERTY, DEFAULT_GENERAL_LIMIT);
 		e.ticketsOrdered = countOrdered(customer, game);
 		e.ticketsInCart = countInCart(cart, game, seat);
 		final long total = e.ticketsOrdered + e.ticketsInCart + Math.max(1, quantity);
-		final String whose = e.plan != null && !e.suspended ? "do " + planName(e.plan) + " (titular + convidados)"
+		final String whose = e.plan != null && !e.suspended ? "do " + planName(e.plan) + " (titular + convidados contratados)"
 				: e.plan != null ? "com os benefícios suspensos" : "para quem não é sócio";
 		if (total <= e.ticketLimit)
 		{
@@ -457,5 +463,10 @@ public class DefaultSocioEligibilityService implements SocioEligibilityService
 	public void setConfigurationService(final ConfigurationService configurationService)
 	{
 		this.configurationService = configurationService;
+	}
+
+	public void setSocioGuestService(final SocioGuestService socioGuestService)
+	{
+		this.socioGuestService = socioGuestService;
 	}
 }

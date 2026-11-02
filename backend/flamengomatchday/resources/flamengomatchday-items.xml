@@ -514,5 +514,24 @@
 			</indexes>
 		</itemtype>
 
+		<!--
+			Ingresso do convidado: a poltrona no carrinho/pedido do titular aponta para o
+			convidado que vai usá-la (vazio = o próprio titular). O nome fica gravado em
+			ticketHolder para continuar no pedido mesmo que o convidado saia depois.
+			Copiados do carrinho para o pedido pelo clone padrão do SAP Commerce.
+		-->
+		<itemtype code="AbstractOrderEntry" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="socioGuest" type="SocioGuest">
+					<description>Convidado do sócio que vai usar este ingresso (vazio = o titular)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="ticketHolder" type="java.lang.String">
+					<description>Nome de quem vai usar o ingresso (convidado), gravado na compra</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+		</itemtype>
+
 	</itemtypes>
 </items>

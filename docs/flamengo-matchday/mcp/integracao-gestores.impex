@@ -1,8 +1,8 @@
 # MCP "Loja Flamengo": acesso dos gestores pela Integration API (OData).
 # Aplicado no servidor em 31/10/2026 pelo HAC (ImpEx). NÃO fica em resources/impex de propósito:
 # rode à mão no HAC > Console > ImpEx Import quando precisar recriar.
-#  - 10 objetos de integração (planos, chamados, mensagens, pedidos, jogos, cupons, uso de cupons, torcedores,
-#    eventos do sócio, decisões de elegibilidade)
+#  - 11 objetos de integração (planos, chamados, mensagens, pedidos, jogos, cupons, uso de cupons, torcedores,
+#    eventos do sócio, decisões de elegibilidade, convidados)
 #  - canal de entrada BASIC para cada um (sem ele a OData responde 403)
 #  - grupos socioapigroup e jogosapigroup com permissão por tipo (os papéis do Backoffice são BackofficeRole,
 #    que só valem com o papel ativo numa sessão do Backoffice; por isso os grupos próprios para a API)
@@ -19,6 +19,7 @@ INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
 ; FlamengoTorcedor ; INBOUND
 ; FlamengoEventoSocio ; INBOUND
 ; FlamengoElegibilidade ; INBOUND
+; FlamengoConvidado ; INBOUND
 
 INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
 ; FlamengoPlano ; SocioPlan ; SocioPlan ; true
@@ -54,6 +55,9 @@ INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; cod
 ; FlamengoElegibilidade ; Customer ; Customer ; false
 ; FlamengoElegibilidade ; Product ; Product ; false
 ; FlamengoElegibilidade ; SocioPlan ; SocioPlan ; false
+; FlamengoConvidado ; SocioGuest ; SocioGuest ; true
+; FlamengoConvidado ; Customer ; Customer ; false
+; FlamengoConvidado ; SocioPlan ; SocioPlan ; false
 
 INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
 ; FlamengoPlano:SocioPlan ; code ; SocioPlan:code ;  ; true
@@ -114,6 +118,7 @@ INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationO
 ; FlamengoPedido:OrderEntry ; basePrice ; OrderEntry:basePrice ;  ; false
 ; FlamengoPedido:OrderEntry ; totalPrice ; OrderEntry:totalPrice ;  ; false
 ; FlamengoPedido:OrderEntry ; product ; OrderEntry:product ; FlamengoPedido:Product ; false
+; FlamengoPedido:OrderEntry ; ticketHolder ; OrderEntry:ticketHolder ;  ; false
 ; FlamengoPedido:Product ; code ; Product:code ;  ; true
 ; FlamengoPedido:Product ; catalogVersion ; Product:catalogVersion ; FlamengoPedido:CatalogVersion ; true
 ; FlamengoPedido:Product ; name ; Product:name ;  ; false
@@ -203,6 +208,21 @@ INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationO
 ; FlamengoElegibilidade:Product ; name ; Product:name ;  ; false
 ; FlamengoElegibilidade:SocioPlan ; code ; SocioPlan:code ;  ; true
 ; FlamengoElegibilidade:SocioPlan ; name ; SocioPlan:name ;  ; false
+; FlamengoConvidado:SocioGuest ; customer ; SocioGuest:customer ; FlamengoConvidado:Customer ; true
+; FlamengoConvidado:SocioGuest ; cpf ; SocioGuest:cpf ;  ; true
+; FlamengoConvidado:SocioGuest ; since ; SocioGuest:since ;  ; true
+; FlamengoConvidado:SocioGuest ; name ; SocioGuest:name ;  ; false
+; FlamengoConvidado:SocioGuest ; email ; SocioGuest:email ;  ; false
+; FlamengoConvidado:SocioGuest ; phone ; SocioGuest:phone ;  ; false
+; FlamengoConvidado:SocioGuest ; birthDate ; SocioGuest:birthDate ;  ; false
+; FlamengoConvidado:SocioGuest ; active ; SocioGuest:active ;  ; false
+; FlamengoConvidado:SocioGuest ; until ; SocioGuest:until ;  ; false
+; FlamengoConvidado:SocioGuest ; endReason ; SocioGuest:endReason ;  ; false
+; FlamengoConvidado:SocioGuest ; plan ; SocioGuest:plan ; FlamengoConvidado:SocioPlan ; false
+; FlamengoConvidado:Customer ; uid ; Customer:uid ;  ; true
+; FlamengoConvidado:Customer ; name ; Customer:name ;  ; false
+; FlamengoConvidado:SocioPlan ; code ; SocioPlan:code ;  ; true
+; FlamengoConvidado:SocioPlan ; name ; SocioPlan:name ;  ; false
 
 INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
 ; FlamengoPlano ; BASIC
@@ -215,6 +235,7 @@ INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true
 ; FlamengoTorcedor ; BASIC
 ; FlamengoEventoSocio ; BASIC
 ; FlamengoElegibilidade ; BASIC
+; FlamengoConvidado ; BASIC
 
 INSERT_UPDATE UserGroup; uid[unique = true]; name; groups(uid)
 ; socioapigroup ; Gestor do sócio-torcedor - API (MCP) ; integrationviewgroup,integrationcreategroup
@@ -251,6 +272,7 @@ UserGroup;socioapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
 ;;;;SocioEvent;+;-;+;-;-
 ;;;;SocioEventType;+;-;-;-;-
 ;;;;SocioEligibilityDecision;+;-;-;-;-
+;;;;SocioGuest;+;-;-;-;-
 UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
 ;;;;MatchdayGame;+;+;+;-;-
 ;;;;MatchdayGameStatus;+;-;-;-;-
