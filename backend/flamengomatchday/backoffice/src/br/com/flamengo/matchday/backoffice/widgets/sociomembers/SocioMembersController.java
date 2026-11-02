@@ -79,6 +79,8 @@ public class SocioMembersController extends DefaultWidgetController
 	@Wire
 	private Button biometryPendingButton;
 	@Wire
+	private Button turnButton;
+	@Wire
 	private Html historyContent;
 
 	@WireVariable
@@ -233,6 +235,7 @@ public class SocioMembersController extends DefaultWidgetController
 		cancelButton.setDisabled(!member || m.openCancelTicket == null);
 		biometryButton.setDisabled(m.biometry);
 		biometryPendingButton.setDisabled(!m.biometry);
+		turnButton.setDisabled(!member || m.contract == null || !m.contract.member);
 	}
 
 	// ------------------------------------------------------------ ações
@@ -287,6 +290,21 @@ public class SocioMembersController extends DefaultWidgetController
 		final SocioMember m = current;
 		confirm(MessageFormat.format(label("actions.biometryPending.confirm"), m.name),
 				() -> socioMemberService.setBiometry(m.uid, false, note()));
+	}
+
+	/** Vigência (item 6): simula o aniversário do contrato */
+	@ViewEvent(componentID = "turnButton", eventName = Events.ON_CLICK)
+	public void onTurn()
+	{
+		final SocioMember m = current;
+		if (m.contract == null)
+		{
+			return;
+		}
+		final String what = !m.contract.autoRenew ? label("actions.turn.end")
+				: m.contract.nextPlanName != null ? MessageFormat.format(label("actions.turn.change"), m.contract.nextPlanName)
+						: MessageFormat.format(label("actions.turn.renew"), m.contract.planName);
+		confirm(MessageFormat.format(label("actions.turn.confirm"), m.name, what), () -> socioMemberService.turnContract(m.uid));
 	}
 
 	protected String note()

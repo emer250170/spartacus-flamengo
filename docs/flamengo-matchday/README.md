@@ -601,6 +601,30 @@ O cancelamento passa a mostrar e registrar quanto o sócio recebe de volta ou pa
 
 Deploy (PR 5a): `ant all`; Update no HAC (atributos novos de `SocioEvent`, só "Update running system" + "Localize types"); reiniciar antes de testar o Backoffice (Reset to Defaults para ver os campos novos do evento); rodar `socio-saida-termo.groovy` (conferir, depois aplicar).
 
+### Vigência, renovação, upgrade e downgrade (item 6 do plano de evolução)
+
+O sócio tem um contrato de 12 meses com renovação automática. Desenho aprovado em 02/11: desligar a renovação ou agendar um plano menor até 30 dias antes do fim; upgrade recomeça o contrato; a virada (ficha do sócio ou Claude) simula o aniversário com 12 meses a partir de hoje; sem renovação, encerra sem multa.
+
+| Regra | Como funciona |
+|---|---|
+| Contrato | `SocioContract` (um por torcedor): plano, início, fim, renovação automática, plano na renovação, origem (pedido ou Renovação), renovações, encerrado em. **Sem contrato gravado vale o cálculo de antes**: pedido mais novo do plano + 12 meses, renovação ligada. O contrato é gravado na primeira escolha do sócio ou na virada. |
+| Prazo | Desligar a renovação e agendar a mudança só até `fim − 30 dias` (`flamengo.socio.vigencia.prazoRenovacao.dias`). Depois disso fica travado até a virada ("Prazo para mudar encerrado em …"). |
+| Plano menor | Da mesma família, à venda e com mensalidade menor. Fica agendado (`nextPlan`) e só vale na virada. Pode ser cancelado até o prazo. |
+| Upgrade | Pedido novo com plano: o evento Adesão recomeça o contrato gravado (início = pedido, renovação ligada, sem mudança agendada). |
+| Virada | Evento **Renovação** criado na ficha ("Virar a vigência agora"), em Eventos do sócio ou pelo Claude (`virar_vigencia`): renovação ligada → 12 meses a partir de hoje no plano agendado (troca o grupo do plano; convidados acima do limite do plano novo são encerrados); renovação desligada → o evento vira **Fim de vigência**, sai do plano sem multa e os convidados são encerrados. |
+| Saída (item 5) | Depois de uma renovação, a simulação de cancelamento conta as mensalidades a partir da renovação e não tem arrependimento. |
+| Chave | `flamengo.socio.vigencia.ativo` (true); false = vigência calculada do pedido, sem escolhas nem virada. |
+
+| Parte | Como funciona |
+|---|---|
+| Tipos | `SocioContract` (typecode 25909) e valores novos `RENOVACAO` e `FIM_VIGENCIA` em `SocioEventType`. Nada renomeado. |
+| API de comércio | `GET /{baseSiteId}/users/current/sociocontract` (vigência, renovação, mudança agendada, prazo, planos menores); `POST /sociocontract/autorenew` `{"autoRenew": false}`; `POST /sociocontract/nextplan` `{"nextPlanCode": "NACAO-MARACA-3"}` (vazio cancela). Recusa: 400 `SocioContractError`. Cada escolha grava uma Observação na linha do tempo. |
+| Loja (PR 6b) | Meu sócio-torcedor: vigência real, chave de renovação automática e "Mudar para um plano menor" agendado. |
+| Backoffice | Ficha do sócio: "Vigência até" pelo contrato, campo **Renovação** (automática / muda para … / desligada, com o prazo) e botão **Virar a vigência agora**. Sócio-Torcedor › **Contratos** (só leitura). Papel `sociomanagerrole`: leitura de `SocioContract`. |
+| Claude (MCP) | Gestor do sócio: `virar_vigencia` (com confirmação) e a vigência em `situacao_socio`. Objeto `FlamengoContrato` em `mcp/integracao-gestores.impex`. |
+
+Deploy (PR 6a): `ant all`; Update no HAC (tipo novo e valores novos do enum, só "Update running system" + "Localize types"); ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`) e da Integration API (`FlamengoContrato`) à parte; reiniciar antes de testar o Backoffice; Reset to Defaults para o nó Contratos.
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

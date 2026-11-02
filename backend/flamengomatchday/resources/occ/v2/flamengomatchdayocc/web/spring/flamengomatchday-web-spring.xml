@@ -27,4 +27,10 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Vigência do sócio (item 6): /users/current/sociocontract (+ /autorenew, /nextplan) -->
+	<bean id="flamengoSocioContractController" class="br.com.flamengo.matchday.occ.SocioContractController">
+		<property name="socioContractService" ref="socioContractService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 </beans>

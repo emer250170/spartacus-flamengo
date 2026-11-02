@@ -34,6 +34,7 @@ BackofficeRole;sociomanagerrole;;;;;;;;
 ;;;;SocioGuest;+;-;-;-;-
 ;;;;SocioTermVersion;+;+;+;-;-
 ;;;;SocioTermAcceptance;+;-;-;-;-
+;;;;SocioContract;+;-;-;-;-
 ;;;;Product;+;-;-;-;-
 ;;;;UserGroup;+;-;-;-;-
 ;;;;Catalog;+;-;-;-;-

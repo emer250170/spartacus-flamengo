@@ -22,6 +22,9 @@
 			<value code="CANCELAMENTO"/>
 			<value code="OBSERVACAO"/>
 			<value code="ACEITE_TERMO"/>
+			<!-- Vigência (item 6): virada com renovação e fim sem renovação -->
+			<value code="RENOVACAO"/>
+			<value code="FIM_VIGENCIA"/>
 		</enumtype>
 	</enumtypes>
 
@@ -633,6 +636,62 @@
 					<persistence type="property"/>
 				</attribute>
 			</attributes>
+		</itemtype>
+
+		<!--
+			Contrato do sócio (item 6 do plano de evolução): vigência de 12 meses,
+			renovação automática e o plano da próxima vigência (downgrade agendado).
+			Um por torcedor; criado na primeira escolha do sócio ou na virada. Sem
+			contrato, a vigência sai do pedido mais novo do plano (como antes).
+		-->
+		<itemtype code="SocioContract" extends="GenericItem" autocreate="true" generate="true">
+			<description>Contrato (vigência) do sócio-torcedor</description>
+			<deployment table="sociocontracts" typecode="25909"/>
+			<attributes>
+				<attribute qualifier="customer" type="Customer">
+					<description>Torcedor</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="plan" type="SocioPlan">
+					<description>Plano da vigência atual</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="start" type="java.util.Date">
+					<description>Início da vigência</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="end" type="java.util.Date">
+					<description>Fim da vigência (12 meses depois do início)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="autoRenew" type="java.lang.Boolean">
+					<description>Renova sozinho no fim da vigência</description>
+					<defaultvalue>Boolean.TRUE</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="nextPlan" type="SocioPlan">
+					<description>Plano da próxima vigência (mudança para um plano menor agendada)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="origin" type="java.lang.String">
+					<description>De onde veio a vigência: pedido da adesão ou renovação</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="renewals" type="java.lang.Integer">
+					<description>Renovações feitas</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="endedAt" type="java.util.Date">
+					<description>Encerrado sem renovação (vazio enquanto vigente)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioContractCustomer" unique="true">
+					<key attribute="customer"/>
+				</index>
+			</indexes>
 		</itemtype>
 
 	</itemtypes>

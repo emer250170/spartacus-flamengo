@@ -1,8 +1,8 @@
 # MCP "Loja Flamengo": acesso dos gestores pela Integration API (OData).
 # Aplicado no servidor em 31/10/2026 pelo HAC (ImpEx). NÃO fica em resources/impex de propósito:
 # rode à mão no HAC > Console > ImpEx Import quando precisar recriar.
-#  - 12 objetos de integração (planos, chamados, mensagens, pedidos, jogos, cupons, uso de cupons, torcedores,
-#    eventos do sócio, decisões de elegibilidade, convidados, aceites do Termo)
+#  - 13 objetos de integração (planos, chamados, mensagens, pedidos, jogos, cupons, uso de cupons, torcedores,
+#    eventos do sócio, decisões de elegibilidade, convidados, aceites do Termo, contratos/vigência)
 #  - canal de entrada BASIC para cada um (sem ele a OData responde 403)
 #  - grupos socioapigroup e jogosapigroup com permissão por tipo (os papéis do Backoffice são BackofficeRole,
 #    que só valem com o papel ativo numa sessão do Backoffice; por isso os grupos próprios para a API)
@@ -21,6 +21,7 @@ INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
 ; FlamengoElegibilidade ; INBOUND
 ; FlamengoConvidado ; INBOUND
 ; FlamengoTermo ; INBOUND
+; FlamengoContrato ; INBOUND
 
 INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
 ; FlamengoPlano ; SocioPlan ; SocioPlan ; true
@@ -63,6 +64,9 @@ INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; cod
 ; FlamengoTermo ; SocioTermVersion ; SocioTermVersion ; false
 ; FlamengoTermo ; Customer ; Customer ; false
 ; FlamengoTermo ; SocioPlan ; SocioPlan ; false
+; FlamengoContrato ; SocioContract ; SocioContract ; true
+; FlamengoContrato ; Customer ; Customer ; false
+; FlamengoContrato ; SocioPlan ; SocioPlan ; false
 
 INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
 ; FlamengoPlano:SocioPlan ; code ; SocioPlan:code ;  ; true
@@ -241,6 +245,19 @@ INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationO
 ; FlamengoTermo:Customer ; name ; Customer:name ;  ; false
 ; FlamengoTermo:SocioPlan ; code ; SocioPlan:code ;  ; true
 ; FlamengoTermo:SocioPlan ; name ; SocioPlan:name ;  ; false
+; FlamengoContrato:SocioContract ; customer ; SocioContract:customer ; FlamengoContrato:Customer ; true
+; FlamengoContrato:SocioContract ; plan ; SocioContract:plan ; FlamengoContrato:SocioPlan ; false
+; FlamengoContrato:SocioContract ; start ; SocioContract:start ;  ; false
+; FlamengoContrato:SocioContract ; end ; SocioContract:end ;  ; false
+; FlamengoContrato:SocioContract ; autoRenew ; SocioContract:autoRenew ;  ; false
+; FlamengoContrato:SocioContract ; nextPlan ; SocioContract:nextPlan ; FlamengoContrato:SocioPlan ; false
+; FlamengoContrato:SocioContract ; origin ; SocioContract:origin ;  ; false
+; FlamengoContrato:SocioContract ; renewals ; SocioContract:renewals ;  ; false
+; FlamengoContrato:SocioContract ; endedAt ; SocioContract:endedAt ;  ; false
+; FlamengoContrato:Customer ; uid ; Customer:uid ;  ; true
+; FlamengoContrato:Customer ; name ; Customer:name ;  ; false
+; FlamengoContrato:SocioPlan ; code ; SocioPlan:code ;  ; true
+; FlamengoContrato:SocioPlan ; name ; SocioPlan:name ;  ; false
 
 INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
 ; FlamengoPlano ; BASIC
@@ -255,6 +272,7 @@ INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true
 ; FlamengoElegibilidade ; BASIC
 ; FlamengoConvidado ; BASIC
 ; FlamengoTermo ; BASIC
+; FlamengoContrato ; BASIC
 
 INSERT_UPDATE UserGroup; uid[unique = true]; name; groups(uid)
 ; socioapigroup ; Gestor do sócio-torcedor - API (MCP) ; integrationviewgroup,integrationcreategroup
@@ -294,6 +312,7 @@ UserGroup;socioapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
 ;;;;SocioGuest;+;-;-;-;-
 ;;;;SocioTermAcceptance;+;-;-;-;-
 ;;;;SocioTermVersion;+;-;-;-;-
+;;;;SocioContract;+;-;-;-;-
 UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
 ;;;;MatchdayGame;+;+;+;-;-
 ;;;;MatchdayGameStatus;+;-;-;-;-
