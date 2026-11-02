@@ -192,17 +192,20 @@ public class DefaultSocioExitService implements SocioExitService
 			return null;
 		}
 		return unrestricted(() -> {
-			final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {SocioEvent} WHERE {customer}=?c AND {type}=?t"
-					+ " AND ({refundAmount} IS NOT NULL OR {fineAmount} IS NOT NULL) ORDER BY {date} DESC, {creationtime} DESC");
+			// a saída mais recente: cancelamento com valor ou fim da vigência sem renovação
+			final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {SocioEvent} WHERE {customer}=?c AND"
+					+ " (({type}=?t AND ({refundAmount} IS NOT NULL OR {fineAmount} IS NOT NULL)) OR {type}=?e)"
+					+ " ORDER BY {date} DESC, {creationtime} DESC");
 			q.addQueryParameter("c", customer);
 			q.addQueryParameter("t", SocioEventType.CANCELAMENTO);
+			q.addQueryParameter("e", SocioEventType.FIM_VIGENCIA);
 			q.setCount(1);
 			final List<SocioEventModel> events = flexibleSearchService.<SocioEventModel> search(q).getResult();
 			return events.isEmpty() ? null : fromEvent(events.get(0));
 		});
 	}
 
-	/** Valor gravado num evento CANCELAMENTO */
+	/** Valor gravado num evento CANCELAMENTO (ou FIM_VIGENCIA: sem multa) */
 	public static SocioExitQuote fromEvent(final SocioEventModel event)
 	{
 		final SocioExitQuote q = new SocioExitQuote();
@@ -213,7 +216,8 @@ public class DefaultSocioExitService implements SocioExitService
 			q.planCode = event.getPlan().getCode();
 			q.planName = StringUtils.defaultIfBlank(event.getPlan().getName(PT), event.getPlan().getCode());
 		}
-		q.withinWithdrawal = event.getRefundAmount() != null;
+		q.endOfTerm = event.getType() == SocioEventType.FIM_VIGENCIA;
+		q.withinWithdrawal = !q.endOfTerm && event.getRefundAmount() != null;
 		q.refund = event.getRefundAmount() == null ? 0 : event.getRefundAmount().doubleValue();
 		q.fine = event.getFineAmount() == null ? 0 : event.getFineAmount().doubleValue();
 		return q;
@@ -238,6 +242,10 @@ public class DefaultSocioExitService implements SocioExitService
 		if (q == null)
 		{
 			return null;
+		}
+		if (q.endOfTerm)
+		{
+			return "Fim da vigência sem renovação, sem multa";
 		}
 		if (q.withinWithdrawal)
 		{
