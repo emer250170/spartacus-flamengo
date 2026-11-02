@@ -5,6 +5,8 @@ import br.com.flamengo.matchday.model.SocioEligibilityDecisionModel;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
+import br.com.flamengo.matchday.socio.SocioPaymentService;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
 import br.com.flamengo.matchday.socio.SocioContractException;
 import br.com.flamengo.matchday.socio.SocioContractService;
@@ -79,6 +81,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private SocioTermService socioTermService;
 	private SocioExitService socioExitService;
 	private SocioContractService socioContractService;
+	private SocioPaymentService socioPaymentService;
 
 	// ------------------------------------------------------------ leitura
 
@@ -171,12 +174,22 @@ public class DefaultSocioMemberService implements SocioMemberService
 			final SocioEventModel cancel = events.stream().filter(e -> e.getType() == SocioEventType.CANCELAMENTO).findFirst()
 					.orElse(null);
 			final boolean closedTicket = tickets.stream().anyMatch(this::isClosed);
-			if (cancel == null && !closedTicket)
+			final OrderModel waiting = socioPaymentService == null ? null : socioPaymentService.awaitingOrder(customer);
+			if (waiting != null)
 			{
-				return null; // nunca foi sócio (plano só no carrinho, por exemplo)
+				// Pix ou boleto do plano ainda não pago (item 7)
+				status = SocioMember.Status.AWAITING_PAYMENT;
+				plan = planOf(Collections.singletonList(waiting));
 			}
-			status = SocioMember.Status.INACTIVE;
-			plan = cancel != null && cancel.getPlan() != null ? cancel.getPlan() : planOf(planOrders);
+			else
+			{
+				if (cancel == null && !closedTicket)
+				{
+					return null; // nunca foi sócio (plano só no carrinho, por exemplo)
+				}
+				status = SocioMember.Status.INACTIVE;
+				plan = cancel != null && cancel.getPlan() != null ? cancel.getPlan() : planOf(planOrders);
+			}
 		}
 
 		final SocioMember m = new SocioMember();
@@ -219,7 +232,8 @@ public class DefaultSocioMemberService implements SocioMemberService
 		if (m.since != null)
 		{
 			m.until = addMonths(m.since, 12);
-			m.nextCharge = status == SocioMember.Status.INACTIVE ? null : nextCharge(m.since, new Date());
+			m.nextCharge = status == SocioMember.Status.INACTIVE || status == SocioMember.Status.AWAITING_PAYMENT ? null
+					: nextCharge(m.since, new Date());
 		}
 		if (socioContractService != null && socioContractService.isEnabled())
 		{
@@ -231,6 +245,12 @@ public class DefaultSocioMemberService implements SocioMemberService
 				m.until = contract.end;
 				m.nextCharge = nextCharge(contract.start, new Date());
 			}
+		}
+		if (socioPaymentService != null)
+		{
+			final OrderModel waiting = socioPaymentService.awaitingOrder(customer);
+			m.payment = waiting != null ? socioPaymentService.status(waiting)
+					: planOrders.isEmpty() ? null : socioPaymentService.status(planOrders.get(planOrders.size() - 1));
 		}
 		m.card = card(customer);
 		m.openCancelTicket = openTicket == null ? null : (String) modelService.getAttributeValue(openTicket, "ticketID");
@@ -390,6 +410,10 @@ public class DefaultSocioMemberService implements SocioMemberService
 		final List<OrderModel> out = new ArrayList<>();
 		for (final OrderModel order : flexibleSearchService.<OrderModel> search(q).getResult())
 		{
+			if (SocioPayments.isAwaiting(modelService, order))
+			{
+				continue; // Pix ou boleto ainda não pago (item 7)
+			}
 			if (order.getEntries() != null && order.getEntries().stream()
 					.anyMatch(e -> socioPlanService.findForProduct(e.getProduct()) != null || isGuest(e.getProduct())))
 			{
@@ -548,6 +572,23 @@ public class DefaultSocioMemberService implements SocioMemberService
 	}
 
 	@Override
+	public String confirmPayment(final String uid)
+	{
+		final CustomerModel customer = customer(uid);
+		if (customer == null)
+		{
+			throw new IllegalStateException("Torcedor não encontrado.");
+		}
+		if (socioPaymentService == null)
+		{
+			throw new IllegalStateException("Pagamento do plano indisponível.");
+		}
+		final SocioEventModel event = socioPlanService.newEvent(customer, SocioEventType.PAGAMENTO_CONFIRMADO, "Backoffice", null);
+		modelService.save(event);
+		return event.getResult();
+	}
+
+	@Override
 	public String setBiometry(final String uid, final boolean validated, final String note)
 	{
 		final CustomerModel customer = customer(uid);
@@ -688,5 +729,10 @@ public class DefaultSocioMemberService implements SocioMemberService
 	public void setSocioContractService(final SocioContractService socioContractService)
 	{
 		this.socioContractService = socioContractService;
+	}
+
+	public void setSocioPaymentService(final SocioPaymentService socioPaymentService)
+	{
+		this.socioPaymentService = socioPaymentService;
 	}
 }

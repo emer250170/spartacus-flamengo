@@ -413,6 +413,7 @@
 				<editorArea:section name="socio.editor.price">
 					<editorArea:attribute qualifier="monthlyPrice"/>
 					<editorArea:attribute qualifier="slots"/>
+					<editorArea:attribute qualifier="upfrontPayment"/>
 				</editorArea:section>
 				<editorArea:section name="socio.editor.tickets">
 					<editorArea:attribute qualifier="wave"/>
@@ -464,6 +465,7 @@
 				<editorArea:section name="socio.editor.price">
 					<editorArea:attribute qualifier="monthlyPrice"/>
 					<editorArea:attribute qualifier="slots"/>
+					<editorArea:attribute qualifier="upfrontPayment"/>
 				</editorArea:section>
 				<editorArea:section name="socio.editor.tickets">
 					<editorArea:attribute qualifier="wave"/>

@@ -3,6 +3,7 @@ package br.com.flamengo.matchday.socio.impl;
 import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
 import br.com.flamengo.matchday.socio.SocioContractService;
 import br.com.flamengo.matchday.socio.SocioContractStatus;
@@ -274,6 +275,10 @@ public class DefaultSocioExitService implements SocioExitService
 		q.addQueryParameter("c", customer);
 		for (final OrderModel order : flexibleSearchService.<OrderModel> search(q).getResult())
 		{
+			if (SocioPayments.isAwaiting(modelService, order))
+			{
+				continue; // Pix ou boleto ainda não pago (item 7)
+			}
 			if (order.getEntries() == null)
 			{
 				continue;

@@ -33,4 +33,12 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Pix e boleto (item 7): /users/current/carts/{cartId}/sociopayment (+ /order) e /orders/{code}/sociopayment -->
+	<bean id="flamengoSocioPaymentController" class="br.com.flamengo.matchday.occ.SocioPaymentController">
+		<property name="socioPaymentService" ref="socioPaymentService"/>
+		<property name="userService" ref="userService"/>
+		<property name="cartService" ref="cartService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+	</bean>
+
 </beans>

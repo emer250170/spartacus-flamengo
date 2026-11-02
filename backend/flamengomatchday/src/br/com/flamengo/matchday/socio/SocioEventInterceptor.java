@@ -44,6 +44,7 @@ public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel
 	private SocioCartService socioCartService;
 	private UserService userService;
 	private SocioContractService socioContractService;
+	private SocioPaymentService socioPaymentService;
 
 	@Override
 	public void onPrepare(final SocioEventModel event, final InterceptorContext ctx) throws InterceptorException
@@ -99,6 +100,18 @@ public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel
 				}
 			}
 			catch (final SocioContractException e)
+			{
+				throw new InterceptorException(e.getMessage());
+			}
+		}
+		else if (event.getType() == SocioEventType.PAGAMENTO_CONFIRMADO && socioPaymentService != null)
+		{
+			// Pix ou boleto (item 7): o gestor confirma e o torcedor vira sócio do plano do pedido
+			try
+			{
+				socioPaymentService.confirm(customer, event);
+			}
+			catch (final SocioPaymentException e)
 			{
 				throw new InterceptorException(e.getMessage());
 			}
@@ -161,5 +174,10 @@ public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel
 	public void setSocioContractService(final SocioContractService socioContractService)
 	{
 		this.socioContractService = socioContractService;
+	}
+
+	public void setSocioPaymentService(final SocioPaymentService socioPaymentService)
+	{
+		this.socioPaymentService = socioPaymentService;
 	}
 }

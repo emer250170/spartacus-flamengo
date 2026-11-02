@@ -81,6 +81,8 @@ public class SocioMembersController extends DefaultWidgetController
 	@Wire
 	private Button turnButton;
 	@Wire
+	private Button confirmPaymentButton;
+	@Wire
 	private Html historyContent;
 
 	@WireVariable
@@ -228,7 +230,7 @@ public class SocioMembersController extends DefaultWidgetController
 		detailContent.setContent(new SocioMemberHtml(m, this::label, locale()).detail());
 		historyContent.setContent(new SocioMemberHtml(m, this::label, locale()).history());
 		actionsPanel.setVisible(true);
-		final boolean member = m.status != SocioMember.Status.INACTIVE;
+		final boolean member = m.status != SocioMember.Status.INACTIVE && m.status != SocioMember.Status.AWAITING_PAYMENT;
 		suspendButton.setDisabled(!member || m.suspended);
 		regularizeButton.setDisabled(!member || !m.suspended);
 		noteButton.setDisabled(false);
@@ -236,6 +238,7 @@ public class SocioMembersController extends DefaultWidgetController
 		biometryButton.setDisabled(m.biometry);
 		biometryPendingButton.setDisabled(!m.biometry);
 		turnButton.setDisabled(!member || m.contract == null || !m.contract.member);
+		confirmPaymentButton.setDisabled(m.payment == null || !m.payment.awaiting);
 	}
 
 	// ------------------------------------------------------------ ações
@@ -307,6 +310,19 @@ public class SocioMembersController extends DefaultWidgetController
 		confirm(MessageFormat.format(label("actions.turn.confirm"), m.name, what), () -> socioMemberService.turnContract(m.uid));
 	}
 
+	/** Pix ou boleto (item 7): o pagamento chegou e o torcedor vira sócio */
+	@ViewEvent(componentID = "confirmPaymentButton", eventName = Events.ON_CLICK)
+	public void onConfirmPayment()
+	{
+		final SocioMember m = current;
+		if (m.payment == null || !m.payment.awaiting)
+		{
+			return;
+		}
+		confirm(MessageFormat.format(label("actions.confirmPayment.confirm"), m.name, m.payment.summary, m.payment.orderCode,
+				StringUtils.defaultString(m.payment.planName, m.planName)), () -> socioMemberService.confirmPayment(m.uid));
+	}
+
 	protected String note()
 	{
 		return StringUtils.trimToNull(noteBox.getValue());
@@ -376,6 +392,8 @@ public class SocioMembersController extends DefaultWidgetController
 				return "#b45309";
 			case CANCELLING:
 				return "#0a6ed1";
+			case AWAITING_PAYMENT:
+				return "#b45309";
 			default:
 				return "#6a7d8f";
 		}

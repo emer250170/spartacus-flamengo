@@ -5,6 +5,7 @@ import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.enums.SocioPlanStatus;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.socio.SocioPlanService;
 import de.hybris.platform.catalog.CatalogVersionService;
 import de.hybris.platform.catalog.model.CatalogVersionModel;
@@ -229,6 +230,12 @@ public class DefaultSocioPlanService implements SocioPlanService
 				.thenComparing(p -> -(p.getMonthlyPrice() == null ? 0 : p.getMonthlyPrice().doubleValue())));
 		final SocioPlanModel best = bought.get(0);
 		final CustomerModel customer = (CustomerModel) order.getUser();
+		if (SocioPayments.isAwaiting(modelService, order))
+		{
+			// Pix ou boleto (item 7): só vira sócio quando o pagamento for confirmado
+			awaitPayment(order, customer, best, bought);
+			return;
+		}
 		final SocioPlanModel previous = memberPlan(customer);
 		final Set<String> planGroups = new HashSet<>();
 		for (final SocioPlanModel plan : getPlans())
@@ -258,6 +265,48 @@ public class DefaultSocioPlanService implements SocioPlanService
 		modelService.save(customer);
 		LOG.info("Pedido {}: {} agora é sócio {}", order.getCode(), customer.getUid(), best.getCode());
 		recordJoin(order, customer, best, previous);
+	}
+
+	/**
+	 * Pedido com Pix ou boleto ainda não pago: tira os grupos que o plano no carrinho
+	 * deu (plano + marcador de carrinho; o plano que o torcedor já pagava fica) e grava
+	 * o evento "Aguardando pagamento". A confirmação ({@link br.com.flamengo.matchday.socio.SocioPaymentService#confirm})
+	 * chama o applyOrder de novo, já pago.
+	 */
+	protected void awaitPayment(final AbstractOrderModel order, final CustomerModel customer, final SocioPlanModel plan,
+			final List<SocioPlanModel> bought)
+	{
+		final Set<PrincipalGroupModel> groups = new HashSet<>(customer.getGroups() == null ? Set.of() : customer.getGroups());
+		boolean changed = false;
+		for (final SocioPlanModel p : bought)
+		{
+			if (p.getPendingGroup() != null && groups.contains(p.getPendingGroup()))
+			{
+				groups.remove(p.getPendingGroup());
+				groups.remove(p.getCustomerGroup());
+				changed = true;
+			}
+		}
+		if (changed)
+		{
+			customer.setGroups(groups);
+			modelService.save(customer);
+		}
+		LOG.info("Pedido {}: {} aguardando pagamento do {}", order.getCode(), customer.getUid(), plan.getCode());
+		try
+		{
+			final String name = StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode());
+			final SocioEventModel event = newEvent(customer, SocioEventType.AGUARDANDO_PAGAMENTO, "Loja",
+					"Pedido " + order.getCode() + " com o " + name + ": " + SocioPayments.describe(modelService, order));
+			event.setPlan(plan);
+			event.setResult("Aguardando pagamento: vira sócio do " + name + " quando o pagamento for confirmado");
+			modelService.save(event);
+		}
+		catch (final Exception e)
+		{
+			LOG.warn("Pedido {}: não gravou o evento de aguardando pagamento de {}: {}", order.getCode(), customer.getUid(),
+					e.getMessage());
+		}
 	}
 
 	/** Linha do tempo: adesão ou mudança de plano (falha aqui não desfaz o pedido) */

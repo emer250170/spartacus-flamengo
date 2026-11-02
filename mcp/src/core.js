@@ -693,7 +693,15 @@ function socioTools(cfg, http) {
     return list;
   }
 
-  const typeName = { ADESAO: 'Adesão', SUSPENSAO: 'Suspensão', REGULARIZACAO: 'Regularização', CANCELAMENTO: 'Cancelamento', OBSERVACAO: 'Observação', ACEITE_TERMO: 'Aceite do Termo', RENOVACAO: 'Renovação', FIM_VIGENCIA: 'Fim de vigência' };
+  const typeName = { ADESAO: 'Adesão', SUSPENSAO: 'Suspensão', REGULARIZACAO: 'Regularização', CANCELAMENTO: 'Cancelamento', OBSERVACAO: 'Observação', ACEITE_TERMO: 'Aceite do Termo', RENOVACAO: 'Renovação', FIM_VIGENCIA: 'Fim de vigência', AGUARDANDO_PAGAMENTO: 'Aguardando pagamento', PAGAMENTO_CONFIRMADO: 'Pagamento confirmado' };
+  // Pix ou boleto do plano ainda não pago (item 7): o último "Aguardando pagamento" sem confirmação depois dele
+  function pendingPayment(evs) {
+    for (let i = evs.length - 1; i >= 0; i--) {
+      if (evs[i].tipo === 'Pagamento confirmado') return null;
+      if (evs[i].tipo === 'Aguardando pagamento') return { desde: evs[i].data, plano: evs[i].plano, pedido: evs[i].motivo };
+    }
+    return null;
+  }
 
   /** Contrato gravado (FlamengoContrato): vigência, renovação automática e mudança agendada; null sem contrato */
   async function contract(uid) {
@@ -894,7 +902,9 @@ function socioTools(cfg, http) {
         const c = await customer(email);
         const plan = (await planList()).find((p) => p._members.includes(c.uid));
         const suspenso = !!plan && results(c.groups).some((g) => g.uid === SUSPENDED_GROUP);
-        return { torcedor: c.name, email: c.uid, plano: plan ? plan.nome : 'não é sócio', situacao: plan ? (suspenso ? 'Benefícios suspensos (mensalidade em atraso): sem onda de sócio e sem descontos; mantém a vaga' : 'Ativo') : null, vigencia: plan ? publicTerm(await term(c, plan)) : null, linhaDoTempo: await events(c.uid) };
+        const evs = await events(c.uid);
+        const pendente = pendingPayment(evs);
+        return { torcedor: c.name, email: c.uid, plano: plan ? plan.nome : 'não é sócio', situacao: plan ? (suspenso ? 'Benefícios suspensos (mensalidade em atraso): sem onda de sócio e sem descontos; mantém a vaga' : 'Ativo') : pendente ? `Aguardando pagamento do ${pendente.plano}: vira sócio quando o pagamento for confirmado (confirmar_pagamento)` : null, pagamentoPendente: pendente, vigencia: plan ? publicTerm(await term(c, plan)) : null, linhaDoTempo: evs };
       },
     },
     {
@@ -916,6 +926,23 @@ function socioTools(cfg, http) {
         });
         const plan2 = (await planList()).find((p) => p._members.includes(c.uid));
         return { executado: true, torcedor: c.name, email: c.uid, resultado: ev?.result ?? null, plano: plan2 ? plan2.nome : 'não é mais sócio', vigencia: plan2 ? publicTerm(await term(c, plan2)) : null, linhaDoTempo: await events(c.uid) };
+      },
+    },
+    {
+      name: 'confirmar_pagamento',
+      description: 'Confirma o pagamento de um Pix ou boleto do plano de sócio (simula a confirmação do banco): o pedido deixa de aguardar pagamento e o torcedor vira sócio do plano do pedido, com os benefícios na hora. Grava o evento Pagamento confirmado na linha do tempo. Sem pedido informado, vale o Pix/boleto mais novo aguardando.',
+      inputSchema: obj({ email: S.str('E-mail do torcedor'), pedido: S.str('Código do pedido (opcional, 8 dígitos)'), confirmar: S.confirm }, ['email']),
+      handler: async (a) => {
+        const c = await customer(a.email);
+        const pendente = pendingPayment(await events(c.uid));
+        if (!pendente && !a.pedido) throw new UserError(`${c.uid} não tem Pix nem boleto aguardando pagamento.`);
+        const conf = needConfirm(a, `Confirmar o pagamento de ${c.name} (${c.uid})${a.pedido ? `, pedido ${a.pedido}` : pendente ? `: ${pendente.pedido}` : ''}. ${c.name} vira sócio${pendente?.plano ? ` do ${pendente.plano}` : ''}.`);
+        if (conf) return conf;
+        const ev = await odata('POST', '/FlamengoEventoSocio/SocioEvents', {
+          body: { customer: { uid: c.uid }, date: `/Date(${Date.now()})/`, type: { code: 'PAGAMENTO_CONFIRMADO' }, origin: 'Claude', note: a.pedido ? `Pagamento do pedido ${a.pedido} confirmado pelo Claude` : 'Pagamento confirmado pelo Claude' },
+        });
+        const plan = (await planList()).find((p) => p._members.includes(c.uid));
+        return { executado: true, torcedor: c.name, email: c.uid, resultado: ev?.result ?? null, plano: plan ? plan.nome : 'não é sócio', linhaDoTempo: await events(c.uid) };
       },
     },
     {

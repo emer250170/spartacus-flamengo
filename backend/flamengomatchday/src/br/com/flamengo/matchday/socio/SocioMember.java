@@ -21,7 +21,9 @@ public class SocioMember
 		/** Pediu cancelamento; o atendimento ainda não confirmou */
 		CANCELLING,
 		/** Ex-sócio (cancelamento confirmado) */
-		INACTIVE
+		INACTIVE,
+		/** Pix ou boleto do plano ainda não pago (item 7): ainda não é sócio */
+		AWAITING_PAYMENT
 	}
 
 	// ------------------------------------------------------------ lista
@@ -69,6 +71,11 @@ public class SocioMember
 	public SocioExitQuote exit;
 	/** Uma linha: "Reembolso de R$ 67,10 (arrependimento até 09/11/2026)" */
 	public String exitSummary;
+	/**
+	 * Pagamento do plano (item 7): Pix/boleto aguardando ou a forma do último pedido do
+	 * plano; null sem forma gravada (cartão com a mensalidade, como antes)
+	 */
+	public SocioPayment payment;
 	/** Vigência (item 6): contrato gravado ou calculado do pedido; null com a chave desligada */
 	public SocioContractStatus contract;
 	/** Últimas tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */

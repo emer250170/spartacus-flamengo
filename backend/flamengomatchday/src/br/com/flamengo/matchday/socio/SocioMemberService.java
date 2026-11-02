@@ -53,4 +53,10 @@ public interface SocioMemberService
 	 * desligada. @return resultado para mostrar
 	 */
 	String turnContract(String uid);
+
+	/**
+	 * Confirma o Pix ou boleto aguardando pagamento (item 7): o torcedor vira sócio do
+	 * plano do pedido (evento Pagamento confirmado). @return resultado para mostrar
+	 */
+	String confirmPayment(String uid);
 }
