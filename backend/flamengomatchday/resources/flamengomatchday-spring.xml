@@ -179,6 +179,7 @@
 		<property name="socioPlanService" ref="socioPlanService"/>
 		<property name="socioCartService" ref="socioCartService"/>
 		<property name="userService" ref="userService"/>
+		<property name="socioContractService" ref="socioContractService"/>
 	</bean>
 	<bean id="socioEventInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
 		<property name="interceptor" ref="socioEventInterceptor"/>
@@ -210,6 +211,24 @@
 		<property name="socioGuestService" ref="socioGuestService"/>
 		<property name="socioTermService" ref="socioTermService"/>
 		<property name="socioExitService" ref="socioExitService"/>
+		<property name="socioContractService" ref="socioContractService"/>
+	</bean>
+
+	<!--
+		Vigência do sócio (item 6): contrato de 12 meses com renovação automática;
+		o sócio desliga a renovação ou agenda um plano menor até o prazo; virada no
+		Backoffice ou pelo Claude (evento Renovação). Endpoints na API de comércio
+		(sociocontract). Chave: flamengo.socio.vigencia.ativo.
+	-->
+	<bean id="socioContractService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioContractService">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="socioGuestService" ref="socioGuestService"/>
+		<property name="socioCartService" ref="socioCartService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
 	<!--
@@ -224,6 +243,7 @@
 		<property name="configurationService" ref="configurationService"/>
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="socioContractService" ref="socioContractService"/>
 	</bean>
 
 	<!--

@@ -1,5 +1,6 @@
 package br.com.flamengo.matchday.backoffice.widgets.sociomembers;
 
+import br.com.flamengo.matchday.socio.SocioContractStatus;
 import br.com.flamengo.matchday.socio.SocioExitQuote;
 import br.com.flamengo.matchday.socio.SocioMember;
 
@@ -85,6 +86,10 @@ public class SocioMemberHtml
 		if (m.openCancelTicket != null)
 		{
 			field(h, l("detail.cancelTicket"), esc(m.openCancelTicket));
+		}
+		if (m.contract != null && m.contract.member && m.contract.end != null)
+		{
+			field(h, l("detail.renewal"), renewalValue());
 		}
 		if (m.exit != null)
 		{
@@ -273,6 +278,37 @@ public class SocioMemberHtml
 				+ "</span>" + (last.isEmpty() ? "" : "<br><span style=\"color:#6a7d8f;font-size:11px\">" + esc(last) + "</span>");
 	}
 
+	/**
+	 * Vigência (item 6): "Automática em 02/11/2027", "Muda para o Nação Maraca 3 em
+	 * 02/11/2027" ou "Desligada: termina em 02/11/2027 sem multa", e o prazo para mudar.
+	 */
+	protected String renewalValue()
+	{
+		final SocioContractStatus c = m.contract;
+		final String main;
+		final String color;
+		if (!c.autoRenew)
+		{
+			main = MessageFormat.format(l("detail.renewal.off"), date(c.end));
+			color = "#b45309";
+		}
+		else if (c.nextPlanName != null)
+		{
+			main = MessageFormat.format(l("detail.renewal.change"), c.nextPlanName, date(c.end));
+			color = "#0a6ed1";
+		}
+		else
+		{
+			main = MessageFormat.format(l("detail.renewal.auto"), date(c.end));
+			color = "#107e3e";
+		}
+		final String sub = (c.locked ? MessageFormat.format(l("detail.renewal.locked"), date(c.changeDeadline))
+				: MessageFormat.format(l("detail.renewal.until"), date(c.changeDeadline)))
+				+ (c.renewals > 0 ? " · " + MessageFormat.format(l("detail.renewal.count"), String.valueOf(c.renewals)) : "");
+		return "<span style=\"color:" + color + ";font-weight:600\">" + esc(main) + "</span><br><span style=\"color:#6a7d8f;font-size:11px\">"
+				+ esc(sub) + "</span>";
+	}
+
 	/** Regras de saída: "Se cancelar hoje", "Saída (pedido de 02/11/2026)" ou "Saída confirmada" */
 	protected String exitLabel()
 	{
@@ -318,11 +354,11 @@ public class SocioMemberHtml
 		{
 			return "#b45309";
 		}
-		if ("REGULARIZACAO".equals(type) || "ADESAO".equals(type))
+		if ("REGULARIZACAO".equals(type) || "ADESAO".equals(type) || "RENOVACAO".equals(type))
 		{
 			return "#107e3e";
 		}
-		if ("CANCELAMENTO".equals(type))
+		if ("CANCELAMENTO".equals(type) || "FIM_VIGENCIA".equals(type))
 		{
 			return "#bb0000";
 		}

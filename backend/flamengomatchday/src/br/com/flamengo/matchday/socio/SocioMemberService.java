@@ -46,4 +46,11 @@ public interface SocioMemberService
 	 * na linha do tempo. Vale também para quem não é sócio. @return resultado para mostrar
 	 */
 	String setBiometry(String uid, boolean validated, String note);
+
+	/**
+	 * Vira a vigência agora (item 6): renova por 12 meses a partir de hoje com a
+	 * mudança de plano agendada, ou encerra sem multa se a renovação está
+	 * desligada. @return resultado para mostrar
+	 */
+	String turnContract(String uid);
 }

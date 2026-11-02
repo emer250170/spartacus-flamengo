@@ -277,6 +277,7 @@
 				<explorer-tree:type-node id="socio.tree.guests" code="SocioGuest"/>
 				<explorer-tree:type-node id="socio.tree.terms" code="SocioTermVersion"/>
 				<explorer-tree:type-node id="socio.tree.termAcceptances" code="SocioTermAcceptance"/>
+				<explorer-tree:type-node id="socio.tree.contracts" code="SocioContract"/>
 				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -805,6 +806,65 @@
 					<editorArea:attribute qualifier="plan" readonly="true"/>
 					<editorArea:attribute qualifier="cartCode" readonly="true"/>
 					<editorArea:attribute qualifier="orderCode" readonly="true"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- ============ Contratos do sócio (vigência, item 6) ============ -->
+	<!-- Só leitura: o sócio muda na loja; o gestor vira a vigência na ficha (Sócios) ou pelo Claude -->
+
+	<context merge-by="type" parent="GenericItem" type="SocioContract" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>customer.uid + ' - ' + plan.code</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioContract" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="customer"/>
+			<list-view:column qualifier="plan"/>
+			<list-view:column qualifier="start"/>
+			<list-view:column qualifier="end"/>
+			<list-view:column qualifier="autoRenew"/>
+			<list-view:column qualifier="nextPlan"/>
+			<list-view:column qualifier="origin"/>
+			<list-view:column qualifier="renewals"/>
+			<list-view:column qualifier="endedAt"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioContract" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="customer" selected="true"/>
+				<advanced-search:field name="plan" selected="true"/>
+				<advanced-search:field name="autoRenew" selected="false"/>
+				<advanced-search:field name="nextPlan" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="end" asc="true"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<context type="SocioContract" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.contract.editor.essentials">
+					<editorArea:attribute qualifier="customer" readonly="true"/>
+					<editorArea:attribute qualifier="plan" readonly="true"/>
+					<editorArea:attribute qualifier="end" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.contract.editor.tab">
+				<editorArea:section name="socio.contract.editor.term">
+					<editorArea:attribute qualifier="start" readonly="true"/>
+					<editorArea:attribute qualifier="autoRenew" readonly="true"/>
+					<editorArea:attribute qualifier="nextPlan" readonly="true"/>
+					<editorArea:attribute qualifier="origin" readonly="true"/>
+					<editorArea:attribute qualifier="renewals" readonly="true"/>
+					<editorArea:attribute qualifier="endedAt" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>

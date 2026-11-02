@@ -48,6 +48,7 @@
 						<button id="cancelButton" label="${labels.actCancel}" tooltiptext="${labels.actCancelHint}"/>
 						<button id="biometryButton" label="${labels.actBiometry}" tooltiptext="${labels.actBiometryHint}"/>
 						<button id="biometryPendingButton" label="${labels.actBiometryPending}" tooltiptext="${labels.actBiometryPendingHint}"/>
+						<button id="turnButton" label="${labels.actTurn}" tooltiptext="${labels.actTurnHint}"/>
 					</div>
 				</div>
 				<html id="historyContent"/>

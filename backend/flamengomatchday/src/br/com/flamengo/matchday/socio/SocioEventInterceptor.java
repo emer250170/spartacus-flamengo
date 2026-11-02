@@ -1,8 +1,10 @@
 package br.com.flamengo.matchday.socio;
 
 import br.com.flamengo.matchday.enums.SocioEventType;
+import br.com.flamengo.matchday.model.SocioContractModel;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
+import de.hybris.platform.core.model.ItemModel;
 import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.core.model.user.UserModel;
 import de.hybris.platform.servicelayer.interceptor.InterceptorContext;
@@ -29,6 +31,10 @@ import org.slf4j.LoggerFactory;
  * O gestor cria o evento no Backoffice (Sócio-Torcedor › Eventos do sócio) ou
  * pelo Claude; a loja cria a Regularização quando o torcedor cadastra um cartão
  * novo ({@link SocioCardRegularizationInterceptor}).
+ * <p>
+ * Vigência (item 6): a Adesão do pedido recomeça o contrato gravado
+ * ({@link SocioContractService#onJoin}); um evento Renovação criado sem resultado
+ * (Backoffice ou Claude) vira a vigência ({@link SocioContractService#turn}).
  */
 public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel>
 {
@@ -37,6 +43,7 @@ public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel
 	private SocioPlanService socioPlanService;
 	private SocioCartService socioCartService;
 	private UserService userService;
+	private SocioContractService socioContractService;
 
 	@Override
 	public void onPrepare(final SocioEventModel event, final InterceptorContext ctx) throws InterceptorException
@@ -63,6 +70,16 @@ public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel
 		{
 			event.setPlan(socioPlanService.memberPlan(customer));
 		}
+		if (event.getType() == SocioEventType.ADESAO && customer != null && socioContractService != null
+				&& socioContractService.isEnabled())
+		{
+			// adesão ou upgrade: o contrato gravado recomeça no plano comprado
+			final SocioContractModel contract = socioContractService.onJoin(event);
+			if (contract != null)
+			{
+				ctx.registerElementFor(contract, PersistenceOperation.SAVE);
+			}
+		}
 		if (StringUtils.isNotBlank(event.getResult()) || customer == null)
 		{
 			return; // já aplicado por quem criou o evento
@@ -70,6 +87,21 @@ public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel
 		if (event.getType() == SocioEventType.SUSPENSAO || event.getType() == SocioEventType.REGULARIZACAO)
 		{
 			apply(event, ctx);
+		}
+		else if ((event.getType() == SocioEventType.RENOVACAO || event.getType() == SocioEventType.FIM_VIGENCIA)
+				&& socioContractService != null)
+		{
+			try
+			{
+				for (final ItemModel item : socioContractService.turn(customer, event))
+				{
+					ctx.registerElementFor(item, PersistenceOperation.SAVE);
+				}
+			}
+			catch (final SocioContractException e)
+			{
+				throw new InterceptorException(e.getMessage());
+			}
 		}
 		else
 		{
@@ -124,5 +156,10 @@ public class SocioEventInterceptor implements PrepareInterceptor<SocioEventModel
 	public void setUserService(final UserService userService)
 	{
 		this.userService = userService;
+	}
+
+	public void setSocioContractService(final SocioContractService socioContractService)
+	{
+		this.socioContractService = socioContractService;
 	}
 }

@@ -69,6 +69,8 @@ public class SocioMember
 	public SocioExitQuote exit;
 	/** Uma linha: "Reembolso de R$ 67,10 (arrependimento até 09/11/2026)" */
 	public String exitSummary;
+	/** Vigência (item 6): contrato gravado ou calculado do pedido; null com a chave desligada */
+	public SocioContractStatus contract;
 	/** Últimas tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */
 	public final List<Attempt> attempts = new ArrayList<>();
 	/** Convidados nominais (SocioGuest): ativos primeiro, depois os encerrados mais novos */

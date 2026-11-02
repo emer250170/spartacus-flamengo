@@ -4,6 +4,8 @@ import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
+import br.com.flamengo.matchday.socio.SocioContractService;
+import br.com.flamengo.matchday.socio.SocioContractStatus;
 import br.com.flamengo.matchday.socio.SocioExitQuote;
 import br.com.flamengo.matchday.socio.SocioExitService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -56,6 +58,7 @@ public class DefaultSocioExitService implements SocioExitService
 	private ConfigurationService configurationService;
 	private SessionService sessionService;
 	private SearchRestrictionService searchRestrictionService;
+	private SocioContractService socioContractService;
 
 	@Override
 	public boolean isEnabled()
@@ -89,11 +92,19 @@ public class DefaultSocioExitService implements SocioExitService
 				return null;
 			}
 			final OrderModel order = contractOrder(customer, plan);
+			// vigência renovada (item 6): o contrato começa na renovação, sem arrependimento
+			final SocioContractStatus contract = socioContractService != null && socioContractService.isEnabled()
+					? socioContractService.status(customer)
+					: null;
+			if (contract != null && contract.renewed && contract.start != null)
+			{
+				return calculate(plan, order, contract.start, true, basis == null ? new Date() : basis);
+			}
 			if (order == null || order.getDate() == null)
 			{
 				return null;
 			}
-			return calculate(plan, order, basis == null ? new Date() : basis);
+			return calculate(plan, order, order.getDate(), false, basis == null ? new Date() : basis);
 		});
 	}
 
@@ -113,19 +124,26 @@ public class DefaultSocioExitService implements SocioExitService
 		return q;
 	}
 
-	protected SocioExitQuote calculate(final SocioPlanModel plan, final OrderModel order, final Date basis)
+	/**
+	 * @param start
+	 *           início do contrato: o pedido da adesão ou, depois de uma renovação, a renovação
+	 * @param renewal
+	 *           vigência renovada: sem prazo de arrependimento; "pago na adesão" = 1ª mensalidade da renovação
+	 */
+	protected SocioExitQuote calculate(final SocioPlanModel plan, final OrderModel order, final Date start, final boolean renewal,
+			final Date basis)
 	{
 		final SocioExitQuote q = new SocioExitQuote();
 		q.planCode = plan.getCode();
 		q.planName = StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode());
-		q.orderCode = order.getCode();
-		q.start = order.getDate();
+		q.orderCode = renewal || order == null ? null : order.getCode();
+		q.start = start;
 		q.basis = basis;
 		q.installments = INSTALLMENTS;
 
 		double paid = 0;
 		int guests = 0;
-		for (final AbstractOrderEntryModel entry : order.getEntries())
+		for (final AbstractOrderEntryModel entry : order == null ? List.<AbstractOrderEntryModel> of() : order.getEntries())
 		{
 			final ProductModel product = entry.getProduct();
 			final boolean planEntry = product != null && socioPlanService.findForProduct(product) != null;
@@ -139,16 +157,16 @@ public class DefaultSocioExitService implements SocioExitService
 				guests += entry.getQuantity() == null ? 0 : entry.getQuantity().intValue();
 			}
 		}
-		q.paidAtJoin = round(paid);
 		q.guests = guests;
 		q.monthly = round(value(plan.getMonthlyPrice()) + guests * value(plan.getGuestPrice()));
+		q.paidAtJoin = renewal ? q.monthly : round(paid);
 
 		final LocalDate startDay = day(q.start);
 		final LocalDate basisDay = day(basis);
 		q.withdrawalDays = withdrawalDays();
 		final LocalDate lastDay = startDay.plusDays(q.withdrawalDays);
 		q.withdrawalUntil = Date.from(lastDay.atStartOfDay(ZONE).toInstant());
-		q.withinWithdrawal = q.withdrawalDays > 0 && !basisDay.isAfter(lastDay);
+		q.withinWithdrawal = !renewal && q.withdrawalDays > 0 && !basisDay.isAfter(lastDay);
 
 		q.paidInstallments = (int) Math.min(INSTALLMENTS, Math.max(0, ChronoUnit.MONTHS.between(startDay, basisDay)) + 1);
 		q.remainingInstallments = INSTALLMENTS - q.paidInstallments;
@@ -360,5 +378,10 @@ public class DefaultSocioExitService implements SocioExitService
 	public void setSearchRestrictionService(final SearchRestrictionService searchRestrictionService)
 	{
 		this.searchRestrictionService = searchRestrictionService;
+	}
+
+	public void setSocioContractService(final SocioContractService socioContractService)
+	{
+		this.socioContractService = socioContractService;
 	}
 }

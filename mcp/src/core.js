@@ -693,7 +693,31 @@ function socioTools(cfg, http) {
     return list;
   }
 
-  const typeName = { ADESAO: 'Adesão', SUSPENSAO: 'Suspensão', REGULARIZACAO: 'Regularização', CANCELAMENTO: 'Cancelamento', OBSERVACAO: 'Observação' };
+  const typeName = { ADESAO: 'Adesão', SUSPENSAO: 'Suspensão', REGULARIZACAO: 'Regularização', CANCELAMENTO: 'Cancelamento', OBSERVACAO: 'Observação', ACEITE_TERMO: 'Aceite do Termo', RENOVACAO: 'Renovação', FIM_VIGENCIA: 'Fim de vigência' };
+
+  /** Contrato gravado (FlamengoContrato): vigência, renovação automática e mudança agendada; null sem contrato */
+  async function contract(uid) {
+    const cs = results(await odata('GET', '/FlamengoContrato/SocioContracts', { query: { $filter: `customer/uid eq '${uid.replace(/'/g, "''")}'`, $expand: 'plan,nextPlan' } }));
+    return cs[0] ?? null;
+  }
+
+  /** Vigência para mostrar: do contrato gravado ou, sem ele, do pedido mais novo do plano (+12 meses) */
+  async function term(c, plan) {
+    const k = await contract(c.uid).catch(() => null);
+    if (k && !k.endedAt && k.plan?.code === plan?.code) {
+      return {
+        inicio: fmtDate(toDate(k.start), false), fim: fmtDate(toDate(k.end), false),
+        renovacaoAutomatica: k.autoRenew !== false, mudancaAgendada: k.nextPlan?.name ?? k.nextPlan?.code ?? null,
+        origem: k.origin ?? null, renovacoes: k.renewals ?? 0, _fim: toDate(k.end), _auto: k.autoRenew !== false, _proximo: k.nextPlan?.name ?? null,
+      };
+    }
+    const o = (await orders()).filter((x) => x.email === c.uid && x.itens.some((i) => i.codigo === plan?.code)).sort((a, b) => b.data - a.data)[0];
+    if (!o) return { observacao: 'Sem contrato gravado e sem pedido do plano: vigência desconhecida.' };
+    const fim = new Date(o.data); fim.setMonth(fim.getMonth() + 12);
+    return { inicio: fmtDate(o.data, false), fim: fmtDate(fim, false), renovacaoAutomatica: true, mudancaAgendada: null, origem: `Pedido ${o.pedido} (sem contrato gravado)`, renovacoes: 0, _fim: fim, _auto: true, _proximo: null };
+  }
+
+  const publicTerm = (t) => Object.fromEntries(Object.entries(t).filter(([k]) => !k.startsWith('_')));
 
   async function customer(email) {
     const cs = results(await odata('GET', '/FlamengoTorcedor/Customers', { query: { $filter: `uid eq '${String(email).toLowerCase().replace(/'/g, "''")}'`, $expand: 'groups' } }));
@@ -870,7 +894,28 @@ function socioTools(cfg, http) {
         const c = await customer(email);
         const plan = (await planList()).find((p) => p._members.includes(c.uid));
         const suspenso = !!plan && results(c.groups).some((g) => g.uid === SUSPENDED_GROUP);
-        return { torcedor: c.name, email: c.uid, plano: plan ? plan.nome : 'não é sócio', situacao: plan ? (suspenso ? 'Benefícios suspensos (mensalidade em atraso): sem onda de sócio e sem descontos; mantém a vaga' : 'Ativo') : null, linhaDoTempo: await events(c.uid) };
+        return { torcedor: c.name, email: c.uid, plano: plan ? plan.nome : 'não é sócio', situacao: plan ? (suspenso ? 'Benefícios suspensos (mensalidade em atraso): sem onda de sócio e sem descontos; mantém a vaga' : 'Ativo') : null, vigencia: plan ? publicTerm(await term(c, plan)) : null, linhaDoTempo: await events(c.uid) };
+      },
+    },
+    {
+      name: 'virar_vigencia',
+      description: 'Vira a vigência de um sócio agora (simula o aniversário do contrato de 12 meses): renova por 12 meses a partir de hoje, aplicando a mudança para um plano menor que o sócio agendou; se ele desligou a renovação automática, o plano termina sem multa e os convidados são encerrados. Grava o evento Renovação ou Fim de vigência na linha do tempo.',
+      inputSchema: obj({ email: S.str('E-mail do sócio'), motivo: S.str('Observação (opcional)'), confirmar: S.confirm }, ['email']),
+      handler: async (a) => {
+        const c = await customer(a.email);
+        const plan = (await planList()).find((p) => p._members.includes(c.uid));
+        if (!plan) throw new UserError(`${c.uid} não é sócio: não há vigência para virar.`);
+        const t = await term(c, plan);
+        const what = !t._auto ? `a renovação automática está desligada: o ${plan.nome} termina hoje, sem multa, e ${c.name} deixa de ser sócio (convidados encerrados)`
+          : t._proximo ? `renova por 12 meses a partir de hoje com a mudança agendada: ${plan.nome} → ${t._proximo}`
+            : `renova o ${plan.nome} por 12 meses a partir de hoje`;
+        const conf = needConfirm(a, `Virar a vigência de ${c.name} (${c.uid}), vigência atual ${t.inicio ?? '?'} a ${t.fim ?? '?'}: ${what}.`);
+        if (conf) return conf;
+        const ev = await odata('POST', '/FlamengoEventoSocio/SocioEvents', {
+          body: { customer: { uid: c.uid }, date: `/Date(${Date.now()})/`, type: { code: 'RENOVACAO' }, origin: 'Claude', note: a.motivo ?? 'Virada da vigência pelo Claude' },
+        });
+        const plan2 = (await planList()).find((p) => p._members.includes(c.uid));
+        return { executado: true, torcedor: c.name, email: c.uid, resultado: ev?.result ?? null, plano: plan2 ? plan2.nome : 'não é mais sócio', vigencia: plan2 ? publicTerm(await term(c, plan2)) : null, linhaDoTempo: await events(c.uid) };
       },
     },
     {

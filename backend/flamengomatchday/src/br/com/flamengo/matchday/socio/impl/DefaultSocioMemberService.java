@@ -6,6 +6,9 @@ import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
+import br.com.flamengo.matchday.socio.SocioContractException;
+import br.com.flamengo.matchday.socio.SocioContractService;
+import br.com.flamengo.matchday.socio.SocioContractStatus;
 import br.com.flamengo.matchday.socio.SocioEligibilityService;
 import br.com.flamengo.matchday.socio.SocioExitQuote;
 import br.com.flamengo.matchday.socio.SocioExitService;
@@ -75,6 +78,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private SocioGuestService socioGuestService;
 	private SocioTermService socioTermService;
 	private SocioExitService socioExitService;
+	private SocioContractService socioContractService;
 
 	// ------------------------------------------------------------ leitura
 
@@ -216,6 +220,17 @@ public class DefaultSocioMemberService implements SocioMemberService
 		{
 			m.until = addMonths(m.since, 12);
 			m.nextCharge = status == SocioMember.Status.INACTIVE ? null : nextCharge(m.since, new Date());
+		}
+		if (socioContractService != null && socioContractService.isEnabled())
+		{
+			// vigência (item 6): fim e próxima mensalidade pelo contrato (renovação ou upgrade)
+			final SocioContractStatus contract = socioContractService.status(customer);
+			m.contract = contract;
+			if (contract.member && contract.start != null)
+			{
+				m.until = contract.end;
+				m.nextCharge = nextCharge(contract.start, new Date());
+			}
 		}
 		m.card = card(customer);
 		m.openCancelTicket = openTicket == null ? null : (String) modelService.getAttributeValue(openTicket, "ticketID");
@@ -515,6 +530,24 @@ public class DefaultSocioMemberService implements SocioMemberService
 	}
 
 	@Override
+	public String turnContract(final String uid)
+	{
+		final CustomerModel customer = memberOrFail(uid);
+		if (socioContractService == null || !socioContractService.isEnabled())
+		{
+			throw new IllegalStateException("A vigência está desligada (" + SocioContractService.ENABLED_PROPERTY + "=false).");
+		}
+		try
+		{
+			return socioContractService.turnNow(customer, "Backoffice");
+		}
+		catch (final SocioContractException e)
+		{
+			throw new IllegalStateException(e.getMessage());
+		}
+	}
+
+	@Override
 	public String setBiometry(final String uid, final boolean validated, final String note)
 	{
 		final CustomerModel customer = customer(uid);
@@ -650,5 +683,10 @@ public class DefaultSocioMemberService implements SocioMemberService
 	public void setSocioExitService(final SocioExitService socioExitService)
 	{
 		this.socioExitService = socioExitService;
+	}
+
+	public void setSocioContractService(final SocioContractService socioContractService)
+	{
+		this.socioContractService = socioContractService;
 	}
 }
