@@ -30,6 +30,7 @@ import {
   SocioCard,
   SocioPlanOrder,
 } from './socio-account.service';
+import { SocioExit, SocioExitInfo, SocioExitService } from './socio-exit.service';
 import { Membership, SocioPlan } from './socio.model';
 import { SocioService } from './socio.service';
 
@@ -83,6 +84,8 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   cancellation: SocioCancellation | null = null;
   /** Ex-sócio: o atendimento confirmou o cancelamento e o plano foi encerrado */
   ended: SocioCancellation | null = null;
+  /** Regras de saída: simulação (sócio) e valor do cancelamento confirmado (ex-sócio) */
+  exit: SocioExitInfo = { enabled: false, quote: null, settlement: null };
 
   start?: Date;
   endDate?: Date;
@@ -124,6 +127,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   constructor(
     protected socio: SocioService,
     protected account: SocioAccountService,
+    protected exitService: SocioExitService,
     protected activeCart: ActiveCartFacade,
     protected globalMessages: GlobalMessageService,
     protected router: Router,
@@ -154,6 +158,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
           if (data) {
             this.orders = data.orders;
             this.cards = data.cards;
+            this.exit = data.exit;
             const c = data.cancellation;
             if (this.plan) {
               // sócio: só um pedido ainda aberto conta (um antigo fechado é de um plano anterior)
@@ -469,9 +474,12 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     }
     this.cancelBusy = true;
     const plan = this.plan;
+    const quote = this.exit.quote;
     const message = [
       `${this.t('sa.cancel.reason')}: ${this.t('sa.reason.' + this.cancelReason)}`,
       this.cancelNote.trim(),
+      // regras de saída: o atendimento vê o valor que o sócio viu (o relatório não conta como comentário)
+      quote ? `${this.t('sa.exit.msg')}: ${this.exitText(quote)}` : '',
       `${plan.name} (${plan.code}) · ${this.t('sa.since')} ${this.date(this.start)}`,
     ]
       .filter(Boolean)
@@ -482,6 +490,13 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
           this.cancellation = cancellation;
           this.cancelBusy = false;
           this.cancelPanel = false;
+          // a simulação passa a valer na data do pedido
+          this.subscription.add(
+            this.exitService.load().subscribe((exit) => {
+              this.exit = exit;
+              this.cd.markForCheck();
+            })
+          );
           this.globalMessages.add(
             this.t('sa.cancel.done'),
             GlobalMessageType.MSG_TYPE_CONFIRMATION
@@ -500,12 +515,49 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     );
   }
 
+  // ---------- regras de saída ----------
+
+  /** "Reembolso de R$ 67,10 (arrependimento até 09/11/2026)" / "Multa de R$ 60,39 (…)" */
+  exitText(e: SocioExit): string {
+    if (e.withinWithdrawal) {
+      return e.confirmed
+        ? this.t('sa.exit.refundDone', { amount: this.brl(e.refund) })
+        : this.t('sa.exit.refund', {
+            amount: this.brl(e.refund),
+            date: this.date(e.withdrawalUntil),
+          });
+    }
+    if (e.fine <= 0) {
+      return this.t('sa.exit.noFine');
+    }
+    return e.confirmed
+      ? this.t('sa.exit.fineDone', { amount: this.brl(e.fine) })
+      : this.t('sa.exit.fine', {
+          amount: this.brl(e.fine),
+          pct: e.finePercent,
+          n: e.remainingInstallments,
+          monthly: this.brl(e.monthly),
+        });
+  }
+
+  /** A regra que levou ao valor */
+  exitRule(e: SocioExit): string {
+    return e.withinWithdrawal
+      ? this.t('sa.exit.ruleIn', { days: e.withdrawalDays })
+      : this.t('sa.exit.ruleOut', {
+          days: e.withdrawalDays,
+          date: this.date(e.withdrawalUntil),
+          pct: e.finePercent,
+        });
+  }
+
   // ---------- cálculo ----------
 
   protected loadAccount(plans: SocioPlan[]): Observable<{
     orders: SocioPlanOrder[];
     cards: SocioCard[];
     cancellation: SocioCancellation | null;
+    exit: SocioExitInfo;
   }> {
     const planCodes = plans.map((p) => p.code);
     const guestCodes = plans
@@ -515,6 +567,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
       orders: this.account.planOrders(planCodes, guestCodes),
       cards: this.account.cards(),
       cancellation: this.account.cancellation(),
+      exit: this.exitService.load(),
     });
   }
 

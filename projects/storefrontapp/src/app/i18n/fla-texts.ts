@@ -372,6 +372,22 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.cancel.error': 'Não foi possível enviar o pedido agora. Tente de novo.',
     'sa.cancel.pending': 'Cancelamento solicitado em {date} · chamado {id}.',
     'sa.cancel.follow': 'Acompanhar o chamado',
+    'sa.exit.title': 'Se você cancelar hoje',
+    'sa.exit.expected': 'Valor previsto',
+    'sa.exit.done': 'Saída:',
+    'sa.exit.msg': 'Simulação',
+    'sa.exit.refund': 'Reembolso de {amount} (arrependimento até {date})',
+    'sa.exit.refundDone': 'reembolso de {amount} (arrependimento).',
+    'sa.exit.fine':
+      'Multa de {amount} ({pct}% de {n} mensalidades restantes de {monthly})',
+    'sa.exit.fineDone': 'multa de {amount}.',
+    'sa.exit.noFine': 'Sem multa (contrato no último mês)',
+    'sa.exit.ruleIn':
+      'Você está no prazo de arrependimento de {days} dias depois da adesão: o valor pago na adesão é devolvido.',
+    'sa.exit.ruleOut':
+      'O prazo de arrependimento de {days} dias terminou em {date}. Depois dele, a multa é de {pct}% das mensalidades que faltam no contrato de 12 meses.',
+    'sa.exit.basis':
+      'Vale a data do pedido: o atendimento confirma este valor ao encerrar o plano.',
     'sa.reason.price': 'O valor ficou alto',
     'sa.reason.games': 'Não estou indo aos jogos',
     'sa.reason.moving': 'Vou me mudar',
@@ -842,6 +858,22 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'We could not send the request right now. Please try again.',
     'sa.cancel.pending': 'Cancellation requested on {date} · ticket {id}.',
     'sa.cancel.follow': 'Follow the ticket',
+    'sa.exit.title': 'If you cancel today',
+    'sa.exit.expected': 'Expected amount',
+    'sa.exit.done': 'Exit:',
+    'sa.exit.msg': 'Simulation',
+    'sa.exit.refund': 'Refund of {amount} (cooling-off period until {date})',
+    'sa.exit.refundDone': 'refund of {amount} (cooling-off period).',
+    'sa.exit.fine':
+      'Fee of {amount} ({pct}% of {n} remaining monthly fees of {monthly})',
+    'sa.exit.fineDone': 'fee of {amount}.',
+    'sa.exit.noFine': 'No fee (last month of the contract)',
+    'sa.exit.ruleIn':
+      'You are within the {days}-day cooling-off period after joining: the amount paid at sign-up is refunded.',
+    'sa.exit.ruleOut':
+      'The {days}-day cooling-off period ended on {date}. After it, the fee is {pct}% of the monthly fees left in the 12-month contract.',
+    'sa.exit.basis':
+      'The request date counts: customer service confirms this amount when closing the plan.',
     'sa.reason.price': 'It got too expensive',
     'sa.reason.games': 'I am not going to the games',
     'sa.reason.moving': 'I am moving',
