@@ -180,6 +180,7 @@
 		<property name="socioCartService" ref="socioCartService"/>
 		<property name="userService" ref="userService"/>
 		<property name="socioContractService" ref="socioContractService"/>
+		<property name="socioPaymentService" ref="socioPaymentService"/>
 	</bean>
 	<bean id="socioEventInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
 		<property name="interceptor" ref="socioEventInterceptor"/>
@@ -212,6 +213,7 @@
 		<property name="socioTermService" ref="socioTermService"/>
 		<property name="socioExitService" ref="socioExitService"/>
 		<property name="socioContractService" ref="socioContractService"/>
+		<property name="socioPaymentService" ref="socioPaymentService"/>
 	</bean>
 
 	<!--
@@ -229,6 +231,36 @@
 		<property name="configurationService" ref="configurationService"/>
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+	</bean>
+
+	<!--
+		Pix e boleto à vista e plano aguardando pagamento (item 7): com plano no carrinho,
+		cartão com a mensalidade, cartão com o ano inteiro em até 12x, Pix ou boleto com o
+		ano inteiro. Pix/boleto fecham o pedido sem cartão (sociopayment na API de comércio)
+		e o torcedor só vira sócio quando o gestor confirma (evento PAGAMENTO_CONFIRMADO).
+		Chave: flamengo.socio.pagamento.ativo.
+	-->
+	<bean id="socioPaymentService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioPaymentService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="commerceCartCalculationStrategy" ref="commerceCartCalculationStrategy"/>
+		<property name="commerceCheckoutService" ref="commerceCheckoutService"/>
+		<property name="cartService" ref="cartService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+	</bean>
+	<!-- Ano inteiro: preço do plano e dos convidados x12 no calculationService (só com a forma gravada) -->
+	<bean id="socioAnnualPricing" class="br.com.flamengo.matchday.socio.SocioAnnualPricing">
+		<property name="calculationService" ref="calculationService"/>
+		<property name="socioPaymentService" ref="socioPaymentService"/>
+	</bean>
+	<bean id="socioPaymentPlaceOrderMethodHook" class="br.com.flamengo.matchday.hook.SocioPaymentPlaceOrderMethodHook">
+		<property name="socioPaymentService" ref="socioPaymentService"/>
+	</bean>
+	<bean id="socioPaymentPlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="socioPaymentPlaceOrderMethodHook"/>
 	</bean>
 
 	<!--

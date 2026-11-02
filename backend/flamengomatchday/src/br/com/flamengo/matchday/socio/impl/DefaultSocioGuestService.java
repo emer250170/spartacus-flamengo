@@ -5,6 +5,7 @@ import br.com.flamengo.matchday.model.MatchdayGameModel;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.socio.SocioGuestException;
 import br.com.flamengo.matchday.socio.SocioGuestOverview;
 import br.com.flamengo.matchday.service.SeatHoldService;
@@ -154,6 +155,10 @@ public class DefaultSocioGuestService implements SocioGuestService
 		q.addQueryParameter("c", owner);
 		for (final OrderModel order : flexibleSearchService.<OrderModel> search(q).getResult())
 		{
+			if (SocioPayments.isAwaiting(modelService, order))
+			{
+				continue; // Pix ou boleto ainda não pago (item 7)
+			}
 			final List<AbstractOrderEntryModel> entries = order.getEntries() == null ? Collections.emptyList()
 					: order.getEntries();
 			final boolean planOrder = entries.stream()

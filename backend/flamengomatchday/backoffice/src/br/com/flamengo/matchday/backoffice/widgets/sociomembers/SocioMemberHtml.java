@@ -57,6 +57,10 @@ public class SocioMemberHtml
 		{
 			h.append(banner("#f2f4f5", "#556b82", l("detail.inactiveBanner")));
 		}
+		if (m.status == SocioMember.Status.AWAITING_PAYMENT && m.payment != null)
+		{
+			h.append(banner("#fff4e5", "#b45309", MessageFormat.format(l("detail.awaitingBanner"), m.payment.orderCode)));
+		}
 
 		final String suspendedNote = m.suspended && m.status != SocioMember.Status.INACTIVE
 				? " <span style=\"color:#b45309;font-size:11px\">(" + esc(l("detail.suspendedValue")) + ")</span>"
@@ -95,7 +99,22 @@ public class SocioMemberHtml
 		{
 			field(h, exitLabel(), exitValue());
 		}
+		if (m.payment != null && m.payment.summary != null)
+		{
+			field(h, l("detail.payment"), paymentValue());
+		}
 		return h.append("</div></div>").toString();
+	}
+
+	/** Pagamento do plano (item 7): Pix/boleto aguardando (laranja, com vencimento) ou pago/cartão (verde) */
+	protected String paymentValue()
+	{
+		final br.com.flamengo.matchday.socio.SocioPayment p = m.payment;
+		final String color = p.awaiting ? "#b45309" : "#107e3e";
+		final String sub = p.awaiting ? MessageFormat.format(l("detail.payment.awaiting"), p.orderCode)
+				: MessageFormat.format(l("detail.payment.order"), p.orderCode);
+		return "<span style=\"color:" + color + ";font-weight:600\">" + esc(p.summary) + "</span><br><span style=\"color:#6a7d8f;font-size:11px\">"
+				+ esc(sub) + "</span>";
 	}
 
 	/** Linha do tempo, pedidos do plano e chamados */
@@ -354,11 +373,11 @@ public class SocioMemberHtml
 
 	protected static String eventColor(final String type)
 	{
-		if ("SUSPENSAO".equals(type))
+		if ("SUSPENSAO".equals(type) || "AGUARDANDO_PAGAMENTO".equals(type))
 		{
 			return "#b45309";
 		}
-		if ("REGULARIZACAO".equals(type) || "ADESAO".equals(type) || "RENOVACAO".equals(type))
+		if ("REGULARIZACAO".equals(type) || "ADESAO".equals(type) || "RENOVACAO".equals(type) || "PAGAMENTO_CONFIRMADO".equals(type))
 		{
 			return "#107e3e";
 		}

@@ -6,6 +6,7 @@ import br.com.flamengo.matchday.model.SocioContractModel;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.socio.SocioCartService;
 import br.com.flamengo.matchday.socio.SocioContractException;
 import br.com.flamengo.matchday.socio.SocioContractService;
@@ -433,6 +434,10 @@ public class DefaultSocioContractService implements SocioContractService
 		q.addQueryParameter("c", customer);
 		for (final OrderModel order : flexibleSearchService.<OrderModel> search(q).getResult())
 		{
+			if (SocioPayments.isAwaiting(modelService, order))
+			{
+				continue; // Pix ou boleto ainda não pago (item 7)
+			}
 			if (order.getEntries() == null)
 			{
 				continue;
