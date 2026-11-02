@@ -819,7 +819,17 @@ public class SocioReportHtml
 		cancelTile(html, report.cancelOpen, label("cancel.open"));
 		cancelTile(html, report.cancelMonth, label("cancel.month"));
 		cancelTile(html, report.cancelTotal, label("cancel.total"));
-		html.append("</div><div class=\"fsr-cap\" style=\"margin-bottom:8px\">").append(esc(label("cancel.byReason")))
+		html.append("</div>");
+		if (report.exitEnabled)
+		{
+			// estornos e multas dos cancelamentos confirmados (regras de saída, item 5)
+			html.append("<div class=\"fsr-cap\" style=\"margin-bottom:8px\">").append(esc(label("cancel.exit"))).append("</div>")
+					.append("<div class=\"fsr-cx-tiles\" style=\"grid-template-columns:repeat(2,minmax(0,1fr))\">");
+			exitTile(html, report.refundTotal, report.refundCount, report.refundMonth, label("cancel.refunds"));
+			exitTile(html, report.fineTotal, report.fineCount, report.fineMonth, label("cancel.fines"));
+			html.append("</div>");
+		}
+		html.append("<div class=\"fsr-cap\" style=\"margin-bottom:8px\">").append(esc(label("cancel.byReason")))
 				.append("</div><div class=\"fsr-rs\">");
 		int max = 1;
 		for (final Integer count : report.cancelReasons.values())
@@ -836,6 +846,7 @@ public class SocioReportHtml
 				.append("</div><table class=\"fsr-t fsr-tl\"><thead><tr><th>").append(esc(label("cancel.date"))).append("</th><th>")
 				.append(esc(label("cancel.member"))).append("</th><th>").append(esc(label("cancel.plan"))).append("</th><th>")
 				.append(esc(label("cancel.reason"))).append("</th><th>").append(esc(label("cancel.comment"))).append("</th><th>")
+				.append(report.exitEnabled ? esc(label("cancel.value")) + "</th><th>" : "")
 				.append(esc(label("cancel.status"))).append("</th></tr></thead><tbody>");
 		final DateTimeFormatter day = DateTimeFormatter.ofPattern(portuguese ? "dd/MM/yyyy HH:mm" : "MMM d, h:mm a", locale);
 		for (final SocioReport.Cancellation c : report.cancellations)
@@ -845,11 +856,39 @@ public class SocioReportHtml
 					.append("<span class=\"fsr-who\">").append(esc(fmt("cancel.ticket", c.ticketId))).append("</span></td><td>")
 					.append(esc(c.customerName)).append("<span class=\"fsr-who\">").append(esc(c.customerUid)).append("</span></td><td>")
 					.append(esc(c.plan)).append("</td><td>").append(esc(reasonLabel(c.reasonKey, c.reason))).append("</td><td class=\"fsr-wrap\">")
-					.append(esc(c.comment == null ? "—" : c.comment)).append("</td><td><span class=\"fsr-pill ")
+					.append(esc(c.comment == null ? "—" : c.comment)).append("</td><td>")
+					.append(report.exitEnabled ? exitValue(c) + "</td><td>" : "").append("<span class=\"fsr-pill ")
 					.append(c.open ? "open" : "closed").append("\">").append(esc(label(c.open ? "cancel.statusOpen" : "cancel.statusClosed")))
 					.append("</span></td></tr>");
 		}
 		html.append("</tbody></table></div></div></section></div>");
+	}
+
+	/** Reembolso ou multa do pedido: "Reembolso R$ 67,10" / "Multa R$ 60,39 (previsto)" / "—" */
+	protected String exitValue(final SocioReport.Cancellation c)
+	{
+		final String text;
+		if (c.refund != null)
+		{
+			text = fmt("cancel.refund", money(c.refund.doubleValue()));
+		}
+		else if (c.fine != null)
+		{
+			text = c.fine.doubleValue() > 0 ? fmt("cancel.fine", money(c.fine.doubleValue())) : label("cancel.noFine");
+		}
+		else
+		{
+			return "—";
+		}
+		return "<span class=\"fsr-nw\">" + esc(text) + "</span>"
+				+ (c.estimated ? "<span class=\"fsr-who\">" + esc(label("cancel.estimated")) + "</span>" : "");
+	}
+
+	protected void exitTile(final StringBuilder html, final double total, final int count, final double month, final String caption)
+	{
+		html.append("<div class=\"fsr-tile sm\"><div class=\"fsr-v\">").append(esc(money(total)))
+				.append("</div><div class=\"fsr-l\"><span class=\"fsr-cap\">").append(esc(caption)).append("</span><span class=\"fsr-cap\">")
+				.append(esc(fmt("cancel.exitCount", integer.format(count), money(month)))).append("</span></div></div>");
 	}
 
 	protected void cancelTile(final StringBuilder html, final int value, final String caption)

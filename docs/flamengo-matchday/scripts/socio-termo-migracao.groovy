@@ -42,6 +42,9 @@ def textoEn = [
 	'Cancellation: members can ask to cancel at any time in My membership; the plan ends when customer service confirms the request.',
 	'Personal data: member and guest data are used to manage the program and stadium access, in line with the LGPD.',
 ]
+// v2026.11: regras de saída (item 5) no parágrafo de cancelamento (socio-saida-termo.groovy aplica o mesmo texto)
+def cancelamento11Pt = 'Cancelamento: o sócio pode pedir o cancelamento a qualquer momento em Meu sócio-torcedor; o plano é encerrado quando o atendimento confirma o pedido. Até 7 dias corridos depois da adesão (direito de arrependimento), o valor pago na adesão é devolvido integralmente. Depois desse prazo, é cobrada multa de 10% sobre as mensalidades restantes do contrato de 12 meses (plano e convidados). Vale a data do pedido de cancelamento.'
+def cancelamento11En = 'Cancellation: members can ask to cancel at any time in My membership; the plan ends when customer service confirms the request. Within 7 calendar days of joining (cooling-off period), the amount paid at sign-up is refunded in full. After that, a fee of 10% of the remaining monthly fees of the 12-month contract (plan and guests) applies. The date of the cancellation request counts.'
 def biometriaPt = 'Biometria facial: a partir de 1º de janeiro de 2027, o acesso ao Maracanã exige a biometria facial validada do sócio e de cada convidado.'
 def biometriaEn = 'Face biometrics: from January 1st, 2027, access to the Maracanã requires validated face biometrics for the member and each guest.'
 
@@ -66,9 +69,11 @@ def versao = { String code, String tituloPt, String tituloEn, List pt, List en, 
 def outubro = new java.text.SimpleDateFormat('yyyy-MM-dd HH:mm z').parse('2026-10-01 00:00 BRT')
 def v10 = versao('v2026.10', 'Termo de Adesão ao Programa Nação', 'Nação Program Membership Terms', textoPt, textoEn,
 		'Primeira versão do Termo do Nação.', 'First version of the Nação terms.', outubro)
-versao('v2026.11', 'Termo de Adesão ao Programa Nação', 'Nação Program Membership Terms', textoPt + [biometriaPt], textoEn + [biometriaEn],
-		'Nova regra: biometria facial obrigatória para entrar no Maracanã a partir de 2027 (sócio e convidados).',
-		'New rule: face biometrics required to enter the Maracanã from 2027 (member and guests).', null)
+versao('v2026.11', 'Termo de Adesão ao Programa Nação', 'Nação Program Membership Terms',
+		textoPt.collect { it.startsWith('Cancelamento:') ? cancelamento11Pt : it } + [biometriaPt],
+		textoEn.collect { it.startsWith('Cancellation:') ? cancelamento11En : it } + [biometriaEn],
+		'Novas regras: biometria facial obrigatória no Maracanã a partir de 2027 (sócio e convidados) e regras de saída (arrependimento em 7 dias com reembolso; depois, multa de 10% das mensalidades restantes).',
+		'New rules: face biometrics required at the Maracanã from 2027 (member and guests) and exit rules (7-day cooling-off with refund; after that, a 10% fee on the remaining monthly fees).', null)
 
 // sócios atuais (plano comprado) sem aceite da v2026.10
 def socios = [:]

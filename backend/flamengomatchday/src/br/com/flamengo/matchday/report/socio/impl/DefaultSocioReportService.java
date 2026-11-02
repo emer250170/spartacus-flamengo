@@ -1,9 +1,13 @@
 package br.com.flamengo.matchday.report.socio.impl;
 
+import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.enums.SocioPlanStatus;
+import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.report.socio.SocioReport;
 import br.com.flamengo.matchday.report.socio.SocioReportService;
+import br.com.flamengo.matchday.socio.SocioExitQuote;
+import br.com.flamengo.matchday.socio.SocioExitService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
 import de.hybris.platform.core.enums.OrderStatus;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
@@ -85,6 +89,7 @@ public class DefaultSocioReportService implements SocioReportService
 	private FlexibleSearchService flexibleSearchService;
 	private SessionService sessionService;
 	private SearchRestrictionService searchRestrictionService;
+	private SocioExitService socioExitService;
 
 	@Override
 	public SocioReport getReport(final Date now, final Locale locale)
@@ -397,6 +402,7 @@ public class DefaultSocioReportService implements SocioReportService
 				c.customerUid = (String) row.get(4);
 				c.customerName = StringUtils.defaultIfBlank((String) row.get(5), c.customerUid);
 				readCancelMessage(c);
+				exitValue(c);
 
 				report.cancelTotal++;
 				if (c.open)
@@ -416,10 +422,93 @@ public class DefaultSocioReportService implements SocioReportService
 			}
 			reasons.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue().intValue(), a.getValue().intValue()))
 					.forEach(e -> report.cancelReasons.put(e.getKey(), e.getValue()));
+			addExitTotals(report, monthStart);
 		}
 		catch (final RuntimeException e)
 		{
 			LOG.warn("Relatório do sócio: não foi possível ler os pedidos de cancelamento: {}", e.getMessage());
+		}
+	}
+
+	// ------------------------------------------------------------ estornos e multas (item 5)
+
+	protected boolean exitEnabled()
+	{
+		return socioExitService != null && socioExitService.isEnabled();
+	}
+
+	/**
+	 * Valor da saída de um pedido de cancelamento: o gravado no evento de
+	 * cancelamento (chamado fechado) ou a simulação na data do pedido (aberto).
+	 */
+	protected void exitValue(final SocioReport.Cancellation c)
+	{
+		if (!exitEnabled() || c.customerUid == null)
+		{
+			return;
+		}
+		try
+		{
+			if (c.open)
+			{
+				final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {Customer} WHERE {uid}=?u");
+				q.addQueryParameter("u", c.customerUid);
+				final List<CustomerModel> customers = flexibleSearchService.<CustomerModel> search(q).getResult();
+				final SocioExitQuote quote = customers.isEmpty() ? null : socioExitService.quote(customers.get(0), c.created);
+				if (quote != null)
+				{
+					c.estimated = true;
+					c.refund = quote.withinWithdrawal ? Double.valueOf(quote.refund) : null;
+					c.fine = quote.withinWithdrawal ? null : Double.valueOf(quote.fine);
+				}
+				return;
+			}
+			final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {e.pk} FROM {SocioEvent AS e JOIN Customer AS u ON {e.customer}={u.pk}}"
+					+ " WHERE {u.uid}=?u AND {e.type}=?t AND {e.date}>=?d ORDER BY {e.date} ASC");
+			q.addQueryParameter("u", c.customerUid);
+			q.addQueryParameter("t", SocioEventType.CANCELAMENTO);
+			q.addQueryParameter("d", c.created == null ? new Date(0) : c.created);
+			q.setCount(1);
+			final List<SocioEventModel> events = flexibleSearchService.<SocioEventModel> search(q).getResult();
+			if (!events.isEmpty())
+			{
+				c.refund = events.get(0).getRefundAmount();
+				c.fine = events.get(0).getFineAmount();
+			}
+		}
+		catch (final RuntimeException e)
+		{
+			LOG.warn("Relatório do sócio: não foi possível calcular a saída do chamado {}: {}", c.ticketId, e.getMessage());
+		}
+	}
+
+	/** Reembolsos e multas dos cancelamentos confirmados: total e no mês */
+	protected void addExitTotals(final SocioReport report, final Date monthStart)
+	{
+		report.exitEnabled = exitEnabled();
+		if (!report.exitEnabled)
+		{
+			return;
+		}
+		final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {SocioEvent} WHERE {type}=?t"
+				+ " AND ({refundAmount} IS NOT NULL OR {fineAmount} IS NOT NULL)");
+		q.addQueryParameter("t", SocioEventType.CANCELAMENTO);
+		for (final SocioEventModel event : flexibleSearchService.<SocioEventModel> search(q).getResult())
+		{
+			final Date when = event.getDate() != null ? event.getDate() : event.getCreationtime();
+			final boolean month = when != null && !when.before(monthStart);
+			if (event.getRefundAmount() != null)
+			{
+				report.refundCount++;
+				report.refundTotal += event.getRefundAmount().doubleValue();
+				report.refundMonth += month ? event.getRefundAmount().doubleValue() : 0;
+			}
+			if (event.getFineAmount() != null && event.getFineAmount().doubleValue() > 0)
+			{
+				report.fineCount++;
+				report.fineTotal += event.getFineAmount().doubleValue();
+				report.fineMonth += month ? event.getFineAmount().doubleValue() : 0;
+			}
 		}
 	}
 
@@ -442,7 +531,8 @@ public class DefaultSocioReportService implements SocioReportService
 		final List<String> lines = new ArrayList<>();
 		for (final String line : text.split("\\r?\\n"))
 		{
-			if (StringUtils.isNotBlank(line))
+			// "Simulação: ..." (regras de saída, item 5) não é comentário do sócio
+			if (StringUtils.isNotBlank(line) && !line.trim().matches("(?i)^(simula\u00e7\u00e3o|simulation)\\s*:.*"))
 			{
 				lines.add(line.trim());
 			}
@@ -689,5 +779,10 @@ public class DefaultSocioReportService implements SocioReportService
 	public void setSearchRestrictionService(final SearchRestrictionService searchRestrictionService)
 	{
 		this.searchRestrictionService = searchRestrictionService;
+	}
+
+	public void setSocioExitService(final SocioExitService socioExitService)
+	{
+		this.socioExitService = socioExitService;
 	}
 }

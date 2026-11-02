@@ -342,6 +342,15 @@
 					<description>O que o evento mudou no torcedor</description>
 					<persistence type="property"/>
 				</attribute>
+				<!-- Regras de saída (item 5): valores do cancelamento confirmado -->
+				<attribute qualifier="refundAmount" type="java.lang.Double">
+					<description>Reembolso no cancelamento dentro do prazo de arrependimento (R$)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="fineAmount" type="java.lang.Double">
+					<description>Multa no cancelamento fora do prazo de arrependimento (R$)</description>
+					<persistence type="property"/>
+				</attribute>
 			</attributes>
 			<indexes>
 				<index name="socioEventCustomer">

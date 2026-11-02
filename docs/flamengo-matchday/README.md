@@ -578,6 +578,29 @@ A adesão exige o aceite do **Termo do Nação**, e cada versão nova pede um no
 
 Deploy (PR 4a): `ant all`; Update no HAC (tipos novos e o valor novo do enum, só "Update running system" + "Localize types"); ImpEx do papel e da Integration API à parte; reiniciar antes de testar o Backoffice. A migração entra depois do PR 4b.
 
+### Regras de saída: arrependimento, multa e reembolso (item 5 do plano de evolução)
+
+O cancelamento passa a mostrar e registrar quanto o sócio recebe de volta ou paga. Desenho aprovado em 02/11: arrependimento de 7 dias com reembolso total; fora dele, multa de 10% sobre as mensalidades restantes; vale o dia do pedido de cancelamento; o texto das regras entra só na v2026.11 do Termo.
+
+| Regra | Como funciona |
+|---|---|
+| Contrato | Começa no pedido mais novo com o plano atual (o mesmo que a área do sócio usa). 12 mensalidades: a 1ª paga na compra, as outras no mesmo dia dos meses seguintes. Pagas até a data-base = meses completos + 1. |
+| Arrependimento | Pedido até 7 dias corridos depois da adesão (inclusive): **reembolso** do que foi pago na adesão (plano + convidados), sem multa. |
+| Multa | Depois do prazo: **10%** × mensalidades restantes × mensalidade (plano + convidados). Ex.: Maraca 3 (R$ 67,10) pedido no 3º mês → 9 × 67,10 × 10% = R$ 60,39. No último mês, sem multa. |
+| Data-base | A abertura do chamado "Cancelamento do plano…": o valor mostrado na loja ao pedir é o que vale quando o atendimento confirma. Sem pedido aberto, a simulação é com a data de hoje. |
+| Registro | Ao fechar o chamado (`SocioCancelTicketInterceptor`), o evento **Cancelamento** ganha `refundAmount` ou `fineAmount` e o resultado diz o valor ("…; reembolso de R$ 67,10 (arrependimento até 09/11/2026)"). |
+| Chave | `flamengo.socio.saida.ativo` (true); `flamengo.socio.saida.arrependimento.dias` (7) e `flamengo.socio.saida.multa.percentual` (10). false = cancelamento como antes, sem valores. |
+
+| Parte | Como funciona |
+|---|---|
+| Tipo | `SocioEvent` ganha `refundAmount` e `fineAmount` (R$), só no evento de cancelamento confirmado. Nada é renomeado. |
+| API de comércio | `GET /{baseSiteId}/users/current/socioexit`: simulação (prazo e último dia, dentro/fora, mensalidades pagas e restantes, mensalidade, pago na adesão, reembolso, multa, resumo em uma linha, chamado aberto) e `settlement` com o valor do último cancelamento confirmado. Chave desligada: `{"enabled": false}`. |
+| Loja (PR 5b) | Painel de cancelamento em Meu sócio-torcedor mostra a simulação antes de confirmar e a manda na mensagem do chamado ("Simulação: …"); com o pedido aberto, mostra o valor previsto; o ex-sócio vê o valor confirmado. |
+| Backoffice | Ficha do sócio: campo **Se cancelar hoje** / **Saída (pedido de …)** / **Saída confirmada** com reembolso (verde) ou multa (laranja). "Confirmar cancelamento" responde com o valor. Evento do sócio mostra Reembolso e Multa. Relatório do sócio: quadro **Estornos e multas** (total, quantidade e mês) e coluna Reembolso / multa nos últimos pedidos (previsto enquanto o pedido está aberto). |
+| Termo | `scripts/socio-saida-termo.groovy`: troca o parágrafo de cancelamento da v2026.11 (rascunho) pelo que traz prazo e multa e atualiza o "O que mudou". Não altera versão publicada. |
+
+Deploy (PR 5a): `ant all`; Update no HAC (atributos novos de `SocioEvent`, só "Update running system" + "Localize types"); reiniciar antes de testar o Backoffice (Reset to Defaults para ver os campos novos do evento); rodar `socio-saida-termo.groovy` (conferir, depois aplicar).
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

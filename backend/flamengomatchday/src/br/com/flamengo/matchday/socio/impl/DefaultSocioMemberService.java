@@ -7,6 +7,8 @@ import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
 import br.com.flamengo.matchday.socio.SocioEligibilityService;
+import br.com.flamengo.matchday.socio.SocioExitQuote;
+import br.com.flamengo.matchday.socio.SocioExitService;
 import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.socio.SocioGuestTicket;
 import br.com.flamengo.matchday.socio.SocioTermService;
@@ -72,6 +74,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private SocioEligibilityService socioEligibilityService;
 	private SocioGuestService socioGuestService;
 	private SocioTermService socioTermService;
+	private SocioExitService socioExitService;
 
 	// ------------------------------------------------------------ leitura
 
@@ -237,6 +240,12 @@ public class DefaultSocioMemberService implements SocioMemberService
 			m.termAcceptedAt = term.acceptedAt;
 			m.termAcceptedOrigin = term.acceptedOrigin;
 			m.termAcceptedOrder = term.acceptedOrder;
+		}
+		if (socioExitService != null && socioExitService.isEnabled())
+		{
+			m.exit = status == SocioMember.Status.INACTIVE ? socioExitService.lastSettlement(customer)
+					: socioExitService.currentQuote(customer);
+			m.exitSummary = socioExitService.describe(m.exit);
 		}
 		if (socioGuestService != null)
 		{
@@ -497,8 +506,12 @@ public class DefaultSocioMemberService implements SocioMemberService
 		final SocioPlanModel plan = socioPlanService.memberPlan(customer);
 		modelService.setAttributeValue(ticket, "state", (Object) enumerationService.getEnumerationValue("CsTicketState", "Closed"));
 		modelService.save(ticket);
+		final SocioExitQuote exit = socioExitService != null && socioExitService.isEnabled()
+				? socioExitService.lastSettlement(customer)
+				: null;
 		return "Cancelamento confirmado: " + customer.getName() + " deixou de ser sócio"
-				+ (plan == null ? "" : " do " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())) + ".";
+				+ (plan == null ? "" : " do " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode()))
+				+ (exit == null ? "" : ". " + socioExitService.describe(exit)) + ".";
 	}
 
 	@Override
@@ -632,5 +645,10 @@ public class DefaultSocioMemberService implements SocioMemberService
 	public void setSocioGuestService(final SocioGuestService socioGuestService)
 	{
 		this.socioGuestService = socioGuestService;
+	}
+
+	public void setSocioExitService(final SocioExitService socioExitService)
+	{
+		this.socioExitService = socioExitService;
 	}
 }

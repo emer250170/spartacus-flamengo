@@ -1,5 +1,6 @@
 package br.com.flamengo.matchday.backoffice.widgets.sociomembers;
 
+import br.com.flamengo.matchday.socio.SocioExitQuote;
 import br.com.flamengo.matchday.socio.SocioMember;
 
 import java.text.MessageFormat;
@@ -84,6 +85,10 @@ public class SocioMemberHtml
 		if (m.openCancelTicket != null)
 		{
 			field(h, l("detail.cancelTicket"), esc(m.openCancelTicket));
+		}
+		if (m.exit != null)
+		{
+			field(h, exitLabel(), exitValue());
 		}
 		return h.append("</div></div>").toString();
 	}
@@ -266,6 +271,45 @@ public class SocioMemberHtml
 		}
 		return "<span style=\"color:#b45309;font-weight:600\">" + esc(MessageFormat.format(l("detail.term.pending"), m.termVersion))
 				+ "</span>" + (last.isEmpty() ? "" : "<br><span style=\"color:#6a7d8f;font-size:11px\">" + esc(last) + "</span>");
+	}
+
+	/** Regras de saída: "Se cancelar hoje", "Saída (pedido de 02/11/2026)" ou "Saída confirmada" */
+	protected String exitLabel()
+	{
+		final SocioExitQuote q = m.exit;
+		if (q.confirmed)
+		{
+			return l("detail.exit.done");
+		}
+		return q.openTicket != null ? MessageFormat.format(l("detail.exit.request"), date(q.basis)) : l("detail.exit.now");
+	}
+
+	/** Reembolso (verde) ou multa (laranja), com a regra que levou ao valor */
+	protected String exitValue()
+	{
+		final SocioExitQuote q = m.exit;
+		final String text;
+		if (q.withinWithdrawal)
+		{
+			text = q.confirmed ? MessageFormat.format(l("detail.exit.refundDone"), money.format(q.refund))
+					: MessageFormat.format(l("detail.exit.refund"), money.format(q.refund), date(q.withdrawalUntil));
+		}
+		else if (q.fine <= 0)
+		{
+			text = l("detail.exit.noFine");
+		}
+		else
+		{
+			text = q.confirmed ? MessageFormat.format(l("detail.exit.fineDone"), money.format(q.fine))
+					: MessageFormat.format(l("detail.exit.fine"), money.format(q.fine), percent(q.finePercent),
+							String.valueOf(q.remainingInstallments), money.format(q.monthly));
+		}
+		return "<span style=\"color:" + (q.withinWithdrawal ? "#107e3e" : "#b45309") + ";font-weight:600\">" + esc(text) + "</span>";
+	}
+
+	protected static String percent(final double value)
+	{
+		return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
 	}
 
 	protected static String eventColor(final String type)
