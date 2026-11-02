@@ -864,7 +864,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
             // um ingresso por jornada: sai do carrinho qualquer outra poltrona
             // do mesmo jogo (a anterior, uma retomada do carrinho depois do
             // login ou sobra de outra visita), não só a que a jornada segurava
-            entries
+            const stale = entries
               .filter((e) => {
                 const c = e.product?.code;
                 return (
@@ -875,10 +875,23 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
                 );
               })
               // da última linha para a primeira: tirar uma renumera as seguintes
-              .sort((a, b) => (b.entryNumber ?? 0) - (a.entryNumber ?? 0))
-              .forEach((e) => this.activeCart.removeEntry(e));
-            this.activeCart.addEntry(code, 1);
-            return this.cartSettled();
+              .sort((a, b) => (b.entryNumber ?? 0) - (a.entryNumber ?? 0));
+            // uma alteração por vez no carrinho: tirar e pôr ao mesmo tempo fazia
+            // o SAP Commerce recusar a poltrona nova (ModelSavingError /
+            // JaloObjectNoLongerValidError), e a jornada mostrava "reservada por
+            // outra pessoa" ao voltar para a poltrona anterior
+            return concat(
+              ...stale.map((e) =>
+                defer(() => {
+                  this.activeCart.removeEntry(e);
+                  return this.cartSettled();
+                })
+              ),
+              defer(() => {
+                this.activeCart.addEntry(code, 1);
+                return this.cartSettled();
+              })
+            ).pipe(last(undefined, undefined));
           }),
           switchMap(() => this.activeCart.getEntries().pipe(take(1)))
         )
