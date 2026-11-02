@@ -28,6 +28,8 @@
 			<!-- Pix e boleto (item 7): pedido aguardando pagamento e a confirmação -->
 			<value code="AGUARDANDO_PAGAMENTO"/>
 			<value code="PAGAMENTO_CONFIRMADO"/>
+			<!-- Pontos (item 8): resgate de experiência com pontos -->
+			<value code="RESGATE_PONTOS"/>
 		</enumtype>
 		<enumtype code="SocioPaymentMethod" autocreate="true" generate="true" dynamic="false">
 			<description>Forma de pagamento do plano de sócio-torcedor no checkout (item 7)</description>
@@ -741,6 +743,118 @@
 			<indexes>
 				<index name="socioContractCustomer" unique="true">
 					<key attribute="customer"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<!--
+			Pontos e experiências (item 8 do plano de evolução): vitrine de experiências
+			que o sócio resgata com pontos. O gestor cadastra no Backoffice (Sócio-Torcedor ›
+			Experiências). Saldo = pontos ganhos nos pedidos desde a adesão (ingressos e
+			produtos) menos os resgates não cancelados; nada de saldo gravado.
+		-->
+		<itemtype code="SocioExperience" extends="GenericItem" autocreate="true" generate="true">
+			<description>Experiência resgatável com pontos do sócio-torcedor</description>
+			<deployment table="socioexperiences" typecode="25910"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código da experiência</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="name" type="localized:java.lang.String">
+					<description>Nome na vitrine</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="description" type="localized:java.lang.String">
+					<description>O que o sócio ganha e como usa</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="points" type="java.lang.Integer">
+					<description>Pontos para resgatar</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="stock" type="java.lang.Integer">
+					<description>Quantidade total (vazio = sem limite); resgates cancelados voltam</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="minPlan" type="SocioPlan">
+					<description>Plano mínimo pela mensalidade (vazio = qualquer plano)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="active" type="java.lang.Boolean">
+					<description>Aparece na vitrine</description>
+					<defaultvalue>Boolean.TRUE</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="sortOrder" type="java.lang.Integer">
+					<description>Ordem na vitrine</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioExperienceCode" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<!--
+			Resgate de experiência com pontos (item 8): na loja (área do sócio) ou pelo
+			Claude. Gera um voucher e um evento na linha do tempo. O gestor cancela
+			preenchendo "Cancelado em": os pontos e a vaga voltam.
+		-->
+		<itemtype code="SocioRedemption" extends="GenericItem" autocreate="true" generate="true">
+			<description>Resgate de experiência com pontos</description>
+			<deployment table="socioredemptions" typecode="25911"/>
+			<attributes>
+				<attribute qualifier="voucher" type="java.lang.String">
+					<description>Código do voucher (apresentado para usar a experiência)</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="customer" type="Customer">
+					<description>Torcedor</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="experience" type="SocioExperience">
+					<description>Experiência resgatada</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="points" type="java.lang.Integer">
+					<description>Pontos usados</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="date" type="java.util.Date">
+					<description>Quando resgatou</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="plan" type="SocioPlan">
+					<description>Plano do sócio no resgate</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="origin" type="java.lang.String">
+					<description>Onde resgatou: Loja ou Claude</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cancelledAt" type="java.util.Date">
+					<description>Cancelado em (vazio = válido); pontos e vaga voltam</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioRedemptionCustomer">
+					<key attribute="customer"/>
+				</index>
+				<index name="socioRedemptionVoucher" unique="true">
+					<key attribute="voucher"/>
 				</index>
 			</indexes>
 		</itemtype>

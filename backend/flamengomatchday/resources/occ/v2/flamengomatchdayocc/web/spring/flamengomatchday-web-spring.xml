@@ -41,4 +41,10 @@
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 	</bean>
 
+	<!-- Pontos e experiências (item 8): /users/current/sociopoints (+ /redemptions) -->
+	<bean id="flamengoSocioPointsController" class="br.com.flamengo.matchday.occ.SocioPointsController">
+		<property name="socioPointsService" ref="socioPointsService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 </beans>

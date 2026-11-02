@@ -103,6 +103,10 @@ public class SocioMemberHtml
 		{
 			field(h, l("detail.payment"), paymentValue());
 		}
+		if (m.points != null && m.points.member)
+		{
+			field(h, l("detail.points"), pointsValue());
+		}
 		return h.append("</div></div>").toString();
 	}
 
@@ -115,6 +119,15 @@ public class SocioMemberHtml
 				: MessageFormat.format(l("detail.payment.order"), p.orderCode);
 		return "<span style=\"color:" + color + ";font-weight:600\">" + esc(p.summary) + "</span><br><span style=\"color:#6a7d8f;font-size:11px\">"
 				+ esc(sub) + "</span>";
+	}
+
+	/** Pontos (item 8): saldo em destaque, ganhos e resgatados embaixo */
+	protected String pointsValue()
+	{
+		final br.com.flamengo.matchday.socio.SocioPoints p = m.points;
+		return "<b style=\"color:#0a6ed1\">" + esc(MessageFormat.format(l("detail.points.balance"), number(p.balance)))
+				+ "</b><br><span style=\"color:#6a7d8f;font-size:11px\">"
+				+ esc(MessageFormat.format(l("detail.points.sub"), number(p.earned), number(p.redeemed))) + "</span>";
 	}
 
 	/** Linha do tempo, pedidos do plano e chamados */
@@ -195,6 +208,11 @@ public class SocioMemberHtml
 		}
 		h.append("</div>");
 
+		if (m.points != null && m.points.member)
+		{
+			appendPoints(h);
+		}
+
 		h.append(section(l("history.orders")));
 		if (m.orders.isEmpty())
 		{
@@ -229,6 +247,52 @@ public class SocioMemberHtml
 			h.append("</table></div>");
 		}
 		return h.append("</div>").toString();
+	}
+
+	/** Pontos e resgates (item 8): de onde vieram os pontos e os vouchers */
+	protected void appendPoints(final StringBuilder h)
+	{
+		final br.com.flamengo.matchday.socio.SocioPoints p = m.points;
+		h.append(section(l("history.points")));
+		h.append("<div style=\"color:#556b82;margin-bottom:6px\">")
+				.append(esc(MessageFormat.format(l("history.points.rule"), number(p.perTicket), number(p.perReal), date(p.since),
+						number(p.bonus))))
+				.append("<br/>")
+				.append(esc(MessageFormat.format(l("history.points.earned"), number(p.earned),
+						Long.valueOf(p.earnings.stream().filter(e -> e.orderCode != null).count()),
+						Integer.valueOf(p.tickets), money.format(p.productsAmount))));
+		if (!p.canRedeem && p.reason != null)
+		{
+			h.append("<br/><span style=\"color:#b45309\">").append(esc(p.reason)).append("</span>");
+		}
+		h.append("</div>");
+		if (p.redemptions.isEmpty())
+		{
+			h.append(empty(l("history.points.empty")));
+		}
+		else
+		{
+			h.append(tableStart(l("history.date"), l("history.points.experience"), l("history.points.points"),
+					l("history.points.voucher"), l("history.origin"), l("history.state")));
+			for (final br.com.flamengo.matchday.socio.SocioPoints.Redemption r : p.redemptions)
+			{
+				final String state = r.cancelledAt == null
+						? "<b style=\"color:#107e3e\">" + esc(l("redemption.valid")) + "</b>"
+						: "<span style=\"color:#6a7d8f\">" + esc(MessageFormat.format(l("redemption.cancelled"), date(r.cancelledAt)))
+								+ "</span>";
+				h.append("<tr>").append(td(dateTime(r.date), "white-space:nowrap")).append(td(esc(r.experienceName), ""))
+						.append(td(esc(number(r.points)), "white-space:nowrap"))
+						.append(td("<code>" + esc(r.voucher) + "</code>", "white-space:nowrap")).append(td(esc(r.origin), ""))
+						.append(td(state, "white-space:nowrap")).append("</tr>");
+			}
+			h.append("</table></div>");
+		}
+		h.append("</div>");
+	}
+
+	protected static String number(final int value)
+	{
+		return String.format(new Locale("pt", "BR"), "%,d", Integer.valueOf(value));
 	}
 
 	// ------------------------------------------------------------ apoio
@@ -380,6 +444,10 @@ public class SocioMemberHtml
 		if ("REGULARIZACAO".equals(type) || "ADESAO".equals(type) || "RENOVACAO".equals(type) || "PAGAMENTO_CONFIRMADO".equals(type))
 		{
 			return "#107e3e";
+		}
+		if ("RESGATE_PONTOS".equals(type))
+		{
+			return "#0a6ed1";
 		}
 		if ("CANCELAMENTO".equals(type) || "FIM_VIGENCIA".equals(type))
 		{

@@ -278,6 +278,8 @@
 				<explorer-tree:type-node id="socio.tree.terms" code="SocioTermVersion"/>
 				<explorer-tree:type-node id="socio.tree.termAcceptances" code="SocioTermAcceptance"/>
 				<explorer-tree:type-node id="socio.tree.contracts" code="SocioContract"/>
+				<explorer-tree:type-node id="socio.tree.experiences" code="SocioExperience"/>
+				<explorer-tree:type-node id="socio.tree.redemptions" code="SocioRedemption"/>
 				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -867,6 +869,121 @@
 					<editorArea:attribute qualifier="origin" readonly="true"/>
 					<editorArea:attribute qualifier="renewals" readonly="true"/>
 					<editorArea:attribute qualifier="endedAt" readonly="true"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- ============ Pontos e experiências (item 8) ============ -->
+	<!-- Experiências: o gestor cadastra a vitrine. Resgates: só leitura, menos "Cancelado em" (devolve pontos e vaga) -->
+
+	<context merge-by="type" parent="GenericItem" type="SocioExperience" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>code</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioExperience" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="sortOrder"/>
+			<list-view:column qualifier="code"/>
+			<list-view:column qualifier="name"/>
+			<list-view:column qualifier="points"/>
+			<list-view:column qualifier="stock"/>
+			<list-view:column qualifier="minPlan"/>
+			<list-view:column qualifier="active"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioExperience" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="code" selected="true"/>
+				<advanced-search:field name="active" selected="true"/>
+				<advanced-search:field name="minPlan" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="sortOrder" asc="true"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<context type="SocioExperience" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.experience.editor.essentials">
+					<editorArea:attribute qualifier="code"/>
+					<editorArea:attribute qualifier="name"/>
+					<editorArea:attribute qualifier="points"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.experience.editor.tab">
+				<editorArea:section name="socio.experience.editor.showcase">
+					<editorArea:attribute qualifier="description" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>5</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="active"/>
+					<editorArea:attribute qualifier="sortOrder"/>
+				</editorArea:section>
+				<editorArea:section name="socio.experience.editor.rules">
+					<editorArea:attribute qualifier="stock"/>
+					<editorArea:attribute qualifier="minPlan"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioRedemption" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>voucher + ' - ' + customer.uid</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioRedemption" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="date"/>
+			<list-view:column qualifier="customer"/>
+			<list-view:column qualifier="experience"/>
+			<list-view:column qualifier="points"/>
+			<list-view:column qualifier="voucher"/>
+			<list-view:column qualifier="origin"/>
+			<list-view:column qualifier="cancelledAt"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioRedemption" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="customer" selected="true"/>
+				<advanced-search:field name="experience" selected="true"/>
+				<advanced-search:field name="voucher" selected="true"/>
+				<advanced-search:field name="origin" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="date" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<context type="SocioRedemption" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.redemption.editor.essentials">
+					<editorArea:attribute qualifier="voucher" readonly="true"/>
+					<editorArea:attribute qualifier="customer" readonly="true"/>
+					<editorArea:attribute qualifier="experience" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.redemption.editor.tab">
+				<editorArea:section name="socio.redemption.editor.details">
+					<editorArea:attribute qualifier="points" readonly="true"/>
+					<editorArea:attribute qualifier="date" readonly="true"/>
+					<editorArea:attribute qualifier="plan" readonly="true"/>
+					<editorArea:attribute qualifier="origin" readonly="true"/>
+					<editorArea:attribute qualifier="cancelledAt"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>

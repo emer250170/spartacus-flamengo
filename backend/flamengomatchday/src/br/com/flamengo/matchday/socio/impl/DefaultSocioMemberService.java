@@ -21,6 +21,7 @@ import br.com.flamengo.matchday.socio.SocioTermStatus;
 import br.com.flamengo.matchday.socio.SocioMember;
 import br.com.flamengo.matchday.socio.SocioMemberService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
+import br.com.flamengo.matchday.socio.SocioPointsService;
 import de.hybris.platform.core.HybrisEnumValue;
 import de.hybris.platform.core.model.ItemModel;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
@@ -82,6 +83,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private SocioExitService socioExitService;
 	private SocioContractService socioContractService;
 	private SocioPaymentService socioPaymentService;
+	private SocioPointsService socioPointsService;
 
 	// ------------------------------------------------------------ leitura
 
@@ -251,6 +253,10 @@ public class DefaultSocioMemberService implements SocioMemberService
 			final OrderModel waiting = socioPaymentService.awaitingOrder(customer);
 			m.payment = waiting != null ? socioPaymentService.status(waiting)
 					: planOrders.isEmpty() ? null : socioPaymentService.status(planOrders.get(planOrders.size() - 1));
+		}
+		if (socioPointsService != null && socioPointsService.isEnabled())
+		{
+			m.points = socioPointsService.status(customer); // item 8
 		}
 		m.card = card(customer);
 		m.openCancelTicket = openTicket == null ? null : (String) modelService.getAttributeValue(openTicket, "ticketID");
@@ -734,5 +740,10 @@ public class DefaultSocioMemberService implements SocioMemberService
 	public void setSocioPaymentService(final SocioPaymentService socioPaymentService)
 	{
 		this.socioPaymentService = socioPaymentService;
+	}
+
+	public void setSocioPointsService(final SocioPointsService socioPointsService)
+	{
+		this.socioPointsService = socioPointsService;
 	}
 }
