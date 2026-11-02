@@ -538,8 +538,23 @@ function torcedorTools(cfg, http) {
         const card = cards.find((x) => x.defaultPayment) ?? cards[0];
         if (!address) throw new UserError('O torcedor não tem endereço cadastrado.');
         if (!card) throw new UserError('O torcedor não tem cartão salvo.');
-        const c = needConfirm(a, { itens: view.itens.map((i) => `${i.quantidade}x ${i.produto} (${i.total})`), total: view.total, entrega: `${address.line1 ?? ''}, ${address.town ?? ''}`, cartao: `${card.cardType?.name ?? 'Cartão'} final ${lastDigits(card.cardNumber)}` });
+        // plano no carrinho: a adesão exige o aceite do Termo do Nação (versão atual)
+        const planCodes = new Set((await plans()).map((p) => p.code));
+        const raw = await occ('GET', `/users/current/carts/${enc(id)}`, { query: { fields: 'entries(product(code))' } });
+        const hasPlan = (raw.entries ?? []).some((e) => planCodes.has(e.product?.code));
+        let term = null;
+        if (hasPlan) {
+          try {
+            const t = await occ('GET', '/users/current/socioterm');
+            if (t?.enabled && t.version) term = t;
+          } catch { /* servidor sem o Termo: segue como antes */ }
+        }
+        const c = needConfirm(a, {
+          itens: view.itens.map((i) => `${i.quantidade}x ${i.produto} (${i.total})`), total: view.total, entrega: `${address.line1 ?? ''}, ${address.town ?? ''}`, cartao: `${card.cardType?.name ?? 'Cartão'} final ${lastDigits(card.cardNumber)}`,
+          ...(term ? { termo: `Ao confirmar, o torcedor aceita o ${term.title ?? 'Termo do Nação'} ${term.version}. Texto completo em ${cfg.storeUrl}/socio-torcedor/termo` } : {}),
+        });
         if (c) return c;
+        if (term) await occ('POST', '/users/current/socioterm/acceptance', { body: { cartId: id } });
         await occ('PUT', `/users/current/carts/${enc(id)}/addresses/delivery`, { query: { addressId: address.id } });
         const modes = (await occ('GET', `/users/current/carts/${enc(id)}/deliverymodes`, { query: { fields: 'deliveryModes(code,deliveryCost(value))' } })).deliveryModes ?? [];
         if (modes.length) {
@@ -763,6 +778,18 @@ function socioTools(cfg, http) {
     return out;
   }
 
+  /** Versões do Termo do Nação e aceites (FlamengoTermo) */
+  async function termAcceptances() {
+    const as = results(await odata('GET', '/FlamengoTermo/SocioTermAcceptances', { query: { $expand: 'customer,termVersion,plan', $top: 1000 } }));
+    return as.map((x) => ({ uid: x.customer?.uid, nome: x.customer?.name, versao: x.termVersion?.version, data: toDate(x.date), origem: x.origin, pedido: x.orderCode ?? null, plano: x.plan?.name ?? x.plan?.code ?? null }));
+  }
+
+  async function termVersions() {
+    const vs = results(await odata('GET', '/FlamengoTermo/SocioTermVersions', { query: { $top: 100 } }));
+    return vs.map((v) => ({ versao: v.version, publicadoEm: toDate(v.publishedAt), mudou: v.summary ?? null }))
+      .sort((x, y) => (y.publicadoEm?.getTime() ?? 0) - (x.publicadoEm?.getTime() ?? 0));
+  }
+
   const showTicket = (t) => ({ ...t, aberto: fmtDate(t.aberto), atualizado: fmtDate(t.atualizado), situacao: t.situacao === 'Closed' ? 'Fechado' : t.situacao === 'Open' ? 'Em atendimento' : 'Novo' });
 
   async function orders() {
@@ -901,6 +928,44 @@ function socioTools(cfg, http) {
           resumo: !ingressos.length
             ? 'Nenhum ingresso encontrado com esse filtro.'
             : `${ingressos.length} ingresso(s); para convidados: ${ingressos.filter((t) => t.convidado).map((t) => `${t.quemVai} (${t.poltrona})`).join(', ') || 'nenhum'}.`,
+        };
+      },
+    },
+    {
+      name: 'termo_aceites',
+      description: 'Termo do Nação (termo de adesão versionado): versão atual e rascunhos, quem já aceitou a versão atual (onde e quando) e quais sócios ainda não aceitaram. Com e-mail, mostra o histórico de aceites de um torcedor.',
+      inputSchema: obj({ email: S.str('E-mail do torcedor (opcional)'), plano: S.str('Código do plano para filtrar os sócios (opcional)') }),
+      handler: async ({ email, plano }) => {
+        const versions = await termVersions();
+        const now = Date.now();
+        const current = versions.find((v) => v.publicadoEm && v.publicadoEm.getTime() <= now);
+        const drafts = versions.filter((v) => !v.publicadoEm || v.publicadoEm.getTime() > now).map((v) => v.versao);
+        const accepts = await termAcceptances();
+        const fmt = (x) => ({ ...x, data: fmtDate(x.data) });
+        if (email) {
+          const c = await customer(email);
+          const mine = accepts.filter((x) => x.uid === c.uid).sort((x, y) => (y.data?.getTime() ?? 0) - (x.data?.getTime() ?? 0));
+          return {
+            torcedor: c.uid, versaoAtual: current?.versao ?? null,
+            aceitouAVersaoAtual: !!current && mine.some((x) => x.versao === current.versao),
+            aceites: mine.map(({ uid, nome, ...x }) => fmt(x)),
+          };
+        }
+        if (!current) return { versaoAtual: null, rascunhos: drafts, resumo: 'Nenhuma versão do Termo publicada.' };
+        let plansList = await planList();
+        if (plano) plansList = plansList.filter((p) => p.code === plano);
+        const members = new Map();
+        for (const p of plansList) for (const uid of p._members) if (!members.has(uid)) members.set(uid, p.nome);
+        const accepted = new Map(accepts.filter((x) => x.versao === current.versao).map((x) => [x.uid, x]));
+        const pending = [...members].filter(([uid]) => !accepted.has(uid)).map(([uid, p]) => ({ email: uid, plano: p }));
+        const done = [...members].filter(([uid]) => accepted.has(uid)).map(([uid]) => accepted.get(uid))
+          .sort((x, y) => (y.data?.getTime() ?? 0) - (x.data?.getTime() ?? 0)).map(fmt);
+        return {
+          versaoAtual: current.versao, publicadaEm: fmtDate(current.publicadoEm), oQueMudou: current.mudou, rascunhos: drafts,
+          socios: members.size, aceitaram: done.length, pendentes: pending.length,
+          pendentesLista: pending.slice(0, 100),
+          aceitesRecentes: done.slice(0, 30).map(({ uid, ...x }) => ({ email: uid, ...x })),
+          resumo: pending.length ? `${pending.length} de ${members.size} sócio(s) ainda não aceitaram o Termo ${current.versao}.` : `Todos os ${members.size} sócio(s) aceitaram o Termo ${current.versao}.`,
         };
       },
     },

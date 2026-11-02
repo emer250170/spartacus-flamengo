@@ -50,6 +50,7 @@ set FLAMENGO_PERSONA=jogos& set GESTOR_USUARIO=gestor.jogos& set GESTOR_SENHA=..
 - "O torcedor21 está com a mensalidade de outubro atrasada, suspende os benefícios" → resumo → confirmar → o selo dele vira "Benefícios suspensos", o desconto some do carrinho e a jornada pede para regularizar (`suspender_socio`). Depois: "Ele pagou, regulariza" (`regularizar_socio`) e "Mostra a linha do tempo dele" (`situacao_socio`).
 - "Por que o torcedor22 não conseguiu comprar ingresso para o Bahia?" → as tentativas dele, com a decisão, o motivo (ex.: "A venda geral deste jogo abre em 05/11…") e as condições conferidas (`elegibilidade_torcedor`). Sem e-mail: "Quem tentou comprar e não conseguiu hoje?"
 - "Quem vai com o torcedor23 no jogo do Bahia?" → convidados nominais do sócio (CPF mascarado) e quem vai em cada poltrona dos pedidos (`convidados_torcedor`, objeto `FlamengoConvidado` + `ticketHolder` no `FlamengoPedido`). Sem e-mail: "Quais convidados têm ingresso para o Bahia?"
+- "Quem ainda não aceitou a versão nova do Termo do Nação?" → versão atual, rascunhos, sócios que aceitaram (onde e quando) e os pendentes (`termo_aceites`, objeto `FlamengoTermo`). Com e-mail: histórico de aceites do torcedor. No `finalizar_compra` do torcedor, carrinho com plano mostra o Termo no resumo e o aceite é gravado ao confirmar.
 - "Aumenta o desconto na loja do Nação Maraca 2 para 12%" → o Commerce republica as promoções sozinho.
 - "Quantas vezes o cupom mengao foi usado?"
 - Mostre o bloqueio: "Cria um jogo contra o Vasco" → ele não tem essa ferramenta nem acesso.

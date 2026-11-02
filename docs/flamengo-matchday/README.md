@@ -556,6 +556,28 @@ Cartão **Meus convidados** em Minha conta › Meu sócio-torcedor (`SocioGuests
 | API | `SocioGuestsService`: `GET`, `POST`, `DELETE /users/current/socioguests`. A recusa (`SocioGuestError`) não gera aviso global do Spartacus; a mensagem vai só para o cartão. |
 | Textos | `sg.*` em `fla-texts.ts` (pt e en). |
 
+### Termo do Nação versionado (item 4 do plano de evolução)
+
+A adesão exige o aceite do **Termo do Nação**, e cada versão nova pede um novo aceite. Desenho aprovado em 02/11: aceite na revisão do checkout (só com plano no carrinho); versão nova só gera aviso (nada é bloqueado); a v2026.10 conta como aceita por quem já era sócio (migração); o texto fica no Backoffice.
+
+| Regra | Como funciona |
+|---|---|
+| Versão atual | A última `SocioTermVersion` com **Publicado em** preenchido e não futuro. Sem "Publicado em" = rascunho. Sem versão publicada, nada muda. |
+| Adesão | Pedido com plano (`SocioPlanService.findForProduct`) só fecha com o aceite da versão atual **para aquele carrinho** (`SocioTermPlaceOrderMethodHook.beforePlaceOrder`). Recusa: "Para concluir a adesão, leia e aceite o Termo do Nação v…". |
+| Depois do pedido | O aceite ganha o número do pedido e o plano (`beforeSubmitOrder`) e vira evento **Aceite do Termo** na linha do tempo. |
+| Versão nova | O sócio aceita na área do sócio (aceite sem carrinho, origem "Área do sócio", evento na hora). Quem não aceita continua comprando; só aparece como pendente. |
+| Migração | `scripts/socio-termo-migracao.groovy`: cria a v2026.10 publicada em 01/10/2026 e a v2026.11 em rascunho; grava o aceite da v2026.10 de cada sócio atual (origem "Migração", data da adesão). Rodar **depois** de a loja com a caixa de aceite estar publicada (PR 4b): com versão publicada e a loja antiga, o checkout do plano seria recusado. |
+| Chave | `flamengo.socio.termo.ativo` (true); false = checkout e área do sócio como antes. |
+
+| Parte | Como funciona |
+|---|---|
+| Tipos | `SocioTermVersion` (versão única, título, texto e "o que mudou" em pt/en, publicado em) e `SocioTermAcceptance` (torcedor, versão, data, origem Checkout / Área do sócio / Migração, plano, carrinho, pedido). Valor novo `ACEITE_TERMO` em `SocioEventType`. |
+| API de comércio | `GET /{baseSiteId}/users/current/socioterm` (versão atual com título e texto na língua da chamada, aceitou?, último aceite) e `POST /{baseSiteId}/users/current/socioterm/acceptance` (`{"cartId"}` no checkout; sem corpo na área do sócio). Recusa: 400 `SocioTermError`. |
+| Backoffice | Sócio-Torcedor › **Termo do Nação** (versões; o gestor cria, edita e publica preenchendo "Publicado em") e **Aceites do Termo** (só leitura). Ficha do sócio: campo **Termo do Nação** ("v2026.10 aceito em 01/10/2026 (Checkout, pedido …)" ou "Pendente: versão v2026.11 ainda não aceita"). Papel `sociomanagerrole`: versões leitura/criação/alteração, aceites leitura. |
+| Claude (MCP) | Gestor do sócio: `termo_aceites` (versão atual, rascunhos, quem aceitou e quem falta; com e-mail, o histórico do torcedor). Torcedor: `finalizar_compra` com plano mostra o Termo no resumo e grava o aceite ao confirmar. Objeto `FlamengoTermo` em `mcp/integracao-gestores.impex`. |
+
+Deploy (PR 4a): `ant all`; Update no HAC (tipos novos e o valor novo do enum, só "Update running system" + "Localize types"); ImpEx do papel e da Integration API à parte; reiniciar antes de testar o Backoffice. A migração entra depois do PR 4b.
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

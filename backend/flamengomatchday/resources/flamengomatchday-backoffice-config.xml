@@ -275,6 +275,8 @@
 				<explorer-tree:type-node id="socio.tree.events" code="SocioEvent"/>
 				<explorer-tree:type-node id="socio.tree.eligibility" code="SocioEligibilityDecision"/>
 				<explorer-tree:type-node id="socio.tree.guests" code="SocioGuest"/>
+				<explorer-tree:type-node id="socio.tree.terms" code="SocioTermVersion"/>
+				<explorer-tree:type-node id="socio.tree.termAcceptances" code="SocioTermAcceptance"/>
 				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -698,6 +700,109 @@
 					<editorArea:attribute qualifier="since" readonly="true"/>
 					<editorArea:attribute qualifier="until" readonly="true"/>
 					<editorArea:attribute qualifier="endReason" readonly="true"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- ============ Termo do Nação versionado (item 4) ============ -->
+	<!-- Versões: o gestor cadastra e publica (publicado em = versão atual). Aceites: só leitura -->
+
+	<context merge-by="type" parent="GenericItem" type="SocioTermVersion" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>version</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioTermVersion" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="version"/>
+			<list-view:column qualifier="title"/>
+			<list-view:column qualifier="publishedAt"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioTermVersion" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="version" selected="true"/>
+				<advanced-search:field name="publishedAt" selected="true"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="publishedAt" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<context type="SocioTermVersion" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.term.editor.essentials">
+					<editorArea:attribute qualifier="version"/>
+					<editorArea:attribute qualifier="publishedAt"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.term.editor.tab">
+				<editorArea:section name="socio.term.editor.text">
+					<editorArea:attribute qualifier="title"/>
+					<editorArea:attribute qualifier="summary"/>
+					<editorArea:attribute qualifier="text" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>14</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioTermAcceptance" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>termVersion.version + ' - ' + customer.uid</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioTermAcceptance" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="customer"/>
+			<list-view:column qualifier="termVersion"/>
+			<list-view:column qualifier="date"/>
+			<list-view:column qualifier="origin"/>
+			<list-view:column qualifier="plan"/>
+			<list-view:column qualifier="orderCode"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioTermAcceptance" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="customer" selected="true"/>
+				<advanced-search:field name="termVersion" selected="true"/>
+				<advanced-search:field name="origin" selected="true"/>
+				<advanced-search:field name="orderCode" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="date" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<context type="SocioTermAcceptance" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.termAcceptance.editor.essentials">
+					<editorArea:attribute qualifier="customer" readonly="true"/>
+					<editorArea:attribute qualifier="termVersion" readonly="true"/>
+					<editorArea:attribute qualifier="date" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.termAcceptance.editor.tab">
+				<editorArea:section name="socio.termAcceptance.editor.where">
+					<editorArea:attribute qualifier="origin" readonly="true"/>
+					<editorArea:attribute qualifier="plan" readonly="true"/>
+					<editorArea:attribute qualifier="cartCode" readonly="true"/>
+					<editorArea:attribute qualifier="orderCode" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>

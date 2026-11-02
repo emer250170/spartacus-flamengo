@@ -15,4 +15,10 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Termo do Nação: /{baseSiteId}/users/{userId}/socioterm -->
+	<bean id="flamengoSocioTermController" class="br.com.flamengo.matchday.occ.SocioTermController">
+		<property name="socioTermService" ref="socioTermService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 </beans>

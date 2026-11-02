@@ -21,6 +21,7 @@
 			<value code="REGULARIZACAO"/>
 			<value code="CANCELAMENTO"/>
 			<value code="OBSERVACAO"/>
+			<value code="ACEITE_TERMO"/>
 		</enumtype>
 	</enumtypes>
 
@@ -510,6 +511,98 @@
 				</index>
 				<index name="socioGuestCpf">
 					<key attribute="cpf"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<!--
+			Termo de adesão do programa Nação, versionado. A versão atual é a última com
+			"Publicado em" preenchido (até agora); rascunho = sem data. O gestor cadastra
+			e publica no Backoffice (Sócio-Torcedor › Termo do Nação).
+		-->
+		<itemtype code="SocioTermVersion" extends="GenericItem" autocreate="true" generate="true">
+			<description>Versão do Termo do Nação</description>
+			<deployment table="socioterms" typecode="25907"/>
+			<attributes>
+				<attribute qualifier="version" type="java.lang.String">
+					<description>Versão (ex.: v2026.10)</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="title" type="localized:java.lang.String">
+					<description>Título do Termo</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="text" type="localized:java.lang.String">
+					<description>Texto do Termo (parágrafos separados por linha em branco)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="summary" type="localized:java.lang.String">
+					<description>O que mudou nesta versão (aviso na área do sócio)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="publishedAt" type="java.util.Date">
+					<description>Publicado em (vazio = rascunho)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioTermVersionCode" unique="true">
+					<key attribute="version"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<!--
+			Aceite do Termo: no checkout da adesão (carrinho com plano, depois ganha o
+			número do pedido), na área do sócio (versão nova) ou na migração (sócios que
+			já existiam quando o Termo passou a valer). Gravado pelo SocioTermService.
+		-->
+		<itemtype code="SocioTermAcceptance" extends="GenericItem" autocreate="true" generate="true">
+			<description>Aceite do Termo do Nação</description>
+			<deployment table="sociotermaccepts" typecode="25908"/>
+			<attributes>
+				<attribute qualifier="customer" type="Customer">
+					<description>Torcedor</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="termVersion" type="SocioTermVersion">
+					<description>Versão aceita</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="date" type="java.util.Date">
+					<description>Quando aceitou</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="origin" type="java.lang.String">
+					<description>Onde aceitou: Checkout, Área do sócio ou Migração</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="plan" type="SocioPlan">
+					<description>Plano do aceite (comprado no pedido ou o atual do sócio)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cartCode" type="java.lang.String">
+					<description>Carrinho em que aceitou (checkout)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="orderCode" type="java.lang.String">
+					<description>Pedido da adesão (preenchido ao fechar o pedido)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioTermAcceptCustomer">
+					<key attribute="customer"/>
+				</index>
+				<index name="socioTermAcceptCart">
+					<key attribute="cartCode"/>
 				</index>
 			</indexes>
 		</itemtype>

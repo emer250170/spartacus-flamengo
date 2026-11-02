@@ -77,6 +77,10 @@ public class SocioMemberHtml
 		field(h, l("detail.card"), esc(StringUtils.defaultIfBlank(m.card, l("detail.noCard"))));
 		field(h, l("detail.biometry"), m.biometry ? "<span style=\"color:#107e3e;font-weight:600\">" + esc(l("detail.biometry.ok")) + "</span>"
 				: "<span style=\"color:#b45309;font-weight:600\">" + esc(l("detail.biometry.pending")) + "</span>");
+		if (m.termVersion != null)
+		{
+			field(h, l("detail.term"), termValue());
+		}
 		if (m.openCancelTicket != null)
 		{
 			field(h, l("detail.cancelTicket"), esc(m.openCancelTicket));
@@ -247,6 +251,21 @@ public class SocioMemberHtml
 	{
 		return "<td style=\"" + TD + (style.isEmpty() ? "" : ";" + style) + "\">" + (StringUtils.isEmpty(html) ? "-" : html)
 				+ "</td>";
+	}
+
+	/** Termo do Nação: "v2026.10 aceito em 01/10/2026 (Checkout, pedido 00012001)" ou pendente */
+	protected String termValue()
+	{
+		final String last = m.termAcceptedVersion == null ? ""
+				: MessageFormat.format(l("detail.term.last"), m.termAcceptedVersion, date(m.termAcceptedAt),
+						StringUtils.defaultString(m.termAcceptedOrigin)
+								+ (m.termAcceptedOrder == null ? "" : ", " + MessageFormat.format(l("detail.term.order"), m.termAcceptedOrder)));
+		if (m.termAccepted)
+		{
+			return "<span style=\"color:#107e3e;font-weight:600\">" + esc(last) + "</span>";
+		}
+		return "<span style=\"color:#b45309;font-weight:600\">" + esc(MessageFormat.format(l("detail.term.pending"), m.termVersion))
+				+ "</span>" + (last.isEmpty() ? "" : "<br><span style=\"color:#6a7d8f;font-size:11px\">" + esc(last) + "</span>");
 	}
 
 	protected static String eventColor(final String type)

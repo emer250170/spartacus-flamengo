@@ -54,6 +54,13 @@ public class SocioMember
 	public String openCancelTicket;
 	/** Biometria facial validada (grupo biometria-validada) */
 	public boolean biometry;
+	/** Termo do Nação: versão atual (null = nenhuma publicada), se aceitou e o último aceite */
+	public String termVersion;
+	public boolean termAccepted;
+	public String termAcceptedVersion;
+	public java.util.Date termAcceptedAt;
+	public String termAcceptedOrigin;
+	public String termAcceptedOrder;
 	/** Últimas tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */
 	public final List<Attempt> attempts = new ArrayList<>();
 	/** Convidados nominais (SocioGuest): ativos primeiro, depois os encerrados mais novos */
