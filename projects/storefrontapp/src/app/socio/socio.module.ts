@@ -12,6 +12,7 @@ import {
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { SocioAccountComponent } from './socio-account.component';
 import { SocioBadgeComponent } from './socio-badge.component';
+import { SocioGuestsComponent } from './socio-guests.component';
 import { SocioNavigationService } from './socio-navigation.service';
 import { SocioPlansComponent } from './socio-plans.component';
 
@@ -22,6 +23,7 @@ import { SocioPlansComponent } from './socio-plans.component';
  *   (/my-account/socio-torcedor, CMSFlexComponent, só logado).
  * SocioNavigationService -> esconde o link do menu de quem nunca foi sócio.
  * SocioBadgeComponent -> selo de sócio no header (antes do "Olá, Fulano").
+ * SocioGuestsComponent -> Meus convidados, dentro de Meu sócio-torcedor.
  * O SocioService também é usado pela jornada de matchday (ondas e desconto).
  */
 @NgModule({
@@ -36,6 +38,7 @@ import { SocioPlansComponent } from './socio-plans.component';
     SocioPlansComponent,
     SocioBadgeComponent,
     SocioAccountComponent,
+    SocioGuestsComponent,
   ],
   providers: [
     provideConfig(<CmsConfig>{

@@ -1,0 +1,145 @@
+// Meus convidados (dentro de Meu sócio-torcedor). Usa também os estilos de
+// socio-account.component.scss (styleUrls), para botões, campos e tabela iguais.
+:host {
+  // ocupa a linha inteira da grade de cartões da página do sócio
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.sg-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  margin-bottom: 14px;
+}
+
+.sg-slots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sg-slot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--sa-red);
+  background: #fff;
+
+  &--used {
+    background: var(--sa-red);
+  }
+}
+
+.sg-slots-text {
+  margin-left: 4px;
+  font-weight: 700;
+}
+
+.sg-price {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.sg-done {
+  color: var(--sa-ok);
+  background: var(--sa-ok-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+
+.sg-since {
+  display: block;
+  color: var(--sa-muted);
+  font-size: 0.8rem;
+}
+
+.sg-nowrap {
+  white-space: nowrap;
+}
+
+.sg-vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.sg-remove {
+  white-space: nowrap;
+}
+
+.sg-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  text-align: right;
+
+  > span {
+    flex-basis: 100%;
+    font-size: 0.85rem;
+  }
+}
+
+.sg-btn-sm {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 0.78rem;
+}
+
+.sg-add {
+  margin-top: 14px;
+}
+
+.sg-field--name {
+  grid-column: span 2;
+}
+
+.sg-privacy {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.sg-ended-toggle {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 0.875rem;
+}
+
+.sg-ended {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+
+  li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--sa-line);
+  }
+
+  .sa-muted {
+    display: block;
+    margin: 2px 0 0;
+  }
+}
+
+.sg-load-error {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 767px) {
+  .sg-col-opt {
+    display: none;
+  }
+
+  .sg-field--name {
+    grid-column: 1 / -1;
+  }
+}

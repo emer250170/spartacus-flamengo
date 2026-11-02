@@ -177,6 +177,9 @@
           </ul>
         </article>
 
+        <!-- convidados nominais (some para ex-sócio e com o cadastro desligado) -->
+        <fla-socio-guests *ngIf="!ended"></fla-socio-guests>
+
         <!-- pagamentos e plano -->
         <article class="sa-card sa-card--wide">
           <h3 class="sa-card-title">{{ 'sa.payments' | flaT }}</h3>

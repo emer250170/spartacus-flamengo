@@ -1,0 +1,215 @@
+<article class="sa-card sg" *ngIf="visible">
+  <h3 class="sa-card-title">{{ 'sg.title' | flaT }}</h3>
+
+  <ng-container *ngIf="data as d">
+    <div class="sg-top">
+      <div class="sg-slots" [attr.aria-label]="'sg.slotsAria' | flaT: { used: d.used, n: d.contracted }">
+        <span
+          *ngFor="let s of slots; let i = index"
+          class="sg-slot"
+          [class.sg-slot--used]="i < d.used"
+          aria-hidden="true"
+        ></span>
+        <span class="sg-slots-text">{{
+          (d.contracted ? 'sg.slots' : 'sg.noSlotsShort')
+            | flaT: { used: d.used, n: d.contracted }
+        }}</span>
+      </div>
+      <p class="sa-muted sg-price" *ngIf="d.contracted && d.guestPrice">
+        {{ 'sg.price' | flaT: { price: brl(d.guestPrice) } }}
+      </p>
+    </div>
+
+    <p class="sa-note sg-done" *ngIf="done" role="status">{{ done }}</p>
+
+    <!-- convidados ativos -->
+    <div class="sa-table-wrap" *ngIf="d.guests.length; else noGuests">
+      <table class="sa-table sg-table">
+        <thead>
+          <tr>
+            <th>{{ 'sg.col.name' | flaT }}</th>
+            <th>{{ 'sg.col.cpf' | flaT }}</th>
+            <th class="sg-col-opt">{{ 'sg.col.birth' | flaT }}</th>
+            <th class="sg-col-opt">{{ 'sg.col.contact' | flaT }}</th>
+            <th class="sa-num"><span class="sg-vh">{{ 'sg.col.actions' | flaT }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let g of d.guests; trackBy: trackById">
+            <td>
+              <strong>{{ g.name }}</strong>
+              <span class="sg-since">{{
+                'sg.since' | flaT: { date: date(g.since) }
+              }}</span>
+            </td>
+            <td class="sg-nowrap">{{ g.cpf }}</td>
+            <td class="sg-col-opt sg-nowrap">{{ date(g.birthDate) }}</td>
+            <td class="sg-col-opt">
+              {{ g.email }}
+              <span class="sg-since" *ngIf="g.phone">{{ phone(g.phone) }}</span>
+            </td>
+            <td class="sa-num">
+              <ng-container *ngIf="confirming !== g.id; else confirm">
+                <button
+                  type="button"
+                  class="sa-link sg-remove"
+                  [disabled]="busy"
+                  (click)="askRemove(g)"
+                >
+                  {{ 'sg.remove' | flaT }}
+                </button>
+              </ng-container>
+              <ng-template #confirm>
+                <span class="sg-confirm">
+                  <span>{{ 'sg.removeConfirm' | flaT: { name: g.name } }}</span>
+                  <button
+                    type="button"
+                    class="sa-btn sa-btn--primary sg-btn-sm"
+                    [disabled]="busy"
+                    (click)="remove(g)"
+                  >
+                    {{ 'sg.removeYes' | flaT }}
+                  </button>
+                  <button
+                    type="button"
+                    class="sa-btn sg-btn-sm"
+                    [disabled]="busy"
+                    (click)="confirming = undefined"
+                  >
+                    {{ 'sa.back' | flaT }}
+                  </button>
+                </span>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noGuests>
+      <p class="sa-muted">
+        {{ (d.contracted ? 'sg.empty' : 'sg.emptyNoSlots') | flaT }}
+      </p>
+    </ng-template>
+
+    <!-- incluir -->
+    <div class="sg-add" *ngIf="!formOpen">
+      <button
+        *ngIf="d.canAdd"
+        type="button"
+        class="sa-btn sa-btn--primary"
+        (click)="openForm()"
+      >
+        {{ 'sg.addCta' | flaT: { n: free } }}
+      </button>
+      <p class="sa-note sa-note--warn" *ngIf="!d.canAdd && blockedText">
+        {{ blockedText }}
+      </p>
+    </div>
+
+    <form
+      *ngIf="formOpen"
+      class="sa-panel sa-form sg-form"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+      <p class="sa-panel-title">{{ 'sg.formTitle' | flaT }}</p>
+      <label class="sa-field sg-field--name"
+        >{{ 'sg.f.name' | flaT }}
+        <input
+          name="name"
+          autocomplete="off"
+          maxlength="120"
+          [(ngModel)]="form.name"
+          required
+      /></label>
+      <label class="sa-field"
+        >{{ 'sg.f.cpf' | flaT }}
+        <input
+          name="cpf"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="000.000.000-00"
+          maxlength="14"
+          [ngModel]="form.cpf"
+          (ngModelChange)="onCpf($event)"
+          required
+      /></label>
+      <label class="sa-field"
+        >{{ 'sg.f.birth' | flaT }}
+        <input
+          name="birthDate"
+          type="date"
+          [max]="today"
+          [(ngModel)]="form.birthDate"
+          required
+      /></label>
+      <label class="sa-field"
+        >{{ 'sg.f.email' | flaT }}
+        <input
+          name="email"
+          type="email"
+          autocomplete="off"
+          maxlength="120"
+          [(ngModel)]="form.email"
+          required
+      /></label>
+      <label class="sa-field"
+        >{{ 'sg.f.phone' | flaT }}
+        <input
+          name="phone"
+          inputmode="tel"
+          autocomplete="off"
+          placeholder="(21) 99999-0000"
+          maxlength="15"
+          [ngModel]="form.phone"
+          (ngModelChange)="onPhone($event)"
+      /></label>
+      <p class="sa-muted sa-field--wide sg-privacy">
+        {{ 'sg.privacy' | flaT }}
+      </p>
+      <div class="sa-panel-actions sa-field--wide">
+        <button type="submit" class="sa-btn sa-btn--primary" [disabled]="busy">
+          {{ (busy ? 'sg.saving' : 'sg.save') | flaT }}
+        </button>
+        <button type="button" class="sa-btn" [disabled]="busy" (click)="cancelForm()">
+          {{ 'sa.back' | flaT }}
+        </button>
+      </div>
+    </form>
+
+    <p class="sa-error" *ngIf="error" role="alert">{{ error }}</p>
+
+    <!-- anteriores -->
+    <ng-container *ngIf="d.ended.length">
+      <button
+        type="button"
+        class="sa-link sg-ended-toggle"
+        [attr.aria-expanded]="showEnded"
+        (click)="showEnded = !showEnded"
+      >
+        {{
+          (showEnded ? 'sg.endedHide' : 'sg.endedShow')
+            | flaT: { n: d.ended.length }
+        }}
+      </button>
+      <ul class="sg-ended" *ngIf="showEnded">
+        <li *ngFor="let g of d.ended; trackBy: trackById">
+          <strong>{{ g.name }}</strong> · {{ g.cpf }}
+          <span class="sa-muted">{{
+            'sg.endedLine'
+              | flaT
+                : {
+                    from: date(g.since),
+                    to: date(g.until),
+                    reason: reason(g)
+                  }
+          }}</span>
+        </li>
+      </ul>
+    </ng-container>
+  </ng-container>
+</article>
+
+<p class="sa-muted sg-load-error" *ngIf="loadError">
+  {{ 'sg.err.load' | flaT }}
+</p>
