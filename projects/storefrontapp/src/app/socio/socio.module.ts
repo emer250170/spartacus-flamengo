@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { CartOutlets } from '@spartacus/cart/base/root';
 import { AuthGuard, CmsConfig, provideConfig } from '@spartacus/core';
 import {
   NavigationService,
@@ -15,6 +16,7 @@ import { SocioBadgeComponent } from './socio-badge.component';
 import { SocioGuestsComponent } from './socio-guests.component';
 import { SocioNavigationService } from './socio-navigation.service';
 import { SocioPlansComponent } from './socio-plans.component';
+import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
 
 /**
  * Sócio-torcedor Nação Maraca (protótipo Flamengo).
@@ -39,6 +41,7 @@ import { SocioPlansComponent } from './socio-plans.component';
     SocioBadgeComponent,
     SocioAccountComponent,
     SocioGuestsComponent,
+    SocioTicketHolderComponent,
   ],
   providers: [
     provideConfig(<CmsConfig>{
@@ -56,6 +59,12 @@ import { SocioPlansComponent } from './socio-plans.component';
       id: 'SiteLogin',
       position: OutletPosition.BEFORE,
       component: SocioBadgeComponent,
+    }),
+    // "Ingresso de: Maria" na poltrona do convidado (carrinho, checkout e pedido)
+    provideOutlet({
+      id: CartOutlets.ITEM_DETAILS,
+      position: OutletPosition.AFTER,
+      component: SocioTicketHolderComponent,
     }),
   ],
 })
