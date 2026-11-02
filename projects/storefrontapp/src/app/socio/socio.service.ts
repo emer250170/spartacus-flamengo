@@ -20,6 +20,7 @@ import {
   SocioPlan,
   SocioPlanRules,
   SUSPENDED_GROUP,
+  BIOMETRY_GROUP,
   WaveStatus,
 } from './socio.model';
 
@@ -146,11 +147,12 @@ export class SocioService {
                   this.membership(
                     this.memberPlan(plans, uids),
                     inCart,
-                    uids.includes(SUSPENDED_GROUP)
+                    uids.includes(SUSPENDED_GROUP),
+                    uids.includes(BIOMETRY_GROUP)
                   )
                 )
               )
-            : of(this.membership(null, null, false))
+            : of(this.membership(null, null, false, false))
         ),
         shareReplay({ bufferSize: 1, refCount: true })
       );
@@ -166,7 +168,8 @@ export class SocioService {
   protected membership(
     member: SocioPlan | null,
     inCart: SocioPlan | null,
-    suspended: boolean
+    suspended: boolean,
+    biometry: boolean
   ): Membership {
     // no empate de onda vale o comprado (vem primeiro na lista); suspenso não
     // tem onda de sócio nem desconto (as promoções excluem o grupo)
@@ -177,6 +180,7 @@ export class SocioService {
         ? null
         : this.best([member, inCart].filter((p): p is SocioPlan => !!p)),
       suspended,
+      biometry,
     };
   }
 

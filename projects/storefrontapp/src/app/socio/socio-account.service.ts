@@ -115,6 +115,52 @@ export class SocioAccountService {
       );
   }
 
+  /**
+   * Quantidade de cada produto nos pedidos do torcedor (últimos 20, sem os
+   * cancelados): base do limite de ingressos por jogo no cartão de
+   * elegibilidade da jornada.
+   */
+  orderedQuantities(): Observable<Record<string, number>> {
+    return this.http
+      .get<{
+        orders?: { code?: string; status?: string }[];
+      }>(`${this.base}/users/current/orders`, { params: { fields: 'orders(code,status)', pageSize: '20' } })
+      .pipe(
+        switchMap((res) => {
+          const codes = (res.orders ?? [])
+            .filter((o) => !/^CANCEL/.test(o.status ?? ''))
+            .map((o) => o.code)
+            .filter((c): c is string => !!c);
+          if (!codes.length) {
+            return of([] as (OccOrder | null)[]);
+          }
+          return forkJoin(
+            codes.map((code) =>
+              this.http
+                .get<OccOrder>(
+                  `${this.base}/users/current/orders/${encodeURIComponent(code)}`,
+                  { params: { fields: 'entries(product(code),quantity)' } }
+                )
+                .pipe(catchError(() => of(null)))
+            )
+          );
+        }),
+        map((orders) => {
+          const qty: Record<string, number> = {};
+          for (const o of orders) {
+            for (const e of o?.entries ?? []) {
+              const code = e.product?.code;
+              if (code) {
+                qty[code] = (qty[code] ?? 0) + (e.quantity ?? 1);
+              }
+            }
+          }
+          return qty;
+        }),
+        catchError(() => of({} as Record<string, number>))
+      );
+  }
+
   /** Cartões salvos na conta */
   cards(): Observable<SocioCard[]> {
     return this.http

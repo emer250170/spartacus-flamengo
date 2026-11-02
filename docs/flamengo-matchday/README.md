@@ -489,7 +489,20 @@ Cada tentativa de pôr uma poltrona no carrinho é conferida e gravada, aprovada
 | Tela Sócios | Ficha mostra **Biometria facial** (Validada / Pendente); ações **Biometria validada** e **Biometria pendente** (grupo `biometria-validada` + observação na linha do tempo); histórico ganha **Tentativas de compra de ingresso** (últimas 10, com a decisão e o motivo). |
 | Papel | `sociomanagerrole` lê `SocioEligibilityDecision`. |
 
-Depois do `ant all`: Update no HAC (tipo novo `SocioEligibilityDecision`) e ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`, cria o grupo `biometria-validada`). Próximos PRs do item: cartão "Sua elegibilidade para este jogo" na jornada (loja) e, depois do teste, ligar o bloqueio e a pergunta ao Claude ("por que o torcedor X não conseguiu comprar").
+Depois do `ant all`: Update no HAC (tipo novo `SocioEligibilityDecision`) e ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`, cria o grupo `biometria-validada`).
+
+**Loja: cartão "Sua elegibilidade para este jogo" (PR 2)**
+
+Na etapa 1 da jornada, com o jogo escolhido e o torcedor logado, o cartão mostra as mesmas condições que o servidor confere, cada uma com ✓ (atendida), ! (aviso que não impede) ou ✕ (não atendida), e um resumo ("Tudo certo…" ou "Você ainda não pode comprar…").
+
+| Condição | De onde vem na loja |
+|---|---|
+| Plano e situação | `SocioService.getMembership()` (grupos do torcedor pela API `customergroups`; plano no carrinho já vale) |
+| Janela | `waveFor(match)` (datas das ondas do jogo) |
+| Biometria | grupo `biometria-validada` (`Membership.biometry`) |
+| Limite por jogo | pedidos do torcedor (`SocioAccountService.orderedQuantities`, últimos 20, sem cancelados) + carrinho; limite = 1 + convidados do plano, ou `ELIGIBILITY.generalLimit` |
+
+`ELIGIBILITY` (`socio.model.ts`) espelha as chaves do servidor `flamengo.socio.biometria.exigida` e `flamengo.ingressos.limite.geral`; mudar uma chave no servidor pede a mesma mudança ali. A loja continua bloqueando só pela onda (como antes); o limite e a biometria aparecem no cartão, e o bloqueio por eles fica para o PR 3, junto com a chave de bloqueio do servidor. Próximos PRs do item: cartão "Sua elegibilidade para este jogo" na jornada (loja) e, depois do teste, ligar o bloqueio e a pergunta ao Claude ("por que o torcedor X não conseguiu comprar").
 
 Cuidado: nenhum valor de rótulo do widget pode ter `\n`. O Backoffice vira quebra de linha real e, se a linha seguinte tiver `{` (ex.: "O chamado {1}…"), o leitor do ZK recusa e o login do Backoffice inteiro dá erro 500 (aconteceu na primeira subida do PR #63; corrigido trocando por espaço).
 
