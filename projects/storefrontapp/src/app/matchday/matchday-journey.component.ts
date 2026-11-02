@@ -35,7 +35,13 @@ import {
   take,
 } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { SocioPlan, WaveStatus } from '../socio/socio.model';
+import { SocioAccountService } from '../socio/socio-account.service';
+import {
+  ELIGIBILITY,
+  EligibilityCheck,
+  SocioPlan,
+  WaveStatus,
+} from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
 import { MatchdayDataService } from './matchday-data.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
@@ -134,6 +140,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   planInCart = false;
   /** Planos de sócio (nomes das ondas e maior desconto) */
   socioPlans: SocioPlan[] = [];
+  /** Biometria facial validada (grupo biometria-validada) */
+  biometry = false;
+  /** Quantidade de cada produto nos pedidos do torcedor (limite de ingressos por jogo) */
+  protected orderedQty: Record<string, number> = {};
   /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
   protected requestedMatch?: string;
 
@@ -156,7 +166,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     protected router: Router,
     protected socio: SocioService,
     public i18n: FlaI18nService,
-    protected holdWatcher: MatchdayHoldWatcherService
+    protected holdWatcher: MatchdayHoldWatcherService,
+    protected socioAccount: SocioAccountService
   ) {}
 
   ngOnInit(): void {
@@ -184,6 +195,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         if (loggedIn) {
           this.needLogin = false;
           this.resumeLoginIntent();
+          this.loadOrderedTickets();
+        } else {
+          this.orderedQty = {};
         }
         this.cd.markForCheck();
       })
@@ -206,6 +220,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       this.socio.getMembership().subscribe((m) => {
         this.memberPlan = m.plan;
         this.suspendedPlan = m.suspended ? m.member : null;
+        this.biometry = m.biometry;
         this.planInCart =
           !!m.plan &&
           m.plan.code === m.inCart?.code &&
@@ -369,6 +384,138 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     return this.memberPlan.wave
       ? this.i18n.t('md.lock.member', { wave: this.waveLabel(w.mine), date })
       : this.i18n.t('md.lock.noPriority', { date });
+  }
+
+  // ---------- sócio-torcedor: elegibilidade para comprar ingresso ----------
+
+  /** Ingressos já comprados (pedidos), para o limite por jogo */
+  protected loadOrderedTickets(): void {
+    this.subscription.add(
+      this.socioAccount.orderedQuantities().subscribe((qty) => {
+        this.orderedQty = qty;
+        this.cd.markForCheck();
+      })
+    );
+  }
+
+  /** Ingressos do jogo nos pedidos e no carrinho do torcedor */
+  ticketsFor(match: MatchdayMatch): number {
+    const ofMatch = (code?: string) =>
+      !!code && this.data.matchCodeOfSeat(code) === match.code;
+    const ordered = Object.entries(this.orderedQty)
+      .filter(([code]) => ofMatch(code))
+      .reduce((sum, [, n]) => sum + n, 0);
+    const inCart = this.cartEntries
+      .filter((e) => ofMatch(e.product?.code))
+      .reduce((sum, e) => sum + (e.quantity ?? 1), 0);
+    return ordered + inCart;
+  }
+
+  /** Limite de ingressos por jogo: titular + convidados do plano, ou o limite geral */
+  get ticketLimit(): number {
+    return this.memberPlan
+      ? 1 + Math.max(0, this.memberPlan.maxGuests ?? 0)
+      : ELIGIBILITY.generalLimit;
+  }
+
+  /**
+   * Cartão "Sua elegibilidade para este jogo": as condições que o SAP Commerce
+   * confere quando a poltrona entra no carrinho (plano, situação, janela da
+   * onda, biometria e limite por jogo).
+   */
+  eligibility(match: MatchdayMatch): EligibilityCheck[] {
+    const t = (key: string, p?: Record<string, unknown>) =>
+      this.i18n.t(key, p);
+    const checks: EligibilityCheck[] = [];
+    if (this.suspendedPlan) {
+      checks.push({
+        key: 'plan',
+        state: 'ok',
+        text: t('md.elig.plan.member', { plan: this.suspendedPlan.name }),
+      });
+      checks.push({
+        key: 'standing',
+        state: 'warn',
+        text: t('md.elig.standing.suspended'),
+      });
+    } else if (this.memberPlan) {
+      const plan = this.memberPlan.name;
+      checks.push({
+        key: 'plan',
+        state: 'ok',
+        text:
+          (this.memberPlan.wave
+            ? t('md.elig.plan.wave', {
+                plan,
+                wave: this.waveLabel(this.myWave),
+              })
+            : t('md.elig.plan.noPriority', { plan })) +
+          (this.planInCart ? ' ' + t('md.elig.plan.inCart') : ''),
+      });
+      checks.push({
+        key: 'standing',
+        state: 'ok',
+        text: t('md.elig.standing.ok'),
+      });
+    } else {
+      checks.push({
+        key: 'plan',
+        state: 'ok',
+        text: t('md.elig.plan.none'),
+      });
+    }
+
+    const w = this.waveFor(match);
+    checks.push(
+      w.open
+        ? {
+            key: 'window',
+            state: 'ok',
+            text:
+              w.current >= 4
+                ? t('md.elig.window.general')
+                : t('md.elig.window.open', {
+                    wave: this.waveLabel(w.current),
+                  }),
+          }
+        : { key: 'window', state: 'no', text: this.lockText(w) }
+    );
+
+    checks.push(
+      this.biometry
+        ? { key: 'biometry', state: 'ok', text: t('md.elig.bio.ok') }
+        : ELIGIBILITY.biometryRequired
+          ? { key: 'biometry', state: 'no', text: t('md.elig.bio.required') }
+          : { key: 'biometry', state: 'warn', text: t('md.elig.bio.pending') }
+    );
+
+    // a poltrona já reservada deste jogo conta como um dos ingressos
+    const max = this.ticketLimit;
+    const have = this.ticketsFor(match);
+    const heldHere =
+      !!this.held && this.data.matchCodeOfSeat(this.held.code) === match.code;
+    const total = have + (heldHere ? 0 : 1);
+    checks.push(
+      total <= max
+        ? {
+            key: 'limit',
+            state: 'ok',
+            text: t('md.elig.limit.ok', { n: total, max }),
+          }
+        : {
+            key: 'limit',
+            state: 'no',
+            text: t(
+              this.memberPlan ? 'md.elig.limit.member' : 'md.elig.limit.general',
+              { n: have, max, plan: this.memberPlan?.name ?? '' }
+            ),
+          }
+    );
+    return checks;
+  }
+
+  isEligible(checks: EligibilityCheck[]): boolean {
+    return checks.every((c) => c.state !== 'no');
   }
 
   /** Sugere subir de plano: não é sócio, ou o plano não compra na onda 1 */

@@ -66,6 +66,32 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.lock.join': 'Seja sócio e compre antes',
     'md.lock.suspended':
       'Seu plano está com os benefícios suspensos por mensalidade em atraso: você compra na venda geral, a partir de {date}.',
+    'md.elig.title': 'Sua elegibilidade para este jogo',
+    'md.elig.yes': 'Tudo certo: você pode comprar ingresso para este jogo.',
+    'md.elig.no': 'Você ainda não pode comprar ingresso para este jogo. Veja o motivo abaixo.',
+    'md.elig.state.ok': 'Atendido:',
+    'md.elig.state.warn': 'Aviso:',
+    'md.elig.state.no': 'Não atendido:',
+    'md.elig.plan.wave': 'Sócio {plan}: compra na {wave}.',
+    'md.elig.plan.noPriority': 'Sócio {plan}: plano sem prioridade, compra na venda geral.',
+    'md.elig.plan.member': 'Sócio {plan}.',
+    'md.elig.plan.inCart': '(plano no carrinho: já vale para este ingresso)',
+    'md.elig.plan.none': 'Você não é sócio: compra na venda geral.',
+    'md.elig.standing.ok': 'Mensalidade em dia.',
+    'md.elig.standing.suspended':
+      'Benefícios suspensos por mensalidade em atraso: você compra na venda geral, sem desconto.',
+    'md.elig.window.general': 'Venda geral aberta.',
+    'md.elig.window.open': 'Venda aberta para você ({wave}).',
+    'md.elig.bio.ok': 'Biometria facial validada.',
+    'md.elig.bio.pending':
+      'Biometria facial pendente: valide no app do Flamengo antes do jogo.',
+    'md.elig.bio.required':
+      'Biometria facial pendente: valide no app do Flamengo para comprar.',
+    'md.elig.limit.ok': 'Ingressos deste jogo: {n} de {max}.',
+    'md.elig.limit.member':
+      'Limite do {plan} (titular + convidados): {max} ingressos por jogo; você já tem {n}.',
+    'md.elig.limit.general':
+      'Limite de {max} ingressos por jogo; você já tem {n}.',
     'md.s2.title': 'Setor e poltrona',
     'md.memberOff': 'Sócio {d}% off',
     'md.soldOut': 'Esgotado',
@@ -429,6 +455,33 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.lock.join': 'Become a member and buy first',
     'md.lock.suspended':
       'Your plan benefits are suspended due to an overdue payment: you buy in the general sale, from {date}.',
+    'md.elig.title': 'Your eligibility for this match',
+    'md.elig.yes': 'All set: you can buy a ticket for this match.',
+    'md.elig.no': 'You cannot buy a ticket for this match yet. See why below.',
+    'md.elig.state.ok': 'Met:',
+    'md.elig.state.warn': 'Notice:',
+    'md.elig.state.no': 'Not met:',
+    'md.elig.plan.wave': '{plan} member: buys in {wave}.',
+    'md.elig.plan.noPriority':
+      '{plan} member: plan without priority, buys in the general sale.',
+    'md.elig.plan.member': '{plan} member.',
+    'md.elig.plan.inCart': '(plan in the cart: already valid for this ticket)',
+    'md.elig.plan.none': 'You are not a member: you buy in the general sale.',
+    'md.elig.standing.ok': 'Membership fee up to date.',
+    'md.elig.standing.suspended':
+      'Benefits suspended due to an overdue payment: you buy in the general sale, with no discount.',
+    'md.elig.window.general': 'General sale open.',
+    'md.elig.window.open': 'Sales open for you ({wave}).',
+    'md.elig.bio.ok': 'Face biometrics validated.',
+    'md.elig.bio.pending':
+      'Face biometrics pending: validate it in the Flamengo app before the match.',
+    'md.elig.bio.required':
+      'Face biometrics pending: validate it in the Flamengo app to buy.',
+    'md.elig.limit.ok': 'Tickets for this match: {n} of {max}.',
+    'md.elig.limit.member':
+      '{plan} limit (holder + guests): {max} tickets per match; you already have {n}.',
+    'md.elig.limit.general':
+      'Limit of {max} tickets per match; you already have {n}.',
     'md.s2.title': 'Sector and seat',
     'md.memberOff': 'Member {d}% off',
     'md.soldOut': 'Sold out',

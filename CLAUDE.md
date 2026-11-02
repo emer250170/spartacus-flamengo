@@ -116,6 +116,15 @@ python3 backend/hac-deploy/gerar.py --auditar origin/flamengo --saida /tmp/audit
 Depois do `ant all`: se mudou `items.xml` ou ImpEx de `essentialdata`, fazer o
 Update no HAC (Platform › Update). Verificar no Backoffice/loja.
 
+- Update só com "Update running system" + "Localize types" (sem "Create essential data",
+  sem dados de projeto e sem patches opcionais): nada da demo é reimportado. A ImpEx
+  nova do PR é importada à parte (base64 + `ImportConfig`).
+- **Tipo novo**: o Backoffice guarda o tipo no cache antes de os nomes serem
+  localizados e mostra os campos crus ("SocioEligibilityDecision.date") até o próximo
+  reinício. Depois do Update, reiniciar o servidor (sem `ant all`) antes de testar
+  o Backoffice (aconteceu no PR #66).
+- O Backoffice do Emerson é usado em **português**: conferir rótulos e telas em pt.
+
 ### Rodar Groovy no HAC a partir de uma sessão
 
 Com o HAC aberto e logado no navegador do Playwright do notebook do Emerson

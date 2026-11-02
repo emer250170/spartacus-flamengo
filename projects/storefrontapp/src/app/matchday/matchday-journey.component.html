@@ -170,6 +170,36 @@
                 >
               </div>
             </ng-container>
+
+            <!-- Elegibilidade: as condições que o SAP Commerce confere ao pôr a poltrona no carrinho -->
+            <ng-container *ngIf="loggedIn && match && match.seatsLoaded">
+              <div
+                *ngIf="eligibility(match) as checks"
+                class="md-elig"
+                [class.is-ok]="isEligible(checks)"
+                aria-labelledby="md-elig-title"
+              >
+                <p id="md-elig-title" class="md-elig-title">
+                  {{ 'md.elig.title' | flaT }}
+                </p>
+                <p class="md-small md-elig-summary">
+                  {{
+                    (isEligible(checks) ? 'md.elig.yes' : 'md.elig.no') | flaT
+                  }}
+                </p>
+                <ul class="md-elig-list">
+                  <li *ngFor="let c of checks" [class]="'is-' + c.state">
+                    <span class="md-elig-icon" aria-hidden="true">{{
+                      c.state === 'ok' ? '✓' : c.state === 'warn' ? '!' : '✕'
+                    }}</span>
+                    <span class="md-vh">{{
+                      'md.elig.state.' + c.state | flaT
+                    }}</span>
+                    <span>{{ c.text }}</span>
+                  </li>
+                </ul>
+              </div>
+            </ng-container>
           </section>
 
           <!-- 2. Setor e poltrona -->

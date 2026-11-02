@@ -145,7 +145,34 @@ export interface Membership {
    * regularizar.
    */
   suspended: boolean;
+  /** Biometria facial validada (grupo biometria-validada no SAP Commerce) */
+  biometry: boolean;
 }
 
 /** Grupo de clientes de quem está com os benefícios suspensos (inadimplência) */
 export const SUSPENDED_GROUP = 'socio-suspenso';
+
+/** Grupo de clientes de quem já validou a biometria facial */
+export const BIOMETRY_GROUP = 'biometria-validada';
+
+/**
+ * Elegibilidade para comprar ingresso (cartão "Sua elegibilidade para este
+ * jogo" na jornada). A mesma regra roda no SAP Commerce
+ * (SocioEligibilityService), que grava cada tentativa; estes valores espelham
+ * as chaves do servidor:
+ * - biometryRequired: flamengo.socio.biometria.exigida
+ * - generalLimit: flamengo.ingressos.limite.geral (sócio: titular + convidados do plano)
+ */
+export const ELIGIBILITY = {
+  biometryRequired: false,
+  generalLimit: 4,
+};
+
+/** Uma condição conferida no cartão de elegibilidade */
+export interface EligibilityCheck {
+  /** plan, standing, window, biometry, limit */
+  key: string;
+  /** ok = atendida, warn = aviso que não impede, no = não atendida */
+  state: 'ok' | 'warn' | 'no';
+  text: string;
+}
