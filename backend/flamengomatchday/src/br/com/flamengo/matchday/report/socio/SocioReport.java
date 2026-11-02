@@ -74,6 +74,16 @@ public class SocioReport
 	/** Últimos pedidos (mais novos primeiro) */
 	public final List<Cancellation> cancellations = new ArrayList<>();
 
+	// ------------------------------------------------------------ estornos e multas (item 5, cancelamentos confirmados)
+	/** As regras de saída estão ligadas (flamengo.socio.saida.ativo) */
+	public boolean exitEnabled;
+	public int refundCount;
+	public double refundTotal;
+	public double refundMonth;
+	public int fineCount;
+	public double fineTotal;
+	public double fineMonth;
+
 	// ------------------------------------------------------------ origem dos números
 	public int realMembers;
 	public int realJoinsMonth;
@@ -168,6 +178,11 @@ public class SocioReport
 		public String comment;
 		/** Chamado ainda não fechado */
 		public boolean open;
+		/** Reembolso ou multa (R$): confirmado no evento de cancelamento ou previsto (pedido aberto) */
+		public Double refund;
+		public Double fine;
+		/** Valor previsto (pedido ainda aberto), não confirmado */
+		public boolean estimated;
 	}
 
 	public static class State

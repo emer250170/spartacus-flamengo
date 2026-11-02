@@ -21,4 +21,10 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Regras de saída do sócio (item 5): GET /users/current/socioexit -->
+	<bean id="flamengoSocioExitController" class="br.com.flamengo.matchday.occ.SocioExitController">
+		<property name="socioExitService" ref="socioExitService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 </beans>

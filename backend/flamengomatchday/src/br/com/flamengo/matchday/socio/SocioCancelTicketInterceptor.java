@@ -28,6 +28,10 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Os convidados ativos do titular são encerrados junto (SocioGuestService.endAll).
  * <p>
+ * Regras de saída (item 5, chave flamengo.socio.saida.ativo): o reembolso (dentro
+ * do prazo de arrependimento) ou a multa (fora dele) é calculado com a data de
+ * abertura do chamado e gravado no evento de cancelamento.
+ * <p>
  * Mapeado no tipo CsTicket pelo nome (sem depender das classes do sistema de
  * tickets): lê assunto, situação e cliente pelo ModelService.
  */
@@ -40,6 +44,7 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 
 	private SocioPlanService socioPlanService;
 	private SocioGuestService socioGuestService;
+	private SocioExitService socioExitService;
 
 	@Override
 	public void onPrepare(final ItemModel ticket, final InterceptorContext ctx) throws InterceptorException
@@ -67,6 +72,12 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 		// evento criado antes de sair dos grupos, para guardar o plano que ele tinha
 		final SocioEventModel event = socioPlanService.newEvent((CustomerModel) customer, SocioEventType.CANCELAMENTO,
 				"Atendimento", "Chamado fechado: " + headline);
+		// valores da saída: vale o dia do pedido (abertura do chamado); calculado antes de sair do plano
+		final String exit = socioExitService != null && socioExitService.isEnabled()
+				? socioExitService.apply(event,
+						socioExitService.quote((CustomerModel) customer,
+								ticket.getCreationtime() != null ? ticket.getCreationtime() : new java.util.Date()))
+				: null;
 		final List<String> plans = socioPlanService.removeMembership((CustomerModel) customer);
 		if (plans.isEmpty())
 		{
@@ -78,7 +89,8 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 				: socioGuestService.endAll((CustomerModel) customer, SocioGuestService.END_BY_CANCELLATION);
 		guests.forEach(guest -> ctx.registerElementFor(guest, PersistenceOperation.SAVE));
 		event.setResult("Deixou de ser sócio (" + String.join(", ", plans) + ")"
-				+ (guests.isEmpty() ? "" : "; " + guests.size() + " convidado(s) encerrado(s)"));
+				+ (guests.isEmpty() ? "" : "; " + guests.size() + " convidado(s) encerrado(s)")
+				+ (exit == null ? "" : "; " + exit));
 		ctx.registerElementFor(event, PersistenceOperation.SAVE);
 		LOG.info("Chamado de cancelamento fechado: {} deixa de ser sócio ({})", ((CustomerModel) customer).getUid(), plans);
 	}
@@ -91,5 +103,10 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 	public void setSocioGuestService(final SocioGuestService socioGuestService)
 	{
 		this.socioGuestService = socioGuestService;
+	}
+
+	public void setSocioExitService(final SocioExitService socioExitService)
+	{
+		this.socioExitService = socioExitService;
 	}
 }

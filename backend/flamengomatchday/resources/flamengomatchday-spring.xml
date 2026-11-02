@@ -164,6 +164,7 @@
 	<bean id="socioCancelTicketInterceptor" class="br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor">
 		<property name="socioPlanService" ref="socioPlanService"/>
 		<property name="socioGuestService" ref="socioGuestService"/>
+		<property name="socioExitService" ref="socioExitService"/>
 	</bean>
 	<bean id="socioCancelTicketInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
 		<property name="interceptor" ref="socioCancelTicketInterceptor"/>
@@ -208,6 +209,21 @@
 		<property name="socioEligibilityService" ref="socioEligibilityService"/>
 		<property name="socioGuestService" ref="socioGuestService"/>
 		<property name="socioTermService" ref="socioTermService"/>
+		<property name="socioExitService" ref="socioExitService"/>
+	</bean>
+
+	<!--
+		Regras de saída do sócio (item 5): reembolso no prazo de arrependimento, multa
+		sobre as mensalidades restantes fora dele. Simulação na loja (socioexit) e na
+		ficha; valores gravados no evento de cancelamento. Chave: flamengo.socio.saida.ativo.
+	-->
+	<bean id="socioExitService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioExitService">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
 	<!--
@@ -282,6 +298,7 @@
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="socioExitService" ref="socioExitService"/>
 	</bean>
 
 	<!-- Relatório de ingressos (Backoffice > Matchday Flamengo > Relatórios) -->

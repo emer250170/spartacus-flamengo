@@ -569,6 +569,8 @@
 					<editorArea:attribute qualifier="plan" readonly="true"/>
 					<editorArea:attribute qualifier="note" readonly="true"/>
 					<editorArea:attribute qualifier="result" readonly="true"/>
+					<editorArea:attribute qualifier="refundAmount" readonly="true"/>
+					<editorArea:attribute qualifier="fineAmount" readonly="true"/>
 					<editorArea:attribute qualifier="origin" readonly="true"/>
 					<editorArea:attribute qualifier="author" readonly="true"/>
 				</editorArea:section>

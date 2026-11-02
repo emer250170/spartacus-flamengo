@@ -61,6 +61,14 @@ public class SocioMember
 	public java.util.Date termAcceptedAt;
 	public String termAcceptedOrigin;
 	public String termAcceptedOrder;
+	/**
+	 * Regras de saída (item 5): simulação do cancelamento (sócio; com pedido aberto,
+	 * na data do pedido) ou o valor do cancelamento confirmado (ex-sócio). Null com a
+	 * chave desligada ou sem dados.
+	 */
+	public SocioExitQuote exit;
+	/** Uma linha: "Reembolso de R$ 67,10 (arrependimento até 09/11/2026)" */
+	public String exitSummary;
 	/** Últimas tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */
 	public final List<Attempt> attempts = new ArrayList<>();
 	/** Convidados nominais (SocioGuest): ativos primeiro, depois os encerrados mais novos */
