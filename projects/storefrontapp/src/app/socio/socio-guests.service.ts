@@ -40,6 +40,24 @@ export interface SocioGuestList {
   reason?: string;
   guests: SocioGuest[];
   ended: SocioGuest[];
+  /** Ingressos dos convidados para jogos ainda não realizados */
+  tickets?: SocioGuestTicket[];
+}
+
+/** Ingresso de convidado (poltrona do titular marcada para ele) */
+export interface SocioGuestTicket {
+  guestId: string;
+  holder: string;
+  seatCode: string;
+  seatName?: string;
+  gameCode: string;
+  gameName?: string;
+  /** ISO com fuso */
+  kickoff?: string;
+  /** Pedido (quando já foi comprado) */
+  orderCode?: string;
+  /** Carrinho (quando ainda não foi comprado) */
+  cartId?: string;
 }
 
 export interface NewSocioGuest {
@@ -76,6 +94,17 @@ export class SocioGuestsService {
   add(guest: NewSocioGuest): Observable<SocioGuestList> {
     return this.http
       .post<SocioGuestList>(this.url, guest)
+      .pipe(catchError((e) => this.fail(e)));
+  }
+
+  /** Marca a poltrona do carrinho para o convidado (guestId vazio = o titular) */
+  assignTicket(ticket: {
+    cartId: string;
+    seatCode: string;
+    guestId?: string;
+  }): Observable<SocioGuestList> {
+    return this.http
+      .put<SocioGuestList>(`${this.url}/tickets`, ticket)
       .pipe(catchError((e) => this.fail(e)));
   }
 

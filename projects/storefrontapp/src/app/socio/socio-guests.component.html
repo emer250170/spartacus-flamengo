@@ -41,6 +41,9 @@
               <span class="sg-since">{{
                 'sg.since' | flaT: { date: date(g.since) }
               }}</span>
+              <span class="sg-ticket" *ngFor="let tk of ticketsOf(g)">{{
+                tk
+              }}</span>
             </td>
             <td class="sg-nowrap">{{ g.cpf }}</td>
             <td class="sg-col-opt sg-nowrap">{{ date(g.birthDate) }}</td>

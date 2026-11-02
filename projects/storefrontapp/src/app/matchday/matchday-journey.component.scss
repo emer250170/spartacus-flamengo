@@ -320,6 +320,14 @@
     background: var(--md-red);
     border-color: var(--md-red);
   }
+
+  &.is-guest {
+    background: #fff;
+    border-color: var(--md-red);
+    color: var(--md-red);
+    font-weight: 800;
+    font-size: 0.7rem;
+  }
   &.is-occupied {
     background: var(--md-bg);
     border-color: var(--md-line);
@@ -354,6 +362,14 @@
   &.is-mine {
     background: var(--md-red);
     border-color: var(--md-red);
+  }
+
+  &.is-guest {
+    background: #fff;
+    border-color: var(--md-red);
+    color: var(--md-red);
+    font-weight: 800;
+    font-size: 0.7rem;
   }
   &.is-occupied {
     background: var(--md-bg);
@@ -860,4 +876,61 @@
 
 .md-seats-loading {
   margin-top: 12px;
+}
+
+// convidados do sócio: "Quem vai com você"
+.md-companions {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--md-line);
+  border-radius: 10px;
+  background: var(--md-panel-2);
+
+  .md-h3 {
+    margin: 0 0 4px;
+  }
+
+  ul {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--md-line);
+
+    &.is-active {
+      color: #fff;
+    }
+  }
+}
+
+.md-comp-name {
+  flex: 1 1 160px;
+  font-weight: 700;
+}
+
+.md-comp-you .md-comp-name {
+  color: var(--md-muted);
+}
+
+.md-comp-seat {
+  font-weight: 700;
+  color: #fff;
+}
+
+.md-btn-sm {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 0.8rem;
+
+  &.is-active {
+    border-color: var(--md-red);
+    color: #fff;
+  }
 }
