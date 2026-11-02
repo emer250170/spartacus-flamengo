@@ -431,7 +431,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 	protected String boletoLine(final CartModel cart, final Date due)
 	{
 		final String digits = StringUtils.leftPad(cart.getCode().replaceAll("\\D", ""), 10, '0');
-		final String free = ("6000" + digits + "0001234567").substring(0, 25);
+		final String free = StringUtils.rightPad("6000" + digits, 25, '0').substring(0, 25);
 		final String f1 = "0019" + free.substring(0, 5);
 		final String f2 = free.substring(5, 15);
 		final String f3 = free.substring(15, 25);

@@ -1,9 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { OCC_USER_ID_ANONYMOUS, Occ } from '@spartacus/core';
+import {
+  GlobalMessageService,
+  GlobalMessageType,
+  OCC_USER_ID_ANONYMOUS,
+  Occ,
+} from '@spartacus/core';
 import { OccOrderAdapter } from '@spartacus/order/occ';
 import { ORDER_NORMALIZER, Order } from '@spartacus/order/root';
-import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { SocioPaymentService } from '../../../socio/socio-payment.service';
 
 /**
@@ -15,6 +20,7 @@ import { SocioPaymentService } from '../../../socio/socio-payment.service';
 @Injectable()
 export class FlaOrderAdapter extends OccOrderAdapter {
   protected socioPayment = inject(SocioPaymentService);
+  protected globalMessages = inject(GlobalMessageService);
 
   public override placeOrder(
     userId: string,
@@ -28,6 +34,14 @@ export class FlaOrderAdapter extends OccOrderAdapter {
       switchMap((p) =>
         p.planCode && this.socioPayment.isUpfront(p.method)
           ? this.socioPayment.placeOrder(cartId).pipe(
+              // recusa do servidor (ex.: Termo não aceito): mostra o motivo
+              catchError((e: Error) => {
+                this.globalMessages.add(
+                  e.message,
+                  GlobalMessageType.MSG_TYPE_ERROR
+                );
+                return throwError(() => e);
+              }),
               switchMap((placed) =>
                 this.http
                   .get<Occ.Order>(
