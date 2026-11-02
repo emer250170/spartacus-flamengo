@@ -1,0 +1,180 @@
+// Termo do Nação: caixa do checkout, aviso da área do sócio e página do Termo
+:host {
+  --st-red: var(--fla-vermelho, #d70000);
+  --st-black: var(--fla-preto, #1b1b1b);
+  --st-line: #e6e6e6;
+  --st-muted: #6b6b70;
+  --st-ok: #127a3e;
+  --st-ok-bg: #e4f5ea;
+  --st-warn: #9a5b00;
+  --st-warn-bg: #fff2d9;
+
+  display: block;
+  color: var(--st-black);
+}
+
+// ---------- checkout ----------
+.st-check {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--st-line);
+  border-left: 4px solid var(--st-red);
+  border-radius: 10px;
+  background: #fff;
+
+  &--error {
+    border-color: var(--st-red);
+  }
+}
+
+.st-check-label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  font-weight: 700;
+  cursor: pointer;
+
+  a {
+    color: var(--st-red);
+    text-decoration: underline;
+  }
+}
+
+// o CSS global do Spartacus posiciona input[type=radio|checkbox] como absolute
+.st-check-input {
+  position: static;
+  appearance: auto;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--st-red);
+}
+
+.st-required {
+  color: var(--st-red);
+  text-decoration: none;
+}
+
+.st-hint {
+  margin: 6px 0 0 28px;
+  color: var(--st-muted);
+  font-size: 0.85rem;
+}
+
+.st-error {
+  margin: 8px 0 0 28px;
+  color: var(--st-red);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+// ---------- aviso na área do sócio ----------
+.st-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: var(--st-warn-bg);
+  color: var(--st-warn);
+
+  &--ok {
+    background: var(--st-ok-bg);
+    color: var(--st-ok);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.st-notice-title {
+  font-weight: 800;
+}
+
+.st-notice-text {
+  margin-top: 4px !important;
+  color: var(--st-black);
+  font-size: 0.9rem;
+}
+
+.st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+
+  a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+}
+
+.st-btn {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--st-red);
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+// ---------- página do Termo ----------
+.st-page {
+  max-width: 820px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+.st-kicker {
+  margin: 0;
+  color: var(--st-red);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+}
+
+.st-title {
+  margin: 4px 0 6px;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.st-meta {
+  margin: 0 0 20px;
+  color: var(--st-muted);
+}
+
+.st-summary {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #f5f5f6;
+}
+
+.st-text p {
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.st-empty {
+  margin: 48px 0;
+  color: var(--st-muted);
+  text-align: center;
+}
