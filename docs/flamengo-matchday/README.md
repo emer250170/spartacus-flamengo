@@ -518,6 +518,30 @@ Cuidado: nenhum valor de rótulo do widget pode ter `\n`. O Backoffice vira queb
 
 Deploy: sem tipo novo, então `ant all` e subir (sem Update no HAC); depois Backoffice › F4 › ☰ › os dois *Reset to Defaults* (widgets.xml e cockpit-config.xml) para o nó Sócios e o widget entrarem na perspectiva. Não fazer o reset antes do `ant all`.
 
+### Convidados nominais (item 3 do plano de evolução)
+
+O convidado já é **contratado e cobrado** na compra do plano (produto `NACAO-CONVIDADO-60` ou `-35`, quantidade escolhida na página de planos). O item 3 deixa o titular dar nome a essas vagas em Minha conta › Meu sócio-torcedor › **Meus convidados**. **PR 1 (servidor)**: tipo, regras, endpoints e telas do gestor; a loja chega no PR 2.
+
+| Regra | Como funciona |
+|---|---|
+| Limite | Vagas de convidado contratadas no último pedido do plano (`SocioGuestService.contractedSlots`). Sem vaga, a recusa explica e indica mudar o plano. |
+| Situação | Só sócio inclui; suspenso (`socio-suspenso`) vê os convidados e não inclui novos. |
+| Dados | Nome completo, CPF, nascimento e e-mail obrigatórios; celular opcional (10 ou 11 dígitos). |
+| CPF | Dígito verificador; não pode ser convidado ativo de outro sócio nem repetido no mesmo titular. O titular não tem CPF na demo, então não há comparação com ele. |
+| Troca | Livre: tirar encerra o registro (`active=false`, `until`, `endReason`) e libera a vaga. Convidado com ingresso de jogo futuro não poderá sair (entra no PR 3, com a compra para o convidado). |
+| Cancelamento | Fechar o chamado de cancelamento (`SocioCancelTicketInterceptor`) encerra os convidados ativos ("Cancelamento do plano"). |
+| Linha do tempo | Incluir e tirar gravam uma observação no sócio (CPF mascarado `***.456.789-**`). |
+| Chave | `flamengo.socio.convidados.ativo` (true); false recusa inclusões e a loja esconde o cadastro. |
+
+| Parte | Como funciona |
+|---|---|
+| Tipo | `SocioGuest` (titular, nome, CPF só dígitos, e-mail, celular, nascimento, plano, ativo, desde, até, motivo do encerramento), typecode 25906. |
+| API de comércio | `GET`, `POST` e `DELETE /{baseSiteId}/users/current/socioguests[/{id}]` (`SocioGuestsController`, primeiros endpoints próprios da extensão). Resposta: plano, vagas (`contracted`, `used`), `canAdd` e `reason`, convidados ativos e os últimos 10 encerrados. Recusa: 400 com `{"errors":[{"type":"SocioGuestError","message":"…"}]}`. O bean fica em `resources/occ/v2/flamengomatchdayocc/web/spring/flamengomatchday-web-spring.xml`: a `commercewebservices` importa `classpath*:/occ/v2/*occ/web/spring/*-web-spring.xml`, por isso a pasta termina em `occ`. |
+| Tela Sócios | Histórico ganha **Convidados nominais** (vagas em uso, ativos e encerrados). |
+| Menu | Sócio-Torcedor › **Convidados** (só leitura). Papel `sociomanagerrole` lê `SocioGuest`. |
+
+Deploy: `ant all`; Update no HAC (tipo novo `SocioGuest`, só "Update running system" + "Localize types"); ImpEx do papel à parte; reiniciar o servidor antes de testar o Backoffice (cache dos nomes do tipo novo); Backoffice › F4 › ☰ › *Reset to Defaults* do cockpit-config para o menu Convidados aparecer.
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

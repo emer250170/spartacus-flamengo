@@ -95,6 +95,10 @@ O resto é o Spartacus padrão: não mexer sem necessidade.
   `typeCode` e ler atributos com `modelService.getAttributeValue`.
 - Salvar outro item dentro de interceptor: `ctx.registerElementFor(item, PersistenceOperation.SAVE)`.
 - Rótulos de widget do Backoffice (`backoffice/resources/widgets/*/labels/*.properties`): nunca usar `\n` nos valores. O Backoffice transforma em quebra real e, se a linha seguinte tiver `{`, o leitor do ZK falha e o login inteiro dá erro 500 (PR #63).
+- Endpoints próprios na API de comércio (OCC v2): controller Spring em `br.com.flamengo.matchday.occ` e bean em
+  `resources/occ/v2/flamengomatchdayocc/web/spring/flamengomatchday-web-spring.xml` (a `commercewebservices`
+  importa `classpath*:/occ/v2/*occ/web/spring/*-web-spring.xml`; a pasta tem que terminar em `occ`). Sem
+  dependência de compilação da commercewebservices: só Spring Web/Security (estão em `platform/ext/core/lib`).
 - Código de jogo `JOGO-AAAAMMDD-ADV`; poltronas com o código do jogo como prefixo.
 - Cancelamento de plano: chamado (`CsTicket`) com headline "Cancelamento do plano…";
   ao fechar o chamado, `SocioCancelTicketInterceptor` tira o torcedor dos grupos do plano.
@@ -147,6 +151,10 @@ async () => {
 - ImpEx com `$` (macros, `$START_USERRIGHTS`): passar o texto em base64 e importar
   com `ImportConfig` + `importService.importData`, para evitar escape.
 - Texto com acento dentro do Groovy montado por código: usar escapes Unicode (`\u00e1` para á, `\u00e7` para ç).
+- Script grande (dezenas de KB, ex.: checagem de compilação): gravar o `.groovy` no notebook
+  (`C:\Users\I844870\Downloads\flamengo-hac\`, um nome novo a cada versão), criar um `<input type=file>`
+  na página do HAC e usar `page.setInputFiles` no `browser_run_code_unsafe` para ler o texto e postar no
+  `/console/scripting/execute`.
 
 ## Integration API (OData) e MCP
 
