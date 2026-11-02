@@ -502,7 +502,17 @@ Na etapa 1 da jornada, com o jogo escolhido e o torcedor logado, o cartão mostr
 | Biometria | grupo `biometria-validada` (`Membership.biometry`) |
 | Limite por jogo | pedidos do torcedor (`SocioAccountService.orderedQuantities`, últimos 20, sem cancelados) + carrinho; limite = 1 + convidados do plano, ou `ELIGIBILITY.generalLimit` |
 
-`ELIGIBILITY` (`socio.model.ts`) espelha as chaves do servidor `flamengo.socio.biometria.exigida` e `flamengo.ingressos.limite.geral`; mudar uma chave no servidor pede a mesma mudança ali. A loja continua bloqueando só pela onda (como antes); o limite e a biometria aparecem no cartão, e o bloqueio por eles fica para o PR 3, junto com a chave de bloqueio do servidor. Próximos PRs do item: cartão "Sua elegibilidade para este jogo" na jornada (loja) e, depois do teste, ligar o bloqueio e a pergunta ao Claude ("por que o torcedor X não conseguiu comprar").
+`ELIGIBILITY` (`socio.model.ts`) espelha as chaves do servidor `flamengo.socio.biometria.exigida` e `flamengo.ingressos.limite.geral`; mudar uma chave no servidor pede a mesma mudança ali. A loja continua bloqueando só pela onda (como antes); o limite e a biometria aparecem no cartão, e o bloqueio por eles fica para o PR 3, junto com a chave de bloqueio do servidor.
+
+**Bloqueio ligado e pergunta ao Claude (PR 3)**
+
+| Parte | Como funciona |
+|---|---|
+| Servidor | `flamengo.socio.elegibilidade.bloqueio=true` no `local.properties` do servidor da demo (o padrão do `project.properties` continua `false`). Tentativa negada é recusada no carrinho com o motivo e fica gravada como "negada e recusada". |
+| Loja | `ELIGIBILITY.blocking = true` (espelha a chave). Com uma condição ✕ no cartão, "Continuar" e a escolha de poltrona ficam bloqueadas, como já acontecia com a onda. Se o servidor recusar a poltrona, a jornada mostra "Não foi possível reservar a poltrona:" + o motivo (antes: "reservada por outra pessoa"). A biometria segue só como aviso (`biometryRequired = false`). |
+| Claude (gestor do sócio) | Ferramenta `elegibilidade_torcedor`: tentativas de um torcedor (ou as negadas de todos), com a decisão, o motivo e as condições conferidas. Objeto de integração `FlamengoElegibilidade` (só leitura; `docs/flamengo-matchday/mcp/integracao-gestores.impex`), permissão de leitura no `socioapigroup`. |
+
+Desligar o bloqueio: tirar a linha do `local.properties` e reiniciar; na loja, `ELIGIBILITY.blocking = false` e publicar. Próximos PRs do item: cartão "Sua elegibilidade para este jogo" na jornada (loja) e, depois do teste, ligar o bloqueio e a pergunta ao Claude ("por que o torcedor X não conseguiu comprar").
 
 Cuidado: nenhum valor de rótulo do widget pode ter `\n`. O Backoffice vira quebra de linha real e, se a linha seguinte tiver `{` (ex.: "O chamado {1}…"), o leitor do ZK recusa e o login do Backoffice inteiro dá erro 500 (aconteceu na primeira subida do PR #63; corrigido trocando por espaço).
 

@@ -712,6 +712,25 @@ function socioTools(cfg, http) {
     return { executado: true, torcedor: c.name, email: c.uid, plano: plan.nome, resultado: ev?.result ?? null, linhaDoTempo: await events(c.uid) };
   }
 
+  /** Tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */
+  async function decisions(uid) {
+    const query = { $expand: 'customer,product,plan', $top: 200 };
+    if (uid) query.$filter = `customer/uid eq '${uid.replace(/'/g, "''")}'`;
+    const ds = await odata('GET', '/FlamengoElegibilidade/SocioEligibilityDecisions', { query });
+    const lines = (t) => String(t ?? '').split('\n').map((x) => x.trim()).filter(Boolean);
+    return results(ds)
+      .map((d) => ({
+        data: toDate(d.date), torcedor: d.customer?.name, email: d.customer?.uid, jogo: d.gameCode,
+        poltrona: d.product?.name ?? d.product?.code ?? null,
+        decisao: d.eligible ? 'aprovada' : d.blocked ? 'negada e recusada no carrinho' : 'negada (só observação: a compra seguiu)',
+        motivos: lines(d.reasons), condicoes: lines(d.checks), plano: d.plan?.name ?? null,
+        ingressosQueJaTinha: d.tickets, limitePorJogo: d.ticketLimit,
+        _negada: !d.eligible,
+      }))
+      .sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0))
+      .map((d) => ({ ...d, data: fmtDate(d.data) }));
+  }
+
   const showTicket = (t) => ({ ...t, aberto: fmtDate(t.aberto), atualizado: fmtDate(t.atualizado), situacao: t.situacao === 'Closed' ? 'Fechado' : t.situacao === 'Open' ? 'Em atendimento' : 'Novo' });
 
   async function orders() {
@@ -806,6 +825,30 @@ function socioTools(cfg, http) {
       description: 'Regulariza um sócio suspenso (pagamento confirmado): onda de sócio e descontos voltam na hora.',
       inputSchema: obj({ email: S.str('E-mail do torcedor'), motivo: S.str('Observação (ex.: pagamento confirmado pelo financeiro)'), confirmar: S.confirm }, ['email']),
       handler: async (a) => statusEvent(a, 'REGULARIZACAO'),
+    },
+    {
+      name: 'elegibilidade_torcedor',
+      description: 'Por que um torcedor conseguiu ou não comprar ingresso: as tentativas de pôr poltrona no carrinho, com a decisão (aprovada ou negada), o motivo e as condições conferidas (plano, situação, janela da onda, biometria e limite por jogo). Sem e-mail, lista as últimas tentativas negadas de todos os torcedores.',
+      inputSchema: obj({ email: S.str('E-mail do torcedor (opcional)'), jogo: S.str('Código do jogo, ex.: JOGO-20261115-BAH (opcional)'), soNegadas: S.bool('Só as tentativas negadas') }),
+      handler: async ({ email, jogo, soNegadas = false }) => {
+        let uid;
+        if (email) uid = (await customer(email)).uid;
+        let list = await decisions(uid);
+        if (jogo) list = list.filter((d) => d.jogo === jogo);
+        if (soNegadas || !email) list = list.filter((d) => d._negada);
+        const show = list.slice(0, 20).map(({ _negada, ...d }) => d);
+        const ultimaNegada = list.find((d) => d._negada);
+        return {
+          torcedor: email ? uid : 'todos',
+          tentativas: show.length,
+          resumo: !show.length
+            ? 'Nenhuma tentativa registrada com esse filtro.'
+            : ultimaNegada
+              ? `Última negativa em ${ultimaNegada.data} (${ultimaNegada.jogo}): ${ultimaNegada.motivos.join(' ')}`
+              : 'Todas as tentativas foram aprovadas.',
+          lista: show,
+        };
+      },
     },
     {
       name: 'chamados',

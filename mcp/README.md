@@ -5,7 +5,7 @@ Um único arquivo (`flamengo-mcp.mjs`) que o Claude Desktop inicia sozinho. Trê
 | Persona | Usuário no Commerce | API | O que pode |
 |---|---|---|---|
 | **Torcedor** | o torcedor (ex. torcedor1) | OCC (API da loja) | plano, jogos e preço de sócio, comprar ingressos, loja, carrinho, cupom, finalizar compra, pedidos, chamados, pedir cancelamento |
-| **Gestor do sócio-torcedor** | `gestor.socio` | Integration API (OData) | planos (ler/alterar), sócios, torcedores, chamados, confirmar cancelamento, relatórios de cancelamento e adesão, cupons (ler/alterar) |
+| **Gestor do sócio-torcedor** | `gestor.socio` | Integration API (OData) | planos (ler/alterar), sócios, torcedores, situação e elegibilidade (por que não conseguiu comprar), chamados, confirmar cancelamento, relatórios de cancelamento e adesão, cupons (ler/alterar) |
 | **Gestor de jogos** | `gestor.jogos` | Integration API (OData) | jogos (ler/criar/alterar/encerrar), vendas de ingressos por jogo e setor |
 
 ## Instalar (5 minutos)
@@ -48,6 +48,7 @@ set FLAMENGO_PERSONA=jogos& set GESTOR_USUARIO=gestor.jogos& set GESTOR_SENHA=..
 - "Quantos cancelamentos tivemos este mês e por quê?"
 - "Confirma o cancelamento que acabou de chegar" → o torcedor perde selo e descontos na hora (mostre a loja).
 - "O torcedor21 está com a mensalidade de outubro atrasada, suspende os benefícios" → resumo → confirmar → o selo dele vira "Benefícios suspensos", o desconto some do carrinho e a jornada pede para regularizar (`suspender_socio`). Depois: "Ele pagou, regulariza" (`regularizar_socio`) e "Mostra a linha do tempo dele" (`situacao_socio`).
+- "Por que o torcedor22 não conseguiu comprar ingresso para o Bahia?" → as tentativas dele, com a decisão, o motivo (ex.: "A venda geral deste jogo abre em 05/11…") e as condições conferidas (`elegibilidade_torcedor`). Sem e-mail: "Quem tentou comprar e não conseguiu hoje?"
 - "Aumenta o desconto na loja do Nação Maraca 2 para 12%" → o Commerce republica as promoções sozinho.
 - "Quantas vezes o cupom mengao foi usado?"
 - Mostre o bloqueio: "Cria um jogo contra o Vasco" → ele não tem essa ferramenta nem acesso.
