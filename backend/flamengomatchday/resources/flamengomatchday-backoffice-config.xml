@@ -622,8 +622,8 @@
 				<editorArea:section name="socio.eligibility.editor.decision">
 					<editorArea:attribute qualifier="eligible" readonly="true"/>
 					<editorArea:attribute qualifier="blocked" readonly="true"/>
-					<editorArea:attribute qualifier="reasons" readonly="true" editor="com.hybris.cockpitng.editor.defaulttextarea"/>
-					<editorArea:attribute qualifier="checks" readonly="true" editor="com.hybris.cockpitng.editor.defaulttextarea"/>
+					<editorArea:attribute qualifier="reasons" readonly="true"/>
+					<editorArea:attribute qualifier="checks" readonly="true"/>
 				</editorArea:section>
 				<editorArea:section name="socio.eligibility.editor.details">
 					<editorArea:attribute qualifier="product" readonly="true"/>
