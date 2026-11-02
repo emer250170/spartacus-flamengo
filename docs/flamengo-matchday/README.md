@@ -542,6 +542,20 @@ O convidado já é **contratado e cobrado** na compra do plano (produto `NACAO-C
 
 Deploy: `ant all`; Update no HAC (tipo novo `SocioGuest`, só "Update running system" + "Localize types"); ImpEx do papel à parte; reiniciar o servidor antes de testar o Backoffice (cache dos nomes do tipo novo); Backoffice › F4 › ☰ › *Reset to Defaults* do cockpit-config para o menu Convidados aparecer.
 
+**Loja: Meus convidados (PR 2)**
+
+Cartão **Meus convidados** em Minha conta › Meu sócio-torcedor (`SocioGuestsComponent`, dentro da página do sócio; some para ex-sócio, para quem não é sócio e com `flamengo.socio.convidados.ativo=false`).
+
+| Parte | Como funciona |
+|---|---|
+| Vagas | Bolinhas e "1 de 2 vaga(s) de convidado em uso", com o valor da vaga ("já está na sua mensalidade"). |
+| Lista | Nome (desde quando), CPF, nascimento e contato; **Tirar convidado** pede confirmação na própria linha. |
+| Incluir | Formulário com nome completo, CPF (máscara), nascimento, e-mail e celular opcional (máscara). A tela confere nome, CPF (dígito verificador), data, e-mail e celular antes de enviar; o servidor confere de novo e a recusa dele aparece embaixo do formulário. |
+| Sem poder incluir | Mensagem conforme o caso: suspenso, nenhuma vaga contratada (o máximo do plano), todas as vagas ocupadas. |
+| Anteriores | "Ver convidados anteriores" lista os encerrados com o período e o motivo. |
+| API | `SocioGuestsService`: `GET`, `POST`, `DELETE /users/current/socioguests`. A recusa (`SocioGuestError`) não gera aviso global do Spartacus; a mensagem vai só para o cartão. |
+| Textos | `sg.*` em `fla-texts.ts` (pt e en). |
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.
