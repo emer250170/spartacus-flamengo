@@ -148,6 +148,13 @@
   justify-content: flex-end;
 }
 
+// confirmação do pedido: o slot ocupa a largura toda; a caixa fica na coluna do pedido
+.spay-status {
+  max-width: 880px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 // confirmação: Pix/boleto aguardando
 .spay-wait {
   border-left-color: var(--sp-warn);

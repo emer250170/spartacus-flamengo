@@ -256,6 +256,11 @@
 		<property name="calculationService" ref="calculationService"/>
 		<property name="socioPaymentService" ref="socioPaymentService"/>
 	</bean>
+	<!-- Checagem de fraude: limite de valor do pedido (flamengo.fraude.limitePedido; vazio = padrão do Commerce) -->
+	<bean id="socioFraudThreshold" class="br.com.flamengo.matchday.socio.SocioFraudThreshold">
+		<property name="fraudService" ref="fraudService"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
 	<bean id="socioPaymentPlaceOrderMethodHook" class="br.com.flamengo.matchday.hook.SocioPaymentPlaceOrderMethodHook">
 		<property name="socioPaymentService" ref="socioPaymentService"/>
 	</bean>

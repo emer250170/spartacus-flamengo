@@ -639,6 +639,7 @@ Desenho aprovado em 02/11: a forma de pagamento só aparece com plano no carrinh
 | Confirmação | Evento **Pagamento confirmado** (botão **Confirmar pagamento** na ficha, Eventos do sócio ou Claude `confirmar_pagamento`): grava `socioPaymentConfirmedAt` e roda o `applyOrder` (adesão, grupos, contrato). Observação com o número do pedido escolhe o pedido; sem, vale o mais novo aguardando. |
 | Cartão com Pix escolhido | O gancho do pedido recusa fechar com cartão se o carrinho está com Pix/boleto; carrinho sem plano perde a forma. |
 | Chave | `flamengo.socio.pagamento.ativo` (true); false = só cartão com a mensalidade (carrinhos voltam à mensalidade; pedidos guardam o que foi cobrado). |
+| Fraude | A checagem de fraude padrão manda para revisão manual pedidos acima de R$ 1.000 (+50 pontos a cada R$ 100; revisão a partir de 500), e o ano inteiro do Maraca 1 e 2 passa disso. `flamengo.fraude.limitePedido=10000` sobe o limite do sintoma "Price threshold" na subida do servidor (`SocioFraudThreshold`); vazio = padrão. |
 
 | Parte | Como funciona |
 |---|---|
