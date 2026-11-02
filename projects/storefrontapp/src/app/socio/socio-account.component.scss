@@ -765,6 +765,27 @@
   border-top: 1px solid var(--sa-line);
 }
 
+// renovação (vigência, item 6)
+.sa-renew-state {
+  margin: 0 0 6px;
+  font-weight: 700;
+  color: #127a3e;
+
+  &--off {
+    color: var(--sa-warn);
+  }
+}
+
+.sa-renew-sub {
+  margin: 16px 0 8px;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.sa-renew-cancel {
+  margin-left: 8px;
+}
+
 .sa-up-item {
   display: flex;
   justify-content: space-between;
