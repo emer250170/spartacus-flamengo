@@ -647,7 +647,7 @@
 	<context merge-by="type" parent="GenericItem" type="SocioGuest" component="base">
 		<y:base>
 			<y:labels>
-				<y:label>name + ' (' + owner.uid + ')'</y:label>
+				<y:label>name + ' (' + customer.uid + ')'</y:label>
 			</y:labels>
 		</y:base>
 	</context>
@@ -655,7 +655,7 @@
 	<context merge-by="type" parent="GenericItem" type="SocioGuest" component="listview">
 		<list-view:list-view>
 			<list-view:column qualifier="name"/>
-			<list-view:column qualifier="owner"/>
+			<list-view:column qualifier="customer"/>
 			<list-view:column qualifier="plan"/>
 			<list-view:column qualifier="active"/>
 			<list-view:column qualifier="since"/>
@@ -668,7 +668,7 @@
 		<advanced-search:advanced-search>
 			<advanced-search:field-list>
 				<advanced-search:field name="name" selected="true"/>
-				<advanced-search:field name="owner" selected="true"/>
+				<advanced-search:field name="customer" selected="true"/>
 				<advanced-search:field name="cpf" selected="true"/>
 				<advanced-search:field name="active" selected="true"/>
 				<advanced-search:field name="plan" selected="false"/>
@@ -682,7 +682,7 @@
 			<editorArea:essentials>
 				<editorArea:essentialSection name="socio.guest.editor.essentials">
 					<editorArea:attribute qualifier="name" readonly="true"/>
-					<editorArea:attribute qualifier="owner" readonly="true"/>
+					<editorArea:attribute qualifier="customer" readonly="true"/>
 					<editorArea:attribute qualifier="active" readonly="true"/>
 				</editorArea:essentialSection>
 			</editorArea:essentials>
