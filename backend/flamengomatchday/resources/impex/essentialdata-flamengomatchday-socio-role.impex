@@ -31,6 +31,7 @@ BackofficeRole;sociomanagerrole;;;;;;;;
 ;;;;SocioEvent;+;+;+;-;-
 ;;;;SocioEventType;+;-;-;-;-
 ;;;;SocioEligibilityDecision;+;-;-;-;-
+;;;;SocioGuest;+;-;-;-;-
 ;;;;Product;+;-;-;-;-
 ;;;;UserGroup;+;-;-;-;-
 ;;;;Catalog;+;-;-;-;-

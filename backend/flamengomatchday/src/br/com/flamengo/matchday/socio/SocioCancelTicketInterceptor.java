@@ -2,6 +2,7 @@ package br.com.flamengo.matchday.socio;
 
 import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.model.SocioEventModel;
+import br.com.flamengo.matchday.model.SocioGuestModel;
 import de.hybris.platform.core.HybrisEnumValue;
 import de.hybris.platform.core.model.ItemModel;
 import de.hybris.platform.core.model.user.CustomerModel;
@@ -25,6 +26,8 @@ import org.slf4j.LoggerFactory;
  * chamado no Backoffice, o torcedor sai do grupo do plano: perde na hora o selo,
  * a onda de compra e os descontos no ingresso e na loja, e a vaga volta ao plano.
  * <p>
+ * Os convidados ativos do titular são encerrados junto (SocioGuestService.endAll).
+ * <p>
  * Mapeado no tipo CsTicket pelo nome (sem depender das classes do sistema de
  * tickets): lê assunto, situação e cliente pelo ModelService.
  */
@@ -36,6 +39,7 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 	private static final String CLOSED = "Closed";
 
 	private SocioPlanService socioPlanService;
+	private SocioGuestService socioGuestService;
 
 	@Override
 	public void onPrepare(final ItemModel ticket, final InterceptorContext ctx) throws InterceptorException
@@ -70,7 +74,11 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 			return;
 		}
 		ctx.registerElementFor(customer, PersistenceOperation.SAVE);
-		event.setResult("Deixou de ser sócio (" + String.join(", ", plans) + ")");
+		final List<SocioGuestModel> guests = socioGuestService == null ? List.of()
+				: socioGuestService.endAll((CustomerModel) customer, SocioGuestService.END_BY_CANCELLATION);
+		guests.forEach(guest -> ctx.registerElementFor(guest, PersistenceOperation.SAVE));
+		event.setResult("Deixou de ser sócio (" + String.join(", ", plans) + ")"
+				+ (guests.isEmpty() ? "" : "; " + guests.size() + " convidado(s) encerrado(s)"));
 		ctx.registerElementFor(event, PersistenceOperation.SAVE);
 		LOG.info("Chamado de cancelamento fechado: {} deixa de ser sócio ({})", ((CustomerModel) customer).getUid(), plans);
 	}
@@ -78,5 +86,10 @@ public class SocioCancelTicketInterceptor implements PrepareInterceptor<ItemMode
 	public void setSocioPlanService(final SocioPlanService socioPlanService)
 	{
 		this.socioPlanService = socioPlanService;
+	}
+
+	public void setSocioGuestService(final SocioGuestService socioGuestService)
+	{
+		this.socioGuestService = socioGuestService;
 	}
 }

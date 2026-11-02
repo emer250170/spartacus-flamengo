@@ -131,6 +131,35 @@ public class SocioMemberHtml
 		}
 		h.append("</div>");
 
+		h.append(section(l("history.guests")));
+		final long activeGuests = m.guestList.stream().filter(g -> g.active).count();
+		if (m.guests > 0 || activeGuests > 0)
+		{
+			h.append("<div style=\"color:#556b82;margin-bottom:6px\">")
+					.append(esc(MessageFormat.format(l("history.guests.slots"), Long.valueOf(activeGuests), Integer.valueOf(m.guests))))
+					.append("</div>");
+		}
+		if (m.guestList.isEmpty())
+		{
+			h.append(empty(l("history.guests.empty")));
+		}
+		else
+		{
+			h.append(tableStart(l("history.guest.name"), l("history.guest.cpf"), l("history.guest.birth"), l("history.guest.email"),
+					l("history.guest.since"), l("history.guest.state")));
+			for (final SocioMember.Guest g : m.guestList)
+			{
+				final String state = g.active ? "<b style=\"color:#107e3e\">" + esc(l("guest.active")) + "</b>"
+						: "<span style=\"color:#6a7d8f\">" + esc(MessageFormat.format(l("guest.ended"), date(g.until),
+								StringUtils.defaultString(g.endReason, "-"))) + "</span>";
+				h.append("<tr>").append(td(esc(g.name), "")).append(td(esc(g.cpf), "white-space:nowrap"))
+						.append(td(date(g.birthDate), "white-space:nowrap")).append(td(esc(g.email), ""))
+						.append(td(date(g.since), "white-space:nowrap")).append(td(state, "")).append("</tr>");
+			}
+			h.append("</table></div>");
+		}
+		h.append("</div>");
+
 		h.append(section(l("history.orders")));
 		if (m.orders.isEmpty())
 		{
