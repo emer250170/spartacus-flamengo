@@ -4,6 +4,7 @@ import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.socio.SocioGuestException;
 import br.com.flamengo.matchday.socio.SocioGuestOverview;
 import br.com.flamengo.matchday.socio.SocioGuestService;
+import br.com.flamengo.matchday.socio.SocioGuestTicket;
 import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.core.model.user.UserModel;
 import de.hybris.platform.servicelayer.user.UserService;
@@ -33,7 +34,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * <ul>
  * <li>GET /{baseSiteId}/users/current/socioguests: plano, vagas e convidados;</li>
  * <li>POST /{baseSiteId}/users/current/socioguests: cadastra um convidado;</li>
- * <li>DELETE /{baseSiteId}/users/current/socioguests/{id}: tira o convidado.</li>
+ * <li>DELETE /{baseSiteId}/users/current/socioguests/{id}: tira o convidado;</li>
+ * <li>PUT /{baseSiteId}/users/current/socioguests/tickets: marca a poltrona do carrinho
+ * para um convidado ({"cartId","seatCode","guestId"}; guestId vazio = o titular).</li>
  * </ul>
  * O filtro de usuário da API já põe o torcedor do token na sessão. Recusas voltam
  * com 400 e {"errors":[{"type":"SocioGuestError","message":"..."}]}, a mensagem em
@@ -111,6 +114,32 @@ public class SocioGuestsController
 		return ResponseEntity.ok(toDto(socioGuestService.overview(owner)));
 	}
 
+	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
+	@RequestMapping(value = "/tickets", method = RequestMethod.PUT)
+	@ResponseBody
+	public ResponseEntity<Object> assign(@PathVariable final String baseSiteId, @PathVariable final String userId,
+			@RequestBody final SocioGuestTicketWsDTO ticket)
+	{
+		final CustomerModel owner = currentCustomer();
+		if (owner == null)
+		{
+			return error(HttpStatus.UNAUTHORIZED, "Entre na sua conta para escolher quem vai no jogo.");
+		}
+		if (ticket == null || StringUtils.isBlank(ticket.getSeatCode()))
+		{
+			return error(HttpStatus.BAD_REQUEST, "Informe a poltrona.");
+		}
+		try
+		{
+			socioGuestService.assign(owner, ticket.getCartId(), ticket.getSeatCode(), ticket.getGuestId());
+		}
+		catch (final SocioGuestException e)
+		{
+			return error(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+		return ResponseEntity.ok(toDto(socioGuestService.overview(owner)));
+	}
+
 	protected CustomerModel currentCustomer()
 	{
 		final UserModel user = userService.getCurrentUser();
@@ -152,6 +181,7 @@ public class SocioGuestsController
 		dto.setReason(o.reason);
 		o.active.forEach(g -> dto.getGuests().add(toDto(g)));
 		o.ended.forEach(g -> dto.getEnded().add(toDto(g)));
+		o.tickets.forEach(t -> dto.getTickets().add(toDto(t)));
 		return dto;
 	}
 
@@ -168,6 +198,21 @@ public class SocioGuestsController
 		dto.setSince(format(g.getSince(), "yyyy-MM-dd'T'HH:mm:ssXXX"));
 		dto.setUntil(format(g.getUntil(), "yyyy-MM-dd'T'HH:mm:ssXXX"));
 		dto.setEndReason(g.getEndReason());
+		return dto;
+	}
+
+	protected static SocioGuestTicketWsDTO toDto(final SocioGuestTicket t)
+	{
+		final SocioGuestTicketWsDTO dto = new SocioGuestTicketWsDTO();
+		dto.setGuestId(t.guestId);
+		dto.setHolder(t.holder);
+		dto.setSeatCode(t.seatCode);
+		dto.setSeatName(t.seatName);
+		dto.setGameCode(t.gameCode);
+		dto.setGameName(t.gameName);
+		dto.setKickoff(format(t.kickoff, "yyyy-MM-dd'T'HH:mm:ssXXX"));
+		dto.setOrderCode(t.orderCode);
+		dto.setCartId(t.cartCode);
 		return dto;
 	}
 

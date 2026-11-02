@@ -208,6 +208,17 @@
 		<property name="modelService" ref="modelService"/>
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 		<property name="configurationService" ref="configurationService"/>
+		<property name="seatHoldService" ref="seatHoldService"/>
+	</bean>
+	<!--
+		Ingresso do convidado: ao fechar o pedido do sócio, cada poltrona além da dele
+		precisa de convidado (chave flamengo.socio.convidados.ingressoNominal)
+	-->
+	<bean id="socioGuestPlaceOrderMethodHook" class="br.com.flamengo.matchday.hook.SocioGuestPlaceOrderMethodHook">
+		<property name="socioGuestService" ref="socioGuestService"/>
+	</bean>
+	<bean id="socioGuestPlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="socioGuestPlaceOrderMethodHook"/>
 	</bean>
 
 	<!--
@@ -224,6 +235,7 @@
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 		<property name="userService" ref="userService"/>
 		<property name="configurationService" ref="configurationService"/>
+		<property name="socioGuestService" ref="socioGuestService"/>
 	</bean>
 	<bean id="socioEligibilityAddToCartHook" class="br.com.flamengo.matchday.hook.SocioEligibilityAddToCartHook">
 		<property name="socioEligibilityService" ref="socioEligibilityService"/>

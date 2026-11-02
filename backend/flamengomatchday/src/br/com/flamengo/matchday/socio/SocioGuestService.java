@@ -1,6 +1,8 @@
 package br.com.flamengo.matchday.socio;
 
 import br.com.flamengo.matchday.model.SocioGuestModel;
+import de.hybris.platform.core.model.order.AbstractOrderModel;
+import de.hybris.platform.core.model.order.CartModel;
 import de.hybris.platform.core.model.user.CustomerModel;
 
 import java.util.Date;
@@ -24,6 +26,16 @@ import java.util.List;
 public interface SocioGuestService
 {
 	String ENABLED_PROPERTY = "flamengo.socio.convidados.ativo";
+	/**
+	 * Ingresso nominal (padrão true): no carrinho do sócio, cada poltrona além da dele
+	 * no mesmo jogo precisa estar marcada para um convidado cadastrado.
+	 */
+	String NOMINAL_PROPERTY = "flamengo.socio.convidados.ingressoNominal";
+	/** Limite por jogo do sócio = titular + vagas contratadas (padrão true; false = máximo do plano) */
+	String CONTRACTED_LIMIT_PROPERTY = "flamengo.socio.convidados.limiteContratado";
+	/** Atributos do item do pedido (AbstractOrderEntry) */
+	String ENTRY_GUEST = "socioGuest";
+	String ENTRY_HOLDER = "ticketHolder";
 
 	/** Motivo gravado quando o titular tira o convidado */
 	String END_BY_OWNER = "Retirado pelo titular";
@@ -40,6 +52,34 @@ public interface SocioGuestService
 
 	/** Vagas de convidado contratadas no último pedido do plano (0 se não é sócio) */
 	int contractedSlots(CustomerModel owner);
+
+	/**
+	 * Vagas de convidado que contam no limite de ingressos por jogo: as contratadas
+	 * no plano; com o plano ainda no carrinho, os convidados que estão no carrinho.
+	 */
+	int ticketGuestSlots(CustomerModel owner, AbstractOrderModel cart);
+
+	/** Ingressos de convidados do titular: jogos ainda não realizados, em pedidos e no carrinho */
+	List<SocioGuestTicket> tickets(CustomerModel owner);
+
+	/**
+	 * Marca a poltrona do carrinho para um convidado (ou para o titular, com guestId vazio).
+	 *
+	 * @throws SocioGuestException
+	 *            convidado inexistente ou encerrado, poltrona fora do carrinho, convidado
+	 *            que já tem ingresso para o mesmo jogo
+	 */
+	void assign(CustomerModel owner, String cartCode, String seatCode, String guestId) throws SocioGuestException;
+
+	/**
+	 * Ao fechar o pedido do sócio (chave {@value #NOMINAL_PROPERTY}): cada poltrona além
+	 * da do titular no mesmo jogo precisa de convidado ativo, um ingresso por convidado
+	 * por jogo. Grava o nome do convidado em ticketHolder. Quem não é sócio passa direto.
+	 *
+	 * @throws SocioGuestException
+	 *            com o motivo, em português
+	 */
+	void checkCart(CartModel cart) throws SocioGuestException;
 
 	/**
 	 * Cadastra um convidado numa vaga livre e grava uma observação na linha do tempo do sócio.

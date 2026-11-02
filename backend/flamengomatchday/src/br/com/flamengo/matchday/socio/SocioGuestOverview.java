@@ -29,4 +29,6 @@ public class SocioGuestOverview
 	public final List<SocioGuestModel> active = new ArrayList<>();
 	/** Encerrados, os mais novos primeiro (até 10) */
 	public final List<SocioGuestModel> ended = new ArrayList<>();
+	/** Ingressos dos convidados para jogos ainda não realizados (pedidos e carrinho) */
+	public final List<SocioGuestTicket> tickets = new ArrayList<>();
 }

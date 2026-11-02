@@ -146,7 +146,7 @@ public class SocioMemberHtml
 		else
 		{
 			h.append(tableStart(l("history.guest.name"), l("history.guest.cpf"), l("history.guest.birth"), l("history.guest.email"),
-					l("history.guest.since"), l("history.guest.state")));
+					l("history.guest.since"), l("history.guest.tickets"), l("history.guest.state")));
 			for (final SocioMember.Guest g : m.guestList)
 			{
 				final String state = g.active ? "<b style=\"color:#107e3e\">" + esc(l("guest.active")) + "</b>"
@@ -154,7 +154,9 @@ public class SocioMemberHtml
 								StringUtils.defaultString(g.endReason, "-"))) + "</span>";
 				h.append("<tr>").append(td(esc(g.name), "")).append(td(esc(g.cpf), "white-space:nowrap"))
 						.append(td(date(g.birthDate), "white-space:nowrap")).append(td(esc(g.email), ""))
-						.append(td(date(g.since), "white-space:nowrap")).append(td(state, "")).append("</tr>");
+						.append(td(date(g.since), "white-space:nowrap"))
+						.append(td(g.tickets.isEmpty() ? "-" : esc(String.join("\n", g.tickets)).replace("\n", "<br/>"), ""))
+						.append(td(state, "")).append("</tr>");
 			}
 			h.append("</table></div>");
 		}

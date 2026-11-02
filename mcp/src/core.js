@@ -731,6 +731,38 @@ function socioTools(cfg, http) {
       .map((d) => ({ ...d, data: fmtDate(d.data) }));
   }
 
+  /** Convidados nominais (FlamengoConvidado) e ingressos marcados para eles (FlamengoPedido, ticketHolder) */
+  async function guests(uid) {
+    const query = { $expand: 'customer,plan', $top: 500 };
+    if (uid) query.$filter = `customer/uid eq '${uid.replace(/'/g, "''")}'`;
+    const gs = results(await odata('GET', '/FlamengoConvidado/SocioGuests', { query }));
+    const mask = (cpf) => (String(cpf ?? '').length === 11 ? `***.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-**` : '***');
+    return gs.map((g) => ({
+      convidado: g.name, cpf: mask(g.cpf), titular: g.customer?.name, email: g.customer?.uid,
+      situacao: g.active ? 'ativo' : `encerrado em ${fmtDate(toDate(g.until))} (${g.endReason ?? 'sem motivo'})`,
+      desde: fmtDate(toDate(g.since)), plano: g.plan?.name ?? null, _ativo: !!g.active,
+    }));
+  }
+
+  async function guestTickets(uid) {
+    const query = { $expand: 'user,status,entries/product', $top: 500 };
+    if (uid) query.$filter = `user/uid eq '${uid.replace(/'/g, "''")}'`;
+    const os = results(await odata('GET', '/FlamengoPedido/Orders', { query })).filter((o) => o.versionID == null && !/CANCEL/.test(o.status?.code ?? ''));
+    const out = [];
+    for (const o of os) {
+      for (const e of results(o.entries)) {
+        const code = e.product?.code ?? '';
+        if (!/^JOGO-\d{8}-/.test(code)) continue;
+        out.push({
+          jogo: code.split('-').slice(0, 3).join('-'), poltrona: e.product?.name ?? code, codigoPoltrona: code,
+          quemVai: e.ticketHolder || `${o.user?.name ?? o.user?.uid} (titular)`, convidado: !!e.ticketHolder,
+          pedido: o.code, data: fmtDate(toDate(o.date)), titular: o.user?.name, email: o.user?.uid,
+        });
+      }
+    }
+    return out;
+  }
+
   const showTicket = (t) => ({ ...t, aberto: fmtDate(t.aberto), atualizado: fmtDate(t.atualizado), situacao: t.situacao === 'Closed' ? 'Fechado' : t.situacao === 'Open' ? 'Em atendimento' : 'Novo' });
 
   async function orders() {
@@ -847,6 +879,28 @@ function socioTools(cfg, http) {
               ? `Última negativa em ${ultimaNegada.data} (${ultimaNegada.jogo}): ${ultimaNegada.motivos.join(' ')}`
               : 'Todas as tentativas foram aprovadas.',
           lista: show,
+        };
+      },
+    },
+    {
+      name: 'convidados_torcedor',
+      description: 'Convidados nominais de um sócio (nome, CPF mascarado, situação e desde quando) e os ingressos comprados para eles, com quem vai em cada poltrona. Com o código do jogo, mostra quem vai no jogo (titular e convidados). Sem e-mail, lista os ingressos de convidados de todos os sócios (filtrável por jogo).',
+      inputSchema: obj({ email: S.str('E-mail do sócio (opcional)'), jogo: S.str('Código do jogo, ex.: JOGO-20261115-BAH (opcional)') }),
+      handler: async ({ email, jogo }) => {
+        let uid;
+        if (email) uid = (await customer(email)).uid;
+        const lista = uid ? await guests(uid) : [];
+        let ingressos = await guestTickets(uid);
+        if (jogo) ingressos = ingressos.filter((t) => t.jogo === jogo);
+        if (!uid) ingressos = ingressos.filter((t) => t.convidado);
+        return {
+          torcedor: uid ?? 'todos',
+          convidados: lista.map(({ _ativo, ...g }) => g),
+          ativos: lista.filter((g) => g._ativo).length,
+          ingressos: ingressos.slice(0, 50).map(({ convidado, ...t }) => t),
+          resumo: !ingressos.length
+            ? 'Nenhum ingresso encontrado com esse filtro.'
+            : `${ingressos.length} ingresso(s); para convidados: ${ingressos.filter((t) => t.convidado).map((t) => `${t.quemVai} (${t.poltrona})`).join(', ') || 'nenhum'}.`,
         };
       },
     },

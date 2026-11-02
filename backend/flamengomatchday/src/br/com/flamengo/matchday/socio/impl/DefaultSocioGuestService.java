@@ -1,19 +1,26 @@
 package br.com.flamengo.matchday.socio.impl;
 
 import br.com.flamengo.matchday.enums.SocioEventType;
+import br.com.flamengo.matchday.model.MatchdayGameModel;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioGuestException;
 import br.com.flamengo.matchday.socio.SocioGuestOverview;
+import br.com.flamengo.matchday.service.SeatHoldService;
 import br.com.flamengo.matchday.socio.SocioGuestService;
+import br.com.flamengo.matchday.socio.SocioGuestTicket;
 import br.com.flamengo.matchday.socio.SocioPlanService;
 import de.hybris.platform.core.PK;
+import de.hybris.platform.core.enums.OrderStatus;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
+import de.hybris.platform.core.model.order.AbstractOrderModel;
+import de.hybris.platform.core.model.order.CartModel;
 import de.hybris.platform.core.model.order.OrderModel;
 import de.hybris.platform.core.model.product.ProductModel;
 import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.servicelayer.config.ConfigurationService;
+import de.hybris.platform.variants.model.VariantProductModel;
 import de.hybris.platform.servicelayer.model.ModelService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
 import de.hybris.platform.servicelayer.search.FlexibleSearchService;
@@ -22,8 +29,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +54,7 @@ public class DefaultSocioGuestService implements SocioGuestService
 	private ModelService modelService;
 	private FlexibleSearchService flexibleSearchService;
 	private ConfigurationService configurationService;
+	private SeatHoldService seatHoldService;
 
 	@Override
 	public boolean isEnabled()
@@ -81,6 +92,7 @@ public class DefaultSocioGuestService implements SocioGuestService
 		}
 		o.reason = refusal(o);
 		o.canAdd = o.reason == null;
+		o.tickets.addAll(tickets(owner));
 		return o;
 	}
 
@@ -102,8 +114,8 @@ public class DefaultSocioGuestService implements SocioGuestService
 		if (o.contracted <= 0)
 		{
 			return o.planMaxGuests > 0
-					? "Seu plano não tem vaga de convidado contratada. Contrate até " + o.planMaxGuests
-							+ " convidado(s) mudando o plano em Meu sócio-torcedor."
+					? "Seu plano permite até " + o.planMaxGuests
+							+ " convidado(s), mas nenhuma vaga foi contratada na adesão. A vaga de convidado é escolhida na compra do plano."
 					: "O plano " + o.planName + " não tem convidados.";
 		}
 		if (o.active.size() >= o.contracted)
@@ -258,13 +270,288 @@ public class DefaultSocioGuestService implements SocioGuestService
 	}
 
 	/**
-	 * Convidado com ingresso de jogo futuro não pode sair (o nome dele está no
-	 * ingresso). A compra para o convidado entra no PR 3 do item; até lá não há
-	 * ingresso com convidado e nada é recusado aqui.
+	 * Convidado com ingresso de jogo futuro num pedido não pode sair (o nome dele está
+	 * no ingresso). Se a poltrona dele ainda está só no carrinho, ela volta a ser do titular.
 	 */
 	protected void checkNoFutureTicket(final SocioGuestModel guest) throws SocioGuestException
 	{
-		// PR 3 (compra para o convidado): recusar quando houver ingresso de jogo futuro no nome dele
+		final String id = guest.getPk().toString();
+		for (final SocioGuestTicket t : tickets(guest.getCustomer()))
+		{
+			if (id.equals(t.guestId) && t.orderCode != null)
+			{
+				throw new SocioGuestException(guest.getName() + " tem ingresso para " + t.gameName + " em "
+						+ day(t.kickoff) + " (pedido " + t.orderCode + "); não dá para tirar antes do jogo.");
+			}
+		}
+		for (final AbstractOrderEntryModel entry : guestEntries(guest.getCustomer()))
+		{
+			if (entry.getOrder() instanceof CartModel && guest.equals(modelService.getAttributeValue(entry, ENTRY_GUEST)))
+			{
+				setGuest(entry, null);
+			}
+		}
+	}
+
+	// ------------------------------------------------------------ ingressos dos convidados
+
+	@Override
+	public int ticketGuestSlots(final CustomerModel owner, final AbstractOrderModel cart)
+	{
+		if (socioPlanService.memberPlan(owner) != null)
+		{
+			return contractedSlots(owner);
+		}
+		// plano ainda no carrinho: as vagas de convidado que estão junto
+		return cart == null || cart.getEntries() == null ? 0
+				: cart.getEntries().stream().filter(e -> isGuestProduct(e.getProduct()))
+						.mapToInt(e -> e.getQuantity() == null ? 0 : e.getQuantity().intValue()).sum();
+	}
+
+	@Override
+	public List<SocioGuestTicket> tickets(final CustomerModel owner)
+	{
+		final List<SocioGuestTicket> out = new ArrayList<>();
+		final Date now = new Date();
+		for (final AbstractOrderEntryModel entry : guestEntries(owner))
+		{
+			final AbstractOrderModel order = entry.getOrder();
+			if (order instanceof OrderModel && !liveOrder((OrderModel) order))
+			{
+				continue;
+			}
+			final MatchdayGameModel game = gameOf(entry.getProduct());
+			if (game == null || (game.getKickoff() != null && game.getKickoff().before(now)))
+			{
+				continue;
+			}
+			final SocioGuestModel guest = (SocioGuestModel) modelService.getAttributeValue(entry, ENTRY_GUEST);
+			final SocioGuestTicket t = new SocioGuestTicket();
+			t.guestId = guest.getPk().toString();
+			t.holder = StringUtils.defaultIfBlank((String) modelService.getAttributeValue(entry, ENTRY_HOLDER), guest.getName());
+			t.seatCode = entry.getProduct().getCode();
+			t.seatName = StringUtils.defaultIfBlank(entry.getProduct().getName(PT), t.seatCode);
+			t.gameCode = game.getCode();
+			t.gameName = gameName(game);
+			t.kickoff = game.getKickoff();
+			if (order instanceof OrderModel)
+			{
+				t.orderCode = order.getCode();
+			}
+			else
+			{
+				t.cartCode = order.getCode();
+			}
+			out.add(t);
+		}
+		out.sort((a, b) -> a.kickoff == null || b.kickoff == null ? 0 : a.kickoff.compareTo(b.kickoff));
+		return out;
+	}
+
+	/** Itens (carrinhos e pedidos) do titular marcados para algum convidado */
+	protected List<AbstractOrderEntryModel> guestEntries(final CustomerModel owner)
+	{
+		if (owner == null)
+		{
+			return Collections.emptyList();
+		}
+		final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {e.pk} FROM {AbstractOrderEntry AS e JOIN AbstractOrder AS o"
+				+ " ON {e.order}={o.pk}} WHERE {o.user}=?u AND {e." + ENTRY_GUEST + "} IS NOT NULL");
+		q.addQueryParameter("u", owner);
+		return flexibleSearchService.<AbstractOrderEntryModel> search(q).getResult();
+	}
+
+	protected static boolean liveOrder(final OrderModel order)
+	{
+		return order.getVersionID() == null && order.getStatus() != OrderStatus.CANCELLED
+				&& order.getStatus() != OrderStatus.CANCELLING;
+	}
+
+	@Override
+	public void assign(final CustomerModel owner, final String cartCode, final String seatCode, final String guestId)
+			throws SocioGuestException
+	{
+		final AbstractOrderEntryModel entry = seatEntry(owner, cartCode, seatCode);
+		if (StringUtils.isBlank(guestId))
+		{
+			setGuest(entry, null);
+			return;
+		}
+		if (!isEnabled())
+		{
+			throw new SocioGuestException("O ingresso para convidado está desligado.");
+		}
+		final SocioGuestModel guest = find(owner, guestId);
+		if (guest == null || !Boolean.TRUE.equals(guest.getActive()))
+		{
+			throw new SocioGuestException("Convidado não encontrado entre os seus convidados ativos.");
+		}
+		final MatchdayGameModel game = gameOf(entry.getProduct());
+		for (final SocioGuestTicket t : tickets(owner))
+		{
+			if (t.guestId.equals(guestId) && game != null && game.getCode().equals(t.gameCode)
+					&& !t.seatCode.equals(seatCode))
+			{
+				throw new SocioGuestException(guest.getName() + " já tem ingresso para este jogo ("
+						+ (t.orderCode != null ? "pedido " + t.orderCode : "no carrinho") + ").");
+			}
+		}
+		setGuest(entry, guest);
+	}
+
+	/** Poltrona no carrinho do titular */
+	protected AbstractOrderEntryModel seatEntry(final CustomerModel owner, final String cartCode, final String seatCode)
+			throws SocioGuestException
+	{
+		final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {Cart} WHERE {code}=?c AND {user}=?u");
+		q.addQueryParameter("c", StringUtils.trimToEmpty(cartCode));
+		q.addQueryParameter("u", owner);
+		final List<CartModel> carts = flexibleSearchService.<CartModel> search(q).getResult();
+		if (carts.isEmpty())
+		{
+			throw new SocioGuestException("Carrinho não encontrado.");
+		}
+		for (final AbstractOrderEntryModel entry : carts.get(0).getEntries())
+		{
+			if (entry.getProduct() != null && entry.getProduct().getCode().equals(seatCode)
+					&& seatHoldService.isSeat(entry.getProduct()))
+			{
+				return entry;
+			}
+		}
+		throw new SocioGuestException("A poltrona " + seatCode + " não está no seu carrinho.");
+	}
+
+	protected void setGuest(final AbstractOrderEntryModel entry, final SocioGuestModel guest)
+	{
+		modelService.setAttributeValue(entry, ENTRY_GUEST, guest);
+		modelService.setAttributeValue(entry, ENTRY_HOLDER, guest == null ? null : guest.getName());
+		modelService.save(entry);
+	}
+
+	@Override
+	public void checkCart(final CartModel cart) throws SocioGuestException
+	{
+		if (cart == null || cart.getEntries() == null || !(cart.getUser() instanceof CustomerModel)
+				|| !configurationService.getConfiguration().getBoolean(NOMINAL_PROPERTY, true))
+		{
+			return;
+		}
+		final CustomerModel owner = (CustomerModel) cart.getUser();
+		if (socioPlanService.memberPlan(owner) == null)
+		{
+			return; // quem não é sócio (ou tem o plano só no carrinho) segue como antes
+		}
+		final Map<String, List<AbstractOrderEntryModel>> byGame = new LinkedHashMap<>();
+		final Map<String, MatchdayGameModel> games = new HashMap<>();
+		for (final AbstractOrderEntryModel entry : cart.getEntries())
+		{
+			final MatchdayGameModel game = gameOf(entry.getProduct());
+			if (game != null)
+			{
+				byGame.computeIfAbsent(game.getCode(), k -> new ArrayList<>()).add(entry);
+				games.put(game.getCode(), game);
+			}
+		}
+		for (final Map.Entry<String, List<AbstractOrderEntryModel>> g : byGame.entrySet())
+		{
+			final MatchdayGameModel game = games.get(g.getKey());
+			final boolean ownTicket = ownTicketOrdered(owner, game);
+			int withoutGuest = 0;
+			final List<String> seen = new ArrayList<>();
+			for (final AbstractOrderEntryModel entry : g.getValue())
+			{
+				final Object guest = modelService.getAttributeValue(entry, ENTRY_GUEST);
+				if (!(guest instanceof SocioGuestModel))
+				{
+					withoutGuest += entry.getQuantity() == null ? 1 : entry.getQuantity().intValue();
+					continue;
+				}
+				final SocioGuestModel sg = (SocioGuestModel) guest;
+				if (!Boolean.TRUE.equals(sg.getActive()) || !owner.equals(sg.getCustomer()))
+				{
+					throw new SocioGuestException(sg.getName() + " não é mais seu convidado: escolha outra pessoa para a poltrona "
+							+ entry.getProduct().getCode() + ".");
+				}
+				if (seen.contains(sg.getPk().toString()) || orderedForGuest(owner, sg, game))
+				{
+					throw new SocioGuestException(sg.getName() + " já tem ingresso para " + gameName(game) + ".");
+				}
+				seen.add(sg.getPk().toString());
+				if (!sg.getName().equals(modelService.getAttributeValue(entry, ENTRY_HOLDER)))
+				{
+					modelService.setAttributeValue(entry, ENTRY_HOLDER, sg.getName());
+					modelService.save(entry);
+				}
+			}
+			final int allowed = ownTicket ? 0 : 1;
+			if (withoutGuest > allowed)
+			{
+				throw new SocioGuestException("Cada ingresso além do seu para " + gameName(game)
+						+ " precisa ter o nome de um convidado cadastrado em Meu sócio-torcedor › Meus convidados.");
+			}
+		}
+	}
+
+	/** O titular já comprou o próprio ingresso (poltrona sem convidado) para o jogo */
+	protected boolean ownTicketOrdered(final CustomerModel owner, final MatchdayGameModel game)
+	{
+		return orderedEntries(owner, game).stream().anyMatch(e -> modelService.getAttributeValue(e, ENTRY_GUEST) == null);
+	}
+
+	protected boolean orderedForGuest(final CustomerModel owner, final SocioGuestModel guest, final MatchdayGameModel game)
+	{
+		return orderedEntries(owner, game).stream().anyMatch(e -> guest.equals(modelService.getAttributeValue(e, ENTRY_GUEST)));
+	}
+
+	/** Poltronas do jogo em pedidos válidos do titular */
+	protected List<AbstractOrderEntryModel> orderedEntries(final CustomerModel owner, final MatchdayGameModel game)
+	{
+		final FlexibleSearchQuery q = new FlexibleSearchQuery(
+				"SELECT {o.pk} FROM {Order AS o} WHERE {o.user}=?u AND {o.versionID} IS NULL");
+		q.addQueryParameter("u", owner);
+		final List<AbstractOrderEntryModel> out = new ArrayList<>();
+		for (final OrderModel order : flexibleSearchService.<OrderModel> search(q).getResult())
+		{
+			if (liveOrder(order) && order.getEntries() != null)
+			{
+				order.getEntries().stream().filter(e -> {
+					final MatchdayGameModel g = gameOf(e.getProduct());
+					return g != null && g.getCode().equals(game.getCode());
+				}).forEach(out::add);
+			}
+		}
+		return out;
+	}
+
+	/** Jogo da poltrona (a poltrona é variante do produto do jogo); null se não é poltrona */
+	protected MatchdayGameModel gameOf(final ProductModel product)
+	{
+		if (product == null || !seatHoldService.isSeat(product) || !(product instanceof VariantProductModel)
+				|| ((VariantProductModel) product).getBaseProduct() == null)
+		{
+			return null;
+		}
+		final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {MatchdayGame} WHERE {code}=?code");
+		q.addQueryParameter("code", ((VariantProductModel) product).getBaseProduct().getCode());
+		final List<MatchdayGameModel> games = flexibleSearchService.<MatchdayGameModel> search(q).getResult();
+		return games.isEmpty() ? null : games.get(0);
+	}
+
+	protected static String gameName(final MatchdayGameModel game)
+	{
+		return game == null ? "" : "Flamengo x " + StringUtils.defaultIfBlank(game.getOpponent(), game.getCode());
+	}
+
+	protected static String day(final Date date)
+	{
+		if (date == null)
+		{
+			return "";
+		}
+		final java.text.SimpleDateFormat f = new java.text.SimpleDateFormat("dd/MM/yyyy");
+		f.setTimeZone(java.util.TimeZone.getTimeZone("America/Sao_Paulo"));
+		return f.format(date);
 	}
 
 	protected SocioGuestModel find(final CustomerModel owner, final String guestId)
@@ -337,5 +624,10 @@ public class DefaultSocioGuestService implements SocioGuestService
 	public void setConfigurationService(final ConfigurationService configurationService)
 	{
 		this.configurationService = configurationService;
+	}
+
+	public void setSeatHoldService(final SeatHoldService seatHoldService)
+	{
+		this.seatHoldService = seatHoldService;
 	}
 }
