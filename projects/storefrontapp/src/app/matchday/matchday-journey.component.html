@@ -282,12 +282,16 @@
                     class="md-seat"
                     [class.is-occupied]="c.occupied"
                     [class.is-mine]="isMine(c)"
+                    [class.is-guest]="!!guestSeatAt(c)"
                     [disabled]="c.occupied || holding"
-                    [attr.aria-pressed]="isMine(c)"
+                    [attr.aria-pressed]="isMine(c) || !!guestSeatAt(c)"
                     [attr.aria-label]="seatAria(r.row, c)"
+                    [attr.title]="guestSeatAt(c)?.holder"
                     (click)="selectSeat(c)"
                   >
-                    {{ c.number }}
+                    {{
+                      guestSeatAt(c) ? initials(guestSeatAt(c)!.holder) : c.number
+                    }}
                   </button>
                 </div>
               </div>
@@ -298,6 +302,10 @@
                 <li>
                   <span class="md-dot is-mine"></span>
                   {{ 'md.legend.mine' | flaT }}
+                </li>
+                <li *ngIf="guestSeats.length">
+                  <span class="md-dot is-guest"></span>
+                  {{ 'md.legend.guest' | flaT }}
                 </li>
                 <li>
                   <span class="md-dot is-occupied"></span>
@@ -338,6 +346,82 @@
                   {{ 'md.login' | flaT }}
                 </button>
               </p>
+
+              <!-- convidados do sócio: uma poltrona a mais para cada um -->
+              <div
+                *ngIf="showCompanions"
+                class="md-companions"
+                role="group"
+                [attr.aria-label]="'md.comp.title' | flaT"
+              >
+                <h3 class="md-h3">{{ 'md.comp.title' | flaT }}</h3>
+                <p class="md-small">
+                  {{ 'md.comp.lead' | flaT: { n: ticketLimit - 1 } }}
+                </p>
+                <ul *ngIf="companions.length; else noCompanions">
+                  <li class="md-comp-you">
+                    <span class="md-comp-name">{{ 'md.comp.you' | flaT }}</span>
+                    <span class="md-comp-seat">{{
+                      'md.line.seat' | flaT: { seat: seat }
+                    }}</span>
+                  </li>
+                  <li
+                    *ngFor="let g of companions"
+                    [class.is-active]="assigningFor === g.id"
+                  >
+                    <span class="md-comp-name">{{ g.name }}</span>
+                    <ng-container *ngIf="guestSeatOf(g.id) as gs; else noSeat">
+                      <span class="md-comp-seat">{{
+                        'md.line.seat' | flaT: { seat: gs.label }
+                      }}</span>
+                      <button
+                        type="button"
+                        class="md-link"
+                        [disabled]="holding"
+                        (click)="releaseGuestSeat(gs)"
+                      >
+                        {{ 'md.comp.release' | flaT }}
+                      </button>
+                    </ng-container>
+                    <ng-template #noSeat>
+                      <button
+                        type="button"
+                        class="md-btn md-btn-ghost md-btn-sm"
+                        [class.is-active]="assigningFor === g.id"
+                        [attr.aria-pressed]="assigningFor === g.id"
+                        [disabled]="
+                          holding || (!canAddCompanion && assigningFor !== g.id)
+                        "
+                        (click)="chooseFor(g)"
+                      >
+                        {{
+                          (assigningFor === g.id
+                            ? 'md.comp.cancelChoose'
+                            : 'md.comp.choose'
+                          ) | flaT
+                        }}
+                      </button>
+                    </ng-template>
+                  </li>
+                </ul>
+                <ng-template #noCompanions>
+                  <p class="md-small">
+                    {{ 'md.comp.none' | flaT }}
+                    <a routerLink="/my-account/socio-torcedor" class="md-link">{{
+                      'md.comp.register' | flaT
+                    }}</a>
+                  </p>
+                </ng-template>
+                <p *ngIf="assigningFor" class="md-hold" role="status">
+                  {{ 'md.comp.pick' | flaT: { name: assigningName } }}
+                </p>
+                <p
+                  *ngIf="!canAddCompanion && !assigningFor && companions.length"
+                  class="md-small"
+                >
+                  {{ 'md.comp.full' | flaT: { n: ticketLimit } }}
+                </p>
+              </div>
             </div>
           </section>
 

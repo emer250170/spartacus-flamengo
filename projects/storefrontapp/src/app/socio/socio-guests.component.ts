@@ -235,6 +235,20 @@ export class SocioGuestsComponent implements OnInit, OnDestroy {
     return value ? maskPhone(value) : '-';
   }
 
+  /** Ingressos do convidado para jogos futuros ("Ingresso: Flamengo x Bahia · 15/11 · Sul · H11") */
+  ticketsOf(guest: SocioGuest): string[] {
+    return (this.data?.tickets ?? [])
+      .filter((t) => t.guestId === guest.id)
+      .map((t) =>
+        this.t(t.orderCode ? 'sg.ticket' : 'sg.ticketCart', {
+          game: t.gameName ?? t.gameCode,
+          date: this.date(t.kickoff),
+          seat: (t.seatName ?? t.seatCode).replace(`${t.gameName ?? ''} · `, ''),
+          order: t.orderCode ?? '',
+        })
+      );
+  }
+
   trackById(_: number, guest: SocioGuest): string {
     return guest.id;
   }

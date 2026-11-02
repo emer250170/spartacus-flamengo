@@ -24,9 +24,11 @@ import {
   interval,
   of,
   raceWith,
+  throwError,
   timer,
 } from 'rxjs';
 import {
+  catchError,
   debounceTime,
   filter,
   last,
@@ -42,6 +44,11 @@ import {
   SocioPlan,
   WaveStatus,
 } from '../socio/socio.model';
+import {
+  SocioGuest,
+  SocioGuestList,
+  SocioGuestsService,
+} from '../socio/socio-guests.service';
 import { SocioService } from '../socio/socio.service';
 import { MatchdayDataService } from './matchday-data.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
@@ -59,6 +66,17 @@ import { StadiumSectorView } from './matchday-stadium-map.component';
 interface SummaryLine {
   label: string;
   detail: string;
+  price: number;
+}
+
+/** Poltrona reservada para um convidado do sócio (fica no carrinho, marcada para ele) */
+interface GuestSeat {
+  code: string;
+  /** "A8" */
+  label: string;
+  guestId: string;
+  holder: string;
+  sectorName: string;
   price: number;
 }
 
@@ -144,6 +162,13 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   biometry = false;
   /** Quantidade de cada produto nos pedidos do torcedor (limite de ingressos por jogo) */
   protected orderedQty: Record<string, number> = {};
+  // convidados do sócio: poltronas a mais, cada uma marcada para um convidado
+  /** Convidados, vagas contratadas e ingressos deles (API /socioguests) */
+  guestInfo?: SocioGuestList;
+  /** Poltronas do jogo aberto reservadas para convidados */
+  guestSeats: GuestSeat[] = [];
+  /** Convidado esperando o clique numa poltrona */
+  assigningFor?: string;
   /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
   protected requestedMatch?: string;
 
@@ -167,7 +192,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     protected socio: SocioService,
     public i18n: FlaI18nService,
     protected holdWatcher: MatchdayHoldWatcherService,
-    protected socioAccount: SocioAccountService
+    protected socioAccount: SocioAccountService,
+    protected socioGuests: SocioGuestsService
   ) {}
 
   ngOnInit(): void {
@@ -196,8 +222,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           this.needLogin = false;
           this.resumeLoginIntent();
           this.loadOrderedTickets();
+          this.loadGuests();
         } else {
           this.orderedQty = {};
+          this.guestInfo = undefined;
+          this.guestSeats = [];
+          this.assigningFor = undefined;
         }
         this.cd.markForCheck();
       })
@@ -210,6 +240,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       this.loadedEntries().subscribe((entries) => {
         this.cartEntries = entries;
         this.dropRemovedHold(entries);
+        this.dropRemovedGuestSeats(entries);
         this.restoreHold(entries);
       })
     );
@@ -225,6 +256,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           !!m.plan &&
           m.plan.code === m.inCart?.code &&
           m.plan.code !== m.member?.code;
+        this.loadGuests();
         this.cd.markForCheck();
       })
     );
@@ -412,11 +444,19 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     return ordered + inCart;
   }
 
-  /** Limite de ingressos por jogo: titular + convidados do plano, ou o limite geral */
+  /**
+   * Limite de ingressos por jogo: titular + vagas de convidado contratadas (com
+   * ELIGIBILITY.contractedLimit; senão o máximo do plano), ou o limite geral
+   */
   get ticketLimit(): number {
-    return this.memberPlan
-      ? 1 + Math.max(0, this.memberPlan.maxGuests ?? 0)
-      : ELIGIBILITY.generalLimit;
+    if (!this.memberPlan) {
+      return ELIGIBILITY.generalLimit;
+    }
+    const guests =
+      ELIGIBILITY.contractedLimit && this.guestInfo && !this.planInCart
+        ? this.guestInfo.contracted
+        : this.memberPlan.maxGuests ?? 0;
+    return 1 + Math.max(0, guests);
   }
 
   /**
@@ -567,7 +607,30 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     return this.seat === c.id || (!!c.code && this.pendingSeat === c.code);
   }
 
+  /** Poltrona reservada para um convidado */
+  guestSeatAt(c: SeatCell): GuestSeat | undefined {
+    return c.code ? this.guestSeats.find((g) => g.code === c.code) : undefined;
+  }
+
+  /** Iniciais do convidado na poltrona dele ("MC") */
+  initials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join('');
+  }
+
   seatAria(row: string, c: SeatCell): string {
+    const guest = this.guestSeatAt(c);
+    if (guest) {
+      return this.i18n.t('md.seatAriaGuest', {
+        row,
+        n: c.number,
+        name: guest.holder,
+      });
+    }
     const state = c.occupied
       ? 'md.seat.occupied'
       : this.isMine(c)
@@ -645,6 +708,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
             (s) => s.code === this.sector?.code
           );
           this.sector = sector;
+          this.syncGuestSeats();
           this.seatMap = sector ? this.buildSeatMap(sector) : [];
         }
         this.loadedEntries()
@@ -681,7 +745,14 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       this.ticketCode = this.sector.code;
       return;
     }
+    if (this.guestSeatAt(cell)) {
+      return; // a do convidado sai pelo botão "Liberar" do quadro de convidados
+    }
     if (this.held?.code === cell.code && !this.holdExpired) {
+      return;
+    }
+    if (this.assigningFor && this.held && !this.holdExpired) {
+      this.holdGuestSeat(cell, this.assigningFor);
       return;
     }
     if (!this.loggedIn) {
@@ -831,10 +902,13 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (s.stock === undefined) {
       return undefined;
     }
-    const mine = s.seats.some(
-      (x) => x.code === this.held?.code && !x.available
-    );
-    return s.stock + (mine ? 1 : 0);
+    const mine = s.seats.filter(
+      (x) =>
+        !x.available &&
+        (x.code === this.held?.code ||
+          this.guestSeats.some((g) => g.code === x.code))
+    ).length;
+    return s.stock + mine;
   }
 
   /**
@@ -869,6 +943,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
                 const c = e.product?.code;
                 return (
                   !!c &&
+                  !this.isGuestSeatCode(c) &&
                   (c === code ||
                     c === previousCode ||
                     (!!matchCode && this.data.matchCodeOfSeat(c) === matchCode))
@@ -923,23 +998,298 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Solta a poltrona segura (troca de jogo ou de setor) */
+  /** Solta a poltrona segura e as dos convidados (troca de jogo ou de setor) */
   protected releaseHeld(): void {
-    const code = this.held?.code;
-    if (!code) {
+    const codes = [
+      ...(this.held?.code ? [this.held.code] : []),
+      ...this.guestSeats.map((g) => g.code),
+    ];
+    this.guestSeats = [];
+    this.assigningFor = undefined;
+    if (!codes.length) {
       return;
     }
-    this.clearHeld();
+    if (this.held) {
+      this.clearHeld();
+    }
     this.subscription.add(
       this.activeCart
         .getEntries()
-        .pipe(take(1))
-        .subscribe((entries) =>
-          entries
-            .filter((e) => e.product?.code === code)
-            .forEach((e) => this.activeCart.removeEntry(e))
+        .pipe(
+          take(1),
+          // uma alteração por vez no carrinho (de baixo para cima)
+          switchMap((entries) => this.removeEntries(entries, codes))
         )
+        .subscribe()
     );
+  }
+
+  /** Tira as linhas destes produtos, uma por vez, esperando o carrinho a cada uma */
+  protected removeEntries(
+    entries: OrderEntry[],
+    codes: string[]
+  ): Observable<unknown> {
+    const lines = entries
+      .filter((e) => codes.includes(e.product?.code ?? ''))
+      .sort((a, b) => (b.entryNumber ?? 0) - (a.entryNumber ?? 0));
+    return lines.length
+      ? concat(
+          ...lines.map((e) =>
+            defer(() => {
+              this.activeCart.removeEntry(e);
+              return this.cartSettled();
+            })
+          )
+        ).pipe(last(undefined, undefined))
+      : of(undefined);
+  }
+
+  // ---------- convidados do sócio: uma poltrona a mais para cada um ----------
+
+  /** Busca convidados, vagas e ingressos (só sócio logado) */
+  protected loadGuests(): void {
+    if (!this.loggedIn || !this.memberPlan || this.planInCart) {
+      this.guestInfo = undefined;
+      return;
+    }
+    this.subscription.add(
+      this.socioGuests.list().subscribe({
+        next: (info) => {
+          this.guestInfo = info;
+          this.syncGuestSeats();
+          this.cd.markForCheck();
+        },
+        error: () => (this.guestInfo = undefined),
+      })
+    );
+  }
+
+  /** Códigos das poltronas do carrinho marcadas para convidados (servidor e jornada) */
+  protected isGuestSeatCode(code: string): boolean {
+    return (
+      this.guestSeats.some((g) => g.code === code) ||
+      !!this.guestInfo?.tickets?.some((t) => t.cartId && t.seatCode === code)
+    );
+  }
+
+  /** Volta à jornada: as poltronas dos convidados que já estão no carrinho reaparecem */
+  protected syncGuestSeats(): void {
+    const match = this.match;
+    if (!match || !this.guestInfo) {
+      return;
+    }
+    const inCart = new Set(this.cartEntries.map((e) => e.product?.code));
+    for (const t of this.guestInfo.tickets ?? []) {
+      if (
+        !t.cartId ||
+        t.gameCode !== match.code ||
+        !inCart.has(t.seatCode) ||
+        this.guestSeats.some((g) => g.code === t.seatCode)
+      ) {
+        continue;
+      }
+      const found = this.findSeat(t.seatCode);
+      if (found) {
+        this.guestSeats = [
+          ...this.guestSeats,
+          {
+            code: t.seatCode,
+            label: found.label,
+            guestId: t.guestId,
+            holder: t.holder,
+            sectorName: found.sector.name,
+            price: found.sector.price,
+          },
+        ];
+      }
+    }
+    // a poltrona do titular nunca é a de um convidado
+    if (this.held && this.isGuestSeatCode(this.held.code)) {
+      this.clearHeld();
+    }
+    if (this.sector) {
+      this.seatMap = this.buildSeatMap(this.sector);
+    }
+  }
+
+  protected findSeat(
+    code: string
+  ): { label: string; sector: MatchdaySector } | undefined {
+    for (const sector of this.match?.sectors ?? []) {
+      const seat = sector.seats.find((s) => s.code === code);
+      if (seat) {
+        return { label: seat.label, sector };
+      }
+    }
+    return undefined;
+  }
+
+  /** Convidados que podem ir neste jogo (sem ingresso comprado para ele) */
+  get companions(): SocioGuest[] {
+    const match = this.match;
+    if (!match || !this.guestInfo?.enabled) {
+      return [];
+    }
+    const ordered = new Set(
+      (this.guestInfo.tickets ?? [])
+        .filter((t) => t.orderCode && t.gameCode === match.code)
+        .map((t) => t.guestId)
+    );
+    return this.guestInfo.guests.filter((g) => !ordered.has(g.id));
+  }
+
+  /** Mostra o quadro "Quem vai com você": sócio em dia com vaga de convidado e poltrona reservada */
+  get showCompanions(): boolean {
+    return (
+      !!this.held &&
+      !this.holdExpired &&
+      !!this.memberPlan &&
+      !this.suspendedPlan &&
+      !!this.guestInfo?.enabled &&
+      (this.guestInfo.contracted ?? 0) > 0
+    );
+  }
+
+  /** Ainda cabe mais um ingresso no limite do jogo */
+  get canAddCompanion(): boolean {
+    return !!this.match && this.ticketsFor(this.match) < this.ticketLimit;
+  }
+
+  guestSeatOf(guestId: string): GuestSeat | undefined {
+    return this.guestSeats.find((g) => g.guestId === guestId);
+  }
+
+  get assigningName(): string {
+    return (
+      this.guestInfo?.guests.find((g) => g.id === this.assigningFor)?.name ?? ''
+    );
+  }
+
+  /** "Escolher poltrona" de um convidado: o próximo clique no mapa é para ele */
+  chooseFor(guest: SocioGuest): void {
+    this.holdMessage = undefined;
+    this.assigningFor = this.assigningFor === guest.id ? undefined : guest.id;
+  }
+
+  /** Reserva a poltrona e a marca para o convidado no SAP Commerce */
+  protected holdGuestSeat(cell: SeatCell, guestId: string): void {
+    const code = cell.code;
+    const guest = this.guestInfo?.guests.find((g) => g.id === guestId);
+    if (!code || !guest || !this.sector) {
+      return;
+    }
+    const sector = this.sector;
+    this.holding = true;
+    this.cd.markForCheck();
+    this.subscription.add(
+      defer(() => {
+        this.activeCart.addEntry(code, 1);
+        return this.cartSettled();
+      })
+        .pipe(
+          switchMap(() =>
+            combineLatest([
+              this.activeCart.getActive(),
+              this.activeCart.getEntries(),
+            ]).pipe(take(1))
+          ),
+          switchMap(([cart, entries]) => {
+            if (!entries.some((e) => e.product?.code === code)) {
+              const reason = this.deniedReason();
+              throw new Error(
+                reason
+                  ? this.i18n.t('md.holdDenied', { reason })
+                  : this.i18n.t('md.holdTaken')
+              );
+            }
+            return this.socioGuests
+              .assignTicket({
+                cartId: cart.code ?? '',
+                seatCode: code,
+                guestId,
+              })
+              .pipe(
+                // sem o convidado marcado, a poltrona não fica no carrinho
+                catchError((e: Error) =>
+                  this.removeEntries(entries, [code]).pipe(
+                    switchMap(() =>
+                      throwError(
+                        () =>
+                          new Error(e?.message || this.i18n.t('md.comp.error'))
+                      )
+                    )
+                  )
+                )
+              );
+          })
+        )
+        .subscribe({
+          next: (info) => {
+            this.holding = false;
+            this.guestInfo = info;
+            this.guestSeats = [
+              ...this.guestSeats.filter((g) => g.guestId !== guestId),
+              {
+                code,
+                label: cell.id,
+                guestId,
+                holder: guest.name,
+                sectorName: sector.name,
+                price: sector.price,
+              },
+            ];
+            this.assigningFor = undefined;
+            this.seatMap = this.buildSeatMap(sector);
+            this.cd.markForCheck();
+          },
+          error: (e: Error) => {
+            this.holding = false;
+            this.holdMessage = e?.message || this.i18n.t('md.holdTaken');
+            this.refreshSeats();
+            this.cd.markForCheck();
+          },
+        })
+    );
+  }
+
+  /** "Liberar": a poltrona do convidado sai do carrinho e volta a ficar livre */
+  releaseGuestSeat(seat: GuestSeat): void {
+    if (this.holding) {
+      return;
+    }
+    this.holding = true;
+    this.subscription.add(
+      this.activeCart
+        .getEntries()
+        .pipe(
+          take(1),
+          switchMap((entries) => this.removeEntries(entries, [seat.code]))
+        )
+        .subscribe(() => {
+          this.holding = false;
+          this.guestSeats = this.guestSeats.filter((g) => g.code !== seat.code);
+          this.refreshSeats();
+          this.loadGuests();
+          this.cd.markForCheck();
+        })
+    );
+  }
+
+  /** A poltrona de um convidado saiu do carrinho por fora (reserva venceu, por exemplo) */
+  protected dropRemovedGuestSeats(entries: OrderEntry[]): void {
+    if (this.holding || this.submitting || !this.guestSeats.length) {
+      return;
+    }
+    const codes = new Set(entries.map((e) => e.product?.code));
+    const lost = this.guestSeats.filter((g) => !codes.has(g.code));
+    if (lost.length) {
+      this.guestSeats = this.guestSeats.filter((g) => codes.has(g.code));
+      this.holdMessage = this.i18n.t('md.comp.lost', {
+        seat: lost.map((g) => `${g.label} (${g.holder})`).join(', '),
+      });
+      this.refreshSeats();
+      this.cd.markForCheck();
+    }
   }
 
   protected clearHeld(): void {
@@ -1041,7 +1391,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (!this.catalog || this.held || this.holding || this.match) {
       return;
     }
-    const inCart = this.seatCodes(entries);
+    const inCart = this.seatCodes(entries).filter(
+      (c) => !this.isGuestSeatCode(c)
+    );
     const savedCode = this.data.readHold()?.code;
     const wanted =
       savedCode && inCart.includes(savedCode) ? [savedCode] : inCart;
@@ -1060,6 +1412,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           this.ticketCode = seat.code;
           this.seatMap = this.buildSeatMap(sector);
           this.restoreExtras(entries);
+          this.syncGuestSeats();
           this.tick();
           this.cd.markForCheck();
           return;
@@ -1200,7 +1553,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         cells.push({
           id: s.label,
           number: s.number,
-          occupied: !s.available && s.code !== this.held?.code,
+          occupied:
+            !s.available &&
+            s.code !== this.held?.code &&
+            !this.guestSeats.some((g) => g.code === s.code),
           code: s.code,
         });
         rows.set(s.row, cells);
@@ -1304,6 +1660,21 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           .join(' · '),
         price: this.ticketPrice(this.sector?.price ?? 0),
       });
+      for (const g of this.guestSeats) {
+        lines.push({
+          label: t('md.line.guestTicket', { name: g.holder }),
+          detail: [
+            g.sectorName,
+            t('md.line.seat', { seat: g.label }),
+            this.memberDiscount
+              ? t('md.memberOff', { d: this.memberDiscount })
+              : '',
+          ]
+            .filter(Boolean)
+            .join(' · '),
+          price: this.ticketPrice(g.price),
+        });
+      }
     }
     const parking = this.parkingProduct;
     if (parking) {
@@ -1351,7 +1722,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   }
 
   get itemCount(): number {
-    let count = this.sector ? 1 : 0;
+    let count = (this.sector ? 1 : 0) + this.guestSeats.length;
     count += this.parkingProduct ? 1 : 0;
     count += Object.values(this.food).reduce((a, b) => a + b, 0);
     count += this.addShirt ? this.shirtQty : 0;

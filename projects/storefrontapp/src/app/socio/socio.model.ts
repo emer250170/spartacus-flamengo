@@ -165,12 +165,15 @@ export const BIOMETRY_GROUP = 'biometria-validada';
  *   escolher poltrona com uma condição não atendida (✕), como já fazia com a onda.
  *   Desligado, só a onda bloqueia e o cartão apenas informa.
  * - biometryRequired: flamengo.socio.biometria.exigida
- * - generalLimit: flamengo.ingressos.limite.geral (sócio: titular + convidados do plano)
+ * - generalLimit: flamengo.ingressos.limite.geral (sócio: titular + convidados)
+ * - contractedLimit: flamengo.socio.convidados.limiteContratado (sócio: titular +
+ *   vagas de convidado contratadas; false = titular + máximo do plano)
  */
 export const ELIGIBILITY = {
   blocking: true,
   biometryRequired: false,
   generalLimit: 4,
+  contractedLimit: true,
 };
 
 /** Uma condição conferida no cartão de elegibilidade */
