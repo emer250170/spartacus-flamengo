@@ -625,6 +625,30 @@ O sócio tem um contrato de 12 meses com renovação automática. Desenho aprova
 
 Deploy (PR 6a): `ant all`; Update no HAC (tipo novo e valores novos do enum, só "Update running system" + "Localize types"); ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`) e da Integration API (`FlamengoContrato`) à parte; reiniciar antes de testar o Backoffice; Reset to Defaults para o nó Contratos.
 
+### Pix e boleto à vista e plano aguardando pagamento (item 7 do plano de evolução)
+
+Desenho aprovado em 02/11: a forma de pagamento só aparece com plano no carrinho (sem plano, o checkout continua só com cartão). Cartão: mensalidade (como antes) ou o ano inteiro em até 12x. Pix e boleto: o ano inteiro (12 mensalidades do plano e dos convidados), sem desconto. Pix/boleto: o pedido fica aguardando pagamento e só vira sócio quando o gestor confirma.
+
+| Regra | Como funciona |
+|---|---|
+| Formas | `CARTAO_MENSAL` (vazio = como antes), `CARTAO_ANUAL` (parcelas 1 a `flamengo.socio.pagamento.parcelas`), `PIX`, `BOLETO`. Gravadas no carrinho e copiadas para o pedido (`socioPaymentMethod`, `socioInstallments`). |
+| Ano inteiro | `CARTAO_ANUAL`, `PIX` e `BOLETO`: o preço base da linha do plano e das linhas de convidado é 12 × mensalidade (`SocioAnnualPricing` embrulha a estratégia de preço do `calculationService`; o resto do carrinho não muda). |
+| Planos | Campo **Aceita Pix e boleto (ano inteiro)** no cadastro do plano (`upfrontPayment`, ligado por padrão). Desligado: só cartão. |
+| Pix e boleto | Fecham o pedido sem cartão (`POST .../carts/{id}/sociopayment/order`), com código fictício (Pix copia e cola no formato BR Code, linha digitável de boleto) e vencimento (Pix 30 min, boleto 3 dias, propriedades). |
+| Aguardando | O order-process (`applyOrder`) vê o pedido não pago: tira os grupos que o plano no carrinho deu (o plano que o torcedor já pagava fica) e grava **Aguardando pagamento**. Os ingressos do mesmo pedido ficam reservados com o preço de sócio. Pedido aguardando não conta como contrato, convidados nem saída. |
+| Confirmação | Evento **Pagamento confirmado** (botão **Confirmar pagamento** na ficha, Eventos do sócio ou Claude `confirmar_pagamento`): grava `socioPaymentConfirmedAt` e roda o `applyOrder` (adesão, grupos, contrato). Observação com o número do pedido escolhe o pedido; sem, vale o mais novo aguardando. |
+| Cartão com Pix escolhido | O gancho do pedido recusa fechar com cartão se o carrinho está com Pix/boleto; carrinho sem plano perde a forma. |
+| Chave | `flamengo.socio.pagamento.ativo` (true); false = só cartão com a mensalidade (carrinhos voltam à mensalidade; pedidos guardam o que foi cobrado). |
+
+| Parte | Como funciona |
+|---|---|
+| Tipos | Enum `SocioPaymentMethod`; valores novos `AGUARDANDO_PAGAMENTO` e `PAGAMENTO_CONFIRMADO` em `SocioEventType`; `SocioPlan.upfrontPayment`; atributos `socioPayment*` no `AbstractOrder`. Nada renomeado. |
+| API de comércio | `GET/PUT /{baseSiteId}/users/current/carts/{cartId}/sociopayment` (opções e escolha `{"method":"PIX"}` / `{"method":"CARTAO_ANUAL","installments":10}`); `POST .../sociopayment/order` (Pix/boleto); `GET /users/current/orders/{code}/sociopayment` (código, vencimento, confirmação). Recusa: 400 `SocioPaymentError`. |
+| Backoffice | Situação **Aguardando pagamento** na lista e na ficha (aviso laranja), campo **Pagamento do plano** e botão **Confirmar pagamento**. Cadastro do plano: campo novo na seção de preço. |
+| Claude (MCP) | Gestor do sócio: `confirmar_pagamento` (com confirmação) e `pagamentoPendente` em `situacao_socio`. |
+
+Deploy (PR 7a): `ant all`; Update no HAC (atributos e valores novos, só "Update running system" + "Localize types"); reiniciar antes de testar o Backoffice.
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.
