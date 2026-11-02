@@ -56,6 +56,8 @@ public class SocioMember
 	public boolean biometry;
 	/** Últimas tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */
 	public final List<Attempt> attempts = new ArrayList<>();
+	/** Convidados nominais (SocioGuest): ativos primeiro, depois os encerrados mais novos */
+	public final List<Guest> guestList = new ArrayList<>();
 	public final List<Order> orders = new ArrayList<>();
 	public final List<Ticket> tickets = new ArrayList<>();
 	public final List<Event> events = new ArrayList<>();
@@ -85,6 +87,19 @@ public class SocioMember
 		public boolean blocked;
 		/** Motivos da negativa, um por linha */
 		public String reasons;
+	}
+
+	public static class Guest
+	{
+		public String name;
+		/** ***.456.789-** */
+		public String cpf;
+		public Date birthDate;
+		public String email;
+		public Date since;
+		public boolean active;
+		public Date until;
+		public String endReason;
 	}
 
 	public static class Event

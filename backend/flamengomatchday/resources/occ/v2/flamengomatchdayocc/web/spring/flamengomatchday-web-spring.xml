@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Endpoints próprios da demo na API de comércio (OCC v2). A commercewebservices
+	importa todo classpath*:/occ/v2/*occ/web/spring/*-web-spring.xml no contexto web
+	dela; por isso a pasta termina em "occ". Os serviços vêm do contexto da
+	extensão (flamengomatchday-spring.xml).
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- Meus convidados: /{baseSiteId}/users/{userId}/socioguests -->
+	<bean id="flamengoSocioGuestsController" class="br.com.flamengo.matchday.occ.SocioGuestsController">
+		<property name="socioGuestService" ref="socioGuestService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
+</beans>

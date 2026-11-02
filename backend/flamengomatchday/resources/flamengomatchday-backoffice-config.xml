@@ -274,6 +274,7 @@
 				<explorer-tree:navigation-node id="socio.tree.members"/>
 				<explorer-tree:type-node id="socio.tree.events" code="SocioEvent"/>
 				<explorer-tree:type-node id="socio.tree.eligibility" code="SocioEligibilityDecision"/>
+				<explorer-tree:type-node id="socio.tree.guests" code="SocioGuest"/>
 				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -635,6 +636,68 @@
 					<editorArea:attribute qualifier="ticketLimit" readonly="true"/>
 					<editorArea:attribute qualifier="cartCode" readonly="true"/>
 					<editorArea:attribute qualifier="origin" readonly="true"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- ============ Convidados nominais (Meus convidados na loja) ============ -->
+	<!-- Cadastrados pelo titular na loja (SocioGuestService); só leitura no Backoffice -->
+
+	<context merge-by="type" parent="GenericItem" type="SocioGuest" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>name + ' (' + owner.uid + ')'</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioGuest" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="name"/>
+			<list-view:column qualifier="owner"/>
+			<list-view:column qualifier="plan"/>
+			<list-view:column qualifier="active"/>
+			<list-view:column qualifier="since"/>
+			<list-view:column qualifier="until"/>
+			<list-view:column qualifier="endReason"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioGuest" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="name" selected="true"/>
+				<advanced-search:field name="owner" selected="true"/>
+				<advanced-search:field name="cpf" selected="true"/>
+				<advanced-search:field name="active" selected="true"/>
+				<advanced-search:field name="plan" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="since" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<context type="SocioGuest" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.guest.editor.essentials">
+					<editorArea:attribute qualifier="name" readonly="true"/>
+					<editorArea:attribute qualifier="owner" readonly="true"/>
+					<editorArea:attribute qualifier="active" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.guest.editor.tab">
+				<editorArea:section name="socio.guest.editor.data">
+					<editorArea:attribute qualifier="cpf" readonly="true"/>
+					<editorArea:attribute qualifier="birthDate" readonly="true"/>
+					<editorArea:attribute qualifier="email" readonly="true"/>
+					<editorArea:attribute qualifier="phone" readonly="true"/>
+				</editorArea:section>
+				<editorArea:section name="socio.guest.editor.validity">
+					<editorArea:attribute qualifier="plan" readonly="true"/>
+					<editorArea:attribute qualifier="since" readonly="true"/>
+					<editorArea:attribute qualifier="until" readonly="true"/>
+					<editorArea:attribute qualifier="endReason" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>

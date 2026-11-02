@@ -444,5 +444,75 @@
 			</indexes>
 		</itemtype>
 
+		<!--
+			Convidado nominal do sócio-torcedor: o titular dá nome às vagas de convidado
+			contratadas na compra do plano (Minha conta › Meu sócio-torcedor › Meus
+			convidados). Tirar o convidado ou cancelar o plano só encerra o registro
+			(active=false, until, endReason): o histórico fica.
+		-->
+		<itemtype code="SocioGuest" extends="GenericItem" autocreate="true" generate="true">
+			<description>Convidado do sócio-torcedor</description>
+			<deployment table="socioguests" typecode="25906"/>
+			<attributes>
+				<attribute qualifier="owner" type="Customer">
+					<description>Titular (sócio que cadastrou o convidado)</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="name" type="java.lang.String">
+					<description>Nome completo do convidado</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cpf" type="java.lang.String">
+					<description>CPF do convidado, só dígitos</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="email" type="java.lang.String">
+					<description>E-mail do convidado</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="phone" type="java.lang.String">
+					<description>Celular do convidado, só dígitos (opcional)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="birthDate" type="java.util.Date">
+					<description>Data de nascimento</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="plan" type="SocioPlan">
+					<description>Plano do titular quando o convidado foi cadastrado</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="active" type="java.lang.Boolean">
+					<description>Convidado em vigor (false = encerrado)</description>
+					<modifiers optional="false"/>
+					<defaultvalue>Boolean.TRUE</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="since" type="java.util.Date">
+					<description>Cadastrado em</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="until" type="java.util.Date">
+					<description>Encerrado em</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="endReason" type="java.lang.String">
+					<description>Motivo do encerramento (retirado pelo titular, cancelamento do plano)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioGuestOwner">
+					<key attribute="owner"/>
+				</index>
+				<index name="socioGuestCpf">
+					<key attribute="cpf"/>
+				</index>
+			</indexes>
+		</itemtype>
+
 	</itemtypes>
 </items>

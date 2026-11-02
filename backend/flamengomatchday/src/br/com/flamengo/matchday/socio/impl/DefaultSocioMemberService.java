@@ -3,9 +3,11 @@ package br.com.flamengo.matchday.socio.impl;
 import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.model.SocioEligibilityDecisionModel;
 import br.com.flamengo.matchday.model.SocioEventModel;
+import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor;
 import br.com.flamengo.matchday.socio.SocioEligibilityService;
+import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.socio.SocioMember;
 import br.com.flamengo.matchday.socio.SocioMemberService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -65,6 +67,7 @@ public class DefaultSocioMemberService implements SocioMemberService
 	private SearchRestrictionService searchRestrictionService;
 	private EnumerationService enumerationService;
 	private SocioEligibilityService socioEligibilityService;
+	private SocioGuestService socioGuestService;
 
 	// ------------------------------------------------------------ leitura
 
@@ -220,6 +223,24 @@ public class DefaultSocioMemberService implements SocioMemberService
 			a.blocked = Boolean.TRUE.equals(decision.getBlocked());
 			a.reasons = decision.getReasons();
 			m.attempts.add(a);
+		}
+		if (socioGuestService != null)
+		{
+			final List<SocioGuestModel> guests = new ArrayList<>(socioGuestService.guests(customer, false));
+			guests.sort(Comparator.comparing((SocioGuestModel g) -> !Boolean.TRUE.equals(g.getActive()))); // ativos primeiro
+			for (final SocioGuestModel guest : guests)
+			{
+				final SocioMember.Guest g = new SocioMember.Guest();
+				g.name = guest.getName();
+				g.cpf = SocioGuestService.maskCpf(guest.getCpf());
+				g.birthDate = guest.getBirthDate();
+				g.email = guest.getEmail();
+				g.since = guest.getSince();
+				g.active = Boolean.TRUE.equals(guest.getActive());
+				g.until = guest.getUntil();
+				g.endReason = guest.getEndReason();
+				m.guestList.add(g);
+			}
 		}
 
 		for (final OrderModel order : planOrders)
@@ -577,5 +598,10 @@ public class DefaultSocioMemberService implements SocioMemberService
 	public void setEnumerationService(final EnumerationService enumerationService)
 	{
 		this.enumerationService = enumerationService;
+	}
+
+	public void setSocioGuestService(final SocioGuestService socioGuestService)
+	{
+		this.socioGuestService = socioGuestService;
 	}
 }

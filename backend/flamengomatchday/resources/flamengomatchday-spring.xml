@@ -151,6 +151,7 @@
 	<!-- Cancelamento: atendimento fecha o chamado "Cancelamento do plano ..." e o torcedor deixa de ser sócio -->
 	<bean id="socioCancelTicketInterceptor" class="br.com.flamengo.matchday.socio.SocioCancelTicketInterceptor">
 		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="socioGuestService" ref="socioGuestService"/>
 	</bean>
 	<bean id="socioCancelTicketInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
 		<property name="interceptor" ref="socioCancelTicketInterceptor"/>
@@ -193,6 +194,20 @@
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 		<property name="enumerationService" ref="enumerationService"/>
 		<property name="socioEligibilityService" ref="socioEligibilityService"/>
+		<property name="socioGuestService" ref="socioGuestService"/>
+	</bean>
+
+	<!--
+		Convidados nominais do sócio (item 3): o titular dá nome às vagas de convidado
+		contratadas no plano. Endpoints na API de comércio em
+		resources/occ/v2/flamengomatchdayocc/web/spring/flamengomatchday-web-spring.xml.
+		Chave: flamengo.socio.convidados.ativo (true).
+	-->
+	<bean id="socioGuestService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioGuestService">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="configurationService" ref="configurationService"/>
 	</bean>
 
 	<!--
