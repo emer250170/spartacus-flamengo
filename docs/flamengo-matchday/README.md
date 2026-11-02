@@ -469,6 +469,28 @@ Atendimento do sócio sem sair do Backoffice, para a demo mostrar o fluxo pelo s
 | Histórico | Linha do tempo (eventos), pedidos do plano e chamados do torcedor. |
 | Código | `SocioMemberService` / `DefaultSocioMemberService` (busca e ficha sem restrições de busca; ações com o usuário da sessão) e `SocioMembersController` + `SocioMemberHtml` no Backoffice. |
 
+### Elegibilidade para comprar ingresso, com motivo (item 2 do plano de evolução)
+
+Cada tentativa de pôr uma poltrona no carrinho é conferida e gravada, aprovada ou negada, com o motivo. **PR 1 (servidor) começa em modo observação**: nada muda para o torcedor; a decisão só fica registrada para o atendimento e para os relatórios.
+
+| Condição | Regra |
+|---|---|
+| Plano | Melhor plano do torcedor (grupo do plano), contando o plano que está só no carrinho. |
+| Situação | Suspenso (`socio-suspenso`) perde a onda de sócio e compra na venda geral. |
+| Janela | Onda aberta no jogo (`SocioCartService.currentWave`) ≥ onda do torcedor (1, 2, 3; 4 = venda geral). Jogo sem datas de onda está em venda geral. |
+| Biometria | Grupo `biometria-validada`. Só informativa; com `flamengo.socio.biometria.exigida=true`, biometria pendente nega. |
+| Limite por jogo | Ingressos do jogo nos pedidos (sem versões antigas nem cancelados) + no carrinho + os que estão entrando ≤ limite. Sócio em dia: titular + convidados do plano (Maraca 1 = 4, Maraca 2 = 3, Maraca 3 = 2). Não sócio ou suspenso: `flamengo.ingressos.limite.geral` (4). |
+
+| Parte | Como funciona |
+|---|---|
+| Registro | Tipo `SocioEligibilityDecision` (torcedor, jogo, poltrona, carrinho, pode comprar, recusada, motivos, condições conferidas, plano, onda do torcedor, onda aberta, ingressos que já tinha, limite, origem). Backoffice › Sócio-Torcedor › **Decisões de elegibilidade** (só leitura). |
+| Gancho | `SocioEligibilityAddToCartHook` (antes de a poltrona entrar no carrinho) chama `SocioEligibilityService.checkAddToCart`. Erro na conferência nunca impede a compra. |
+| Chaves | `flamengo.socio.elegibilidade.registro` (true: grava), `flamengo.socio.elegibilidade.bloqueio` (false: só observa; true: recusa a poltrona com o motivo), `flamengo.socio.biometria.exigida` (false), `flamengo.ingressos.limite.geral` (4). |
+| Tela Sócios | Ficha mostra **Biometria facial** (Validada / Pendente); ações **Biometria validada** e **Biometria pendente** (grupo `biometria-validada` + observação na linha do tempo); histórico ganha **Tentativas de compra de ingresso** (últimas 10, com a decisão e o motivo). |
+| Papel | `sociomanagerrole` lê `SocioEligibilityDecision`. |
+
+Depois do `ant all`: Update no HAC (tipo novo `SocioEligibilityDecision`) e ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`, cria o grupo `biometria-validada`). Próximos PRs do item: cartão "Sua elegibilidade para este jogo" na jornada (loja) e, depois do teste, ligar o bloqueio e a pergunta ao Claude ("por que o torcedor X não conseguiu comprar").
+
 Cuidado: nenhum valor de rótulo do widget pode ter `\n`. O Backoffice vira quebra de linha real e, se a linha seguinte tiver `{` (ex.: "O chamado {1}…"), o leitor do ZK recusa e o login do Backoffice inteiro dá erro 500 (aconteceu na primeira subida do PR #63; corrigido trocando por espaço).
 
 Deploy: sem tipo novo, então `ant all` e subir (sem Update no HAC); depois Backoffice › F4 › ☰ › os dois *Reset to Defaults* (widgets.xml e cockpit-config.xml) para o nó Sócios e o widget entrarem na perspectiva. Não fazer o reset antes do `ant all`.
