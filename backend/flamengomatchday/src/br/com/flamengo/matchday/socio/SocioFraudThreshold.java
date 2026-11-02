@@ -1,10 +1,10 @@
 package br.com.flamengo.matchday.socio;
 
 import de.hybris.platform.fraud.FraudService;
+import de.hybris.platform.fraud.FraudServiceProvider;
 import de.hybris.platform.fraud.impl.DefaultFraudService;
 import de.hybris.platform.fraud.impl.DefaultHybrisFraudServiceProvider;
-import de.hybris.platform.fraud.impl.FraudServiceProvider;
-import de.hybris.platform.fraud.symptom.FraudSymptom;
+import de.hybris.platform.fraud.strategy.OrderFraudSymptomDetection;
 import de.hybris.platform.fraud.symptom.impl.OrderThresholdSymptom;
 import de.hybris.platform.servicelayer.config.ConfigurationService;
 
@@ -44,7 +44,7 @@ public class SocioFraudThreshold implements InitializingBean
 				{
 					continue;
 				}
-				for (final FraudSymptom symptom : ((DefaultHybrisFraudServiceProvider) provider).getSymptomList())
+				for (final OrderFraudSymptomDetection symptom : ((DefaultHybrisFraudServiceProvider) provider).getSymptomList())
 				{
 					if (symptom instanceof OrderThresholdSymptom)
 					{
