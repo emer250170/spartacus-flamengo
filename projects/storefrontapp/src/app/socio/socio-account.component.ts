@@ -30,6 +30,7 @@ import {
   SocioCard,
   SocioPlanOrder,
 } from './socio-account.service';
+import { SocioContract, SocioContractService } from './socio-contract.service';
 import { SocioExit, SocioExitInfo, SocioExitService } from './socio-exit.service';
 import { Membership, SocioPlan } from './socio.model';
 import { SocioService } from './socio.service';
@@ -86,6 +87,10 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   ended: SocioCancellation | null = null;
   /** Regras de saída: simulação (sócio) e valor do cancelamento confirmado (ex-sócio) */
   exit: SocioExitInfo = { enabled: false, quote: null, settlement: null };
+  /** Vigência (renovação automática e mudança agendada); enabled = false: como antes */
+  contract: SocioContract | null = null;
+  contractBusy = false;
+  contractError = '';
 
   start?: Date;
   endDate?: Date;
@@ -128,6 +133,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     protected socio: SocioService,
     protected account: SocioAccountService,
     protected exitService: SocioExitService,
+    protected contractService: SocioContractService,
     protected activeCart: ActiveCartFacade,
     protected globalMessages: GlobalMessageService,
     protected router: Router,
@@ -159,6 +165,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
             this.orders = data.orders;
             this.cards = data.cards;
             this.exit = data.exit;
+            this.contract = data.contract.enabled ? data.contract : null;
             const c = data.cancellation;
             if (this.plan) {
               // sócio: só um pedido ainda aberto conta (um antigo fechado é de um plano anterior)
@@ -515,6 +522,64 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     );
   }
 
+  // ---------- vigência ----------
+
+  /** Cobrança da renovação: no plano agendado (downgrade) ou no atual */
+  protected renewalCharge(): SocioCharge {
+    const date = this.endDate ?? addMonths(this.start ?? new Date(), TERM);
+    const next = this.contract?.nextPlanCode
+      ? this.plans.find((p) => p.code === this.contract?.nextPlanCode)
+      : undefined;
+    return next
+      ? {
+          date,
+          label: this.t('sa.pay.renewalTo', { plan: next.name }),
+          amount: next.price + this.guests * (next.guest?.price ?? 0),
+        }
+      : { date, label: this.t('sa.pay.renewal'), amount: this.monthly };
+  }
+
+  toggleAutoRenew(): void {
+    const c = this.contract;
+    if (!c || this.contractBusy) {
+      return;
+    }
+    this.runContract(this.contractService.setAutoRenew(!c.autoRenew));
+  }
+
+  scheduleDowngrade(code: string | null): void {
+    if (!this.contract || this.contractBusy) {
+      return;
+    }
+    this.runContract(this.contractService.setNextPlan(code));
+  }
+
+  protected runContract(call: Observable<SocioContract>): void {
+    this.contractBusy = true;
+    this.contractError = '';
+    this.subscription.add(
+      call.subscribe({
+        next: (contract) => {
+          this.contract = contract;
+          this.contractBusy = false;
+          if (contract.message) {
+            this.globalMessages.add(
+              contract.message,
+              GlobalMessageType.MSG_TYPE_CONFIRMATION
+            );
+          }
+          this.compute();
+          this.cd.markForCheck();
+        },
+        error: (e: Error) => {
+          this.contractBusy = false;
+          this.contractError = e.message || this.t('sa.rn.error');
+          this.cd.markForCheck();
+        },
+      })
+    );
+  }
+
   // ---------- regras de saída ----------
 
   /** "Reembolso de R$ 67,10 (arrependimento até 09/11/2026)" / "Multa de R$ 60,39 (…)" */
@@ -558,6 +623,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     cards: SocioCard[];
     cancellation: SocioCancellation | null;
     exit: SocioExitInfo;
+    contract: SocioContract;
   }> {
     const planCodes = plans.map((p) => p.code);
     const guestCodes = plans
@@ -568,6 +634,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
       cards: this.account.cards(),
       cancellation: this.account.cancellation(),
       exit: this.exitService.load(),
+      contract: this.contractService.load(),
     });
   }
 
@@ -580,8 +647,12 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     const now = this.ended?.closedAt ?? new Date();
     this.currentOrder =
       this.orders.find((o) => o.planCode === plan.code) ?? this.orders[0];
-    this.start = this.currentOrder?.created;
-    this.endDate = this.start ? addMonths(this.start, TERM) : undefined;
+    // vigência: a do contrato (renovação ou upgrade) ou, sem ele, a do pedido do plano
+    const c = this.contract;
+    const term = !this.ended && !!c?.member && !!c.start;
+    const renewed = term && !!c?.renewed;
+    this.start = term ? c?.start : this.currentOrder?.created;
+    this.endDate = term ? c?.end : this.start ? addMonths(this.start, TERM) : undefined;
     this.guests = this.currentOrder?.guests ?? 0;
     this.monthly = plan.price + this.guests * (plan.guest?.price ?? 0);
 
@@ -589,12 +660,19 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     const history: SocioCharge[] = [];
     this.paidCount = 0;
     this.nextCharge = undefined;
-    if (this.start && this.currentOrder) {
+    if (this.start && (this.currentOrder || renewed)) {
       const elapsed = monthsBetween(this.start, now);
       this.paidCount = Math.min(TERM, elapsed + 1);
       for (let i = 0; i < this.paidCount; i++) {
         history.push(
-          i === 0
+          i === 0 && renewed
+            ? {
+                date: this.start,
+                label: this.t('sa.pay.renewalFirst', { plan: plan.name }),
+                amount: this.monthly,
+                card: this.defaultCard,
+              }
+            : i === 0 && this.currentOrder
             ? {
                 date: this.start,
                 label: this.t('sa.pay.first', { plan: plan.name }),
@@ -622,15 +700,13 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
               }),
               amount: this.monthly,
             }
-          : {
-              date: addMonths(this.start, TERM),
-              label: this.t('sa.pay.renewal'),
-              amount: this.monthly,
-            };
+          : term && !c?.autoRenew
+            ? undefined
+            : this.renewalCharge();
     }
-    // planos anteriores (antes de um upgrade)
+    // planos anteriores (antes de um upgrade ou da renovação)
     this.orders
-      .filter((o) => o !== this.currentOrder)
+      .filter((o) => renewed || o !== this.currentOrder)
       .forEach((o) =>
         history.push({
           date: o.created,

@@ -106,7 +106,13 @@
             </div>
             <div *ngIf="!ended">
               <dt>{{ 'sa.term' | flaT }}</dt>
-              <dd>{{ 'sa.termValue' | flaT: { date: date(endDate) } }}</dd>
+              <dd>
+                {{ 'sa.termValue' | flaT: { date: date(endDate) } }}
+                <small *ngIf="contract?.member">{{
+                  (contract?.autoRenew ? 'sa.rn.short.on' : 'sa.rn.short.off')
+                    | flaT
+                }}</small>
+              </dd>
             </div>
             <div *ngIf="ended">
               <dt>{{ 'sa.ended.label' | flaT }}</dt>
@@ -390,6 +396,7 @@
           </ng-template>
 
           <div class="sa-plan-actions" *ngIf="!ended">
+            <div class="sa-plan-left">
             <!-- upgrade -->
             <section class="sa-up">
               <h4 class="sa-subtitle">{{ 'sa.up.title' | flaT }}</h4>
@@ -426,6 +433,73 @@
                 </button>
               </div>
             </section>
+
+            <!-- renovação: vigência de 12 meses (item 6) -->
+            <ng-container *ngIf="contract as k">
+              <section class="sa-renew" *ngIf="k.member && k.end">
+                <h4 class="sa-subtitle">{{ 'sa.rn.title' | flaT }}</h4>
+                <p class="sa-renew-state" [class.sa-renew-state--off]="!k.autoRenew">
+                  {{
+                    !k.autoRenew
+                      ? ('sa.rn.off' | flaT: { date: date(k.end) })
+                      : k.nextPlanName
+                        ? ('sa.rn.change'
+                          | flaT: { date: date(k.end), plan: k.nextPlanName })
+                        : ('sa.rn.on' | flaT: { date: date(k.end) })
+                  }}
+                </p>
+                <p class="sa-muted">
+                  {{
+                    (k.locked ? 'sa.rn.locked' : 'sa.rn.until')
+                      | flaT: { date: date(k.changeDeadline) }
+                  }}
+                </p>
+                <button
+                  type="button"
+                  class="sa-btn"
+                  [disabled]="k.locked || contractBusy || !!cancellation"
+                  (click)="toggleAutoRenew()"
+                >
+                  {{ (k.autoRenew ? 'sa.rn.turnOff' : 'sa.rn.turnOn') | flaT }}
+                </button>
+                <ng-container *ngIf="k.autoRenew">
+                  <button
+                    *ngIf="k.nextPlanCode; else downOptions"
+                    type="button"
+                    class="sa-btn sa-renew-cancel"
+                    [disabled]="k.locked || contractBusy"
+                    (click)="scheduleDowngrade(null)"
+                  >
+                    {{ 'sa.rn.cancelChange' | flaT }}
+                  </button>
+                  <ng-template #downOptions>
+                    <ng-container *ngIf="k.options.length">
+                      <p class="sa-renew-sub">{{ 'sa.rn.downTitle' | flaT }}</p>
+                      <div class="sa-up-item" *ngFor="let o of k.options">
+                        <div>
+                          <strong>{{ o.name }}</strong>
+                          <span class="sa-up-price"
+                            >{{ brl(o.monthlyPrice) }}{{ 'st.perMonth' | flaT }}</span
+                          >
+                        </div>
+                        <button
+                          type="button"
+                          class="sa-btn"
+                          [disabled]="k.locked || contractBusy || !!cancellation"
+                          (click)="scheduleDowngrade(o.code)"
+                        >
+                          {{ 'sa.rn.schedule' | flaT }}
+                        </button>
+                      </div>
+                    </ng-container>
+                  </ng-template>
+                </ng-container>
+                <p class="sa-error" *ngIf="contractError" role="alert">
+                  {{ contractError }}
+                </p>
+              </section>
+            </ng-container>
+            </div>
 
             <!-- cancelamento -->
             <section class="sa-cancel">
