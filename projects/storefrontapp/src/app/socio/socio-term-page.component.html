@@ -1,0 +1,55 @@
+<section class="st-page">
+  <ng-container *ngIf="loggedIn$ | async; else login">
+    <ng-container *ngIf="term$ | async as t">
+      <ng-container *ngIf="t.enabled && t.version; else none">
+        <p class="st-kicker">{{ 'st.page.kicker' | flaT }}</p>
+        <h1 class="st-title">{{ t.title }}</h1>
+        <p class="st-meta">
+          {{
+            'st.page.meta'
+              | flaT: { version: t.version, date: day(t.publishedAt) }
+          }}
+        </p>
+        <p class="st-summary" *ngIf="t.summary">
+          <b>{{ 'st.page.changed' | flaT }}</b> {{ t.summary }}
+        </p>
+        <div class="st-text">
+          <p *ngFor="let p of paragraphs(t)">{{ p }}</p>
+        </div>
+
+        <div class="st-notice st-notice--ok" *ngIf="t.accepted">
+          <p>
+            {{
+              'st.notice.ok'
+                | flaT: { version: t.version, date: day(t.acceptedAt) }
+            }}
+          </p>
+        </div>
+        <div class="st-notice" *ngIf="t.member && !t.accepted">
+          <div>
+            <p class="st-notice-title">
+              {{ 'st.notice.title' | flaT: { version: t.version } }}
+            </p>
+            <p class="st-error" *ngIf="error" role="alert">{{ error }}</p>
+          </div>
+          <button type="button" class="st-btn" [disabled]="saving" (click)="accept()">
+            {{ 'st.notice.accept' | flaT }}
+          </button>
+        </div>
+        <p class="st-meta" *ngIf="!t.member && !t.accepted">
+          {{ 'st.page.nonMember' | flaT }}
+        </p>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #none>
+    <p class="st-empty">{{ 'st.page.none' | flaT }}</p>
+  </ng-template>
+  <ng-template #login>
+    <p class="st-empty">
+      {{ 'st.page.login' | flaT }}
+      <a routerLink="/login">{{ 'st.page.loginLink' | flaT }}</a>
+    </p>
+  </ng-template>
+</section>

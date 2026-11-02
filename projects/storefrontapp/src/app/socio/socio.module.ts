@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { CartOutlets } from '@spartacus/cart/base/root';
 import { AuthGuard, CmsConfig, provideConfig } from '@spartacus/core';
 import {
+  CmsPageGuard,
   NavigationService,
   OutletPosition,
   SpinnerModule,
@@ -17,6 +18,9 @@ import { SocioGuestsComponent } from './socio-guests.component';
 import { SocioNavigationService } from './socio-navigation.service';
 import { SocioPlansComponent } from './socio-plans.component';
 import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
+import { SocioTermCheckoutComponent } from './socio-term-checkout.component';
+import { SocioTermNoticeComponent } from './socio-term-notice.component';
+import { SocioTermPageComponent } from './socio-term-page.component';
 
 /**
  * Sócio-torcedor Nação Maraca (protótipo Flamengo).
@@ -26,13 +30,24 @@ import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
  * SocioNavigationService -> esconde o link do menu de quem nunca foi sócio.
  * SocioBadgeComponent -> selo de sócio no header (antes do "Olá, Fulano").
  * SocioGuestsComponent -> Meus convidados, dentro de Meu sócio-torcedor.
+ * Termo do Nação: SocioTermCheckoutComponent (antes do Finalizar pedido),
+ *   SocioTermNoticeComponent (Meu sócio-torcedor) e SocioTermPageComponent
+ *   (/socio-torcedor/termo).
  * O SocioService também é usado pela jornada de matchday (ondas e desconto).
  */
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule,
+    // Termo do Nação: rota própria com o cabeçalho e o rodapé da página /socio-torcedor do CMS
+    RouterModule.forChild([
+      {
+        path: 'socio-torcedor/termo',
+        component: SocioTermPageComponent,
+        canActivate: [CmsPageGuard],
+        data: { pageLabel: '/socio-torcedor' },
+      },
+    ]),
     SpinnerModule,
     FlaI18nModule,
   ],
@@ -42,6 +57,9 @@ import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
     SocioAccountComponent,
     SocioGuestsComponent,
     SocioTicketHolderComponent,
+    SocioTermCheckoutComponent,
+    SocioTermNoticeComponent,
+    SocioTermPageComponent,
   ],
   providers: [
     provideConfig(<CmsConfig>{
@@ -65,6 +83,12 @@ import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
       id: CartOutlets.ITEM_DETAILS,
       position: OutletPosition.AFTER,
       component: SocioTicketHolderComponent,
+    }),
+    // Termo do Nação: "Li e aceito" antes do Finalizar pedido (só com plano no carrinho)
+    provideOutlet({
+      id: 'CheckoutPlaceOrder',
+      position: OutletPosition.BEFORE,
+      component: SocioTermCheckoutComponent,
     }),
   ],
 })

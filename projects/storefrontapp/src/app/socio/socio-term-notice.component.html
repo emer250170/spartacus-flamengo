@@ -1,0 +1,34 @@
+<ng-container *ngIf="term$ | async as t">
+  <ng-container *ngIf="t.enabled && t.member && t.version">
+    <!-- versão nova ainda não aceita -->
+    <div class="st-notice" *ngIf="!t.accepted" role="status">
+      <div>
+        <p class="st-notice-title">
+          {{ 'st.notice.title' | flaT: { version: t.version } }}
+        </p>
+        <p class="st-notice-text">
+          {{ t.summary || ('st.notice.text' | flaT) }}
+        </p>
+        <p class="st-error" *ngIf="error" role="alert">{{ error }}</p>
+      </div>
+      <div class="st-actions">
+        <a routerLink="/socio-torcedor/termo">{{ 'st.read' | flaT }}</a>
+        <button type="button" class="st-btn" [disabled]="saving" (click)="accept()">
+          {{ 'st.notice.accept' | flaT }}
+        </button>
+      </div>
+    </div>
+    <!-- versão atual aceita -->
+    <div class="st-notice st-notice--ok" *ngIf="t.accepted">
+      <p>
+        {{
+          'st.notice.ok'
+            | flaT: { version: t.version, date: day(t.acceptedAt) }
+        }}
+      </p>
+      <div class="st-actions">
+        <a routerLink="/socio-torcedor/termo">{{ 'st.read' | flaT }}</a>
+      </div>
+    </div>
+  </ng-container>
+</ng-container>

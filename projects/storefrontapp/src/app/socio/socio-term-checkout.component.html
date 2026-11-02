@@ -1,0 +1,22 @@
+<div class="st-check" *ngIf="required && term as t" [class.st-check--error]="error">
+  <label class="st-check-label">
+    <input
+      type="checkbox"
+      class="st-check-input"
+      [checked]="checked"
+      [disabled]="saving"
+      (change)="toggle($event)"
+    />
+    <span>
+      {{ 'st.checkout.accept' | flaT: { version: t.version } }}
+      <a routerLink="/socio-torcedor/termo" target="_blank" rel="noopener">{{
+        'st.read' | flaT
+      }}</a>
+      <abbr class="st-required" aria-hidden="true">*</abbr>
+    </span>
+  </label>
+  <p class="st-hint">
+    {{ 'st.checkout.hint' | flaT: { plan: planName } }}
+  </p>
+  <p class="st-error" *ngIf="error" role="alert">{{ error }}</p>
+</div>
