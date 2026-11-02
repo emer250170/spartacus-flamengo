@@ -120,7 +120,7 @@ public class DefaultSocioGuestService implements SocioGuestService
 		{
 			return Collections.emptyList();
 		}
-		final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {SocioGuest} WHERE {owner}=?o"
+		final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {SocioGuest} WHERE {customer}=?o"
 				+ (onlyActive ? " AND {active}=?t" : "") + " ORDER BY {since} DESC, {creationtime} DESC");
 		q.addQueryParameter("o", owner);
 		if (onlyActive)
@@ -196,7 +196,7 @@ public class DefaultSocioGuestService implements SocioGuestService
 		checkDuplicate(owner, cpfDigits);
 
 		final SocioGuestModel guest = modelService.create(SocioGuestModel.class);
-		guest.setOwner(owner);
+		guest.setCustomer(owner);
 		guest.setName(cleanName);
 		guest.setCpf(cpfDigits);
 		guest.setEmail(cleanEmail);
@@ -233,7 +233,7 @@ public class DefaultSocioGuestService implements SocioGuestService
 		final List<SocioGuestModel> same = flexibleSearchService.<SocioGuestModel> search(q).getResult();
 		if (!same.isEmpty())
 		{
-			throw new SocioGuestException(same.stream().anyMatch(g -> owner.equals(g.getOwner()))
+			throw new SocioGuestException(same.stream().anyMatch(g -> owner.equals(g.getCustomer()))
 					? "Este CPF já é seu convidado." : "Este CPF já é convidado de outro sócio.");
 		}
 	}
@@ -276,7 +276,7 @@ public class DefaultSocioGuestService implements SocioGuestService
 		try
 		{
 			final Object item = modelService.get(PK.parse(guestId));
-			return item instanceof SocioGuestModel && owner.equals(((SocioGuestModel) item).getOwner())
+			return item instanceof SocioGuestModel && owner.equals(((SocioGuestModel) item).getCustomer())
 					? (SocioGuestModel) item : null;
 		}
 		catch (final Exception e)

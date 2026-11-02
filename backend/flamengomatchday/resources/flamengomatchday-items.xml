@@ -454,7 +454,7 @@
 			<description>Convidado do sócio-torcedor</description>
 			<deployment table="socioguests" typecode="25906"/>
 			<attributes>
-				<attribute qualifier="owner" type="Customer">
+				<attribute qualifier="customer" type="Customer">
 					<description>Titular (sócio que cadastrou o convidado)</description>
 					<modifiers optional="false"/>
 					<persistence type="property"/>
@@ -505,8 +505,8 @@
 				</attribute>
 			</attributes>
 			<indexes>
-				<index name="socioGuestOwner">
-					<key attribute="owner"/>
+				<index name="socioGuestCustomer">
+					<key attribute="customer"/>
 				</index>
 				<index name="socioGuestCpf">
 					<key attribute="cpf"/>

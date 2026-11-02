@@ -535,7 +535,7 @@ O convidado já é **contratado e cobrado** na compra do plano (produto `NACAO-C
 
 | Parte | Como funciona |
 |---|---|
-| Tipo | `SocioGuest` (titular, nome, CPF só dígitos, e-mail, celular, nascimento, plano, ativo, desde, até, motivo do encerramento), typecode 25906. |
+| Tipo | `SocioGuest` (titular no atributo `customer` — `owner` já existe em todo item —, nome, CPF só dígitos, e-mail, celular, nascimento, plano, ativo, desde, até, motivo do encerramento), typecode 25906. |
 | API de comércio | `GET`, `POST` e `DELETE /{baseSiteId}/users/current/socioguests[/{id}]` (`SocioGuestsController`, primeiros endpoints próprios da extensão). Resposta: plano, vagas (`contracted`, `used`), `canAdd` e `reason`, convidados ativos e os últimos 10 encerrados. Recusa: 400 com `{"errors":[{"type":"SocioGuestError","message":"…"}]}`. O bean fica em `resources/occ/v2/flamengomatchdayocc/web/spring/flamengomatchday-web-spring.xml`: a `commercewebservices` importa `classpath*:/occ/v2/*occ/web/spring/*-web-spring.xml`, por isso a pasta termina em `occ`. |
 | Tela Sócios | Histórico ganha **Convidados nominais** (vagas em uso, ativos e encerrados). |
 | Menu | Sócio-Torcedor › **Convidados** (só leitura). Papel `sociomanagerrole` lê `SocioGuest`. |
