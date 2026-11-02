@@ -88,12 +88,12 @@ export class MatchdayHoldWatcherService implements OnDestroy {
     ) {
       return;
     }
-    // só relê com o carrinho parado (nada sendo incluído ou tirado)
-    this.activeCart
-      .isStable()
+    // só relê com o carrinho parado (nada sendo incluído ou tirado) e que já
+    // existe: depois do pedido fechado não há carrinho e a releitura dava 400
+    combineLatest([this.activeCart.isStable(), this.activeCart.getActiveCartId()])
       .pipe(take(1))
-      .subscribe((stable) => {
-        if (stable && !this.paused) {
+      .subscribe(([stable, cartId]) => {
+        if (stable && !!cartId && !this.paused) {
           this.activeCart.reloadActiveCart();
         }
       });

@@ -418,6 +418,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
 
     // sócio: Meus convidados
     'sg.title': 'Meus convidados',
+    'sg.cartHolder': 'Ingresso de: {name}',
     'sg.ticket': 'Ingresso: {game} · {date} · {seat} (pedido {order})',
     'sg.ticketCart': 'No carrinho: {game} · {date} · {seat}',
     'sg.slots': '{used} de {n} vaga(s) de convidado em uso',
@@ -870,6 +871,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
 
     // sócio: Meus convidados
     'sg.title': 'My guests',
+    'sg.cartHolder': 'Ticket holder: {name}',
     'sg.ticket': 'Ticket: {game} · {date} · {seat} (order {order})',
     'sg.ticketCart': 'In the cart: {game} · {date} · {seat}',
     'sg.slots': '{used} of {n} guest slot(s) in use',
