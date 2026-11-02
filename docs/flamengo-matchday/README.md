@@ -672,6 +672,18 @@ Desenho aprovado em 02/11: pontos calculados no servidor (nada de saldo gravado)
 
 Deploy (PR 8a): `ant all`; Update no HAC (tipos novos, só "Update running system" + "Localize types"); ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`) e da vitrine (`07-socio-experiencias.impex`) importadas à parte; reiniciar antes de testar o Backoffice (rótulos dos tipos novos).
 
+### Cockpit Merchandising Flamengo (item 11 do plano de evolução)
+
+Perspectiva nova no Backoffice para o time de marketing: promoções e cupons num lugar só, em português. Só configuração: as telas são as padrão do SAP Commerce (lista, busca e ficha, com o construtor de regras e a publicação no motor de regras).
+
+| Parte | Como funciona |
+|---|---|
+| Menu | **Promoções**: Regras de promoção (`PromotionSourceRule`), Modelos de regra, Grupos de promoção, Grupos de regras. **Cupons**: código único, vários códigos, cupons do cliente e resgates de cupom. |
+| Acesso | Autoridade `merchandisingperspective`: papel novo **Gestor de merchandising** (`merchandisingmanagerrole`, usuário `gestor.merchandising` criado sem senha) e o administrador. Permissões em `essentialdata-flamengomatchday-merchandising-role.impex`: cria e mantém promoções e cupons; leitura no resto. |
+| Cuidado | As promoções `nacao_maraca_*` são geradas pelo cadastro de Planos (Sócio-Torcedor): o que for mudado nelas aqui volta ao republicar o plano. |
+
+Deploy: `ant all`, reiniciar, importar a ImpEx do papel à parte, definir a senha do `gestor.merchandising` no Backoffice e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

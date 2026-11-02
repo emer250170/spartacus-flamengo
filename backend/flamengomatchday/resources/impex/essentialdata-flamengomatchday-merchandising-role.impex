@@ -1,0 +1,54 @@
+# Papel "Gestor de merchandising" (item 11 do plano de evolução): entra no Backoffice só na
+# perspectiva "Merchandising Flamengo" (flamengomatchday-backoffice-widgets.xml, access=
+# "merchandisingperspective") e cria e mantém promoções (regras, modelos, grupos) e cupons.
+# Usuário: Employee gestor.merchandising, criado SEM senha (a senha é definida no Backoffice,
+# Usuário › Funcionários, e não fica no repositório). Importar à parte (base64 + ImportConfig),
+# por causa do $START_USERRIGHTS.
+
+INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];description;authorities;backOfficeLoginDisabled[default=false]
+;merchandisingmanagerrole;Gestor de merchandising;Merchandising manager;Cria e mantém promoções, regras de desconto e cupons;merchandisingmanagerrole,merchandisingperspective;
+
+# A perspectiva também para o administrador
+UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
+;backofficeadministratorrole;merchandisingperspective
+
+INSERT_UPDATE Employee;uid[unique=true];name;groups(uid);sessionLanguage(isocode);backOfficeLoginDisabled
+;gestor.merchandising;Gestor de merchandising (demo);merchandisingmanagerrole;pt;false
+
+# Promoções e cupons: cria e mantém. O resto (produtos, categorias, grupos de clientes,
+# definições do construtor de regras e motor de regras): só leitura, para os seletores
+# do construtor e a publicação.
+$START_USERRIGHTS;;;;;;;;;
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+BackofficeRole;merchandisingmanagerrole;;;;;;;;
+;;;;PromotionSourceRule;+;+;+;+;-
+;;;;PromotionSourceRuleTemplate;+;+;+;-;-
+;;;;PromotionGroup;+;+;+;-;-
+;;;;RuleGroup;+;+;+;-;-
+;;;;AbstractCoupon;+;+;+;+;-
+;;;;CouponRedemption;+;-;-;-;-
+;;;;CodeGenerationConfiguration;+;+;+;-;-
+;;;;Media;+;+;+;-;-
+;;;;AbstractRule;+;-;-;-;-
+;;;;AbstractRuleEngineRule;+;-;-;-;-
+;;;;AbstractRulesModule;+;-;-;-;-
+;;;;RuleConditionDefinition;+;-;-;-;-
+;;;;RuleConditionDefinitionCategory;+;-;-;-;-
+;;;;RuleConditionDefinitionParameter;+;-;-;-;-
+;;;;RuleConditionDefinitionRuleTypeMapping;+;-;-;-;-
+;;;;RuleActionDefinition;+;-;-;-;-
+;;;;RuleActionDefinitionCategory;+;-;-;-;-
+;;;;RuleActionDefinitionParameter;+;-;-;-;-
+;;;;RuleActionDefinitionRuleTypeMapping;+;-;-;-;-
+;;;;Product;+;-;-;-;-
+;;;;Category;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;UserGroup;+;-;-;-;-
+;;;;User;+;-;-;-;-
+;;;;Currency;+;-;-;-;-
+;;;;Language;+;-;-;-;-
+;;;;BaseSite;+;-;-;-;-
+;;;;BaseStore;+;-;-;-;-
+;;;;CronJob;+;-;-;-;-
+$END_USERRIGHTS;;;;;;;;;
