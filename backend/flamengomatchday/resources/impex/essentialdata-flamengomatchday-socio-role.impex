@@ -16,6 +16,11 @@ UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
 INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];groups(uid)[mode=append]
 ;socio-suspenso;Sócios com benefícios suspensos (inadimplência);Members with suspended benefits (overdue);customergroup
 
+# Torcedores que já validaram a biometria facial (Sócio-Torcedor › Sócios › Biometria
+# validada). Só bloqueia a compra de ingresso com flamengo.socio.biometria.exigida=true.
+INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];groups(uid)[mode=append]
+;biometria-validada;Biometria facial validada;Face biometrics validated;customergroup
+
 # A publicação na loja (produto, preço, promoção, grupos) roda como admin no
 # SocioPlanService; o papel só precisa do cadastro de planos.
 $START_USERRIGHTS;;;;;;;;;
@@ -25,6 +30,7 @@ BackofficeRole;sociomanagerrole;;;;;;;;
 ;;;;SocioPlanStatus;+;-;-;-;-
 ;;;;SocioEvent;+;+;+;-;-
 ;;;;SocioEventType;+;-;-;-;-
+;;;;SocioEligibilityDecision;+;-;-;-;-
 ;;;;Product;+;-;-;-;-
 ;;;;UserGroup;+;-;-;-;-
 ;;;;Catalog;+;-;-;-;-

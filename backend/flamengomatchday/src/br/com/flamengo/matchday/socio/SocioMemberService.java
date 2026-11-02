@@ -40,4 +40,10 @@ public interface SocioMemberService
 	 * de ser sócio (SocioCancelTicketInterceptor). @return resultado para mostrar
 	 */
 	String confirmCancellation(String uid);
+
+	/**
+	 * Biometria facial validada ou pendente (grupo biometria-validada) e observação
+	 * na linha do tempo. Vale também para quem não é sócio. @return resultado para mostrar
+	 */
+	String setBiometry(String uid, boolean validated, String note);
 }

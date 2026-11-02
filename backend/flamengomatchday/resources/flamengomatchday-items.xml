@@ -348,6 +348,101 @@
 				</index>
 			</indexes>
 		</itemtype>
+		<!--
+			Elegibilidade para comprar ingresso: cada tentativa de pôr uma poltrona no
+			carrinho, aprovada ou negada, com as condições conferidas (plano, situação,
+			janela da onda, biometria e limite por jogo) e os motivos da negativa.
+			Gravado pelo SocioEligibilityService. Em modo observação (padrão) nada é
+			recusado; com flamengo.socio.elegibilidade.bloqueio=true a tentativa negada
+			é recusada com o motivo.
+		-->
+		<itemtype code="SocioEligibilityDecision" extends="GenericItem" autocreate="true" generate="true">
+			<description>Decisão de elegibilidade para comprar ingresso</description>
+			<deployment table="socioeligibility" typecode="25905"/>
+			<attributes>
+				<attribute qualifier="date" type="java.util.Date">
+					<description>Quando o torcedor tentou</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="customer" type="Customer">
+					<description>Torcedor</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="gameCode" type="java.lang.String">
+					<description>Código do jogo (JOGO-aaaammdd-ADV)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="game" type="MatchdayGame">
+					<description>Jogo</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="product" type="Product">
+					<description>Poltrona</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cartCode" type="java.lang.String">
+					<description>Carrinho</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="eligible" type="java.lang.Boolean">
+					<description>Pode comprar: todas as condições atendidas</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="blocked" type="java.lang.Boolean">
+					<description>A compra foi recusada (só com o bloqueio ligado)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="reasons" type="java.lang.String">
+					<description>Motivos da negativa, um por linha (vazio quando aprovado)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="checks" type="java.lang.String">
+					<description>Todas as condições conferidas, uma por linha</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="plan" type="SocioPlan">
+					<description>Plano considerado (inclui plano no carrinho)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="memberWave" type="java.lang.Integer">
+					<description>Onda do torcedor (4 = venda geral)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="openWave" type="java.lang.Integer">
+					<description>Onda aberta no jogo naquele momento (0 = nenhuma; 4 = venda geral)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="tickets" type="java.lang.Integer">
+					<description>Ingressos do jogo que o torcedor já tinha (pedidos e carrinho)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="ticketLimit" type="java.lang.Integer">
+					<description>Limite de ingressos por jogo para o torcedor</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="origin" type="java.lang.String">
+					<description>Onde nasceu a tentativa (Carrinho)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="socioEligibilityCustomer">
+					<key attribute="customer"/>
+				</index>
+				<index name="socioEligibilityDate">
+					<key attribute="date"/>
+				</index>
+			</indexes>
+		</itemtype>
 
 	</itemtypes>
 </items>

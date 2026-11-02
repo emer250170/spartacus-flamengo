@@ -273,6 +273,7 @@
 				<explorer-tree:type-node id="socio.tree.plans" code="SocioPlan"/>
 				<explorer-tree:navigation-node id="socio.tree.members"/>
 				<explorer-tree:type-node id="socio.tree.events" code="SocioEvent"/>
+				<explorer-tree:type-node id="socio.tree.eligibility" code="SocioEligibilityDecision"/>
 				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -567,6 +568,73 @@
 					<editorArea:attribute qualifier="result" readonly="true"/>
 					<editorArea:attribute qualifier="origin" readonly="true"/>
 					<editorArea:attribute qualifier="author" readonly="true"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+	<!-- ============ Decisões de elegibilidade (tentativas de compra de ingresso) ============ -->
+	<!-- Gravadas pelo SocioEligibilityService ao pôr poltrona no carrinho; só leitura -->
+
+	<context merge-by="type" parent="GenericItem" type="SocioEligibilityDecision" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>customer.uid + ' - ' + gameCode</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioEligibilityDecision" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="date"/>
+			<list-view:column qualifier="customer"/>
+			<list-view:column qualifier="gameCode"/>
+			<list-view:column qualifier="product"/>
+			<list-view:column qualifier="eligible"/>
+			<list-view:column qualifier="blocked"/>
+			<list-view:column qualifier="reasons"/>
+			<list-view:column qualifier="plan"/>
+		</list-view:list-view>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="SocioEligibilityDecision" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="customer" selected="true"/>
+				<advanced-search:field name="gameCode" selected="true"/>
+				<advanced-search:field name="eligible" selected="true"/>
+				<advanced-search:field name="blocked" selected="false"/>
+				<advanced-search:field name="date" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="date" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+
+	<context type="SocioEligibilityDecision" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="socio.eligibility.editor.essentials">
+					<editorArea:attribute qualifier="customer" readonly="true"/>
+					<editorArea:attribute qualifier="gameCode" readonly="true"/>
+					<editorArea:attribute qualifier="date" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="socio.eligibility.editor.tab">
+				<editorArea:section name="socio.eligibility.editor.decision">
+					<editorArea:attribute qualifier="eligible" readonly="true"/>
+					<editorArea:attribute qualifier="blocked" readonly="true"/>
+					<editorArea:attribute qualifier="reasons" readonly="true" editor="com.hybris.cockpitng.editor.defaulttextarea"/>
+					<editorArea:attribute qualifier="checks" readonly="true" editor="com.hybris.cockpitng.editor.defaulttextarea"/>
+				</editorArea:section>
+				<editorArea:section name="socio.eligibility.editor.details">
+					<editorArea:attribute qualifier="product" readonly="true"/>
+					<editorArea:attribute qualifier="game" readonly="true"/>
+					<editorArea:attribute qualifier="plan" readonly="true"/>
+					<editorArea:attribute qualifier="memberWave" readonly="true"/>
+					<editorArea:attribute qualifier="openWave" readonly="true"/>
+					<editorArea:attribute qualifier="tickets" readonly="true"/>
+					<editorArea:attribute qualifier="ticketLimit" readonly="true"/>
+					<editorArea:attribute qualifier="cartCode" readonly="true"/>
+					<editorArea:attribute qualifier="origin" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>

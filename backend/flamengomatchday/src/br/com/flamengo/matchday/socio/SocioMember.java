@@ -52,6 +52,10 @@ public class SocioMember
 	public String card;
 	/** Chamado de cancelamento ainda aberto (ou null) */
 	public String openCancelTicket;
+	/** Biometria facial validada (grupo biometria-validada) */
+	public boolean biometry;
+	/** Últimas tentativas de pôr ingresso no carrinho (SocioEligibilityDecision), mais nova primeiro */
+	public final List<Attempt> attempts = new ArrayList<>();
 	public final List<Order> orders = new ArrayList<>();
 	public final List<Ticket> tickets = new ArrayList<>();
 	public final List<Event> events = new ArrayList<>();
@@ -70,6 +74,17 @@ public class SocioMember
 		public String headline;
 		public String state;
 		public Date date;
+	}
+
+	public static class Attempt
+	{
+		public Date date;
+		public String game;
+		public String seat;
+		public boolean eligible;
+		public boolean blocked;
+		/** Motivos da negativa, um por linha */
+		public String reasons;
 	}
 
 	public static class Event

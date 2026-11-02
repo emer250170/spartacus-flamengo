@@ -192,6 +192,29 @@
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 		<property name="enumerationService" ref="enumerationService"/>
+		<property name="socioEligibilityService" ref="socioEligibilityService"/>
+	</bean>
+
+	<!--
+		Elegibilidade para comprar ingresso: confere plano, situação, janela da onda,
+		biometria e limite por jogo, e grava cada tentativa (SocioEligibilityDecision).
+		Chaves: flamengo.socio.elegibilidade.registro (true), .bloqueio (false = só
+		observa), flamengo.socio.biometria.exigida (false), flamengo.ingressos.limite.geral (4).
+	-->
+	<bean id="socioEligibilityService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioEligibilityService">
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="socioCartService" ref="socioCartService"/>
+		<property name="seatHoldService" ref="seatHoldService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="userService" ref="userService"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+	<bean id="socioEligibilityAddToCartHook" class="br.com.flamengo.matchday.hook.SocioEligibilityAddToCartHook">
+		<property name="socioEligibilityService" ref="socioEligibilityService"/>
+	</bean>
+	<bean id="socioEligibilityAddToCartHookMergeDirective" depends-on="commerceAddToCartMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="socioEligibilityAddToCartHook"/>
 	</bean>
 
 	<!-- Relatórios do sócio-torcedor (Backoffice > Sócio-Torcedor > Relatórios) -->
