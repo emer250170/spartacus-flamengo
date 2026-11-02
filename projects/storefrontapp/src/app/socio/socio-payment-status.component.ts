@@ -13,6 +13,7 @@ import { Subscription, of } from 'rxjs';
 import { distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { SocioPayment, SocioPaymentService } from './socio-payment.service';
+import { qrPattern } from './socio-qr';
 
 /**
  * Pix ou boleto do plano (item 7): QR Code e Pix copia e cola, ou a linha
@@ -128,41 +129,4 @@ export class SocioPaymentStatusComponent implements OnInit, OnDestroy {
           total: this.brl(p.total),
         });
   }
-}
-
-/** Padrão ilustrativo de QR Code (o código de verdade viria do banco) */
-function qrPattern(seed: string): boolean[][] {
-  const modulus = 2147483647;
-  let h = 1;
-  for (const ch of seed) {
-    h = (h * 31 + ch.charCodeAt(0)) % modulus;
-  }
-  h = h || 1;
-  const size = 25;
-  const finder = (r: number, c: number) => {
-    const inBox = (r0: number, c0: number) =>
-      r >= r0 && r < r0 + 7 && c >= c0 && c < c0 + 7;
-    if (!(inBox(0, 0) || inBox(0, size - 7) || inBox(size - 7, 0))) {
-      return undefined;
-    }
-    const rr = r < 7 ? r : r - (size - 7);
-    const cc = c < 7 ? c : c - (size - 7);
-    return (
-      rr === 0 ||
-      rr === 6 ||
-      cc === 0 ||
-      cc === 6 ||
-      (rr >= 2 && rr <= 4 && cc >= 2 && cc <= 4)
-    );
-  };
-  return Array.from({ length: size }, (_, r) =>
-    Array.from({ length: size }, (_, c) => {
-      const f = finder(r, c);
-      if (f !== undefined) {
-        return f;
-      }
-      h = (h * 48271) % modulus;
-      return Math.floor(h / 65536) % 2 === 0;
-    })
-  );
 }

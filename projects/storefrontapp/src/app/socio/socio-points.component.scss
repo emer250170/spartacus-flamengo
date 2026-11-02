@@ -1,0 +1,225 @@
+// Pontos e experiências (dentro de Meu sócio-torcedor). Usa também os estilos de
+// socio-account.component.scss (styleUrls), para botões, notas e tabela iguais.
+:host {
+  // ocupa a linha inteira da grade de cartões da página do sócio
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.sp-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+  margin-bottom: 16px;
+}
+
+.sp-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: var(--sa-black);
+  color: #fff;
+}
+
+.sp-balance-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--sa-gold);
+}
+
+.sp-balance-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sp-summary {
+  flex: 1 1 260px;
+  min-width: 0;
+
+  p {
+    margin: 0 0 4px;
+  }
+}
+
+.sp-summary-line {
+  font-weight: 700;
+}
+
+.sp-rule {
+  font-size: 0.875rem;
+}
+
+.sp-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.875rem;
+}
+
+.sp-earnings {
+  margin-bottom: 16px;
+}
+
+.sp-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.sp-done {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--sa-ok-bg);
+  color: var(--sa-ok);
+
+  p {
+    margin: 0 0 4px;
+  }
+}
+
+.sp-done-title {
+  font-weight: 800;
+}
+
+.sp-done-voucher code {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--sa-black);
+}
+
+.sp-done-hint {
+  font-size: 0.8rem;
+}
+
+.sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.sp-exp {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--sa-line);
+  border-radius: 12px;
+  background: var(--sa-bg);
+
+  &--ok {
+    background: #fff;
+    border-color: var(--sa-red);
+  }
+}
+
+.sp-exp-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.sp-exp-points {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--sa-red);
+
+  small {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+}
+
+.sp-exp-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--sa-black);
+  color: var(--sa-gold);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.sp-exp-name {
+  margin: 0 0 4px;
+  font-weight: 800;
+}
+
+.sp-exp-desc {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--sa-muted);
+}
+
+.sp-exp-stock {
+  margin: auto 0 8px;
+  font-size: 0.78rem;
+}
+
+.sp-bar {
+  height: 6px;
+  margin-bottom: 10px;
+  border-radius: 3px;
+  background: var(--sa-line);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    background: var(--sa-red);
+  }
+}
+
+.sp-exp-btn {
+  width: 100%;
+}
+
+.sp-exp-reason {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--sa-muted);
+  text-align: center;
+}
+
+.sp-confirm {
+  p {
+    margin: 0 0 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+}
+
+.sp-confirm-actions {
+  display: flex;
+  gap: 8px;
+
+  .sa-btn {
+    flex: 1 1 0;
+    padding: 0 10px;
+  }
+}
+
+.sp-code {
+  font-weight: 700;
+  color: var(--sa-black);
+}
+
+.sp-off td,
+.sp-off .sp-code {
+  color: var(--sa-muted);
+}
+
+.sp-off .sp-code {
+  text-decoration: line-through;
+}

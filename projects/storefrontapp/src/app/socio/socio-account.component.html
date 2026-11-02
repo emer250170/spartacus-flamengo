@@ -195,8 +195,17 @@
           </ul>
         </article>
 
+        <!-- carteirinha digital (item 8; some para ex-sócio e enquanto aguarda pagamento) -->
+        <article class="sa-card sa-card--wide" *ngIf="!ended">
+          <h3 class="sa-card-title">{{ 'sc.title' | flaT }}</h3>
+          <fla-socio-card></fla-socio-card>
+        </article>
+
         <!-- convidados nominais (some para ex-sócio e com o cadastro desligado) -->
         <fla-socio-guests *ngIf="!ended"></fla-socio-guests>
+
+        <!-- pontos e experiências (item 8; some com a chave desligada) -->
+        <fla-socio-points></fla-socio-points>
 
         <!-- pagamentos e plano -->
         <article class="sa-card sa-card--wide">

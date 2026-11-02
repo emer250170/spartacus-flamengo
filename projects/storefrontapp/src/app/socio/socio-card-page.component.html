@@ -1,0 +1,24 @@
+<section class="sc-page">
+  <p class="sa-kicker">{{ 'sa.kicker' | flaT }}</p>
+  <h1 class="sc-page-title">{{ 'sc.title' | flaT }}</h1>
+
+  <ng-container [ngSwitch]="state$ | async">
+    <ng-container *ngSwitchCase="'card'">
+      <fla-socio-card [full]="true"></fla-socio-card>
+      <p class="sa-muted sc-page-hint">{{ 'sc.pageHint' | flaT }}</p>
+    </ng-container>
+    <p *ngSwitchCase="'awaiting'" class="sa-note sa-note--warn">
+      {{ 'sc.awaiting' | flaT }}
+    </p>
+    <div *ngSwitchCase="'none'" class="sc-page-none">
+      <p>{{ 'sc.none' | flaT }}</p>
+      <a class="sa-btn sa-btn--primary" routerLink="/socio-torcedor">{{
+        'sc.join' | flaT
+      }}</a>
+    </div>
+  </ng-container>
+
+  <p class="sc-page-back">
+    <a class="sa-link" routerLink="/my-account/socio-torcedor">{{ 'sc.back' | flaT }}</a>
+  </p>
+</section>
