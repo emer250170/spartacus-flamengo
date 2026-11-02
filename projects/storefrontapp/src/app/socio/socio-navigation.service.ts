@@ -6,7 +6,7 @@ import {
   SemanticPathService,
 } from '@spartacus/core';
 import { NavigationNode, NavigationService } from '@spartacus/storefront';
-import { Observable, of } from 'rxjs';
+import { Observable, combineLatest, of } from 'rxjs';
 import {
   distinctUntilChanged,
   map,
@@ -14,6 +14,7 @@ import {
   switchMap,
 } from 'rxjs/operators';
 import { SocioAccountService } from './socio-account.service';
+import { SocioPaymentService } from './socio-payment.service';
 import { SocioService } from './socio.service';
 
 /** Link do menu Minha conta para a área do sócio (CMS: SocioTorcedorAccountLink) */
@@ -24,6 +25,7 @@ export const SOCIO_ACCOUNT_URL = '/my-account/socio-torcedor';
  * - sócio (grupo do plano) → mostra;
  * - ex-sócio (tem um pedido de cancelamento, aberto ou já atendido) → mostra,
  *   para ele ver o plano cancelado e a situação inativa;
+ * - Pix ou boleto do plano aguardando pagamento (item 7) → mostra, com o código;
  * - nunca foi sócio (inclusive com o plano só no carrinho) → esconde.
  * Os outros menus (categorias, rodapé) passam direto, sem consulta extra.
  */
@@ -36,7 +38,8 @@ export class SocioNavigationService extends NavigationService {
     semanticPathService: SemanticPathService,
     protected auth: AuthService,
     protected socio: SocioService,
-    protected account: SocioAccountService
+    protected account: SocioAccountService,
+    protected payment: SocioPaymentService
   ) {
     super(cmsService, semanticPathService);
   }
@@ -70,7 +73,10 @@ export class SocioNavigationService extends NavigationService {
                 switchMap((member) =>
                   member
                     ? of(true)
-                    : this.account.cancellation().pipe(map((c) => !!c))
+                    : combineLatest([
+                        this.account.cancellation(),
+                        this.payment.pending(),
+                      ]).pipe(map(([c, p]) => !!c || p.awaiting))
                 )
               )
             : of(false)

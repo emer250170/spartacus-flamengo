@@ -1,0 +1,7 @@
+<div *ngIf="visible && opts as o" class="spay spay-review">
+  <p class="spay-kind">{{ 'spay.r.title' | flaT: { plan: o.planName } }}</p>
+  <p class="spay-line">{{ line() }}</p>
+  <p *ngIf="upfront" class="spay-note">
+    {{ (o.method === 'PIX' ? 'spay.r.pixNote' : 'spay.r.boletoNote') | flaT }}
+  </p>
+</div>

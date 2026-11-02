@@ -32,6 +32,7 @@ import {
 } from './socio-account.service';
 import { SocioContract, SocioContractService } from './socio-contract.service';
 import { SocioExit, SocioExitInfo, SocioExitService } from './socio-exit.service';
+import { SocioPayment, SocioPaymentService } from './socio-payment.service';
 import { Membership, SocioPlan } from './socio.model';
 import { SocioService } from './socio.service';
 
@@ -91,6 +92,8 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   contract: SocioContract | null = null;
   contractBusy = false;
   contractError = '';
+  /** Pix ou boleto do plano aguardando pagamento (item 7) */
+  pending?: SocioPayment;
 
   start?: Date;
   endDate?: Date;
@@ -134,6 +137,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     protected account: SocioAccountService,
     protected exitService: SocioExitService,
     protected contractService: SocioContractService,
+    protected paymentService: SocioPaymentService,
     protected activeCart: ActiveCartFacade,
     protected globalMessages: GlobalMessageService,
     protected router: Router,
@@ -143,6 +147,12 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.subscription.add(
+      this.paymentService.pending().subscribe((p) => {
+        this.pending = p.awaiting ? p : undefined;
+        this.cd.markForCheck();
+      })
+    );
     this.subscription.add(
       combineLatest([this.socio.getMembership(), this.socio.getPlans()])
         .pipe(
