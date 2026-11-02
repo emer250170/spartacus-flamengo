@@ -11,6 +11,12 @@ INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];
 UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
 ;backofficeadministratorrole;socioperspective
 
+# O administrador vê todos os cockpits do ambiente: Atendimento ao cliente e Expedição de
+# pedidos pedem "backofficeadmin"; Organização (B2B) pede "orgemployeerole" (02/11).
+# Atenção: mode=append repete a autoridade a cada importação (inofensivo).
+UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
+;backofficeadministratorrole;backofficeadmin,orgemployeerole
+
 # Sócios com os benefícios suspensos por inadimplência (evento "Suspensão" em
 # Sócio-Torcedor › Eventos do sócio). Dentro de customergroup: a API da loja lista o grupo.
 INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];groups(uid)[mode=append]
