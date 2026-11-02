@@ -14,6 +14,10 @@
   (matchdayReport, para Relatórios), trocadas pelo clique na árvore.
   Perspectiva "Sócio-Torcedor" (mais abaixo): mesmo desenho, com menu Planos
   (contexto socio-explorer-tree), para o papel "Gestor do sócio-torcedor" e o admin.
+  Perspectiva "Merchandising Flamengo" (mais abaixo): mesmo desenho, só lista e
+  ficha padrão do SAP Commerce (construtor de regras e publicação), com menu de
+  promoções e cupons (contexto merch-explorer-tree), para o papel "Gestor de
+  merchandising" (autoridade merchandisingperspective) e o admin.
 -->
 <widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widgets.xsd">
@@ -166,6 +170,157 @@
 						slotId="perspectives" template="false">
 					<virtual-sockets/>
 				</widget>
+
+				<virtual-sockets/>
+				</widget>
+
+			<setting key="northDisabled" type="Boolean">true</setting>
+			<setting key="southDisabled" type="Boolean">true</setting>
+			<setting key="eastDisabled" type="Boolean">true</setting>
+			<setting key="westDisabled" type="Boolean">false</setting>
+			<setting key="westWidth" type="String">260px</setting>
+			<setting key="westCollapsible" type="Boolean">false</setting>
+			<setting key="westSplittable" type="String">false</setting>
+			<setting key="westBorder" type="String">none</setting>
+			<setting key="centerBorder" type="String">none</setting>
+			<setting key="border" type="String">none</setting>
+			<setting key="broadcastHorizontalResize" type="Boolean">true</setting>
+			<setting key="opaqueBG" type="String">true</setting>
+			<setting key="widgetStyleClass" type="String" value="yw-borderlayout-opaque"/>
+			<setting key="widgetMold" type="String" value="light"/>
+			<virtual-sockets/>
+		</widget>
+
+		<!-- Perspectiva "Merchandising Flamengo": promoções e cupons (gestor de merchandising e admin) -->
+		<widget id="merchPerspective" widgetDefinitionId="com.hybris.cockpitng.borderlayout" slotId="perspectives"
+				title="Merchandising Flamengo" template="false" access="merchandisingperspective">
+
+			<!-- Menu à esquerda -->
+			<widget id="merchExplorerTree" widgetDefinitionId="com.hybris.cockpitng.widgets.common.explorertree"
+					slotId="leftSlot" template="false" title="Merchandising Flamengo">
+				<!-- clique num tipo (Regras de promoção, Cupons...): manda o tipo para a busca -->
+				<widget id="merchTreeSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="merchTypeName" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">name</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root instanceof T(com.hybris.cockpitng.tree.node.TypeNode)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- clique num tipo: mostra a lista -->
+				<widget id="merchShowList" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<setting key="expression" type="String">'merchContainer'</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+					<virtual-sockets/>
+				</widget>
+				<!-- ao abrir a perspectiva, seleciona "Regras de promoção" -->
+				<widget id="merchPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="merchRulesSelector" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("merch.tree.rules", true)</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "merchPerspective".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
+				<setting key="explorerTreeConfigCtx" type="String">merch-explorer-tree</setting>
+				<setting key="allowFilteringEntries" type="Boolean">false</setting>
+				<setting key="widgetStyleClass" type="String">yw-explorerTree-sideNavigation</setting>
+				<setting key="widgetMold" type="String" value="light"/>
+				<virtual-sockets/>
+			</widget>
+
+			<!-- Centro: lista com ficha -->
+			<widget id="merchContent" widgetDefinitionId="com.hybris.backoffice.perspectiveContainer"
+					slotId="centerSlot" template="false">
+
+				<!-- Busca e lista no centro, ficha embaixo (primeira tela: aparece por padrão) -->
+				<widget id="merchContainer" widgetDefinitionId="com.hybris.cockpitng.collapsiblecontainer"
+						slotId="perspectives" template="false">
+					<widget id="merchAdvancedSearch" widgetDefinitionId="com.hybris.cockpitng.advancedsearch"
+							slotId="center" template="false">
+						<widget id="merchHeaderTitle" widgetDefinitionId="com.hybris.backoffice.widgets.title"
+								slotId="pageTitle" template="false"/>
+						<widget id="merchSearchEngine" widgetDefinitionId="com.hybris.cockpitng.widgets.common.advancedsearchengine"
+								slotId="cockpitWidgetChildrenInvisible" template="false">
+							<setting key="defaultPageSize" type="Integer">50</setting>
+							<virtual-sockets/>
+						</widget>
+						<widget id="merchList" widgetDefinitionId="com.hybris.cockpitng.collectionBrowser"
+								slotId="nestedWidget" template="false">
+							<setting key="listSubtitle" type="String">emptylist</setting>
+							<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+							<setting key="pageSize" type="Integer">20</setting>
+							<setting key="maxCharsInCell" type="Integer">70</setting>
+							<setting key="actionSlotComponentId" type="String">listviewactions</setting>
+							<setting key="multiSelect" type="Boolean">true</setting>
+							<setting key="colConfigCtxCode" type="String">listview</setting>
+							<setting key="itemRenderer" type="String">listViewRenderer</setting>
+							<setting key="listTitle" type="String"></setting>
+							<setting key="sortableListHeader" type="Boolean">true</setting>
+							<setting key="asyncLoading" type="Boolean">true</setting>
+							<setting key="sendItemsOnSelect" type="Boolean">true</setting>
+							<setting key="widgetStyleClass" type="String">yw-collection-browser-inset</setting>
+						</widget>
+						<setting key="advancedSearchConfigCtxCode" type="String">advanced-search</setting>
+						<setting key="simpleSearchConfigCtxCode" type="String">simple-search</setting>
+						<setting key="addRowPosition" type="String">Bottom</setting>
+						<setting key="enableNestedWidgetView" type="Boolean">true</setting>
+						<setting key="isNestedObjectCreationDisabled" type="Boolean">true</setting>
+						<virtual-sockets/>
+					</widget>
+					<widget id="merchEditorArea" widgetDefinitionId="com.hybris.cockpitng.backoffice.defaultEditorArea"
+							slotId="bottom" template="false">
+						<widget id="merchPreviousItem" widgetDefinitionId="com.hybris.cockpitng.previousItemSelector"
+								slotId="previousItemSelectorSlot" template="false">
+							<virtual-sockets/>
+						</widget>
+						<widget id="merchNextItem" widgetDefinitionId="com.hybris.cockpitng.nextItemSelector"
+								slotId="nextItemSelectorSlot" template="false">
+							<virtual-sockets/>
+						</widget>
+						<setting key="viewModeBtnVisible" type="Boolean">false</setting>
+						<setting key="initViewMode" type="String">fluid</setting>
+						<setting key="fluidViewCode" type="String">fluid</setting>
+						<setting key="editorAreaConfigCtx" type="String">editor-area</setting>
+						<setting key="bottomToolbar" type="Boolean">false</setting>
+						<setting key="actionSlotComponentId" type="String">editorareaactions</setting>
+						<virtual-sockets>
+							<output id="com.hybris.cockpitng.action.delete.success" type="java.lang.Object"/>
+							<output id="com.hybris.cockpitng.action.clone.success" type="java.lang.Object"/>
+						</virtual-sockets>
+					</widget>
+					<widget id="merchSpaceManagement" widgetDefinitionId="com.hybris.backoffice.spaceManagement"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<virtual-sockets/>
+					</widget>
+					<setting key="allowLockingCenterPanel" type="Boolean">false</setting>
+					<setting key="bottomPanelCollapsed" type="Boolean">false</setting>
+					<setting key="topHeight" type="String">33%</setting>
+					<setting key="centerCaption" type="String">List</setting>
+					<setting key="bottomPanelInitiallyLocked" type="Boolean">false</setting>
+					<setting key="centerHeight" type="String">50%</setting>
+					<setting key="topPanelInitiallyLocked" type="Boolean">false</setting>
+					<setting key="thirdSectionDisabled" type="Boolean">true</setting>
+					<setting key="allowLockingBottomPanel" type="Boolean">false</setting>
+					<setting key="bottomCaption" type="String">Edit</setting>
+					<setting key="centerPanelCollapsed" type="Boolean">false</setting>
+					<setting key="widgetStyleClass" type="String">yw-collapsibleContainer-caption-large-font-size</setting>
+					<setting key="topCaption" type="String">Search</setting>
+					<setting key="topPanelCollapsed" type="Boolean">true</setting>
+					<setting key="allowLockingTopPanel" type="Boolean">false</setting>
+					<setting key="centerPanelInitiallyLocked" type="Boolean">true</setting>
+					<virtual-sockets/>
+				</widget>
+
 
 				<virtual-sockets/>
 				</widget>
@@ -464,5 +619,43 @@
 	<widget-connection sourceWidgetId="socioList" outputId="previousItemSelectorContext" targetWidgetId="socioPreviousItem" inputId="previousItemSelectorContext"/>
 	<widget-connection sourceWidgetId="socioNextItem" outputId="nextItemSelectorInvocation" targetWidgetId="socioList" inputId="nextItemSelectorInvocation"/>
 	<widget-connection sourceWidgetId="socioList" outputId="nextItemSelectorContext" targetWidgetId="socioNextItem" inputId="nextItemSelectorContext"/>
+
+
+	<!-- ===== Merchandising Flamengo ===== -->
+	<widget-connection sourceWidgetId="backofficeMainSlot" outputId="perspectiveSelected" targetWidgetId="merchPerspectiveChecker" inputId="input"/>
+	<widget-connection sourceWidgetId="merchPerspectiveChecker" outputId="true" targetWidgetId="merchRulesSelector" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="merchRulesSelector" outputId="genericOutput" targetWidgetId="merchExplorerTree" inputId="nodeIdSelected"/>
+	<widget-connection sourceWidgetId="merchExplorerTree" outputId="nodeSelected" targetWidgetId="merchTreeSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="merchTreeSelection" outputId="true" targetWidgetId="merchTypeName" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="merchTypeName" outputId="genericOutput" targetWidgetId="merchAdvancedSearch" inputId="type"/>
+	<widget-connection sourceWidgetId="merchTreeSelection" outputId="true" targetWidgetId="merchHeaderTitle" inputId="nodeSelected"/>
+	<widget-connection sourceWidgetId="merchExplorerTree" outputId="dataSelected" targetWidgetId="merchSpaceManagement" inputId="navigationTreeSelectedObject"/>
+
+	<!-- Troca de tela no centro: Jogos/Reservas -> lista; Relatórios -> relatórios -->
+	<widget-connection sourceWidgetId="merchTreeSelection" outputId="true" targetWidgetId="merchShowList" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="merchShowList" outputId="genericOutput" targetWidgetId="merchContent" inputId="selectPerspectiveById"/>
+
+	<!-- Busca e lista -->
+	<widget-connection sourceWidgetId="merchSpaceManagement" outputId="collapseState" targetWidgetId="merchContainer" inputId="collapseState"/>
+	<widget-connection sourceWidgetId="merchContainer" outputId="centerPanelLocked" targetWidgetId="merchAdvancedSearch" inputId="centerPanelLocked"/>
+	<widget-connection sourceWidgetId="merchList" outputId="sortData" targetWidgetId="merchAdvancedSearch" inputId="sortData"/>
+	<widget-connection sourceWidgetId="merchAdvancedSearch" outputId="searchData" targetWidgetId="merchSearchEngine" inputId="searchData"/>
+	<widget-connection sourceWidgetId="merchAdvancedSearch" outputId="searchData" targetWidgetId="merchSpaceManagement" inputId="searchData"/>
+	<widget-connection sourceWidgetId="merchAdvancedSearch" outputId="reset" targetWidgetId="merchList" inputId="reset"/>
+	<widget-connection sourceWidgetId="merchAdvancedSearch" outputId="autosuggestionQuery" targetWidgetId="merchSearchEngine" inputId="autosuggestionQuery"/>
+	<widget-connection sourceWidgetId="merchSearchEngine" outputId="pageable" targetWidgetId="merchList" inputId="pageable"/>
+	<widget-connection sourceWidgetId="merchSearchEngine" outputId="fullTextSearchData" targetWidgetId="merchAdvancedSearch" inputId="fullTextSearchData"/>
+	<widget-connection sourceWidgetId="merchSearchEngine" outputId="autosuggestions" targetWidgetId="merchAdvancedSearch" inputId="autosuggestions"/>
+
+	<!-- Ficha -->
+	<widget-connection sourceWidgetId="merchList" outputId="focusedItem" targetWidgetId="merchEditorArea" inputId="inputObject"/>
+	<widget-connection sourceWidgetId="merchList" outputId="focusedItem" targetWidgetId="merchSpaceManagement" inputId="listSelectedObject"/>
+	<widget-connection sourceWidgetId="merchEditorArea" outputId="com.hybris.cockpitng.action.delete.success" targetWidgetId="merchSpaceManagement" inputId="navigationTreeSelectedObject"/>
+	<widget-connection sourceWidgetId="merchEditorArea" outputId="com.hybris.cockpitng.action.clone.success" targetWidgetId="merchList" inputId="focusItem"/>
+	<widget-connection sourceWidgetId="merchPerspective" outputId="resized" targetWidgetId="merchEditorArea" inputId="resize"/>
+	<widget-connection sourceWidgetId="merchPreviousItem" outputId="previousItemSelectorInvocation" targetWidgetId="merchList" inputId="previousItemSelectorInvocation"/>
+	<widget-connection sourceWidgetId="merchList" outputId="previousItemSelectorContext" targetWidgetId="merchPreviousItem" inputId="previousItemSelectorContext"/>
+	<widget-connection sourceWidgetId="merchNextItem" outputId="nextItemSelectorInvocation" targetWidgetId="merchList" inputId="nextItemSelectorInvocation"/>
+	<widget-connection sourceWidgetId="merchList" outputId="nextItemSelectorContext" targetWidgetId="merchNextItem" inputId="nextItemSelectorContext"/>
 
 </widgets>

@@ -989,4 +989,25 @@
 		</editorArea:editorArea>
 	</context>
 
+	<!-- ============ Merchandising Flamengo (item 11) ============ -->
+	<!-- Menu da perspectiva "Merchandising Flamengo" (flamengomatchday-backoffice-widgets.xml).
+	     Lista, busca e ficha são as padrão do SAP Commerce para cada tipo (construtor de regras,
+	     publicação no motor de regras, códigos dos cupons). -->
+	<context component="merch-explorer-tree">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="merch.tree.promotions">
+				<explorer-tree:type-node id="merch.tree.rules" code="PromotionSourceRule"/>
+				<explorer-tree:type-node id="merch.tree.templates" code="PromotionSourceRuleTemplate"/>
+				<explorer-tree:type-node id="merch.tree.promotionGroups" code="PromotionGroup"/>
+				<explorer-tree:type-node id="merch.tree.ruleGroups" code="RuleGroup"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="merch.tree.coupons">
+				<explorer-tree:type-node id="merch.tree.singleCoupons" code="SingleCodeCoupon"/>
+				<explorer-tree:type-node id="merch.tree.multiCoupons" code="MultiCodeCoupon"/>
+				<explorer-tree:type-node id="merch.tree.customerCoupons" code="CustomerCoupon"/>
+				<explorer-tree:type-node id="merch.tree.couponRedemptions" code="CouponRedemption"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
 </config>
