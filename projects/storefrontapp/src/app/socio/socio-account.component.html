@@ -127,6 +127,9 @@
               'sa.ended.note'
                 | flaT: { date: date(ended.closedAt), id: ended.id }
             }}
+            <ng-container *ngIf="exit.settlement as s">
+              <br /><b>{{ 'sa.exit.done' | flaT }}</b> {{ exitText(s) }}
+            </ng-container>
           </p>
           <p class="sa-note sa-note--warn" *ngIf="cancellation">
             {{
@@ -438,6 +441,17 @@
                           }
                   }}
                 </p>
+                <div
+                  class="sa-exit"
+                  *ngIf="exit.quote as q"
+                  [class.sa-exit--refund]="q.withinWithdrawal"
+                >
+                  <span class="sa-exit-title">{{
+                    'sa.exit.expected' | flaT
+                  }}</span>
+                  <strong>{{ exitText(q) }}</strong>
+                  <small>{{ exitRule(q) }}</small>
+                </div>
                 <a class="sa-link" routerLink="/my-account/support-tickets">{{
                   'sa.cancel.follow' | flaT
                 }}</a>
@@ -471,6 +485,18 @@
                       [(ngModel)]="cancelNote"
                     ></textarea>
                   </label>
+                  <div
+                    class="sa-exit"
+                    *ngIf="exit.quote as q"
+                    [class.sa-exit--refund]="q.withinWithdrawal"
+                  >
+                    <span class="sa-exit-title">{{
+                      'sa.exit.title' | flaT
+                    }}</span>
+                    <strong>{{ exitText(q) }}</strong>
+                    <small>{{ exitRule(q) }}</small>
+                    <small>{{ 'sa.exit.basis' | flaT }}</small>
+                  </div>
                   <p class="sa-note">{{ 'sa.cancel.warning' | flaT }}</p>
                   <div class="sa-panel-actions">
                     <button
