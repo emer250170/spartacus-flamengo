@@ -78,6 +78,11 @@ public class DefaultSocioPointsService implements SocioPointsService
 		return Math.max(0, configurationService.getConfiguration().getInt(PER_REAL_PROPERTY, 1));
 	}
 
+	protected int bonus()
+	{
+		return Math.max(0, configurationService.getConfiguration().getInt(BONUS_PROPERTY, 500));
+	}
+
 	// ------------------------------------------------------------ leitura
 
 	@Override
@@ -92,6 +97,7 @@ public class DefaultSocioPointsService implements SocioPointsService
 		p.enabled = isEnabled();
 		p.perTicket = perTicket();
 		p.perReal = perReal();
+		p.bonus = bonus();
 		if (!p.enabled || customer == null)
 		{
 			p.reason = "Os pontos do sócio estão desligados.";
@@ -199,6 +205,14 @@ public class DefaultSocioPointsService implements SocioPointsService
 			p.productsAmount += e.productsAmount;
 		}
 		p.productsAmount = Math.round(p.productsAmount * 100) / 100.0;
+		if (p.bonus > 0)
+		{
+			final SocioPoints.Earning e = new SocioPoints.Earning();
+			e.date = p.since;
+			e.points = p.bonus;
+			p.earnings.add(e); // a adesão é a mais antiga: fim da lista
+			p.earned += p.bonus;
+		}
 	}
 
 	/** Primeiro pedido fechado com plano ou convidado; sem pedido, a primeira Adesão na linha do tempo */

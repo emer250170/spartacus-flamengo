@@ -255,9 +255,11 @@ public class SocioMemberHtml
 		final br.com.flamengo.matchday.socio.SocioPoints p = m.points;
 		h.append(section(l("history.points")));
 		h.append("<div style=\"color:#556b82;margin-bottom:6px\">")
-				.append(esc(MessageFormat.format(l("history.points.rule"), number(p.perTicket), number(p.perReal), date(p.since))))
+				.append(esc(MessageFormat.format(l("history.points.rule"), number(p.perTicket), number(p.perReal), date(p.since),
+						number(p.bonus))))
 				.append("<br/>")
-				.append(esc(MessageFormat.format(l("history.points.earned"), number(p.earned), Integer.valueOf(p.earnings.size()),
+				.append(esc(MessageFormat.format(l("history.points.earned"), number(p.earned),
+						Long.valueOf(p.earnings.stream().filter(e -> e.orderCode != null).count()),
 						Integer.valueOf(p.tickets), money.format(p.productsAmount))));
 		if (!p.canRedeem && p.reason != null)
 		{

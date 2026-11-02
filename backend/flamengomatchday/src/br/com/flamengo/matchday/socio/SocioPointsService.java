@@ -10,7 +10,8 @@ import de.hybris.platform.core.model.user.CustomerModel;
  * Ganho: cada ingresso dá {@code flamengo.socio.pontos.porIngresso} pontos (padrão 100) e
  * cada real em produtos dá {@code flamengo.socio.pontos.porReal} (padrão 1; plano e
  * convidados não contam). Contam os pedidos fechados desde a adesão (Pix ou boleto
- * aguardando e pedidos cancelados não contam). Igual para todos os planos.
+ * aguardando e pedidos cancelados não contam), mais um bônus de adesão
+ * ({@code flamengo.socio.pontos.bonusAdesao}, padrão 500). Igual para todos os planos.
  * <p>
  * Resgate: só sócio em dia (nem suspenso, nem aguardando pagamento, nem ex-sócio),
  * experiência ativa, plano com mensalidade igual ou maior que a do plano mínimo, vaga
@@ -25,6 +26,7 @@ public interface SocioPointsService
 	String ENABLED_PROPERTY = "flamengo.socio.pontos.ativo";
 	String PER_TICKET_PROPERTY = "flamengo.socio.pontos.porIngresso";
 	String PER_REAL_PROPERTY = "flamengo.socio.pontos.porReal";
+	String BONUS_PROPERTY = "flamengo.socio.pontos.bonusAdesao";
 
 	boolean isEnabled();
 

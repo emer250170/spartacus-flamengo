@@ -115,6 +115,7 @@ public class SocioPointsController
 		m.put("since", format(p.since));
 		m.put("perTicket", Integer.valueOf(p.perTicket));
 		m.put("perReal", Integer.valueOf(p.perReal));
+		m.put("bonus", Integer.valueOf(p.bonus));
 		m.put("earned", Integer.valueOf(p.earned));
 		m.put("redeemed", Integer.valueOf(p.redeemed));
 		m.put("balance", Integer.valueOf(p.balance));
@@ -123,12 +124,13 @@ public class SocioPointsController
 		final List<Map<String, Object>> earnings = new ArrayList<>();
 		for (final SocioPoints.Earning e : p.earnings)
 		{
-			if (earnings.size() >= MAX_EARNINGS)
+			if (earnings.size() >= MAX_EARNINGS && e.orderCode != null)
 			{
-				break;
+				continue; // os 20 pedidos mais novos e o bônus de adesão
 			}
 			final Map<String, Object> x = new LinkedHashMap<>();
 			x.put("orderCode", e.orderCode);
+			x.put("bonus", Boolean.valueOf(e.orderCode == null));
 			x.put("date", format(e.date));
 			x.put("tickets", Integer.valueOf(e.tickets));
 			x.put("productsAmount", Double.valueOf(e.productsAmount));

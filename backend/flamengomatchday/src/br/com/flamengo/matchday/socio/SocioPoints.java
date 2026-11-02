@@ -27,6 +27,8 @@ public class SocioPoints
 	public Date since;
 	public int perTicket;
 	public int perReal;
+	/** Bônus de adesão (entra uma vez, na data da adesão) */
+	public int bonus;
 	/** Pontos ganhos nos pedidos */
 	public int earned;
 	/** Pontos usados em resgates não cancelados */
@@ -44,6 +46,7 @@ public class SocioPoints
 
 	public static class Earning
 	{
+		/** null = bônus de adesão */
 		public String orderCode;
 		public Date date;
 		public int tickets;

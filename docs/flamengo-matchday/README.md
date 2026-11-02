@@ -656,7 +656,7 @@ Desenho aprovado em 02/11: pontos calculados no servidor (nada de saldo gravado)
 
 | Regra | Como funciona |
 |---|---|
-| Ganho | Cada ingresso dá `flamengo.socio.pontos.porIngresso` (100) e cada real em produtos dá `flamengo.socio.pontos.porReal` (1). Plano e convidados não contam. Contam os pedidos fechados desde a adesão (primeiro pedido com plano; sem pedido, o primeiro evento Adesão). Pix/boleto aguardando e pedidos cancelados não contam. Igual para todos os planos. |
+| Ganho | Cada ingresso dá `flamengo.socio.pontos.porIngresso` (100) e cada real em produtos dá `flamengo.socio.pontos.porReal` (1). Plano e convidados não contam. Contam os pedidos fechados desde a adesão (primeiro pedido com plano; sem pedido, o primeiro evento Adesão). Pix/boleto aguardando e pedidos cancelados não contam. Mais um bônus de adesão de `flamengo.socio.pontos.bonusAdesao` (500), uma vez. Igual para todos os planos. |
 | Saldo | Ganhos menos os resgates não cancelados. Calculado a cada consulta. |
 | Resgate | Só sócio em dia (nem suspenso, nem aguardando pagamento, nem ex-sócio), experiência na vitrine, plano com mensalidade igual ou maior que a do plano mínimo, vaga sobrando e saldo suficiente. Gera `SocioRedemption` com voucher `NACAO-XXXX-XXXX` e o evento **Resgate de pontos** na linha do tempo. |
 | Cancelar resgate | No Backoffice (Resgates de pontos), preencher **Cancelado em**: os pontos e a vaga voltam. |
