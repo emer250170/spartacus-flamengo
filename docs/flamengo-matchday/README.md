@@ -761,6 +761,27 @@ Scripts (HAC, Groovy; primeiro `commit=false`):
   - etapa `estoque`: estoque das lojas.
 - `scripts/order-process-retirada.groovy`: nova versão do `order-process` com o passo `sourcePickup`. A versão anterior vai para `/backup/order-process-v<n>-antes-retirada.xml`. Para voltar, ativar a versão anterior em Backoffice › Sistema › Processos de negócio › Definições de processo dinâmicas.
 
+### Dados de demonstração da loja virtual (item 13 do plano, ato 7 do roteiro)
+
+Script `scripts/loja-virtual-demo.groovy` (HAC). Tudo leva o prefixo `demo_` ou `FLADEMO` e fica no grupo de promoções da loja.
+
+| Fluxo | O que existe | Situação |
+|---|---|---|
+| 7.1 Promoção | `demo_calcados_15`: 15% em Calçados (`flamengo_c132`) | Rascunho: publicar ao vivo no cockpit Merchandising Flamengo e despublicar depois |
+| 7.2 Cupom | Cupom `FLADEMO20` (código único, 1 uso por torcedor, 100 no total, até 31/12/2026) e a regra `demo_cupom_flademo20` (R$ 20 de desconto acima de R$ 150) | Publicada. Só vale com o cupom, então os outros atos não mudam |
+| 7.3 Regras | `demo_frete_gratis_299`: acima de R$ 299, a entrega vira o modo `frete-gratis` (R$ 0), que não aparece para escolha. `demo_brinde_manto`: Manto no carrinho ganha o chaveiro `flamengo_3911` | Rascunhos. O brinde também vale para a Camisa Jogo 2 da jornada de matchday, por isso precisa ser despublicado depois da demo |
+| 7.4 Busca | `scripts/busca-adaptavel.groovy`: perfil `flamengoLoja` da Pesquisa adaptável e conjunto de ativação do índice da loja | Criados, sem regras. Teste: um produto fixado pelo modelo de dados **não** mudou a busca, então ainda falta ligar a Pesquisa adaptável à busca da loja |
+
+Testado com torcedor25 pela API:
+- **Cupom:** R$ 329,99 → R$ 309,99.
+- **As três regras em rascunho, publicadas para o teste e despublicadas depois:**
+  - Calçados: chinelo de R$ 199,99 → R$ 170,00;
+  - frete: R$ 19,90 → R$ 0;
+  - brinde: chaveiro adicionado a R$ 0.
+- **Depois de despublicar:** o mesmo carrinho voltou sem desconto, frete R$ 19,90.
+
+Para publicar ou tirar do ar as regras em rascunho pelo HAC: `scripts/loja-virtual-demo-publicar.groovy` (variável `ACAO`).
+
 ### Cockpit Merchandising Flamengo (item 11 do plano de evolução)
 
 Perspectiva nova no Backoffice para o time de marketing: promoções e cupons num lugar só, em português. Só configuração: as telas são as padrão do SAP Commerce (lista, busca e ficha, com o construtor de regras e a publicação no motor de regras).
