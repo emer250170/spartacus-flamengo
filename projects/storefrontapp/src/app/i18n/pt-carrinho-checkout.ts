@@ -130,7 +130,7 @@ export const ptCarrinhoCheckout: TranslationResources = {
         orderInProcess: 'Processando o pedido. Aguarde.',
       },
       checkoutOrderConfirmation: {
-        confirmationOfOrder: 'Confirmação do pedido:',
+        confirmationOfOrder: 'Confirmação do pedido',
         thankYou: 'Obrigado pelo seu pedido!',
         invoiceHasBeenSentByEmail:
           'Enviamos o comprovante por e-mail. Ele deve chegar em instantes.',
