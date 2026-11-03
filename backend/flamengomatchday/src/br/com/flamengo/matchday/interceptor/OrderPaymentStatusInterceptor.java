@@ -6,6 +6,7 @@ import de.hybris.platform.core.enums.OrderStatus;
 import de.hybris.platform.core.model.order.OrderModel;
 import de.hybris.platform.servicelayer.interceptor.InterceptorContext;
 import de.hybris.platform.servicelayer.interceptor.PrepareInterceptor;
+import de.hybris.platform.servicelayer.model.ModelContextUtils;
 import de.hybris.platform.servicelayer.model.ModelService;
 
 import java.util.Date;
@@ -37,7 +38,11 @@ public class OrderPaymentStatusInterceptor implements PrepareInterceptor<OrderMo
 		}
 		try
 		{
-			if (!socioPaymentService.isStoreEnabled() || !SocioPayments.isAwaiting(modelService, order))
+			// só a mudança feita a partir de "Aguardando pagamento" confirma: o takePaymentAction do
+			// order-process também grava PAYMENT_CAPTURED e não pode confirmar um Pix ou boleto
+			final Object before = ModelContextUtils.getItemModelContext(order).getOriginalValue(OrderModel.STATUS);
+			if (before != OrderStatus.PAYMENT_NOT_CAPTURED || !socioPaymentService.isStoreEnabled()
+					|| !SocioPayments.isAwaiting(modelService, order))
 			{
 				return;
 			}
