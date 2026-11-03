@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Cockpit "Gestão de experiências" (item 9): vitrine com um card por experiência e formulário para criar e editar -->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.expshowcase">
+	<name>Gestão de experiências - Vitrine</name>
+	<description>vitrine com um card por experiência e formulário para criar e editar</description>
+	<defaultTitle>Vitrine</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="expshowcase.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.experiences.ExperienceShowcaseController"/>
+	<sockets>
+		<!-- recarrega ao clicar no menu -->
+		<input id="refresh" type="java.lang.Object"/>
+	</sockets>
+	<keywords>
+		<keyword>Experiences</keyword>
+	</keywords>
+</widget-definition>

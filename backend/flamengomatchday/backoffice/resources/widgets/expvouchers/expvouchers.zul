@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Validar voucher e resgates e compras (ExperienceVouchersController) -->
+<widget xmlns="http://www.zkoss.org/2005/zul"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.zkoss.org/2005/zul http://www.hybris.com/schema/cockpitng/zul/zul.xsd"
+		height="100%">
+	<div height="100%" style="overflow:auto; box-sizing:border-box; padding:18px 24px; background:#f5f6f7;">
+		<div style="margin-bottom:12px;">
+			<label value="${labels.vouchersTitle}" style="font-size:22px; font-weight:700; color:#1d2d3e;"/>
+			<separator/>
+			<label value="${labels.vouchersSubtitle}" style="color:#556b82;"/>
+		</div>
+
+		<!-- Validar voucher -->
+		<div style="background:#fff; border:1px solid #d9dde3; border-radius:12px; padding:16px 18px; margin-bottom:16px; max-width:1320px;">
+			<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+				<textbox id="voucherBox" placeholder="${labels.voucherPlaceholder}" width="260px"
+						style="font-family:ui-monospace,Menlo,Consolas,monospace; text-transform:uppercase;"/>
+				<button id="findButton" label="${labels.voucherFind}" sclass="y-btn-primary"/>
+			</div>
+			<html id="voucherDetail"/>
+			<div id="voucherActions" visible="false" style="margin-top:12px;">
+				<textbox id="reasonBox" rows="2" width="100%" placeholder="${labels.cancelReasonPlaceholder}"/>
+				<div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+					<button id="useButton" label="${labels.useButton}" sclass="y-btn-primary"/>
+					<button id="cancelVoucherButton" label="${labels.cancelButton}"/>
+				</div>
+			</div>
+		</div>
+
+		<!-- Resgates e compras -->
+		<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; max-width:1320px;">
+			<textbox id="searchBox" placeholder="${labels.listSearchPlaceholder}" width="260px"/>
+			<listbox id="experienceFilter" mold="select" rows="1"/>
+			<listbox id="statusFilter" mold="select" rows="1"/>
+			<listbox id="originFilter" mold="select" rows="1"/>
+			<button id="searchButton" label="${labels.listSearch}"/>
+			<label id="countLabel" style="color:#556b82;"/>
+		</div>
+		<div style="background:#fff; border:1px solid #d9dde3; border-radius:8px; max-width:1320px;">
+			<listbox id="resultList" mold="paging" pageSize="15" emptyMessage="${labels.listEmpty}">
+				<listhead>
+					<listheader label="${labels.colVoucher}" hflex="2"/>
+					<listheader label="${labels.colDate}" hflex="1"/>
+					<listheader label="${labels.colExperience}" hflex="3"/>
+					<listheader label="${labels.colCustomer}" hflex="2"/>
+					<listheader label="${labels.colOrigin}" hflex="2"/>
+					<listheader label="${labels.colStatus}" hflex="1"/>
+				</listhead>
+			</listbox>
+		</div>
+	</div>
+</widget>

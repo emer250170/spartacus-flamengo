@@ -1066,6 +1066,42 @@
 		</dsb:dashboard>
 	</context>
 
+	<!-- ============ Gestão de experiências (item 9) ============ -->
+	<!-- Menu da perspectiva "Gestão de experiências" (flamengomatchday-backoffice-widgets.xml) -->
+	<context component="exp-explorer-tree">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="exp.tree.root">
+				<explorer-tree:navigation-node id="exp.tree.showcase"/>
+				<explorer-tree:navigation-node id="exp.tree.vouchers"/>
+				<explorer-tree:navigation-node id="exp.tree.report"/>
+				<explorer-tree:type-node id="exp.tree.experiences" code="SocioExperience"/>
+				<explorer-tree:type-node id="exp.tree.redemptions" code="SocioRedemption"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
+	<!-- Cockpit de administração do gestor de experiências: só experiências e resgates (como o do gestor de jogos) -->
+	<context component="explorer-tree" principal="experiencemanagerrole">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="exp.tree.root">
+				<explorer-tree:type-node id="exp.tree.experiences" code="SocioExperience"/>
+				<explorer-tree:type-node id="exp.tree.redemptions" code="SocioRedemption"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
+	<!-- Painel inicial do Cockpit de administração do gestor de experiências: o relatório das experiências -->
+	<context component="dashboard" principal="experiencemanagerrole">
+		<dsb:dashboard xmlns:dsb="http://www.hybris.com/cockpitng/config/dashboard" defaultGridId="regular">
+			<dsb:grid id="small" minScreenWidth="1" maxScreenWidth="700" unassigned="exclude">
+				<dsb:placement widgetId="flaExpDashboard" height="3"/>
+			</dsb:grid>
+			<dsb:grid id="regular" minScreenWidth="701" unassigned="exclude">
+				<dsb:placement widgetId="flaExpDashboard" width="2" height="3"/>
+			</dsb:grid>
+		</dsb:dashboard>
+	</context>
+
 	<!-- ============ Merchandising Flamengo (item 11) ============ -->
 	<!-- Menu da perspectiva "Merchandising Flamengo" (flamengomatchday-backoffice-widgets.xml).
 	     Lista, busca e ficha são as padrão do SAP Commerce para cada tipo (construtor de regras,

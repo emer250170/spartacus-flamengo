@@ -1,0 +1,42 @@
+# Papel "Gestor de experiências" (item 9 do plano de evolução): entra no Backoffice na perspectiva
+# "Gestão de experiências" (flamengomatchday-backoffice-widgets.xml, access="experienceperspective"):
+# vitrine com cards e formulário, validar voucher, resgates e compras com ações e relatório.
+# Usuário: Employee gestor.experiencias, criado SEM senha (a senha é definida no Backoffice,
+# Usuário › Funcionários, e não fica no repositório). Importar à parte (base64 + ImportConfig),
+# por causa do $START_USERRIGHTS.
+
+INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];description;authorities;backOfficeLoginDisabled[default=false]
+;experiencemanagerrole;Gestor de experiências;Experience manager;Cria e mantém as experiências do sócio, valida vouchers e acompanha resgates e vendas;experiencemanagerrole,experienceperspective;
+
+# A perspectiva também para o administrador
+UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
+;backofficeadministratorrole;experienceperspective
+
+# loginDisabled=false: sem a coluna, o Employee criado sem senha nasce com o login bloqueado (PR #93)
+INSERT_UPDATE Employee;uid[unique=true];name;groups(uid);sessionLanguage(isocode);backOfficeLoginDisabled;loginDisabled
+;gestor.experiencias;Gestor de experiências (demo);experiencemanagerrole;pt;false;false
+
+# Experiências: cria e mantém (não apaga: quem tem voucher continua com ele). Resgates: lê e muda
+# (utilizado, cancelado). A publicação na loja (produto, preço, estoque) roda como admin no
+# SocioExperienceService. O resto é leitura para as telas e a caixa de entrada do Backoffice.
+$START_USERRIGHTS;;;;;;;;;
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+BackofficeRole;experiencemanagerrole;;;;;;;;
+;;;;SocioExperience;+;+;+;-;-
+;;;;SocioRedemption;+;+;-;-;-
+;;;;SocioPlan;+;-;-;-;-
+;;;;SocioEvent;+;-;+;-;-
+;;;;SocioEventType;+;-;-;-;-
+;;;;Product;+;-;-;-;-
+;;;;StockLevel;+;-;-;-;-
+;;;;Customer;+;-;-;-;-
+;;;;User;+;-;-;-;-
+;;;;UserGroup;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;Currency;+;-;-;-;-
+;;;;Language;+;-;-;-;-
+;;;;Workflow;+;-;-;-;-
+;;;;WorkflowAction;+;-;-;-;-
+;;;;Comment;+;-;-;-;-
+$END_USERRIGHTS;;;;;;;;;
