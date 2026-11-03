@@ -23,6 +23,11 @@ export interface SocioRedemption {
   date?: Date;
   origin?: string;
   cancelledAt?: Date;
+  /** Compra na loja (item 9): pedido e valor pago; vazio = resgate com pontos */
+  orderCode?: string;
+  amount?: number;
+  /** Voucher já usado na portaria ou no atendimento */
+  usedAt?: Date;
 }
 
 /** Experiência da vitrine */
@@ -37,6 +42,12 @@ export interface SocioExperience {
   redeemable: boolean;
   /** Por que não pode resgatar (saldo, plano, esgotada, situação) */
   reason?: string;
+  /** Preço na loja (item 9; undefined = só resgate) */
+  price?: number;
+  /** Produto da loja (undefined = não está à venda) */
+  productCode?: string;
+  /** Dá para comprar agora (à venda e com vaga) */
+  buyable: boolean;
 }
 
 /** Pontos do sócio (GET /users/current/sociopoints) */
@@ -157,6 +168,9 @@ function toPoints(r: OccSocioPoints): SocioPoints {
       date: date(x.date),
       origin: x.origin,
       cancelledAt: date(x.cancelledAt),
+      orderCode: x.orderCode || undefined,
+      amount: x.amount ?? undefined,
+      usedAt: date(x.usedAt),
     })),
     experiences: (r.experiences ?? []).map((x) => ({
       code: x.code ?? '',
@@ -167,6 +181,9 @@ function toPoints(r: OccSocioPoints): SocioPoints {
       minPlanName: x.minPlanName || undefined,
       redeemable: !!x.redeemable,
       reason: x.reason || undefined,
+      price: x.price ?? undefined,
+      productCode: x.productCode || undefined,
+      buyable: !!x.buyable && !!x.productCode,
     })),
   };
 }
@@ -201,6 +218,9 @@ interface OccSocioPoints {
     date?: string;
     origin?: string;
     cancelledAt?: string;
+    orderCode?: string;
+    amount?: number | null;
+    usedAt?: string;
   }[];
   experiences?: {
     code?: string;
@@ -211,6 +231,9 @@ interface OccSocioPoints {
     minPlanName?: string;
     redeemable?: boolean;
     reason?: string;
+    price?: number | null;
+    productCode?: string;
+    buyable?: boolean;
   }[];
 }
 

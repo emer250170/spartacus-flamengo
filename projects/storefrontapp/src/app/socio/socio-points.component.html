@@ -62,6 +62,7 @@
 
   <!-- vitrine -->
   <h4 class="sa-subtitle">{{ 'sp.showcase' | flaT }}</h4>
+  <p class="sa-muted sp-showcase-hint" *ngIf="hasSale(d)">{{ 'sp.saleHint' | flaT }}</p>
   <p class="sa-muted" *ngIf="!d.experiences.length">{{ 'sp.noExperiences' | flaT }}</p>
   <div class="sp-grid">
     <div
@@ -92,14 +93,26 @@
       </div>
 
       <ng-container *ngIf="confirming !== x.code; else confirmBox">
-        <button
-          type="button"
-          class="sa-btn sa-btn--primary sp-exp-btn"
-          [disabled]="!x.redeemable || busy"
-          (click)="ask(x)"
-        >
-          {{ 'sp.redeem' | flaT }}
-        </button>
+        <div class="sp-exp-actions">
+          <button
+            type="button"
+            class="sa-btn sa-btn--primary sp-exp-btn"
+            [disabled]="!x.redeemable || busy"
+            (click)="ask(x)"
+          >
+            {{ 'sp.redeem' | flaT }}
+          </button>
+          <!-- item 9: a mesma experiência à venda na loja (sem desconto de sócio) -->
+          <button
+            type="button"
+            class="sa-btn sp-exp-btn sp-exp-buy"
+            *ngIf="x.productCode && x.price"
+            [disabled]="!x.buyable || !!buying"
+            (click)="buy(x)"
+          >
+            {{ (buying === x.code ? 'sp.buying' : 'sp.buy') | flaT: { price: brl(x.price) } }}
+          </button>
+        </div>
         <p class="sp-exp-reason" *ngIf="!x.redeemable && x.reason && d.canRedeem">
           {{ x.reason }}
         </p>
@@ -142,7 +155,7 @@
             <th>{{ 'sp.col.experience' | flaT }}</th>
             <th>{{ 'sp.col.voucher' | flaT }}</th>
             <th>{{ 'sp.col.date' | flaT }}</th>
-            <th class="sp-num">{{ 'sp.col.points' | flaT }}</th>
+            <th class="sp-num">{{ 'sp.col.paid' | flaT }}</th>
             <th>{{ 'sp.col.status' | flaT }}</th>
           </tr>
         </thead>
@@ -151,12 +164,16 @@
             <td>{{ r.experienceName }}</td>
             <td><code class="sp-code">{{ r.voucher }}</code></td>
             <td>{{ day(r.date) }}</td>
-            <td class="sp-num">−{{ num(r.points) }}</td>
+            <td class="sp-num">
+              {{ isPurchase(r) ? ('sp.purchase' | flaT: { price: brl(r.amount ?? 0) }) : '−' + num(r.points) }}
+            </td>
             <td>
               {{
                 r.cancelledAt
                   ? ('sp.cancelled' | flaT: { date: day(r.cancelledAt) })
-                  : ('sp.valid' | flaT)
+                  : r.usedAt
+                    ? ('sp.used' | flaT: { date: day(r.usedAt) })
+                    : ('sp.valid' | flaT)
               }}
             </td>
           </tr>

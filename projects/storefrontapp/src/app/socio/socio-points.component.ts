@@ -5,12 +5,17 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { Router } from '@angular/router';
+import { ActiveCartFacade } from '@spartacus/cart/base/root';
+import { GlobalMessageService, GlobalMessageType } from '@spartacus/core';
 import { Subscription } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import {
   SocioExperience,
   SocioPoints,
   SocioPointsService,
+  SocioRedemption,
 } from './socio-points.service';
 
 /**
@@ -21,6 +26,8 @@ import {
  * mínimo, vagas e saldo) ficam no SAP Commerce, que devolve o motivo da recusa.
  * Some com a chave desligada (flamengo.socio.pontos.ativo=false) ou para quem
  * nunca aderiu.
+ * Item 9: experiência à venda na loja ganha "Comprar por R$ X" (põe no carrinho e
+ * abre o carrinho); o voucher da compra aparece em Meus resgates com origem Compra.
  */
 @Component({
   selector: 'fla-socio-points',
@@ -41,13 +48,18 @@ export class SocioPointsComponent implements OnInit, OnDestroy {
   /** Voucher do resgate que acabou de ser feito */
   done?: { name: string; voucher: string };
   showEarnings = false;
+  /** Experiência sendo posta no carrinho */
+  buying?: string;
 
   protected subscription = new Subscription();
 
   constructor(
     protected points: SocioPointsService,
     protected i18n: FlaI18nService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected activeCart: ActiveCartFacade,
+    protected router: Router,
+    protected globalMessages: GlobalMessageService
   ) {}
 
   ngOnInit(): void {
@@ -72,6 +84,42 @@ export class SocioPointsComponent implements OnInit, OnDestroy {
   get redemptions() {
     const list = this.data?.redemptions ?? [];
     return [...list.filter((r) => !r.cancelledAt), ...list.filter((r) => r.cancelledAt)];
+  }
+
+  /** Alguma experiência da vitrine também está à venda */
+  hasSale(d: SocioPoints): boolean {
+    return d.experiences.some((x) => !!x.productCode && !!x.price);
+  }
+
+  /** Compra na loja (item 9) ou resgate com pontos */
+  isPurchase(r: SocioRedemption): boolean {
+    return !!r.orderCode || r.origin === 'Compra';
+  }
+
+  /** Item 9: põe a experiência no carrinho e abre o carrinho */
+  buy(x: SocioExperience): void {
+    if (!x.productCode || !x.buyable || this.buying) {
+      return;
+    }
+    this.buying = x.code;
+    this.activeCart.addEntry(x.productCode, 1);
+    this.subscription.add(
+      this.activeCart
+        .isStable()
+        .pipe(
+          filter((stable) => stable),
+          take(1)
+        )
+        .subscribe(() => {
+          this.buying = undefined;
+          this.globalMessages.add(
+            this.i18n.t('sp.buyAdded', { name: x.name }),
+            GlobalMessageType.MSG_TYPE_CONFIRMATION
+          );
+          this.router.navigateByUrl('/cart');
+          this.cd.markForCheck();
+        })
+    );
   }
 
   /** Quanto falta para a experiência (0 se já dá) */
