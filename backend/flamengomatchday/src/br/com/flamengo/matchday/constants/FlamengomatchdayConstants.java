@@ -13,6 +13,8 @@ public final class FlamengomatchdayConstants extends GeneratedFlamengomatchdayCo
 	public static final String HOLD_MINUTES = "flamengomatchday.seathold.minutes";
 	public static final String SEAT_CODE_PREFIX = "flamengomatchday.seat.codeprefix";
 	public static final String WAREHOUSE = "flamengomatchday.warehouse";
+	/** Retirada na loja física (item 12): false = linha de retirada baixa o estoque como as outras */
+	public static final String PICKUP_ENABLED = "flamengo.retirada.ativo";
 
 	private FlamengomatchdayConstants()
 	{

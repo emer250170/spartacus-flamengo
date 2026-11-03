@@ -741,6 +741,26 @@ Depois do deploy:
 - importar as ImpEx do papel e da integração;
 - rodar o backfill.
 
+### Retirada na loja física (item 12 do plano de evolução)
+
+O torcedor compra na loja online e retira o pedido numa Loja Flamengo. O atendente da loja trabalha a remessa no cockpit padrão **Expedição de pedidos** (Order Fulfillment) do OMS.
+
+| Parte | Como funciona |
+|---|---|
+| Lojas | Loja Flamengo Barra (`barrastore`), Loja Flamengo Copacabana (`copacabanastore`) e Loja Flamengo Maracanã (`maracanastore`), cada uma com endereço, coordenadas, horário (`flamengo-rj-store-hours`) e depósito próprio com o mesmo código. Os pontos de venda de exemplo (Tóquio, Reino Unido…) saíram da loja online, para não aparecerem na busca de lojas. |
+| Estoque | 10 unidades de cada SKU físico em cada loja. Ingresso, plano, experiência, estacionamento, comida e personalização não têm estoque em loja, então não oferecem retirada. |
+| Loja online | Na página do produto, a biblioteca de retirada do Spartacus oferece "Retirar grátis na loja" com a busca de lojas com estoque. No carrinho e no checkout, a linha fica com a loja escolhida, e o modo de entrega é "Retirada na loja". |
+| Pedido | O passo `sourcePickup` do `order-process` cria, para as linhas com loja, a remessa (Consignment) daquela loja pelo `allocationService` do OMS e inicia o `consignment-process` padrão (caminho de retirada). Esse passo fica entre `takePayment` e `completeOrder`. A remessa reserva o estoque da loja. A baixa do depósito online (`commitSale`) pula essas linhas. As outras linhas (entrega, ingresso, plano, serviços) seguem como antes. O pedido fica Concluído e a remessa tem a sua própria situação. |
+| Atendente | `atendente.barra`, `atendente.copacabana` e `atendente.maracana` estão nos grupos `warehouseagentgroup` e `warehouseagentrole` e no grupo de funcionários da loja (`<loja>storeemployees`), por isso cada um vê só as remessas da sua loja. Foram criados sem senha: o Emerson define no Backoffice. No cockpit, o atendente faz três coisas: **separar**, **embalar** (a remessa fica Pronta para retirada) e **confirmar a retirada** (Retirada concluída). |
+| Torcedor | Em Meus pedidos, o detalhe do pedido mostra a remessa da loja como "Pronto para retirada" e, depois, "Retirada concluída". Não há e-mail. |
+| Chave | `flamengo.retirada.ativo` (`false` = sem remessa; a linha baixa o estoque como as outras). |
+
+Scripts (HAC, Groovy; primeiro `commit=false`):
+- `scripts/lojas-retirada.groovy`:
+  - etapa `lojas`: lojas, depósitos, grupos, atendentes e nome do modo de entrega, com backup em `/backup/lojas-retirada-antes-<data>.txt`;
+  - etapa `estoque`: estoque das lojas.
+- `scripts/order-process-retirada.groovy`: nova versão do `order-process` com o passo `sourcePickup`. A versão anterior vai para `/backup/order-process-v<n>-antes-retirada.xml`. Para voltar, ativar a versão anterior em Backoffice › Sistema › Processos de negócio › Definições de processo dinâmicas.
+
 ### Cockpit Merchandising Flamengo (item 11 do plano de evolução)
 
 Perspectiva nova no Backoffice para o time de marketing: promoções e cupons num lugar só, em português. Só configuração: as telas são as padrão do SAP Commerce (lista, busca e ficha, com o construtor de regras e a publicação no motor de regras).

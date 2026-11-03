@@ -172,6 +172,13 @@ public class DefaultSeatHoldService implements SeatHoldService
 			{
 				continue;
 			}
+			if (entry.getDeliveryPointOfService() != null
+					&& configurationService.getConfiguration().getBoolean(FlamengomatchdayConstants.PICKUP_ENABLED, true))
+			{
+				// retirada na loja (item 12): o estoque é o da loja, reservado pela remessa do OMS
+				// (passo sourcePickup do order-process), e não o do depósito da loja online
+				continue;
+			}
 			final SeatHoldModel hold = isSeat(product) ? findHold(product) : null;
 			final StockLevelModel level = hold != null ? stockService.getStockLevel(product, hold.getWarehouse())
 					: findStockLevel(product);

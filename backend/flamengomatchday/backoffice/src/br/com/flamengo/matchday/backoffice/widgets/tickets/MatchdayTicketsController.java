@@ -339,10 +339,13 @@ public class MatchdayTicketsController extends ExperienceWidgetSupport
 		for (final MatchdayTicketEventModel e : events)
 		{
 			final StringBuilder what = new StringBuilder();
-			if (StringUtils.isNotBlank(e.getFromValue()) || StringUtils.isNotBlank(e.getToValue()))
+			if (StringUtils.isNotBlank(e.getFromValue()))
 			{
-				what.append(StringUtils.defaultIfBlank(e.getFromValue(), "-")).append(" → ")
-						.append(StringUtils.defaultIfBlank(e.getToValue(), "-"));
+				what.append(e.getFromValue()).append(" → ").append(StringUtils.defaultIfBlank(e.getToValue(), "-"));
+			}
+			else if (StringUtils.isNotBlank(e.getToValue()))
+			{
+				what.append(e.getToValue()); // venda: só a poltrona
 			}
 			if (e.getAmount() != null)
 			{

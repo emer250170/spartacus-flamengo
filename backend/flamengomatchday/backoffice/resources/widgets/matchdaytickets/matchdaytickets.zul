@@ -57,9 +57,9 @@
 		<!-- Lista -->
 		<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; max-width:1320px;">
 			<textbox id="searchBox" placeholder="${labels.listSearchPlaceholder}" width="260px"/>
-			<listbox id="gameFilter" mold="select" rows="1"/>
-			<listbox id="sectorFilter" mold="select" rows="1"/>
-			<listbox id="statusFilter" mold="select" rows="1"/>
+			<listbox id="gameFilter" mold="select" rows="1" width="300px"/>
+			<listbox id="sectorFilter" mold="select" rows="1" width="170px"/>
+			<listbox id="statusFilter" mold="select" rows="1" width="190px"/>
 			<button id="searchButton" label="${labels.listSearch}"/>
 			<label id="countLabel" style="color:#556b82;"/>
 		</div>
