@@ -1,8 +1,10 @@
 package br.com.flamengo.matchday.report.impl;
 
 import br.com.flamengo.matchday.enums.MatchdayGameStatus;
+import br.com.flamengo.matchday.enums.MatchdayTicketStatus;
 import br.com.flamengo.matchday.game.MatchdayGameService;
 import br.com.flamengo.matchday.model.MatchdayGameModel;
+import br.com.flamengo.matchday.model.MatchdayTicketModel;
 import br.com.flamengo.matchday.report.MatchdayReport;
 import br.com.flamengo.matchday.report.MatchdayReportDay;
 import br.com.flamengo.matchday.report.MatchdayReportLine;
@@ -339,6 +341,7 @@ public class DefaultMatchdayReportService implements MatchdayReportService
 						+ " WHERE {p.code} LIKE ?p AND {o.versionID} IS NULL");
 		query.addQueryParameter("p", gameCode + "-%");
 		final Map<String, AbstractOrderEntryModel> sales = new HashMap<>();
+		final Map<String, AbstractOrderEntryModel> lines = new HashMap<>();
 		for (final AbstractOrderEntryModel entry : flexibleSearchService.<AbstractOrderEntryModel> search(query).getResult())
 		{
 			final AbstractOrderModel order = entry.getOrder();
@@ -346,13 +349,38 @@ public class DefaultMatchdayReportService implements MatchdayReportService
 			{
 				continue;
 			}
+			lines.put(order.getCode() + "-" + entry.getEntryNumber(), entry);
 			final AbstractOrderEntryModel current = sales.get(entry.getProduct().getCode());
 			if (current == null || date(order).after(date(current.getOrder())))
 			{
 				sales.put(entry.getProduct().getCode(), entry);
 			}
 		}
+		movedSeats(gameCode, sales, lines);
 		return sales;
+	}
+
+	/**
+	 * Item 10: poltrona trocada pelo gestor de jogos. A venda passa para a poltrona nova (senão
+	 * ela apareceria como venda simulada) e sai da antiga, que voltou para a venda.
+	 */
+	protected void movedSeats(final String gameCode, final Map<String, AbstractOrderEntryModel> sales,
+			final Map<String, AbstractOrderEntryModel> lines)
+	{
+		final FlexibleSearchQuery query = new FlexibleSearchQuery(
+				"SELECT {t.pk} FROM {MatchdayTicket AS t JOIN MatchdayGame AS g ON {t.game}={g.pk}} WHERE {g.code}=?g AND {t.status}<>?c");
+		query.addQueryParameter("g", gameCode);
+		query.addQueryParameter("c", MatchdayTicketStatus.CANCELADO);
+		for (final MatchdayTicketModel ticket : flexibleSearchService.<MatchdayTicketModel> search(query).getResult())
+		{
+			final AbstractOrderEntryModel entry = lines.get(ticket.getCode());
+			if (entry == null || ticket.getSeat() == null || ticket.getSeat().getCode().equals(entry.getProduct().getCode()))
+			{
+				continue;
+			}
+			sales.remove(entry.getProduct().getCode(), entry);
+			sales.put(ticket.getSeat().getCode(), entry);
+		}
 	}
 
 	// ------------------------------------------------------------ apoio

@@ -18,7 +18,8 @@ import com.hybris.cockpitng.util.DefaultWidgetController;
 
 
 /**
- * Apoio dos widgets do cockpit Gestão de experiências (item 9): rótulos, formatos e avisos.
+ * Apoio dos widgets do cockpit Gestão de experiências (item 9) e dos Ingressos do Matchday
+ * (item 10): rótulos, formatos e avisos.
  */
 public abstract class ExperienceWidgetSupport extends DefaultWidgetController
 {
@@ -104,7 +105,7 @@ public abstract class ExperienceWidgetSupport extends DefaultWidgetController
 		while (t != null)
 		{
 			final String type = t.getClass().getSimpleName();
-			if (type.equals("InterceptorException") || type.equals("SocioPointsException") || t instanceof IllegalStateException)
+			if (type.equals("InterceptorException") || type.equals("SocioPointsException") || type.equals("MatchdayTicketException") || t instanceof IllegalStateException)
 			{
 				message = t.getMessage();
 			}

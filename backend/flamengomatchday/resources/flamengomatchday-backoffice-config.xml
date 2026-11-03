@@ -37,12 +37,13 @@
 		</explorer-tree:explorer-tree>
 	</context>
 
-	<!-- Menu da perspectiva "Matchday Flamengo" (flamengomatchday-backoffice-widgets.xml); "Relatórios" abre o widget matchdayReport -->
+	<!-- Menu da perspectiva "Matchday Flamengo" (flamengomatchday-backoffice-widgets.xml); "Ingressos" abre o widget matchdayTickets e "Relatórios" o matchdayReport -->
 	<context component="matchday-explorer-tree">
 		<explorer-tree:explorer-tree>
 			<explorer-tree:navigation-node id="matchday.tree.root">
 				<explorer-tree:type-node id="matchday.tree.games" code="MatchdayGame"/>
 				<explorer-tree:type-node id="matchday.tree.seatholds" code="SeatHold"/>
+				<explorer-tree:navigation-node id="matchday.tree.tickets"/>
 				<explorer-tree:navigation-node id="matchday.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>

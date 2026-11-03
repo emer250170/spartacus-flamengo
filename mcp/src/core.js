@@ -1227,6 +1227,67 @@ function jogosTools(cfg, http) {
     if (a.situacao) { body.status = { code: a.situacao }; changes.push(`situação ${a.situacao}`); }
   }
 
+  // ---- ingressos vendidos (item 10)
+  const TICKET_STATUS = { VALIDO: 'válido', CANCELADO: 'cancelado', UTILIZADO: 'utilizado' };
+  const EVENT_TYPES = { VENDA: 'venda', TROCA_POLTRONA: 'troca de poltrona', TROCA_TITULAR: 'troca de quem vai usar', CANCELAMENTO: 'cancelamento', UTILIZACAO: 'entrada no estádio', OBSERVACAO: 'observação' };
+  /** Regra padrão do servidor (flamengo.matchday.ingressos.reembolso.*): integral até 48 h antes, depois 80 % até o início */
+  const REFUND = { hours: 48, percent: 80 };
+
+  const showTicket = (t) => ({
+    ingresso: t.code, situacao: TICKET_STATUS[t.status?.code] ?? t.status?.code,
+    jogo: t.game ? `Flamengo x ${t.game.opponent}` : null, codigoJogo: t.game?.code, dataJogo: fmtDate(t.game?.kickoff),
+    setor: t.sector, poltrona: t.seatLabel, quemVaiUsar: t.holder,
+    comprador: t.customer ? { nome: t.customer.name, email: t.customer.uid } : null,
+    pedido: t.orderCode, valorPago: brl(num(t.price)), descontoSocio: t.memberDiscount != null ? brl(num(t.memberDiscount)) : null,
+    vendidoEm: fmtDate(t.soldAt), canceladoEm: fmtDate(t.cancelledAt), reembolso: t.refundAmount != null ? brl(num(t.refundAmount)) : null,
+    utilizadoEm: fmtDate(t.usedAt),
+  });
+
+  async function ticketList() {
+    const ts = await odata('GET', '/FlamengoIngresso/MatchdayTickets', { query: { $expand: 'status,game,customer', $top: 1000 } });
+    return results(ts).sort((a, b) => (toDate(b.soldAt)?.getTime() ?? 0) - (toDate(a.soldAt)?.getTime() ?? 0));
+  }
+
+  async function ticket(code) {
+    const ts = results(await odata('GET', '/FlamengoIngresso/MatchdayTickets', { query: { $filter: `code eq '${String(code).trim().replace(/'/g, "''")}'`, $expand: 'status,game,customer' } }));
+    if (!ts.length) throw new UserError(`Ingresso ${code} não encontrado. Veja os códigos com a ferramenta ingressos (código = pedido-linha).`);
+    return ts[0];
+  }
+
+  async function ticketHistory(code) {
+    const es = results(await odata('GET', '/FlamengoIngressoEvento/MatchdayTicketEvents', { query: { $filter: `ticket/code eq '${String(code).replace(/'/g, "''")}'`, $expand: 'type', $top: 200 } }));
+    return es.sort((a, b) => (toDate(b.date)?.getTime() ?? 0) - (toDate(a.date)?.getTime() ?? 0)).map((e) => ({
+      data: fmtDate(e.date), evento: EVENT_TYPES[e.type?.code] ?? e.type?.code, de: e.fromValue || null, para: e.toValue || null,
+      valor: e.amount != null ? brl(num(e.amount)) : null, observacao: e.note || null, por: e.author || null,
+    }));
+  }
+
+  /** Poltronas livres do mesmo jogo e setor (catálogo público da loja) */
+  async function freeSeats(t) {
+    if (!t.game?.code || !t.sector) return [];
+    const r = await http({ base: 'occ', method: 'GET', path: `/products/${enc(t.game.code)}`, query: { lang: cfg.lang ?? 'pt', curr: cfg.curr ?? 'BRL', fields: 'FULL' } });
+    if (r.status >= 400) return [];
+    const out = [];
+    for (const el of r.json?.variantMatrix ?? []) for (const c of el.elements ?? []) {
+      const code = c.variantOption?.code ?? '';
+      if (!code.startsWith(`${t.game.code}-${t.sector}-`)) continue;
+      const stock = c.variantOption?.stock;
+      if (stock?.stockLevelStatus === 'outOfStock' || (stock?.stockLevel ?? 1) <= 0) continue;
+      out.push({ codigo: code, poltrona: c.variantValueCategory?.name ?? code });
+    }
+    return out;
+  }
+
+  function refundRule(t) {
+    if (t.status?.code !== 'VALIDO') return { podeCancelar: false, motivo: `O ingresso está ${TICKET_STATUS[t.status?.code] ?? t.status?.code}.` };
+    const kickoff = toDate(t.game?.kickoff);
+    const paid = num(t.price) ?? 0;
+    if (kickoff && Date.now() >= kickoff.getTime()) return { podeCancelar: false, motivo: 'O jogo já começou: não cancela mais.' };
+    const full = !kickoff || kickoff.getTime() - Date.now() >= REFUND.hours * 3600e3;
+    const value = full ? paid : Math.round(paid * REFUND.percent) / 100;
+    return { podeCancelar: true, reembolsoSeCancelarAgora: brl(value), regra: `integral até ${REFUND.hours} h antes do jogo, depois ${REFUND.percent} % até o início (o valor final é calculado pelo Commerce)` };
+  }
+
   const gameFields = {
     adversario: S.str('Adversário'), dataHora: S.str('Data e hora do jogo, ex. 2026-11-29 16:00 (Brasília)'), competicao: S.str('Competição, ex. "Brasileirão · Rodada 36"'),
     estadio: S.str('Estádio (padrão Maracanã)'), prevendaSocio: S.bool('Pré-venda para sócios'),
@@ -1323,6 +1384,94 @@ function jogosTools(cfg, http) {
           }),
           observacao: '"vendidosNaLoja" conta só pedidos reais da loja; "ocupacao" inclui a carga simulada da demo.',
         };
+      },
+    },
+    {
+      name: 'ingressos',
+      description: 'Ingressos vendidos (uma linha por poltrona), mais novos primeiro: jogo, setor, poltrona, quem vai usar, comprador, valor pago e situação (válido, cancelado, utilizado). Filtros opcionais.',
+      inputSchema: obj({
+        jogo: S.str('Código do jogo (opcional)'),
+        setor: { type: 'string', enum: Object.keys(SECTORS), description: 'Setor (opcional)' },
+        situacao: { type: 'string', enum: Object.keys(TICKET_STATUS), description: 'VALIDO, CANCELADO ou UTILIZADO (opcional)' },
+        texto: S.str('Parte do código, do pedido, do e-mail ou do nome do comprador ou de quem vai usar (opcional)'),
+      }),
+      handler: async (a) => {
+        const needle = String(a.texto ?? '').trim().toLowerCase();
+        const ts = (await ticketList()).filter((t) => (!a.jogo || t.game?.code === a.jogo) && (!a.setor || t.sector === a.setor)
+          && (!a.situacao || t.status?.code === a.situacao)
+          && (!needle || [t.code, t.orderCode, t.holder, t.seatLabel, t.customer?.uid, t.customer?.name].some((v) => String(v ?? '').toLowerCase().includes(needle))));
+        return { total: ts.length, ingressos: ts.slice(0, 100).map(showTicket), observacao: ts.length > 100 ? 'Mostrando os 100 mais novos; use os filtros.' : undefined };
+      },
+    },
+    {
+      name: 'detalhe_ingresso',
+      description: 'Ficha de um ingresso: dados, histórico (venda, trocas, cancelamento, entrada, observações), poltronas livres no mesmo setor e quanto volta se cancelar agora.',
+      inputSchema: obj({ ingresso: S.str('Código do ingresso (pedido-linha, ex. 00021000-0)') }, ['ingresso']),
+      handler: async ({ ingresso }) => {
+        const t = await ticket(ingresso);
+        const seats = t.status?.code === 'VALIDO' ? await freeSeats(t) : [];
+        return { ...showTicket(t), cancelamento: refundRule(t), poltronasLivresNoSetor: seats.slice(0, 60), totalPoltronasLivresNoSetor: seats.length, historico: await ticketHistory(t.code) };
+      },
+    },
+    {
+      name: 'acao_ingresso',
+      description: 'Ação do gestor de jogos num ingresso, com as regras do Commerce: trocar_poltrona (mesmo jogo e setor; a antiga volta para a venda), trocar_quem_vai_usar (nome de um convidado do sócio ou outro nome; vazio = o titular), cancelar (com reembolso: integral até 48 h antes, depois 80 %; não cancela depois do início), marcar_utilizado (entrada no estádio; depois não troca nem cancela) e observacao (anota no histórico). Tudo fica no histórico do ingresso.',
+      inputSchema: obj({
+        ingresso: S.str('Código do ingresso (pedido-linha)'),
+        acao: { type: 'string', enum: ['trocar_poltrona', 'trocar_quem_vai_usar', 'cancelar', 'marcar_utilizado', 'observacao'], description: 'O que fazer' },
+        novaPoltrona: S.str('trocar_poltrona: código da poltrona livre (veja detalhe_ingresso)'),
+        quemVaiUsar: S.str('trocar_quem_vai_usar: nome do convidado ou de quem vai usar (vazio = o titular)'),
+        motivo: S.str('cancelar: motivo (obrigatório)'),
+        observacao: S.str('observacao: texto para o histórico'),
+        confirmar: S.confirm,
+      }, ['ingresso', 'acao']),
+      handler: async (a) => {
+        const t = await ticket(a.ingresso);
+        const label = `${t.code} (Flamengo x ${t.game?.opponent ?? '?'}, ${t.seatLabel ?? t.sector}, ${t.holder ?? '-'})`;
+        let type;
+        let toValue;
+        let note;
+        let summary;
+        switch (a.acao) {
+          case 'trocar_poltrona': {
+            if (!a.novaPoltrona) throw new UserError('Informe novaPoltrona (veja as livres com detalhe_ingresso).');
+            const seat = (await freeSeats(t)).find((x) => x.codigo === a.novaPoltrona);
+            if (!seat) throw new UserError(`A poltrona ${a.novaPoltrona} não está livre no setor ${t.sector} deste jogo.`);
+            type = 'TROCA_POLTRONA'; toValue = seat.codigo;
+            summary = `Trocar a poltrona do ingresso ${label} para ${seat.poltrona}. A poltrona atual volta para a venda.`;
+            break;
+          }
+          case 'trocar_quem_vai_usar':
+            type = 'TROCA_TITULAR'; toValue = a.quemVaiUsar?.trim() || undefined;
+            summary = `Trocar quem vai usar o ingresso ${label} para ${toValue ?? 'o titular (' + (t.customer?.name ?? t.customer?.uid) + ')'}.`;
+            break;
+          case 'cancelar': {
+            if (!a.motivo) throw new UserError('Informe o motivo do cancelamento.');
+            const rule = refundRule(t);
+            if (!rule.podeCancelar) throw new UserError(rule.motivo);
+            type = 'CANCELAMENTO'; note = a.motivo;
+            summary = `Cancelar o ingresso ${label}. Reembolso estimado ${rule.reembolsoSeCancelarAgora} (pago ${brl(num(t.price))}); a poltrona volta para a venda e o ingresso deixa de dar pontos. Motivo: ${a.motivo}.`;
+            break;
+          }
+          case 'marcar_utilizado':
+            type = 'UTILIZACAO';
+            summary = `Marcar o ingresso ${label} como utilizado (entrada no estádio). Depois disso ele não troca nem cancela.`;
+            break;
+          case 'observacao':
+            if (!a.observacao) throw new UserError('Informe a observação.');
+            type = 'OBSERVACAO'; note = a.observacao;
+            summary = `Anotar no histórico do ingresso ${label}: ${a.observacao}`;
+            break;
+          default:
+            throw new UserError('Ação desconhecida.');
+        }
+        const c = needConfirm(a, summary);
+        if (c) return c;
+        await odata('POST', '/FlamengoIngressoEvento/MatchdayTicketEvents', {
+          body: { ticket: { code: t.code }, date: `/Date(${Date.now()})/`, type: { code: type }, author: `${cfg.gestorUsuario} (Claude)`, ...(toValue ? { toValue } : {}), ...(note ? { note } : {}) },
+        });
+        const after = await ticket(t.code);
+        return { executado: true, ingresso: showTicket(after), historico: (await ticketHistory(t.code)).slice(0, 5) };
       },
     },
   ];

@@ -1,0 +1,76 @@
+# MCP Loja Flamengo, persona gestor de jogos: ingressos vendidos (item 10) pela Integration API (OData).
+# NAO fica em resources/impex de proposito: rodar no HAC (ImpEx Import) depois do deploy do item 10.
+#  - FlamengoIngresso: leitura dos ingressos (jogo, poltrona, quem vai usar, comprador, valores, situacao)
+#  - FlamengoIngressoEvento: historico e acoes. Um MatchdayTicketEvent novo com type TROCA_POLTRONA,
+#    TROCA_TITULAR, CANCELAMENTO, UTILIZACAO ou OBSERVACAO vira a acao (MatchdayTicketEventInterceptor),
+#    com as mesmas regras do Backoffice. Chave do evento: ticket + date.
+#  - jogosapigroup (gestor.jogos) le os ingressos e cria eventos; nao cria nem altera ingresso direto.
+
+INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
+; FlamengoIngresso ; INBOUND
+; FlamengoIngressoEvento ; INBOUND
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
+; FlamengoIngresso ; MatchdayTicket ; MatchdayTicket ; true
+; FlamengoIngresso ; MatchdayTicketStatus ; MatchdayTicketStatus ; false
+; FlamengoIngresso ; MatchdayGame ; MatchdayGame ; false
+; FlamengoIngresso ; Customer ; Customer ; false
+; FlamengoIngressoEvento ; MatchdayTicketEvent ; MatchdayTicketEvent ; true
+; FlamengoIngressoEvento ; MatchdayTicketEventType ; MatchdayTicketEventType ; false
+; FlamengoIngressoEvento ; MatchdayTicket ; MatchdayTicket ; false
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
+; FlamengoIngresso:MatchdayTicket ; code ; MatchdayTicket:code ;  ; true
+; FlamengoIngresso:MatchdayTicket ; game ; MatchdayTicket:game ; FlamengoIngresso:MatchdayGame ; false
+; FlamengoIngresso:MatchdayTicket ; sector ; MatchdayTicket:sector ;  ; false
+; FlamengoIngresso:MatchdayTicket ; seatLabel ; MatchdayTicket:seatLabel ;  ; false
+; FlamengoIngresso:MatchdayTicket ; orderCode ; MatchdayTicket:orderCode ;  ; false
+; FlamengoIngresso:MatchdayTicket ; entryNumber ; MatchdayTicket:entryNumber ;  ; false
+; FlamengoIngresso:MatchdayTicket ; customer ; MatchdayTicket:customer ; FlamengoIngresso:Customer ; false
+; FlamengoIngresso:MatchdayTicket ; holder ; MatchdayTicket:holder ;  ; false
+; FlamengoIngresso:MatchdayTicket ; price ; MatchdayTicket:price ;  ; false
+; FlamengoIngresso:MatchdayTicket ; memberDiscount ; MatchdayTicket:memberDiscount ;  ; false
+; FlamengoIngresso:MatchdayTicket ; status ; MatchdayTicket:status ; FlamengoIngresso:MatchdayTicketStatus ; false
+; FlamengoIngresso:MatchdayTicket ; soldAt ; MatchdayTicket:soldAt ;  ; false
+; FlamengoIngresso:MatchdayTicket ; cancelledAt ; MatchdayTicket:cancelledAt ;  ; false
+; FlamengoIngresso:MatchdayTicket ; refundAmount ; MatchdayTicket:refundAmount ;  ; false
+; FlamengoIngresso:MatchdayTicket ; usedAt ; MatchdayTicket:usedAt ;  ; false
+; FlamengoIngresso:MatchdayTicketStatus ; code ; MatchdayTicketStatus:code ;  ; true
+; FlamengoIngresso:MatchdayGame ; code ; MatchdayGame:code ;  ; true
+; FlamengoIngresso:MatchdayGame ; opponent ; MatchdayGame:opponent ;  ; false
+; FlamengoIngresso:MatchdayGame ; kickoff ; MatchdayGame:kickoff ;  ; false
+; FlamengoIngresso:Customer ; uid ; Customer:uid ;  ; true
+; FlamengoIngresso:Customer ; name ; Customer:name ;  ; false
+; FlamengoIngressoEvento:MatchdayTicketEvent ; ticket ; MatchdayTicketEvent:ticket ; FlamengoIngressoEvento:MatchdayTicket ; true
+; FlamengoIngressoEvento:MatchdayTicketEvent ; date ; MatchdayTicketEvent:date ;  ; true
+; FlamengoIngressoEvento:MatchdayTicketEvent ; type ; MatchdayTicketEvent:type ; FlamengoIngressoEvento:MatchdayTicketEventType ; false
+; FlamengoIngressoEvento:MatchdayTicketEvent ; author ; MatchdayTicketEvent:author ;  ; false
+; FlamengoIngressoEvento:MatchdayTicketEvent ; fromValue ; MatchdayTicketEvent:fromValue ;  ; false
+; FlamengoIngressoEvento:MatchdayTicketEvent ; toValue ; MatchdayTicketEvent:toValue ;  ; false
+; FlamengoIngressoEvento:MatchdayTicketEvent ; amount ; MatchdayTicketEvent:amount ;  ; false
+; FlamengoIngressoEvento:MatchdayTicketEvent ; note ; MatchdayTicketEvent:note ;  ; false
+; FlamengoIngressoEvento:MatchdayTicketEventType ; code ; MatchdayTicketEventType:code ;  ; true
+; FlamengoIngressoEvento:MatchdayTicket ; code ; MatchdayTicket:code ;  ; true
+
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+; FlamengoIngresso ; BASIC
+; FlamengoIngressoEvento ; BASIC
+
+$START_USERRIGHTS
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;MatchdayGame;+;+;+;-;-
+;;;;MatchdayGameStatus;+;-;-;-;-
+;;;;Order;+;-;-;-;-
+;;;;OrderEntry;+;-;-;-;-
+;;;;Product;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;OrderStatus;+;-;-;-;-
+;;;;User;+;-;-;-;-
+;;;;Customer;+;-;-;-;-
+;;;;MatchdayTicket;+;-;-;-;-
+;;;;MatchdayTicketStatus;+;-;-;-;-
+;;;;MatchdayTicketEvent;+;-;+;-;-
+;;;;MatchdayTicketEventType;+;-;-;-;-
+$END_USERRIGHTS
