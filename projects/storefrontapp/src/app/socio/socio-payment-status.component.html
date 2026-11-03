@@ -8,7 +8,7 @@
     <p class="spay-kind">{{ 'spay.s.awaiting' | flaT }}</p>
     <h3 class="spay-title">
       {{
-        (p.method === 'PIX' ? 'spay.s.pixTitle' : 'spay.s.boletoTitle')
+        key(p.method === 'PIX' ? 'spay.s.pixTitle' : 'spay.s.boletoTitle')
           | flaT: { plan: p.planName }
       }}
     </h3>
@@ -61,7 +61,7 @@
       </div>
     </div>
     <p class="spay-note">
-      {{ 'spay.s.activates' | flaT: { plan: p.planName } }}
+      {{ key('spay.s.activates') | flaT: { plan: p.planName } }}
     </p>
   </ng-container>
 

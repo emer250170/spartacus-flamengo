@@ -36,7 +36,28 @@ export class SocioPaymentReviewComponent implements OnInit, OnDestroy {
   ) {}
 
   get visible(): boolean {
-    return !!this.opts?.enabled && !!this.opts.planCode && !!this.opts.method;
+    // sem plano (item 14): só Pix ou boleto; o cartão já aparece na revisão do Spartacus
+    return (
+      !!this.opts?.enabled &&
+      !!this.opts.method &&
+      (!!this.opts.planCode || this.payment.isUpfront(this.opts.method))
+    );
+  }
+
+  get store(): boolean {
+    return !this.opts?.planCode;
+  }
+
+  title(): string {
+    return this.store
+      ? this.i18n.t('spay.r.title.store')
+      : this.i18n.t('spay.r.title', { plan: this.opts?.planName });
+  }
+
+  note(): string {
+    const pix = this.opts?.method === 'PIX';
+    const key = pix ? 'spay.r.pixNote' : 'spay.r.boletoNote';
+    return this.i18n.t(this.store ? key + '.store' : key);
   }
 
   get upfront(): boolean {
@@ -72,6 +93,12 @@ export class SocioPaymentReviewComponent implements OnInit, OnDestroy {
       return '';
     }
     const name = this.i18n.t('spay.m.' + o.method);
+    if (this.store) {
+      return this.i18n.t('spay.r.store', {
+        name,
+        amount: this.i18n.money(o.total),
+      });
+    }
     if (o.method === 'CARTAO_MENSAL') {
       return this.i18n.t('spay.r.monthly', {
         name,
