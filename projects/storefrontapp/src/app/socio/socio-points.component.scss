@@ -223,3 +223,19 @@
 .sp-off .sp-code {
   text-decoration: line-through;
 }
+
+// item 9: resgatar e comprar lado a lado
+.sp-exp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sp-exp-buy {
+  border-color: var(--fla-vermelho, #d70000);
+  color: var(--fla-vermelho, #d70000);
+}
+
+.sp-showcase-hint {
+  margin: -4px 0 12px;
+}

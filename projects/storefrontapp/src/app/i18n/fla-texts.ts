@@ -594,6 +594,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.valid': 'Válido',
     'sp.cancelled': 'Cancelado em {date}',
     'sp.err.generic': 'Não foi possível resgatar agora. Tente de novo em instantes.',
+    // experiências à venda na loja (item 9)
+    'sp.buy': 'Comprar por {price}',
+    'sp.buying': 'Adicionando…',
+    'sp.buyAdded': '{name} foi para o carrinho.',
+    'sp.saleHint': 'Algumas experiências também estão à venda na loja, para você ou para presentear. O voucher da compra aparece em Meus resgates.',
+    'sp.purchase': 'Compra · {price}',
+    'sp.used': 'Utilizado em {date}',
+    'sp.col.paid': 'Pontos ou valor',
     // carteirinha digital (item 8)
     'sc.title': 'Carteirinha digital',
     'sc.kicker': 'Nação Rubro-Negra',
@@ -1196,6 +1204,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.valid': 'Valid',
     'sp.cancelled': 'Cancelled on {date}',
     'sp.err.generic': 'Could not redeem right now. Please try again shortly.',
+    // experiences sold in the store (item 9)
+    'sp.buy': 'Buy for {price}',
+    'sp.buying': 'Adding…',
+    'sp.buyAdded': '{name} was added to the cart.',
+    'sp.saleHint': 'Some experiences are also sold in the store, for you or as a gift. The purchase voucher shows up in My redemptions.',
+    'sp.purchase': 'Purchase · {price}',
+    'sp.used': 'Used on {date}',
+    'sp.col.paid': 'Points or amount',
     // digital membership card (item 8)
     'sc.title': 'Digital membership card',
     'sc.kicker': 'Nação Rubro-Negra',
