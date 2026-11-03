@@ -15,8 +15,23 @@ import { MATCHDAY_STORAGE_KEY, MatchdaySelection } from './matchday.model';
 /** Modo de entrega do dia de jogo (04-entrega-brasil.impex) */
 const MATCHDAY_MODE = 'matchday-digital';
 
-type Part = 'ticket' | 'parking' | 'food' | 'shirt' | 'plan' | 'store';
-const ORDER: Part[] = ['ticket', 'parking', 'food', 'shirt', 'plan', 'store'];
+type Part =
+  | 'ticket'
+  | 'parking'
+  | 'food'
+  | 'shirt'
+  | 'plan'
+  | 'experience'
+  | 'store';
+const ORDER: Part[] = [
+  'ticket',
+  'parking',
+  'food',
+  'shirt',
+  'plan',
+  'experience',
+  'store',
+];
 
 const TEXTS: Record<
   'pt' | 'en',
@@ -29,6 +44,7 @@ const TEXTS: Record<
     foodKiosk: 'comida retirada no quiosque do setor',
     shirt: 'camisa retirada no estádio',
     plan: 'plano de sócio ativado na hora',
+    experience: 'voucher da experiência em Meus resgates',
     store: 'produtos da loja retirados no estádio',
     and: ' e ',
   },
@@ -39,6 +55,7 @@ const TEXTS: Record<
     foodKiosk: 'food picked up at the sector kiosk',
     shirt: 'jersey picked up at the stadium',
     plan: 'membership plan active right away',
+    experience: 'experience voucher in My redemptions',
     store: 'store products picked up at the stadium',
     and: ' and ',
   },
@@ -47,7 +64,8 @@ const TEXTS: Record<
 /**
  * Descrição do modo "Ingresso digital e retirada no estádio" conforme o que
  * está no carrinho (ou no pedido): só ingresso → "Ingresso no app"; ingresso e
- * camisa → "Ingresso no app e camisa retirada no estádio"; e assim por diante.
+ * camisa → "Ingresso no app e camisa retirada no estádio"; só experiência
+ * com voucher → "Voucher da experiência em Meus resgates"; e assim por diante.
  *
  * O cadastro do modo tem um texto fixo, que citava comida e camisa mesmo sem
  * elas. Aqui a resposta da API é ajustada: na lista de modos de entrega, pelos
@@ -169,6 +187,10 @@ export class MatchdayDeliveryTextInterceptor implements HttpInterceptor {
     }
     if (/^NACAO-/.test(code)) {
       return 'plan';
+    }
+    // experiência da loja (item 9): voucher NACAO-... em Meus sócio-torcedor
+    if (/^EXP-/.test(code)) {
+      return 'experience';
     }
     return 'store';
   }
