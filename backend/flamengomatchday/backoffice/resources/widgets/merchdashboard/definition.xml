@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Painel inicial do gestor de merchandising (Cockpit de administração, papel
+  merchandisingmanagerrole): regras de promoção, cupons, desconto concedido e atalhos.
+  Fica no slot dashboardWidgets do backoffice_dashboard (flamengomatchday-backoffice-widgets.xml)
+  e é posicionado pelo contexto "dashboard" do papel (flamengomatchday-backoffice-config.xml).
+-->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.merchdashboard">
+	<name>Merchandising Flamengo - Painel</name>
+	<description>Painel de promoções, cupons e descontos do gestor de merchandising</description>
+	<defaultTitle>Merchandising</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="merchdashboard.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.merchdashboard.MerchDashboardController"/>
+	<sockets>
+		<input id="refresh" type="java.lang.Object"/>
+		<!-- atalho "Ver regras/cupons": id do nó do menu (explorerTree.nodeIdSelected) -->
+		<output id="openNode" type="java.lang.String"/>
+		<!-- atalho "Nova regra/Novo cupom": contexto do assistente de criação (configurableFlow.context) -->
+		<output id="createWizard" type="java.util.Map"/>
+	</sockets>
+	<keywords>
+		<keyword>Merchandising</keyword>
+		<keyword>Dashboard</keyword>
+	</keywords>
+</widget-definition>

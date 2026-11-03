@@ -1012,6 +1012,43 @@
 		</explorer-tree:explorer-tree>
 	</context>
 
+	<!--
+	  Painel inicial do Cockpit de administração por papel (widgets no slot dashboardWidgets,
+	  flamengomatchday-backoffice-widgets.xml). Sem estes contextos os gestores viam o painel
+	  padrão do sistema (threads, CPU, memória). unassigned="exclude": só o widget do papel.
+	  O administrador continua com o contexto dele (platformbackoffice).
+	-->
+	<context component="dashboard" principal="merchandisingmanagerrole">
+		<dsb:dashboard xmlns:dsb="http://www.hybris.com/cockpitng/config/dashboard" defaultGridId="regular">
+			<dsb:grid id="small" minScreenWidth="1" maxScreenWidth="700" unassigned="exclude">
+				<dsb:placement widgetId="flaMerchDashboard" height="3"/>
+			</dsb:grid>
+			<dsb:grid id="regular" minScreenWidth="701" unassigned="exclude">
+				<dsb:placement widgetId="flaMerchDashboard" width="2" height="3"/>
+			</dsb:grid>
+		</dsb:dashboard>
+	</context>
+	<context component="dashboard" principal="matchdaygamemanagerrole">
+		<dsb:dashboard xmlns:dsb="http://www.hybris.com/cockpitng/config/dashboard" defaultGridId="regular">
+			<dsb:grid id="small" minScreenWidth="1" maxScreenWidth="700" unassigned="exclude">
+				<dsb:placement widgetId="flaMatchdayDashboard" height="3"/>
+			</dsb:grid>
+			<dsb:grid id="regular" minScreenWidth="701" unassigned="exclude">
+				<dsb:placement widgetId="flaMatchdayDashboard" width="2" height="3"/>
+			</dsb:grid>
+		</dsb:dashboard>
+	</context>
+	<context component="dashboard" principal="sociomanagerrole">
+		<dsb:dashboard xmlns:dsb="http://www.hybris.com/cockpitng/config/dashboard" defaultGridId="regular">
+			<dsb:grid id="small" minScreenWidth="1" maxScreenWidth="700" unassigned="exclude">
+				<dsb:placement widgetId="flaSocioDashboard" height="3"/>
+			</dsb:grid>
+			<dsb:grid id="regular" minScreenWidth="701" unassigned="exclude">
+				<dsb:placement widgetId="flaSocioDashboard" width="2" height="3"/>
+			</dsb:grid>
+		</dsb:dashboard>
+	</context>
+
 	<!-- ============ Merchandising Flamengo (item 11) ============ -->
 	<!-- Menu da perspectiva "Merchandising Flamengo" (flamengomatchday-backoffice-widgets.xml).
 	     Lista, busca e ficha são as padrão do SAP Commerce para cada tipo (construtor de regras,
