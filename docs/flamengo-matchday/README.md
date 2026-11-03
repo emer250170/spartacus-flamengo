@@ -761,6 +761,27 @@ Scripts (HAC, Groovy; primeiro `commit=false`):
   - etapa `estoque`: estoque das lojas.
 - `scripts/order-process-retirada.groovy`: nova versão do `order-process` com o passo `sourcePickup`. A versão anterior vai para `/backup/order-process-v<n>-antes-retirada.xml`. Para voltar, ativar a versão anterior em Backoffice › Sistema › Processos de negócio › Definições de processo dinâmicas.
 
+### Operação do pedido da loja (item 14 do plano)
+
+Chave `flamengo.loja.operacao.ativo`. Começa em `false`, e assim o pedido anda como antes.
+
+| Etapa | Com a chave ligada |
+|---|---|
+| Pagamento | O carrinho sem plano também oferece cartão, Pix ou boleto, à vista e pelo total. O endpoint é o mesmo do item 7 (`/carts/{id}/sociopayment`). |
+| Aguardando pagamento | Qualquer pedido pago com Pix ou boleto (produto, plano, ingresso ou misto) para depois da análise de fraude, com o status **Aguardando pagamento** (`PAYMENT_NOT_CAPTURED`). Não cria remessa, não baixa estoque e não ativa plano. O processo confere de novo a cada minuto. |
+| Confirmação | É a mudança do status do pedido para **Pagamento confirmado** (`PAYMENT_CAPTURED`), feita no Backoffice ou pela API. O `OrderPaymentStatusInterceptor` grava a data da confirmação e o processo segue. O botão da ficha do sócio e o evento `PAGAMENTO_CONFIRMADO` fazem a mesma mudança (`SocioPaymentService.confirmOrder`). No pedido com plano, o processo grava o evento na linha do tempo do sócio quando ele ainda não existe. |
+| Expedição | A remessa de retirada (item 12) continua igual. As linhas físicas com entrega em casa viram uma remessa do `warehouse_s` (`flamengo.loja.operacao.deposito`). Ficam de fora os produtos sem estoque nesse depósito e os prefixos de `flamengo.loja.operacao.semRemessa` (ingresso, experiência, plano, estacionamento, comida e personalização). O atendente `atendente.cd` separa, embala e envia no cockpit Expedição de pedidos. |
+| Fechamento | O estoque das linhas com remessa é controlado pela remessa, sem baixa dupla. Com remessa em aberto, o pedido fica **Em processamento** (`READY`) e só vira **Concluído** quando todas as remessas forem enviadas ou retiradas (`verifyOrderCompletion` → `finishOrder`). |
+| Cancelado esperando o pagamento | Mudar o status para Cancelado encerra o processo. |
+
+Processo do pedido: `scripts/order-process-operacao.xml` traz os passos novos. O instalador `scripts/order-process-operacao.groovy` é gerado por `gerar-order-process-operacao.py` a partir do `.xml` e do `.tpl`. Instalação, depois do `ant all` do PR:
+
+1. **`ETAPA = 'conferir'`:** confere que a versão ativa é a v6 do item 12 (md5), monta a versão nova, confere o XML e as transições e compila os scripts dos passos. Não grava nada.
+2. **`ETAPA = 'aplicar'`:** faz o backup em `/backup/order-process-v6-antes-operacao.xml` e grava a versão nova.
+3. **`ETAPA = 'atendente'`:** cria o `atendente.cd`, sem senha, no grupo `cdstoreemployees` (ponto de venda `warehouse_s`) e nos grupos do armazém.
+4. **`ETAPA = 'traducoes'`:** grava os nomes em português dos status Aguardando pagamento, Pagamento confirmado e Em processamento.
+5. **Teste:** ligar a chave pelo HAC (Platform › Configuration), testar com um torcedor de teste e conferir os atos 1 a 6.
+
 ### Dados de demonstração da loja virtual (item 13 do plano, ato 7 do roteiro)
 
 Script `scripts/loja-virtual-demo.groovy` (HAC). Tudo leva o prefixo `demo_` ou `FLADEMO` e fica no grupo de promoções da loja.

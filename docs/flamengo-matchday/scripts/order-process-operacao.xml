@@ -1,0 +1,224 @@
+<!--
+  Item 14 do plano de evolução (operação do pedido da loja): passos novos do order-process.
+  Gravados pelo script order-process-operacao.groovy (HAC), que monta a versão nova a partir da
+  versão ativa com o item 12 (v6). Chave: flamengo.loja.operacao.ativo (false = o pedido anda
+  como antes: sem espera do pagamento, só a remessa de retirada e "Concluído" na hora).
+
+  Mudanças na versão ativa:
+   1. takePayment OK -> checkPayment (era sourcePickup)
+   2. o bloco sourcePickup (item 12) é trocado pelos blocos checkPayment, waitForPayment e
+      sourceFulfillment (retirada como antes + entrega em casa)
+   3. completeOrder: não baixa de novo o estoque das linhas com remessa e, com remessa em
+      aberto, deixa o pedido "Em processamento" (READY) e vai para waitForOrderAction
+   4. verifyOrderCompletion OK -> finishOrder (era postTaxes): pedido "Concluído" quando todas
+      as remessas foram enviadas ou retiradas
+-->
+
+<!-- BLOCO_PAGAMENTO_E_REMESSAS (substitui o bloco sourcePickup do item 12) -->
+<!-- Item 14: Pix ou boleto espera a confirmação (status do pedido "Pagamento confirmado") -->
+<scriptAction id='checkPayment'>
+    <script type='groovy'><![CDATA[
+import de.hybris.platform.core.Registry
+import de.hybris.platform.core.enums.OrderStatus
+import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
+import de.hybris.platform.core.model.user.CustomerModel
+import br.com.flamengo.matchday.enums.SocioEventType
+import br.com.flamengo.matchday.socio.SocioPayments
+def log = org.slf4j.LoggerFactory.getLogger('flamengo-pagamento')
+def ctx = Registry.applicationContext
+def ms = ctx.getBean('modelService')
+def o = process.order
+ms.refresh(o)
+if (o.status == OrderStatus.CANCELLED) {
+  log.info('Pedido ' + o.code + ': cancelado enquanto aguardava o pagamento')
+  return 'CANCELLED'
+}
+def pay = ctx.getBean('socioPaymentService')
+if (!pay.isStoreEnabled() || !SocioPayments.upfront(SocioPayments.method(ms, o))) {
+  return 'OK'
+}
+def plans = ctx.getBean('socioPlanService')
+if (SocioPayments.isAwaiting(ms, o)) {
+  if (o.status != OrderStatus.PAYMENT_NOT_CAPTURED && o.status != OrderStatus.PAYMENT_CAPTURED) {
+    o.status = OrderStatus.PAYMENT_NOT_CAPTURED
+    ms.save(o)
+    // plano no pedido: o torcedor fica "aguardando pagamento" na ficha do sócio, como no item 7
+    try { plans.applyOrder(o) } catch (Exception ex) { log.error('Pedido ' + o.code + ': plano aguardando pagamento', ex) }
+    log.info('Pedido ' + o.code + ': aguardando pagamento (' + SocioPayments.describe(ms, o) + ')')
+  }
+  return 'WAIT'
+}
+// pago: o pedido com plano ganha o evento "Pagamento confirmado" na linha do tempo do sócio
+// (se a confirmação veio da ficha ou do Claude, o evento já existe)
+try {
+  def comPlano = o.entries.any { plans.findForProduct(it.product) != null }
+  if (comPlano && o.user instanceof CustomerModel) {
+    def q = new FlexibleSearchQuery("SELECT {pk} FROM {SocioEvent} WHERE {customer}=?c AND {type}=?t AND ({note} LIKE ?p OR {result} LIKE ?p)",
+        [c: o.user, t: SocioEventType.PAGAMENTO_CONFIRMADO, p: '%' + o.code + '%'])
+    if (ctx.getBean('flexibleSearchService').search(q).totalCount == 0) {
+      def ev = plans.newEvent(o.user, SocioEventType.PAGAMENTO_CONFIRMADO, 'Backoffice',
+          'Pagamento do pedido ' + o.code + ' confirmado pela mudança de status do pedido')
+      ms.save(ev)
+    }
+  }
+} catch (Exception ex) {
+  log.error('Pedido ' + o.code + ': evento de pagamento confirmado', ex)
+}
+log.info('Pedido ' + o.code + ': pagamento confirmado, o pedido segue')
+return 'OK'
+]]></script>
+    <transition name='OK' to='sourceFulfillment'/>
+    <transition name='WAIT' to='waitForPayment'/>
+    <transition name='CANCELLED' to='success'/>
+</scriptAction>
+
+<!-- confere de novo a cada minuto ou quando o evento PagamentoConfirmado chegar -->
+<wait id='waitForPayment' then='checkPayment' prependProcessCode='true'>
+    <event>PagamentoConfirmado</event>
+    <timeout delay='PT1M' then='checkPayment'/>
+</wait>
+
+<!-- Itens 12 e 14: remessas do OMS. Retirada na loja (como no item 12) e entrega em casa
+     (produtos físicos, depósito warehouse_s) -->
+<scriptAction id='sourceFulfillment'>
+    <script type='groovy'><![CDATA[
+import de.hybris.platform.core.Registry
+import de.hybris.platform.util.Config
+import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
+import de.hybris.platform.commerceservices.model.PickUpDeliveryModeModel
+import de.hybris.platform.warehousing.data.sourcing.SourcingResult
+import de.hybris.platform.warehousing.data.sourcing.SourcingResults
+def log = org.slf4j.LoggerFactory.getLogger('flamengo-expedicao')
+def o = process.order
+try {
+  if (o.consignments == null || o.consignments.isEmpty()) {
+    def ctx = Registry.applicationContext
+    def rs = new SourcingResults()
+    rs.results = new HashSet()
+    rs.complete = true
+    // retirada na loja (item 12)
+    if (Config.getBoolean('flamengo.retirada.ativo', true)) {
+      def byPos = o.entries.findAll { it.deliveryPointOfService != null && (it.quantity ?: 0) > 0 }.groupBy { it.deliveryPointOfService }
+      byPos.each { pos, es ->
+        def w = pos.warehouses.find { !it.external && it.code == pos.name } ?: pos.warehouses.find { !it.external }
+        if (w == null) {
+          log.warn('Pedido ' + o.code + ': loja ' + pos.name + ' sem depósito; a retirada fica sem remessa')
+        } else {
+          def r = new SourcingResult()
+          r.warehouse = w
+          r.allocation = new HashMap(es.collectEntries { [(it): it.quantity] })
+          rs.results.add(r)
+        }
+      }
+    }
+    // entrega em casa (item 14): produtos físicos com estoque no depósito da loja online
+    if (ctx.getBean('socioPaymentService').isStoreEnabled()) {
+      def dm = o.deliveryMode
+      if (dm != null && !(dm instanceof PickUpDeliveryModeModel) && dm.code != 'matchday-digital') {
+        def w = ctx.getBean('warehouseService').getWarehouseForCode(Config.getString('flamengo.loja.operacao.deposito', 'warehouse_s'))
+        def skip = Config.getString('flamengo.loja.operacao.semRemessa', '').split(',').collect { it.trim() }.findAll { it }
+        def fs = ctx.getBean('flexibleSearchService')
+        def ship = o.entries.findAll { e ->
+          e.deliveryPointOfService == null && (e.quantity ?: 0) > 0 && !skip.any { p -> e.product.code.startsWith(p) } &&
+              fs.search(new FlexibleSearchQuery('SELECT {pk} FROM {StockLevel} WHERE {productCode}=?c AND {warehouse}=?w',
+                  [c: e.product.code, w: w])).totalCount > 0
+        }
+        if (ship) {
+          def r = new SourcingResult()
+          r.warehouse = w
+          r.allocation = new HashMap(ship.collectEntries { [(it): it.quantity] })
+          rs.results.add(r)
+        }
+      }
+    }
+    if (!rs.results.isEmpty()) {
+      def bps = ctx.getBean('businessProcessService')
+      def ms = ctx.getBean('modelService')
+      def cons = ctx.getBean('allocationService').createConsignments(o, 'cons' + o.code, rs)
+      for (c in cons) {
+        def p = bps.createProcess(c.getCode() + '_ordermanagement', 'consignment-process')
+        p.setParentProcess(process)
+        p.setConsignment(c)
+        ms.save(p)
+        bps.startProcess(p)
+        log.info('Pedido ' + o.code + ': remessa ' + c.getCode() + ' do depósito ' + c.getWarehouse()?.getCode()
+            + (c.getDeliveryPointOfService() ? ' para retirada em ' + c.getDeliveryPointOfService().getName() : ' para entrega'))
+      }
+    }
+  }
+} catch (Exception ex) {
+  log.error('Pedido ' + o.code + ': falha ao criar as remessas', ex)
+}
+return 'OK'
+]]></script>
+    <transition name='OK' to='completeOrder'/>
+</scriptAction>
+<!-- FIM_BLOCO_PAGAMENTO_E_REMESSAS -->
+
+<!-- BLOCO_FECHAMENTO (substitui o bloco completeOrder) -->
+    <scriptAction id='completeOrder'>
+    <script type='groovy'><![CDATA[
+import de.hybris.platform.core.Registry
+import de.hybris.platform.core.enums.OrderStatus
+import de.hybris.platform.basecommerce.enums.ConsignmentStatus
+import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
+def ctx = Registry.applicationContext
+def fs = ctx.getBean('flexibleSearchService')
+def ms = ctx.getBean('modelService')
+def o = process.order
+// Item 14: com a chave ligada, o estoque das linhas com remessa é controlado pela remessa
+def operacao = ctx.getBean('socioPaymentService').isStoreEnabled()
+if (o.statusInfo != 'matchday:estoque-baixado') {
+  o.entries.each { e ->
+    if (operacao && e.consignmentEntries) {
+      return
+    }
+    def niveis = fs.search(new FlexibleSearchQuery(
+      "SELECT {pk} FROM {StockLevel} WHERE {productCode}=?c", [c: e.product.code])).result
+    def nivel = niveis.find { it.warehouse?.code == 'warehouse_s' } ?: (niveis ? niveis[0] : null)
+    if (nivel) {
+      nivel.available = Math.max(0, nivel.available - (e.quantity as int))
+      ms.save(nivel)
+    }
+  }
+  o.statusInfo = 'matchday:estoque-baixado'
+}
+// Sócio-torcedor: pedido com plano põe o cliente no grupo do plano (cadastro de planos do Backoffice)
+try {
+  ctx.getBean('socioPlanService').applyOrder(o)
+} catch (Exception ex) {
+  org.slf4j.LoggerFactory.getLogger('socio-torcedor').error('Falha ao tornar o cliente socio no pedido ' + o.code, ex)
+}
+// Item 14: remessa em aberto = pedido "Em processamento" até o envio ou a retirada
+def fim = [ConsignmentStatus.SHIPPED, ConsignmentStatus.PICKUP_COMPLETE, ConsignmentStatus.CANCELLED]
+if (operacao && o.consignments?.any { !(it.status in fim) }) {
+  o.status = OrderStatus.READY
+  ms.save(o)
+  return 'WAIT'
+}
+o.status = OrderStatus.COMPLETED
+ms.save(o)
+return 'OK'
+]]></script>
+    <transition name='OK' to='success'/>
+    <transition name='WAIT' to='waitForOrderAction'/>
+</scriptAction>
+
+<!-- Item 14: todas as remessas enviadas ou retiradas (verifyOrderCompletion OK) -->
+<scriptAction id='finishOrder'>
+    <script type='groovy'><![CDATA[
+import de.hybris.platform.core.Registry
+import de.hybris.platform.core.enums.OrderStatus
+def ms = Registry.applicationContext.getBean('modelService')
+def o = process.order
+ms.refresh(o)
+if (o.status != OrderStatus.CANCELLED) {
+  o.status = OrderStatus.COMPLETED
+  ms.save(o)
+}
+org.slf4j.LoggerFactory.getLogger('flamengo-expedicao').info('Pedido ' + o.code + ': remessas finalizadas, pedido ' + o.status)
+return 'OK'
+]]></script>
+    <transition name='OK' to='success'/>
+</scriptAction>
+<!-- FIM_BLOCO_FECHAMENTO -->

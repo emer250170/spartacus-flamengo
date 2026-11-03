@@ -252,6 +252,15 @@
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
+	<!-- Item 14: mudar o status do pedido para "Pagamento confirmado" confirma o Pix ou boleto -->
+	<bean id="orderPaymentStatusInterceptor" class="br.com.flamengo.matchday.interceptor.OrderPaymentStatusInterceptor">
+		<property name="modelService" ref="modelService"/>
+		<property name="socioPaymentService" ref="socioPaymentService"/>
+	</bean>
+	<bean id="orderPaymentStatusInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="orderPaymentStatusInterceptor"/>
+		<property name="typeCode" value="Order"/>
+	</bean>
 	<!-- Ano inteiro: preço do plano e dos convidados x12 no calculationService (só com a forma gravada) -->
 	<bean id="socioAnnualPricing" class="br.com.flamengo.matchday.socio.SocioAnnualPricing">
 		<property name="calculationService" ref="calculationService"/>

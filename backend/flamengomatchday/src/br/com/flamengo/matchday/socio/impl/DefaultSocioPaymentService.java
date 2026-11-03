@@ -74,6 +74,12 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		return configurationService.getConfiguration().getBoolean(ENABLED_PROPERTY, false);
 	}
 
+	@Override
+	public boolean isStoreEnabled()
+	{
+		return isEnabled() && configurationService.getConfiguration().getBoolean(STORE_PROPERTY, false);
+	}
+
 	protected int maxInstallments()
 	{
 		return Math.max(1, Math.min(SocioPayments.MONTHS, configurationService.getConfiguration().getInt(INSTALLMENTS_PROPERTY, 12)));
@@ -113,7 +119,14 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 				}
 			}
 		}
-		p.method = plan == null || method == null ? null : method.getCode();
+		else if (isStoreEnabled())
+		{
+			// Item 14: carrinho sem plano paga o total no cartão, no Pix ou no boleto
+			p.methods.add(SocioPaymentMethod.CARTAO_MENSAL.getCode());
+			p.methods.add(SocioPaymentMethod.PIX.getCode());
+			p.methods.add(SocioPaymentMethod.BOLETO.getCode());
+		}
+		p.method = method == null || (plan == null && !isStoreEnabled()) ? null : method.getCode();
 		p.installments = method == SocioPaymentMethod.CARTAO_ANUAL ? SocioPayments.integer(modelService, cart, SocioPayments.INSTALLMENTS)
 				: null;
 		return p;
@@ -127,12 +140,16 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 			throw new SocioPaymentException("Pix, boleto e o ano inteiro no cartão estão desligados (" + ENABLED_PROPERTY + "=false).");
 		}
 		final SocioPlanModel plan = planIn(cart);
-		if (plan == null)
+		if (plan == null && !isStoreEnabled())
 		{
 			throw new SocioPaymentException("A forma de pagamento do plano só vale com um plano de sócio no carrinho.");
 		}
 		final SocioPaymentMethod chosen = parse(method);
-		if (SocioPayments.upfront(chosen) && Boolean.FALSE.equals(plan.getUpfrontPayment()))
+		if (plan == null && chosen == SocioPaymentMethod.CARTAO_ANUAL)
+		{
+			throw new SocioPaymentException("O ano inteiro no cartão só vale com um plano de sócio no carrinho.");
+		}
+		if (plan != null && SocioPayments.upfront(chosen) && Boolean.FALSE.equals(plan.getUpfrontPayment()))
 		{
 			throw new SocioPaymentException("O " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())
 					+ " não aceita Pix nem boleto à vista. Escolha o cartão.");
@@ -171,16 +188,18 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 			throw new SocioPaymentException("Escolha Pix ou boleto antes de finalizar o pedido por aqui.");
 		}
 		final SocioPlanModel plan = planIn(cart);
-		if (plan == null)
+		if (plan == null && !isStoreEnabled())
 		{
 			throw new SocioPaymentException("Pix e boleto à vista só valem com um plano de sócio no carrinho.");
 		}
-		if (Boolean.FALSE.equals(plan.getUpfrontPayment()))
+		if (plan != null && Boolean.FALSE.equals(plan.getUpfrontPayment()))
 		{
 			throw new SocioPaymentException("O " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())
 					+ " não aceita Pix nem boleto à vista. Escolha o cartão.");
 		}
-		if (cart.getDeliveryAddress() == null || cart.getDeliveryMode() == null)
+		final boolean allPickup = cart.getEntries() != null && !cart.getEntries().isEmpty()
+				&& cart.getEntries().stream().allMatch(e -> e.getDeliveryPointOfService() != null);
+		if ((cart.getDeliveryAddress() == null && !allPickup) || (cart.getDeliveryMode() == null && !allPickup))
 		{
 			throw new SocioPaymentException("Preencha o endereço e a forma de entrega antes de finalizar o pedido.");
 		}
@@ -230,7 +249,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		{
 			return;
 		}
-		if (planIn(cart) == null)
+		if (planIn(cart) == null && (!isStoreEnabled() || method == SocioPaymentMethod.CARTAO_ANUAL))
 		{
 			modelService.setAttributeValue(cart, SocioPayments.METHOD, null);
 			modelService.setAttributeValue(cart, SocioPayments.INSTALLMENTS, null);
@@ -307,10 +326,8 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		{
 			return null;
 		}
-		return unrestricted(() -> {
-			final List<OrderModel> waiting = awaitingOrders(customer);
-			return waiting.isEmpty() ? null : waiting.get(0);
-		});
+		// só pedidos com plano: o Pix ou boleto de um pedido só de produtos (item 14) não muda a ficha do sócio
+		return unrestricted(() -> awaitingOrders(customer).stream().filter(o -> planIn(o) != null).findFirst().orElse(null));
 	}
 
 	protected List<OrderModel> awaitingOrders(final CustomerModel customer)
@@ -327,29 +344,42 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 	@Override
 	public void confirm(final CustomerModel customer, final SocioEventModel event)
 	{
+		final String note = event == null ? null : event.getNote();
+		final Matcher m = note == null ? null : ORDER_CODE.matcher(note);
+		final String cited = m != null && m.find() ? m.group(1) : null;
 		final OrderModel order = unrestricted(() -> {
-			final String note = event == null ? null : event.getNote();
-			final Matcher m = note == null ? null : ORDER_CODE.matcher(note);
 			final List<OrderModel> waiting = awaitingOrders(customer);
-			if (m != null && m.find())
+			if (cited != null)
 			{
-				final String code = m.group(1);
-				return waiting.stream().filter(o -> code.equals(o.getCode())).findFirst()
-						.orElseThrow(() -> new SocioPaymentException("O pedido " + code + " de " + customer.getUid()
-								+ " não está aguardando pagamento."));
+				return waiting.stream().filter(o -> cited.equals(o.getCode())).findFirst().orElse(null);
 			}
-			if (waiting.isEmpty())
-			{
-				throw new SocioPaymentException(
-						"Nenhum Pix ou boleto aguardando pagamento para " + StringUtils.defaultIfBlank(customer.getName(), customer.getUid()) + ".");
-			}
-			return waiting.get(0);
+			// sem pedido citado: o Pix ou boleto mais novo de um pedido com plano
+			return waiting.stream().filter(o -> planIn(o) != null).findFirst().orElseThrow(() -> new SocioPaymentException(
+					"Nenhum Pix ou boleto aguardando pagamento para " + StringUtils.defaultIfBlank(customer.getName(), customer.getUid()) + "."));
 		});
-		final Date now = new Date();
-		modelService.setAttributeValue(order, SocioPayments.CONFIRMED, now);
-		modelService.save(order);
+		if (order == null)
+		{
+			// Item 14: o pagamento pode já ter sido confirmado pela mudança de status do pedido;
+			// o evento só registra na linha do tempo
+			final OrderModel done = cited == null ? null : unrestricted(() -> confirmedOrder(customer, cited));
+			if (done == null)
+			{
+				throw new SocioPaymentException("O pedido " + cited + " de " + customer.getUid() + " não está aguardando pagamento.");
+			}
+			final SocioPlanModel plan = planIn(done);
+			if (event != null)
+			{
+				if (plan != null)
+				{
+					event.setPlan(plan);
+				}
+				event.setResult("Pagamento confirmado: " + SocioPayments.describe(modelService, done) + ", pedido " + done.getCode()
+						+ (plan == null ? "" : "; sócio " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())));
+			}
+			return;
+		}
+		confirmOrder(order);
 		final String paid = SocioPayments.describe(modelService, order);
-		socioPlanService.applyOrder(order);
 		final SocioPlanModel plan = planIn(order);
 		if (event != null)
 		{
@@ -365,6 +395,36 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 					+ (plan == null ? "" : "; sócio " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())));
 		}
 		LOG.info("Pagamento do pedido {} confirmado ({})", order.getCode(), customer.getUid());
+	}
+
+	@Override
+	public boolean confirmOrder(final OrderModel order)
+	{
+		if (!SocioPayments.isAwaiting(modelService, order))
+		{
+			return false;
+		}
+		modelService.setAttributeValue(order, SocioPayments.CONFIRMED, new Date());
+		if (order.getStatus() == OrderStatus.PAYMENT_NOT_CAPTURED)
+		{
+			// o processo do pedido (que espera o pagamento) segue sozinho
+			order.setStatus(OrderStatus.PAYMENT_CAPTURED);
+		}
+		modelService.save(order);
+		socioPlanService.applyOrder(order);
+		LOG.info("Pagamento do pedido {} confirmado", order.getCode());
+		return true;
+	}
+
+	/** Pedido do torcedor com Pix ou boleto já confirmado */
+	protected OrderModel confirmedOrder(final CustomerModel customer, final String code)
+	{
+		final FlexibleSearchQuery q = new FlexibleSearchQuery("SELECT {pk} FROM {Order} WHERE {user}=?c AND {code}=?o"
+				+ " AND {versionID} IS NULL AND {" + SocioPayments.CONFIRMED + "} IS NOT NULL");
+		q.addQueryParameter("c", customer);
+		q.addQueryParameter("o", code);
+		final List<OrderModel> found = flexibleSearchService.<OrderModel> search(q).getResult();
+		return found.isEmpty() ? null : found.get(0);
 	}
 
 	// ------------------------------------------------------------ preço

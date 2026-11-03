@@ -29,8 +29,26 @@ public interface SocioPaymentService
 	/** Validade do Pix em minutos e do boleto em dias */
 	String PIX_MINUTES_PROPERTY = "flamengo.socio.pagamento.pix.minutos";
 	String BOLETO_DAYS_PROPERTY = "flamengo.socio.pagamento.boleto.dias";
+	/**
+	 * Operação do pedido da loja (item 14): cartão, Pix ou boleto também no carrinho sem
+	 * plano; qualquer pedido com Pix ou boleto fica "Aguardando pagamento" e a confirmação é a
+	 * mudança do status do pedido para "Pagamento confirmado". false = como antes.
+	 */
+	String STORE_PROPERTY = "flamengo.loja.operacao.ativo";
 
 	boolean isEnabled();
+
+	/** Chave flamengo.loja.operacao.ativo (e a do pagamento do plano ligada) */
+	boolean isStoreEnabled();
+
+	/**
+	 * Confirma o Pix ou boleto do pedido (caminho único do item 14): grava a data da
+	 * confirmação, passa o status "Aguardando pagamento" para "Pagamento confirmado" e, se o
+	 * pedido tem plano, torna o torcedor sócio. Pedido que não está aguardando: não faz nada.
+	 *
+	 * @return true se confirmou agora
+	 */
+	boolean confirmOrder(OrderModel order);
 
 	/** O que o checkout oferece para o carrinho e a forma já escolhida */
 	SocioPayment options(CartModel cart);
@@ -58,7 +76,7 @@ public interface SocioPaymentService
 	/** Situação do pagamento de um pedido (null se o pedido não tem forma gravada) */
 	SocioPayment status(AbstractOrderModel order);
 
-	/** Pix ou boleto mais novo do torcedor ainda não pago (null se não há) */
+	/** Pix ou boleto mais novo de um pedido com plano do torcedor ainda não pago (null se não há) */
 	OrderModel awaitingOrder(CustomerModel customer);
 
 	/**
