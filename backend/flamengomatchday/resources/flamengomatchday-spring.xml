@@ -261,6 +261,11 @@
 		<property name="interceptor" ref="orderPaymentStatusInterceptor"/>
 		<property name="typeCode" value="Order"/>
 	</bean>
+	<!-- Item 14: estorno no cancelamento. Envolve os adaptadores de pagamento do cancelamento do SAP
+	     (orderCancelPaymentServiceAdapter e OmsOrderCancelPaymentServiceAdapter): depois do recálculo
+	     padrão, lança o Estorno da diferença entre o capturado e o novo total. Chave
+	     flamengo.loja.operacao.ativo (false = só o recálculo padrão). -->
+	<bean id="flamengoCancelRefundAdapterPostProcessor" class="br.com.flamengo.matchday.payment.CancelRefundAdapterPostProcessor"/>
 	<!-- Item 14: pedido Concluído com remessa de entrega em casa enviada aparece "Enviado" na loja
 	     (statusDisplay "shipped"); o resto segue o mapa padrão do acceleratorservices -->
 	<bean id="flamengoOrderStatusDisplayHandler" class="br.com.flamengo.matchday.attribute.ShippedOrderStatusDisplayHandler">
