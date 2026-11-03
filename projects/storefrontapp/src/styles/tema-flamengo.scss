@@ -349,6 +349,36 @@ body.fla-pay-upfront {
   }
 }
 
+// Confirmação do pedido: "Confirmação do pedido 00024009" e, logo abaixo, no mesmo bloco cinza,
+// "Enviamos o comprovante por e-mail..."; sem o "Obrigado pelo seu pedido!" e sem o banner
+// "Add to home screen" do PWA (pedido do Emerson, 03/11).
+cx-order-confirmation-thank-you-message {
+  .cx-page-header {
+    padding-bottom: 0.5rem;
+  }
+
+  .cx-page-title {
+    text-transform: none;
+  }
+
+  .cx-order-confirmation-message {
+    padding: 0 1rem 25px;
+    background-color: var(--cx-color-background);
+
+    h2 {
+      display: none;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  cx-add-to-home-screen-banner {
+    display: none;
+  }
+}
+
 // Itens 4, 7 e 14: as caixas próprias antes do "Finalizar pedido" (Termo do Nação e forma
 // de pagamento) entram no slot SideContent da revisão como irmãs do cx-place-order. O
 // Spartacus dá o recuo do resumo (2.5rem) só ao cx-order-summary e ao cx-place-order, por
