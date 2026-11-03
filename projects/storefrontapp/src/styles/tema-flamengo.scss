@@ -185,6 +185,36 @@ header cx-navigation-ui.flyout > nav > ul > li > button {
   header cx-navigation-ui.flyout > nav > ul > li > button + .wrapper { min-width: 200px; }
 }
 
+// Menu em duas linhas (desktop): categorias de produto em cima; Ingressos,
+// Sócio-Torcedor e Experiências na linha de baixo, nessa ordem.
+// MEDIDO: com 10 itens o menu quebrava sozinho e deixava só o Sócio-Torcedor
+// na 2a linha. Os itens da jornada são achados pelo link (nós do CMS
+// FlaIngressosNavNode, FlaSocioNavNode e FlaExperienciasNavNode); o ::after
+// (flex-basis 100%) força a quebra e vira um fio entre as linhas. Os menus
+// suspensos da 1a linha abrem por cima da 2a. No celular (hambúrguer) não muda.
+@media (min-width: 992px) {
+  $fla-nav: 'header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul';
+  #{$fla-nav} { flex-wrap: wrap; align-items: center; }
+  #{$fla-nav} > li { order: 1; }
+  #{$fla-nav}::after {
+    content: '';
+    order: 2;
+    flex-basis: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.14);
+  }
+  #{$fla-nav} > li:has(> cx-generic-link a[href$='/matchday']) { order: 3; }
+  #{$fla-nav} > li:has(> cx-generic-link a[href$='/socio-torcedor']) { order: 4; }
+  #{$fla-nav} > li:has(> cx-generic-link a[href$='/c/experiencias']) { order: 5; }
+  // 2a linha mais baixa: só links, sem a margem de 10px do Spartacus
+  #{$fla-nav} > li:has(> cx-generic-link a[href$='/matchday']) > cx-generic-link a,
+  #{$fla-nav} > li:has(> cx-generic-link a[href$='/socio-torcedor']) > cx-generic-link a,
+  #{$fla-nav} > li:has(> cx-generic-link a[href$='/c/experiencias']) > cx-generic-link a {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
 // hamburguer (mobile) sobre fundo vermelho
 header .hamburger-inner, header .hamburger-inner::before, header .hamburger-inner::after,
 header .cx-hamburger.is-active .hamburger-inner,
