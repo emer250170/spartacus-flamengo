@@ -12,6 +12,8 @@ import de.hybris.platform.core.Registry;
 import de.hybris.platform.core.Tenant;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
+import de.hybris.platform.core.model.order.delivery.DeliveryModeModel;
+import de.hybris.platform.commerceservices.model.PickUpDeliveryModeModel;
 import de.hybris.platform.core.model.order.CartModel;
 import de.hybris.platform.core.model.product.ProductModel;
 import de.hybris.platform.core.model.user.UserModel;
@@ -164,6 +166,7 @@ public class DefaultSeatHoldService implements SeatHoldService
 		{
 			return;
 		}
+		final boolean homeDelivery = shipsFromStoreWarehouse(order);
 		for (final AbstractOrderEntryModel entry : order.getEntries())
 		{
 			final ProductModel product = entry.getProduct();
@@ -186,6 +189,12 @@ public class DefaultSeatHoldService implements SeatHoldService
 			{
 				continue;
 			}
+			if (hold == null && entry.getDeliveryPointOfService() == null && homeDelivery && hasConsignment(product, level))
+			{
+				// entrega em casa (item 14): o estoque é reservado pela remessa do warehouse_s, criada pelo
+				// order-process depois da análise de fraude e do pagamento (passo sourceFulfillment)
+				continue;
+			}
 			if (hold != null)
 			{
 				// a unidade sai de "reservada" e vira venda
@@ -199,6 +208,41 @@ public class DefaultSeatHoldService implements SeatHoldService
 		order.setStatusInfo(FlamengomatchdayConstants.STOCK_MARKER);
 		modelService.save(order);
 		LOG.info("Estoque baixado para o pedido {}", order.getCode());
+	}
+
+	/**
+	 * Item 14 (chave flamengo.loja.operacao.ativo): o pedido tem entrega em casa, então as linhas
+	 * físicas viram remessa do depósito da loja online no order-process.
+	 */
+	protected boolean shipsFromStoreWarehouse(final AbstractOrderModel order)
+	{
+		final org.apache.commons.configuration.Configuration config = configurationService.getConfiguration();
+		if (!config.getBoolean(FlamengomatchdayConstants.STORE_OPERATION_ENABLED, false)
+				|| !config.getBoolean(FlamengomatchdayConstants.PAYMENT_ENABLED, false))
+		{
+			return false;
+		}
+		final DeliveryModeModel mode = order.getDeliveryMode();
+		return mode != null && !(mode instanceof PickUpDeliveryModeModel) && !"matchday-digital".equals(mode.getCode());
+	}
+
+	/** Mesma regra do passo sourceFulfillment: estoque no depósito da loja online e código fora dos prefixos sem remessa */
+	protected boolean hasConsignment(final ProductModel product, final StockLevelModel level)
+	{
+		final org.apache.commons.configuration.Configuration config = configurationService.getConfiguration();
+		final String warehouse = config.getString(FlamengomatchdayConstants.STORE_OPERATION_WAREHOUSE, "warehouse_s");
+		if (level.getWarehouse() == null || !warehouse.equals(level.getWarehouse().getCode()))
+		{
+			return false;
+		}
+		for (final String prefix : config.getString(FlamengomatchdayConstants.STORE_OPERATION_NO_CONSIGNMENT, "").split(","))
+		{
+			if (!prefix.trim().isEmpty() && product.getCode().startsWith(prefix.trim()))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
