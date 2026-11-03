@@ -265,6 +265,25 @@
 		</y:base>
 	</context>
 
+	<!-- ============================ Pagamento (item 14) ============================ -->
+	<!-- Transações de pagamento do pedido (aba Administração do pedido) com nomes legíveis, em vez
+	     de PaymentTransaction[pk] / PaymentTransactionEntry[pk]: "Captura · R$ 969,86 · Aceito".
+	     Só leitura de atributos e chamadas simples (sem T(), sem new) na expressão. -->
+	<context merge-by="type" parent="GenericItem" type="PaymentTransactionEntry" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>(type == null ? 'Lançamento' : type.code == 'AUTHORIZATION' ? 'Autorização' : type.code == 'CAPTURE' ? 'Captura' : type.code == 'PARTIAL_CAPTURE' ? 'Captura parcial' : type.code == 'REFUND_FOLLOW_ON' ? 'Estorno' : type.code == 'REFUND_STANDALONE' ? 'Estorno avulso' : type.code == 'CANCEL' ? 'Cancelamento da autorização' : type.code == 'REVIEW_DECISION' ? 'Revisão' : type.code) + ' · R$ ' + (amount == null ? '-' : amount.setScale(2, 4).toPlainString().replace('.', ',')) + ' · ' + (transactionStatus == 'ACCEPTED' ? 'Aceito' : transactionStatus == 'REJECTED' ? 'Recusado' : transactionStatus == 'REVIEW' ? 'Em revisão' : transactionStatus == 'ERROR' ? 'Erro' : (transactionStatus ?: '-'))</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="PaymentTransaction" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>'Pagamento ' + (paymentProvider == 'Mockup' ? 'simulado' : (paymentProvider ?: '')) + ' · R$ ' + (plannedAmount == null ? '-' : plannedAmount.setScale(2, 4).toPlainString().replace('.', ','))</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
 	<!-- ============================ Sócio-Torcedor ============================ -->
 
 	<!-- Menu da perspectiva "Sócio-Torcedor" (flamengomatchday-backoffice-widgets.xml); "Sócios" abre o widget socioMembers e "Relatórios" o socioReport -->
