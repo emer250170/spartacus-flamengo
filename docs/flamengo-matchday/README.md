@@ -777,6 +777,10 @@ Chave `flamengo.loja.operacao.ativo`. Começa em `false`, e assim o pedido anda 
 | Ordem dos passos | `postTaxes` → `checkPayment` (espera o Pix ou boleto) → `takePayment` → `sourceFulfillment` → `completeOrder`. A conferência vem antes do `takePayment` porque o `takePaymentAction` grava `PAYMENT_CAPTURED` no pedido, e o interceptor só confirma uma mudança feita **a partir** de `PAYMENT_NOT_CAPTURED`. |
 | Atendente do centro de distribuição | O OMS distribui as tarefas da remessa entre os funcionários de todas as lojas ligadas ao depósito. O ponto de venda de exemplo Nakano também estava ligado ao `warehouse_s`, com atendentes de login desligado, e a criação da remessa falhava. A etapa `atendente` deixa o `warehouse_s` só com o ponto de venda `warehouse_s`; o backup fica em `/backup/warehouse_s-pontos-de-venda-antes-*.txt`. |
 
+Na loja (PR #109), o checkout mostra cartão, Pix ou boleto também no carrinho sem plano, com o total do carrinho. A confirmação do pedido traz o QR Code ou a linha digitável e a frase "o pedido segue quando o clube confirmar o pagamento". O Finalizar pedido usa o endpoint do Pix e do boleto sempre que a forma escolhida for uma delas.
+
+No Claude (MCP, persona gestor do sócio), `confirmar_pagamento` vale para qualquer pedido: para um pedido sem plano, informe o código. A ferramenta grava o evento Pagamento confirmado, que muda o status do pedido para Pagamento confirmado pelo mesmo caminho do Backoffice.
+
 Processo do pedido: `scripts/order-process-operacao.xml` traz os passos novos. O instalador `scripts/order-process-operacao.groovy` é gerado por `gerar-order-process-operacao.py` a partir do `.xml` e do `.tpl`. Instalação, depois do `ant all` do PR:
 
 1. **`ETAPA = 'conferir'`:** confere que a versão ativa é a v6 do item 12 (md5), monta a versão nova, confere o XML e as transições e compila os scripts dos passos. Não grava nada.

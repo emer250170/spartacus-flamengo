@@ -971,13 +971,13 @@ function socioTools(cfg, http) {
     },
     {
       name: 'confirmar_pagamento',
-      description: 'Confirma o pagamento de um Pix ou boleto do plano de sócio (simula a confirmação do banco): o pedido deixa de aguardar pagamento e o torcedor vira sócio do plano do pedido, com os benefícios na hora. Grava o evento Pagamento confirmado na linha do tempo. Sem pedido informado, vale o Pix/boleto mais novo aguardando.',
+      description: 'Confirma o pagamento de um Pix ou boleto (simula a confirmação do banco): o status do pedido muda de "Aguardando pagamento" para "Pagamento confirmado" e o pedido segue sozinho (remessa e envio dos produtos físicos, fechamento do resto). Se o pedido tem plano, o torcedor vira sócio na hora. Vale para qualquer pedido (produto, ingresso ou plano); para pedido sem plano, informe o código do pedido. Sem pedido informado, vale o Pix/boleto mais novo de um plano aguardando. Grava o evento Pagamento confirmado na linha do tempo do torcedor.',
       inputSchema: obj({ email: S.str('E-mail do torcedor'), pedido: S.str('Código do pedido (opcional, 8 dígitos)'), confirmar: S.confirm }, ['email']),
       handler: async (a) => {
         const c = await customer(a.email);
         const pendente = pendingPayment(await events(c.uid));
         if (!pendente && !a.pedido) throw new UserError(`${c.uid} não tem Pix nem boleto aguardando pagamento.`);
-        const conf = needConfirm(a, `Confirmar o pagamento de ${c.name} (${c.uid})${a.pedido ? `, pedido ${a.pedido}` : pendente ? `: ${pendente.pedido}` : ''}. ${c.name} vira sócio${pendente?.plano ? ` do ${pendente.plano}` : ''}.`);
+        const conf = needConfirm(a, `Confirmar o pagamento de ${c.name} (${c.uid})${a.pedido ? `, pedido ${a.pedido}` : pendente ? `: ${pendente.pedido}` : ''}: o pedido passa para "Pagamento confirmado" e segue${pendente?.plano && !a.pedido ? `; ${c.name} vira sócio do ${pendente.plano}` : ''}.`);
         if (conf) return conf;
         const ev = await odata('POST', '/FlamengoEventoSocio/SocioEvents', {
           body: { customer: { uid: c.uid }, date: `/Date(${Date.now()})/`, type: { code: 'PAGAMENTO_CONFIRMADO' }, origin: 'Claude', note: a.pedido ? `Pagamento do pedido ${a.pedido} confirmado pelo Claude` : 'Pagamento confirmado pelo Claude' },
