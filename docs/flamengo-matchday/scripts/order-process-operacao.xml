@@ -5,7 +5,9 @@
   como antes: sem espera do pagamento, só a remessa de retirada e "Concluído" na hora).
 
   Mudanças na versão ativa:
-   1. takePayment OK -> checkPayment (era sourcePickup)
+   1. postTaxes OK -> checkPayment (era takePayment) e takePayment OK -> sourceFulfillment (era
+      sourcePickup): a conferência do Pix ou boleto vem ANTES do takePayment, porque o
+      takePaymentAction passa o status do pedido para PAYMENT_CAPTURED
    2. o bloco sourcePickup (item 12) é trocado pelos blocos checkPayment, waitForPayment e
       sourceFulfillment (retirada como antes + entrega em casa)
    3. completeOrder: não baixa de novo o estoque das linhas com remessa e, com remessa em
@@ -67,7 +69,7 @@ try {
 log.info('Pedido ' + o.code + ': pagamento confirmado, o pedido segue')
 return 'OK'
 ]]></script>
-    <transition name='OK' to='sourceFulfillment'/>
+    <transition name='OK' to='takePayment'/>
     <transition name='WAIT' to='waitForPayment'/>
     <transition name='CANCELLED' to='success'/>
 </scriptAction>

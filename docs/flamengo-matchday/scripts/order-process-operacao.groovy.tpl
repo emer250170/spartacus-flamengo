@@ -34,11 +34,17 @@ def md5 = { String t -> java.security.MessageDigest.getInstance('MD5').digest(t.
 def falha = { String m -> throw new IllegalStateException(m) }
 
 def montar = { String c ->
-	// 1. takePayment OK -> checkPayment
+	// 1a. postTaxes OK -> checkPayment (a conferência do pagamento vem antes do takePayment, que
+	//     passa o status do pedido para PAYMENT_CAPTURED)
+	def h = c.indexOf("<action id='postTaxes'")
+	def hj = h < 0 ? -1 : c.indexOf("to='takePayment'", h)
+	if (hj < 0 || hj > c.indexOf('</action>', h)) falha('postTaxes -> takePayment não encontrado')
+	c = c.substring(0, hj) + "to='checkPayment'" + c.substring(hj + "to='takePayment'".length())
+	// 1b. takePayment OK -> sourceFulfillment
 	def i = c.indexOf("<action id='takePayment'")
 	def j = i < 0 ? -1 : c.indexOf("to='sourcePickup'", i)
 	if (j < 0 || j > c.indexOf('</action>', i)) falha('takePayment -> sourcePickup não encontrado')
-	c = c.substring(0, j) + "to='checkPayment'" + c.substring(j + "to='sourcePickup'".length())
+	c = c.substring(0, j) + "to='sourceFulfillment'" + c.substring(j + "to='sourcePickup'".length())
 	// 2. bloco sourcePickup (item 12) -> pagamento e remessas
 	def a = c.indexOf('<!-- Item 12: remessa de retirada')
 	def b = c.indexOf(SA + " id='sourcePickup'>")
@@ -84,24 +90,31 @@ def conferir = { String novo ->
 		compilados << id
 	}
 	out << 'XML ok, ' + ids.size() + ' passos, transições ok; scripts compilados: ' + compilados.join(', ')
-	def takePay = (novo =~ /<action id='takePayment'[\s\S]*?<transition name='OK' to='([^']+)'/)[0][1]
-	def verify = (novo =~ /<action id='verifyOrderCompletion'[\s\S]*?<transition name='OK' to='([^']+)'/)[0][1]
-	out << 'takePayment OK -> ' + takePay + ' | verifyOrderCompletion OK -> ' + verify
+	def ok = { String id -> (novo =~ ("<(action|scriptAction) id='" + id + "'[\\s\\S]*?<transition name='OK' to='([^']+)'"))[0][2] }
+	out << 'postTaxes OK -> ' + ok('postTaxes') + ' | checkPayment OK -> ' + ok('checkPayment') + ' | takePayment OK -> ' + ok('takePayment') + ' | verifyOrderCompletion OK -> ' + ok('verifyOrderCompletion')
 }
 
 if (ETAPA in ['conferir', 'aplicar']) {
 	def p = ativa()
 	out << "order-process ativo: v${p.version}, md5 ${md5(p.content)}"
+	def base = p.content
 	if (p.content.contains("id='checkPayment'")) {
-		return (out + ['a versão ativa já tem o item 14: nada a fazer']).join('\n')
+		if (p.content =~ /<action id='postTaxes'[^>]*>\s*<transition name='OK' to='checkPayment'/) {
+			return (out + ['a versão ativa já tem o item 14: nada a fazer']).join('\n')
+		}
+		// primeira versão do item 14 (03/11, conferência depois do takePayment): refaz a partir do backup da v6
+		def v6 = new File('/backup/order-process-v6-antes-operacao.xml')
+		if (!v6.exists()) falha('versão com checkPayment depois do takePayment e sem o backup da v6: pare e confira')
+		base = v6.getText('UTF-8')
+		out << 'refazendo a partir de ' + v6.path + ' (md5 ' + md5(base) + ')'
 	}
-	if (md5(p.content) != BASE_MD5) falha('a versão ativa não é a esperada (v6 do item 12, md5 ' + BASE_MD5 + '): pare e confira')
-	def novo = montar(p.content)
+	if (md5(base) != BASE_MD5) falha('a base não é a esperada (v6 do item 12, md5 ' + BASE_MD5 + '): pare e confira')
+	def novo = montar(base)
 	conferir(novo)
 	out << 'versão nova: ' + novo.length() + ' caracteres (era ' + p.content.length() + ')'
 	if (ETAPA == 'aplicar') {
 		def bk = new File('/backup'); bk.mkdirs()
-		def f = new File(bk, "order-process-v${p.version}-antes-operacao.xml")
+		def f = new File(bk, "order-process-v${p.version}-antes-operacao" + (base.is(p.content) ? '' : '-corrigida') + ".xml")
 		f.setText(p.content, 'UTF-8')
 		def anterior = p.version
 		p.content = novo
@@ -115,6 +128,18 @@ if (ETAPA == 'atendente') {
 	def pos = fs.search(new FlexibleSearchQuery("SELECT {pk} FROM {PointOfService} WHERE {name}='warehouse_s'")).result[0]
 	if (pos == null) falha('ponto de venda warehouse_s não encontrado')
 	out << 'ponto de venda warehouse_s: depósitos ' + pos.warehouses*.code
+	// o OMS distribui as tarefas da remessa entre os funcionários de TODAS as lojas ligadas ao
+	// depósito; o ponto de venda de exemplo Nakano (atendentes com login desligado) também estava
+	// ligado ao warehouse_s e a criação da remessa falhava. Fica só o ponto de venda warehouse_s.
+	def dep = fs.search(new FlexibleSearchQuery("SELECT {pk} FROM {Warehouse} WHERE {code}='warehouse_s'")).result[0]
+	def outros = dep.pointsOfService.findAll { it.name != 'warehouse_s' }
+	if (outros) {
+		def bkp = new File('/backup/warehouse_s-pontos-de-venda-antes-' + new java.text.SimpleDateFormat('yyyyMMdd-HHmmss').format(new Date()) + '.txt')
+		bkp.text = 'warehouse_s.pointsOfService antes: ' + dep.pointsOfService*.name.join(',') + '\n'
+		dep.pointsOfService = dep.pointsOfService.findAll { it.name == 'warehouse_s' }
+		modelService.save(dep)
+		out << 'warehouse_s desligado de ' + outros*.name + ' (backup ' + bkp.path + ')'
+	}
 	def g = fs.search(new FlexibleSearchQuery("SELECT {pk} FROM {StoreEmployeeGroup} WHERE {uid}='cdstoreemployees'")).result[0]
 	if (g == null) {
 		g = modelService.create(StoreEmployeeGroupModel)
