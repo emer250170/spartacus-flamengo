@@ -989,6 +989,29 @@
 		</editorArea:editorArea>
 	</context>
 
+	<!--
+	  Menu do Cockpit de administração para o papel "Gestor de merchandising": sem merge-by,
+	  substitui a árvore inteira (como o do Gestor de jogos), então ele só vê promoções e cupons
+	  também ali. O trabalho dele é na perspectiva Merchandising Flamengo; Pesquisa adaptável e
+	  Cockpit de produtos continuam visíveis (não têm restrição de acesso).
+	-->
+	<context component="explorer-tree" principal="merchandisingmanagerrole">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="merch.tree.promotions">
+				<explorer-tree:type-node id="merch.tree.rules" code="PromotionSourceRule"/>
+				<explorer-tree:type-node id="merch.tree.templates" code="PromotionSourceRuleTemplate"/>
+				<explorer-tree:type-node id="merch.tree.promotionGroups" code="PromotionGroup"/>
+				<explorer-tree:type-node id="merch.tree.ruleGroups" code="RuleGroup"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="merch.tree.coupons">
+				<explorer-tree:type-node id="merch.tree.singleCoupons" code="SingleCodeCoupon"/>
+				<explorer-tree:type-node id="merch.tree.multiCoupons" code="MultiCodeCoupon"/>
+				<explorer-tree:type-node id="merch.tree.customerCoupons" code="CustomerCoupon"/>
+				<explorer-tree:type-node id="merch.tree.couponRedemptions" code="CouponRedemption"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
 	<!-- ============ Merchandising Flamengo (item 11) ============ -->
 	<!-- Menu da perspectiva "Merchandising Flamengo" (flamengomatchday-backoffice-widgets.xml).
 	     Lista, busca e ficha são as padrão do SAP Commerce para cada tipo (construtor de regras,

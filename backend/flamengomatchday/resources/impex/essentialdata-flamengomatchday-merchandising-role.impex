@@ -12,8 +12,10 @@ INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];
 UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
 ;backofficeadministratorrole;merchandisingperspective
 
-INSERT_UPDATE Employee;uid[unique=true];name;groups(uid);sessionLanguage(isocode);backOfficeLoginDisabled
-;gestor.merchandising;Gestor de merchandising (demo);merchandisingmanagerrole;pt;false
+# loginDisabled=false: sem a coluna, o Employee criado sem senha nasce com o login bloqueado
+# ("Esse usuário não tem acesso ao backoffice"), mesmo depois de definir a senha.
+INSERT_UPDATE Employee;uid[unique=true];name;groups(uid);sessionLanguage(isocode);backOfficeLoginDisabled;loginDisabled
+;gestor.merchandising;Gestor de merchandising (demo);merchandisingmanagerrole;pt;false;false
 
 # Promoções e cupons: cria e mantém. O resto (produtos, categorias, grupos de clientes,
 # definições do construtor de regras e motor de regras): só leitura, para os seletores
@@ -51,4 +53,7 @@ BackofficeRole;merchandisingmanagerrole;;;;;;;;
 ;;;;BaseSite;+;-;-;-;-
 ;;;;BaseStore;+;-;-;-;-
 ;;;;CronJob;+;-;-;-;-
+;;;;Workflow;+;-;-;-;-
+;;;;WorkflowAction;+;-;-;-;-
+;;;;Comment;+;-;-;-;-
 $END_USERRIGHTS;;;;;;;;;
