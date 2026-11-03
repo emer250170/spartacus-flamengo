@@ -261,6 +261,13 @@
 		<property name="interceptor" ref="orderPaymentStatusInterceptor"/>
 		<property name="typeCode" value="Order"/>
 	</bean>
+	<!-- Item 14: pedido Concluído com remessa de entrega em casa enviada aparece "Enviado" na loja
+	     (statusDisplay "shipped"); o resto segue o mapa padrão do acceleratorservices -->
+	<bean id="flamengoOrderStatusDisplayHandler" class="br.com.flamengo.matchday.attribute.ShippedOrderStatusDisplayHandler">
+		<property name="delegate" ref="acceleratorDynamicAttributesOrderStatusDisplayByMap"/>
+		<property name="socioPaymentService" ref="socioPaymentService"/>
+	</bean>
+	<alias name="flamengoOrderStatusDisplayHandler" alias="dynamicAttributesOrderStatusDisplay"/>
 	<!-- Ano inteiro: preço do plano e dos convidados x12 no calculationService (só com a forma gravada) -->
 	<bean id="socioAnnualPricing" class="br.com.flamengo.matchday.socio.SocioAnnualPricing">
 		<property name="calculationService" ref="calculationService"/>
