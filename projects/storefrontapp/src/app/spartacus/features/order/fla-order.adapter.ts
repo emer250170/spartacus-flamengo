@@ -14,8 +14,10 @@ import { SocioPaymentService } from '../../../socio/socio-payment.service';
 /**
  * Finalizar pedido com o plano em Pix ou boleto (item 7 do plano de evolução):
  * o pedido sai pelo endpoint sociopayment/order (sem cartão) e volta como o
- * pedido completo da API, para a confirmação do Spartacus seguir igual. Com
- * cartão (ou sem plano no carrinho), o caminho padrão.
+ * pedido completo da API, para a confirmação do Spartacus seguir igual. Item 14:
+ * vale também para o carrinho sem plano (o servidor só devolve Pix/boleto como
+ * forma escolhida com a operação do pedido da loja ligada). Com cartão, o caminho
+ * padrão.
  */
 @Injectable()
 export class FlaOrderAdapter extends OccOrderAdapter {
@@ -32,7 +34,7 @@ export class FlaOrderAdapter extends OccOrderAdapter {
     }
     return this.socioPayment.options(cartId).pipe(
       switchMap((p) =>
-        p.planCode && this.socioPayment.isUpfront(p.method)
+        p.enabled && this.socioPayment.isUpfront(p.method)
           ? this.socioPayment.placeOrder(cartId).pipe(
               // recusa do servidor (ex.: Termo não aceito): mostra o motivo
               catchError((e: Error) => {

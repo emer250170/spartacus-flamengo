@@ -22,7 +22,8 @@ import {
  * parcelas, Pix ou boleto com o ano inteiro. Entra antes do pagamento do
  * Spartacus pelo outlet do componente CMS CheckoutPaymentDetails. Com Pix ou
  * boleto, o cartão some (classe no body) e "Continuar" leva à revisão. Sem plano
- * no carrinho ou com a chave desligada, não aparece nada.
+ * no carrinho, aparece só com a operação do pedido da loja ligada (item 14:
+ * cartão, Pix ou boleto pelo total); com as chaves desligadas, não aparece nada.
  */
 @Component({
   selector: 'fla-socio-payment-choice',
@@ -49,11 +50,32 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
   ) {}
 
   get visible(): boolean {
-    return (
-      !!this.opts?.enabled &&
-      !!this.opts.planCode &&
-      this.opts.methods.length > 0
+    return !!this.opts?.enabled && this.opts.methods.length > 0;
+  }
+
+  /** Carrinho sem plano (item 14): textos da loja e o total do carrinho */
+  get store(): boolean {
+    return !this.opts?.planCode;
+  }
+
+  title(): string {
+    return this.store
+      ? this.t('spay.title.store')
+      : this.t('spay.title', { plan: this.opts?.planName });
+  }
+
+  sub(): string {
+    return this.t(this.store ? 'spay.sub.store' : 'spay.sub');
+  }
+
+  name(m: SocioPaymentMethod): string {
+    return this.t(
+      this.store && m === 'CARTAO_MENSAL' ? 'spay.m.store.' + m : 'spay.m.' + m
     );
+  }
+
+  hint(m: SocioPaymentMethod): string {
+    return this.t(this.store ? 'spay.h.store.' + m : 'spay.h.' + m);
   }
 
   get upfront(): boolean {
@@ -98,6 +120,12 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     const o = this.opts;
     if (!o) {
       return '';
+    }
+    if (this.store) {
+      return this.t(
+        m === 'CARTAO_MENSAL' ? 'spay.a.store.CARD' : 'spay.a.store.UPFRONT',
+        { amount: this.brl(o.total) }
+      );
     }
     switch (m) {
       case 'CARTAO_MENSAL':

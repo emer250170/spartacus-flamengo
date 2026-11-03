@@ -1,14 +1,8 @@
 <section *ngIf="visible && opts as o" class="spay" aria-labelledby="spay-title">
-  <h3 id="spay-title" class="spay-title">
-    {{ 'spay.title' | flaT: { plan: o.planName } }}
-  </h3>
-  <p class="spay-sub">{{ 'spay.sub' | flaT }}</p>
+  <h3 id="spay-title" class="spay-title">{{ title() }}</h3>
+  <p class="spay-sub">{{ sub() }}</p>
 
-  <div
-    class="spay-list"
-    role="radiogroup"
-    [attr.aria-label]="'spay.title' | flaT: { plan: o.planName }"
-  >
+  <div class="spay-list" role="radiogroup" [attr.aria-label]="title()">
     <label
       *ngFor="let m of o.methods"
       class="spay-opt"
@@ -23,9 +17,9 @@
         (change)="pick(m)"
       />
       <span class="spay-body">
-        <span class="spay-name">{{ 'spay.m.' + m | flaT }}</span>
+        <span class="spay-name">{{ name(m) }}</span>
         <span class="spay-amount">{{ amount(m) }}</span>
-        <small class="spay-hint">{{ 'spay.h.' + m | flaT }}</small>
+        <small class="spay-hint">{{ hint(m) }}</small>
       </span>
     </label>
   </div>

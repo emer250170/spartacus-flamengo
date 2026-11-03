@@ -52,6 +52,11 @@ export class SocioPaymentStatusComponent implements OnInit, OnDestroy {
     return this.socioPayment.isUpfront(this.payment?.method);
   }
 
+  /** Pedido sem plano (item 14): textos da loja ("liberar o pedido") */
+  key(base: string): string {
+    return this.payment?.planCode ? base : base + '.store';
+  }
+
   ngOnInit(): void {
     if (this.payment) {
       this.qr = qrPattern(this.payment.code ?? this.payment.orderCode ?? '');
