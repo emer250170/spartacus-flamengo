@@ -4,6 +4,7 @@ import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioExperienceModel;
 import br.com.flamengo.matchday.model.SocioRedemptionModel;
+import br.com.flamengo.matchday.socio.SocioExperienceOverview;
 import br.com.flamengo.matchday.socio.SocioExperienceService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
 import br.com.flamengo.matchday.socio.SocioPointsException;
@@ -82,6 +83,20 @@ public class DefaultSocioExperienceService implements SocioExperienceService
 
 	@Override
 	public String publish(final SocioExperienceModel experience)
+	{
+		// tudo como admin (como no plano): o gestor de experiências só precisa de acesso à experiência
+		return sessionService.executeInLocalView(new SessionExecutionBody()
+		{
+			@Override
+			public Object execute()
+			{
+				userService.setCurrentUser(userService.getAdminUser());
+				return doPublish(experience);
+			}
+		});
+	}
+
+	protected String doPublish(final SocioExperienceModel experience)
 	{
 		final boolean active = !Boolean.FALSE.equals(experience.getActive());
 		final boolean priced = experience.getPrice() != null && experience.getPrice().doubleValue() > 0;
@@ -358,6 +373,167 @@ public class DefaultSocioExperienceService implements SocioExperienceService
 			}
 		}
 		throw new SocioPointsException("Não foi possível gerar o voucher agora.");
+	}
+
+	// ------------------------------------------------------------ cockpit
+
+	@Override
+	public List<SocioExperienceModel> allExperiences()
+	{
+		return unrestricted(() -> flexibleSearchService.<SocioExperienceModel> search(
+				new FlexibleSearchQuery("SELECT {pk} FROM {SocioExperience} ORDER BY {sortOrder}, {points}, {code}")).getResult());
+	}
+
+	@Override
+	public SocioExperienceOverview overview(final int months)
+	{
+		return unrestricted(() -> {
+			final SocioExperienceOverview o = new SocioExperienceOverview();
+			o.generatedAt = new Date();
+			o.saleEnabled = isSaleEnabled();
+			final java.time.ZoneId zone = java.time.ZoneId.of("America/Sao_Paulo");
+			final java.time.YearMonth current = java.time.YearMonth.now(zone);
+			final java.util.Map<String, SocioExperienceOverview.Month> byMonth = new java.util.LinkedHashMap<>();
+			for (int i = Math.max(1, months) - 1; i >= 0; i--)
+			{
+				final SocioExperienceOverview.Month m = new SocioExperienceOverview.Month();
+				m.key = current.minusMonths(i).toString();
+				byMonth.put(m.key, m);
+			}
+			o.months.addAll(byMonth.values());
+			final java.util.Map<SocioExperienceModel, SocioExperienceOverview.Line> lines = new java.util.LinkedHashMap<>();
+			for (final SocioExperienceModel e : allExperiences())
+			{
+				final SocioExperienceOverview.Line l = new SocioExperienceOverview.Line();
+				l.code = e.getCode();
+				l.name = name(e);
+				l.description = e.getDescription(PT);
+				l.active = !Boolean.FALSE.equals(e.getActive());
+				l.points = e.getPoints() == null ? 0 : e.getPoints().intValue();
+				l.price = e.getPrice();
+				l.stock = e.getStock();
+				l.productCode = e.getProduct() == null ? null : e.getProduct().getCode();
+				l.onSale = o.saleEnabled && l.active && l.productCode != null && l.price != null && l.price.doubleValue() > 0;
+				l.minPlanName = e.getMinPlan() == null ? null
+						: StringUtils.defaultIfBlank(e.getMinPlan().getName(PT), e.getMinPlan().getCode());
+				l.statusMessage = e.getStatusMessage();
+				lines.put(e, l);
+				o.lines.add(l);
+			}
+			for (final SocioRedemptionModel r : flexibleSearchService.<SocioRedemptionModel> search(
+					new FlexibleSearchQuery("SELECT {pk} FROM {SocioRedemption}")).getResult())
+			{
+				final SocioExperienceOverview.Line l = lines.get(r.getExperience());
+				if (l == null)
+				{
+					continue;
+				}
+				if (r.getCancelledAt() != null)
+				{
+					l.cancelled++;
+					continue;
+				}
+				final boolean purchase = isPurchase(r);
+				final int points = r.getPoints() == null ? 0 : r.getPoints().intValue();
+				final double amount = r.getAmount() == null ? 0 : r.getAmount().doubleValue();
+				if (purchase)
+				{
+					l.purchases++;
+					l.revenue += amount;
+				}
+				else
+				{
+					l.redemptions++;
+					l.pointsUsed += points;
+				}
+				if (r.getUsedAt() != null)
+				{
+					l.used++;
+				}
+				final Date when = r.getDate() != null ? r.getDate() : r.getCreationtime();
+				final SocioExperienceOverview.Month m = when == null ? null
+						: byMonth.get(java.time.YearMonth.from(when.toInstant().atZone(zone)).toString());
+				if (m != null)
+				{
+					if (purchase)
+					{
+						m.purchases++;
+						m.revenue += amount;
+					}
+					else
+					{
+						m.redemptions++;
+						m.pointsUsed += points;
+					}
+				}
+			}
+			for (final SocioExperienceOverview.Line l : o.lines)
+			{
+				l.remaining = l.stock == null ? null : Integer.valueOf(Math.max(0, l.stock.intValue() - l.redemptions - l.purchases));
+				o.total.redemptions += l.redemptions;
+				o.total.purchases += l.purchases;
+				o.total.used += l.used;
+				o.total.cancelled += l.cancelled;
+				o.total.pointsUsed += l.pointsUsed;
+				o.total.revenue += l.revenue;
+				if (l.stock != null)
+				{
+					o.total.stock = Integer.valueOf((o.total.stock == null ? 0 : o.total.stock.intValue()) + l.stock.intValue());
+					o.total.remaining = Integer.valueOf((o.total.remaining == null ? 0 : o.total.remaining.intValue())
+							+ l.remaining.intValue());
+				}
+			}
+			return o;
+		});
+	}
+
+	@Override
+	public List<SocioRedemptionModel> searchRedemptions(final String experienceCode, final String status, final String origin,
+			final String text)
+	{
+		return unrestricted(() -> {
+			final List<SocioRedemptionModel> all = flexibleSearchService.<SocioRedemptionModel> search(new FlexibleSearchQuery(
+					"SELECT {pk} FROM {SocioRedemption} ORDER BY {date} DESC, {creationtime} DESC")).getResult();
+			final String needle = StringUtils.trimToEmpty(text).toLowerCase(Locale.ROOT);
+			final List<SocioRedemptionModel> result = new ArrayList<>();
+			for (final SocioRedemptionModel r : all)
+			{
+				if (StringUtils.isNotBlank(experienceCode)
+						&& (r.getExperience() == null || !experienceCode.equals(r.getExperience().getCode())))
+				{
+					continue;
+				}
+				if ("VALID".equals(status) && (r.getCancelledAt() != null || r.getUsedAt() != null)
+						|| "USED".equals(status) && (r.getUsedAt() == null || r.getCancelledAt() != null)
+						|| "CANCELLED".equals(status) && r.getCancelledAt() == null)
+				{
+					continue;
+				}
+				if ("PURCHASE".equals(origin) && !isPurchase(r) || "POINTS".equals(origin) && isPurchase(r))
+				{
+					continue;
+				}
+				if (!needle.isEmpty())
+				{
+					final String hay = (StringUtils.defaultString(r.getVoucher()) + " "
+							+ (r.getCustomer() == null ? ""
+									: StringUtils.defaultString(r.getCustomer().getUid()) + " "
+											+ StringUtils.defaultString(r.getCustomer().getName()))
+							+ " " + StringUtils.defaultString(r.getOrderCode())).toLowerCase(Locale.ROOT);
+					if (!hay.contains(needle))
+					{
+						continue;
+					}
+				}
+				result.add(r);
+			}
+			return result;
+		});
+	}
+
+	protected static boolean isPurchase(final SocioRedemptionModel r)
+	{
+		return StringUtils.isNotBlank(r.getOrderCode()) || ORIGIN_PURCHASE.equals(r.getOrigin());
 	}
 
 	// ------------------------------------------------------------ apoio

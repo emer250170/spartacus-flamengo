@@ -689,6 +689,19 @@ As experiências da vitrine de pontos também são vendidas na loja, para qualqu
 
 Dados: `07-socio-experiencias.impex` traz a coluna `price` (Tour R$ 120, Treino R$ 180, Foto com jogador R$ 450, Manto R$ 900, Entrada em campo R$ 1.200). Importar depois do Update.
 
+#### Cockpit Gestão de experiências
+
+Perspectiva própria (`expPerspective`, autoridade `experienceperspective`) para o papel **Gestor de experiências** (`experiencemanagerrole`, usuário `gestor.experiencias`, criado sem senha) e para o administrador. Papel e permissões ficam em `essentialdata-flamengomatchday-experience-role.impex`, importada à parte.
+
+| Menu | Tela |
+|---|---|
+| Vitrine (abre primeiro) | Um card por experiência: pontos, preço, vagas livres, plano mínimo, resgates e vendas, prévia de como aparece na loja e situação na loja. **Nova experiência** e **Editar** abrem um formulário simples. Salvar passa pelo interceptor, que publica o produto (widget `expshowcase`). |
+| Vouchers, resgates e compras | Campo para o voucher `NACAO-…`: mostra a experiência, o torcedor, a origem e a situação, e permite **Marcar como utilizado** ou **Cancelar voucher** (com motivo). Abaixo, a lista com filtro por experiência, situação, origem e texto; clicar numa linha abre o voucher (widget `expvouchers`). |
+| Relatório | Resgates, vendas, receita, vouchers utilizados e ocupação das vagas, por experiência e pelos últimos 6 meses (widget `expreport`). |
+| Experiências / Resgates (cadastro completo) | Lista e ficha padrão do Backoffice. |
+
+No Cockpit de administração, o gestor de experiências vê só Experiências e Resgates, e o painel inicial dele é o relatório das experiências.
+
 O mesmo Update cria os tipos do item 10 (`MatchdayTicket` e `MatchdayTicketEvent`, com os enums `MatchdayTicketStatus` e `MatchdayTicketEventType`). Eles ficam sem uso até o item 10.
 
 ### Cockpit Merchandising Flamengo (item 11 do plano de evolução)

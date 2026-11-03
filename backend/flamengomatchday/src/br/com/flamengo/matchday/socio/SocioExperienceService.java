@@ -69,4 +69,22 @@ public interface SocioExperienceService
 	 * @throws SocioPointsException com a mensagem para o gestor
 	 */
 	SocioRedemptionModel cancelVoucher(String voucher, String author, String reason);
+
+	// ------------------------------------------------------------ cockpit Gestão de experiências
+
+	/** Todas as experiências (também as inativas), na ordem da vitrine */
+	List<SocioExperienceModel> allExperiences();
+
+	/** Cards e relatório: números por experiência e pelos últimos {@code months} meses */
+	SocioExperienceOverview overview(int months);
+
+	/**
+	 * Resgates e compras para a lista do cockpit, mais novos primeiro.
+	 *
+	 * @param experienceCode vazio = todas
+	 * @param status         VALID (válido, não usado), USED, CANCELLED ou vazio = todos
+	 * @param origin         PURCHASE (compra), POINTS (resgate com pontos) ou vazio = todos
+	 * @param text           parte do voucher, do e-mail ou do nome do torcedor (vazio = todos)
+	 */
+	List<SocioRedemptionModel> searchRedemptions(String experienceCode, String status, String origin, String text);
 }
