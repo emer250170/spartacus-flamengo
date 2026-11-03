@@ -376,6 +376,7 @@
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 		<property name="socioExperienceService" ref="socioExperienceService"/>
+		<property name="matchdayTicketService" ref="matchdayTicketService"/>
 	</bean>
 
 	<!--
@@ -417,6 +418,46 @@
 	</bean>
 	<bean id="socioExperiencePlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
 		<property name="add" ref="socioExperiencePlaceOrderMethodHook"/>
+	</bean>
+
+	<!--
+		Entrega das experiências: carrinho só de experiências com voucher = só o modo digital;
+		com experiência enviada pelo correio = só os modos com frete; outros carrinhos não mudam.
+		Chave: flamengo.socio.experiencias.entrega.ativo
+	-->
+	<alias name="flamengoDeliveryModeLookupStrategy" alias="deliveryModeLookupStrategy"/>
+	<bean id="flamengoDeliveryModeLookupStrategy" class="br.com.flamengo.matchday.strategy.FlamengoDeliveryModeLookupStrategy"
+		parent="defaultDeliveryModeLookupStrategy">
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+
+	<!--
+		Ingressos vendidos (item 10): uma linha por poltrona vendida, criada ao fechar o pedido,
+		com histórico das ações do gestor de jogos (cockpit Matchday > Ingressos e Claude).
+		Chave: flamengo.matchday.ingressos.ativo
+	-->
+	<bean id="matchdayTicketService" class="br.com.flamengo.matchday.ticket.impl.DefaultMatchdayTicketService">
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="seatHoldService" ref="seatHoldService"/>
+		<property name="socioGuestService" ref="socioGuestService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+	<bean id="matchdayTicketEventInterceptor" class="br.com.flamengo.matchday.ticket.MatchdayTicketEventInterceptor">
+		<property name="matchdayTicketService" ref="matchdayTicketService"/>
+	</bean>
+	<bean id="matchdayTicketEventInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="matchdayTicketEventInterceptor"/>
+		<property name="typeCode" value="MatchdayTicketEvent"/>
+	</bean>
+	<bean id="matchdayTicketPlaceOrderMethodHook" class="br.com.flamengo.matchday.hook.MatchdayTicketPlaceOrderMethodHook">
+		<property name="matchdayTicketService" ref="matchdayTicketService"/>
+	</bean>
+	<bean id="matchdayTicketPlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="matchdayTicketPlaceOrderMethodHook"/>
 	</bean>
 
 	<!-- Relatório de ingressos (Backoffice > Matchday Flamengo > Relatórios) -->

@@ -1,4 +1,5 @@
-# Papel "Gestor de jogos": entra no Backoffice e só cria, edita, pausa e encerra jogos.
+# Papel "Gestor de jogos": entra no Backoffice, cria, edita, pausa e encerra jogos e cuida dos
+# ingressos vendidos (Matchday Flamengo > Ingressos, item 10).
 # O menu reduzido está em flamengomatchday-backoffice-config.xml (explorer-tree com principal=matchdaygamemanagerrole).
 # Usuário: Employee com groups=matchdaygamemanagerrole (criar pelo Backoffice ou ImpEx; a senha não fica no repositório).
 
@@ -21,6 +22,10 @@ BackofficeRole;matchdaygamemanagerrole;;;;;;;;
 ;;;;MatchdayGame;+;+;+;+;-
 ;;;;MatchdayGameStatus;+;-;-;-;-
 ;;;;SeatHold;+;-;-;-;-
+;;;;MatchdayTicket;+;+;-;-;-
+;;;;MatchdayTicketEvent;+;-;+;-;-
+;;;;MatchdayTicketStatus;+;-;-;-;-
+;;;;MatchdayTicketEventType;+;-;-;-;-
 ;;;;Product;+;-;-;-;-
 ;;;;Catalog;+;-;-;-;-
 ;;;;CatalogVersion;+;-;-;-;-

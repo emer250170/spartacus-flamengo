@@ -6,6 +6,7 @@ import br.com.flamengo.matchday.model.SocioExperienceModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.model.SocioRedemptionModel;
 import br.com.flamengo.matchday.service.SeatHoldService;
+import br.com.flamengo.matchday.ticket.MatchdayTicketService;
 import br.com.flamengo.matchday.socio.SocioExperienceService;
 import br.com.flamengo.matchday.socio.SocioPaymentService;
 import br.com.flamengo.matchday.socio.SocioPayments;
@@ -63,6 +64,7 @@ public class DefaultSocioPointsService implements SocioPointsService
 	private SessionService sessionService;
 	private SearchRestrictionService searchRestrictionService;
 	private SocioExperienceService socioExperienceService;
+	private MatchdayTicketService matchdayTicketService;
 
 	@Override
 	public boolean isEnabled()
@@ -187,6 +189,11 @@ public class DefaultSocioPointsService implements SocioPointsService
 				}
 				if (seatHoldService.isSeat(product))
 				{
+					// ingresso cancelado pelo gestor de jogos (item 10) deixa de dar pontos
+					if (matchdayTicketService != null && matchdayTicketService.isCancelled(order.getCode(), entry.getEntryNumber()))
+					{
+						continue;
+					}
 					tickets += entry.getQuantity() == null ? 1 : entry.getQuantity().intValue();
 				}
 				else if (!isPlanOrGuest(product))
@@ -558,5 +565,10 @@ public class DefaultSocioPointsService implements SocioPointsService
 	public void setSocioExperienceService(final SocioExperienceService socioExperienceService)
 	{
 		this.socioExperienceService = socioExperienceService;
+	}
+
+	public void setMatchdayTicketService(final MatchdayTicketService matchdayTicketService)
+	{
+		this.matchdayTicketService = matchdayTicketService;
 	}
 }

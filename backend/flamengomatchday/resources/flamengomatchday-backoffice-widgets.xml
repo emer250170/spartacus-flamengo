@@ -62,6 +62,19 @@
 					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 					<virtual-sockets/>
 				</widget>
+				<!-- clique em "Ingressos": mostra os ingressos vendidos (item 10) -->
+				<widget id="matchdayTicketsSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="matchdayShowTickets" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">'matchdayTickets'</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "matchday.tree.tickets".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
 				<!-- ao abrir a perspectiva, seleciona "Jogos" -->
 				<widget id="matchdayPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
@@ -167,6 +180,12 @@
 
 				<!-- Relatórios de ingressos -->
 				<widget id="matchdayReport" widgetDefinitionId="br.com.flamengo.matchday.widgets.matchdayreport"
+						slotId="perspectives" template="false">
+					<virtual-sockets/>
+				</widget>
+
+				<!-- Ingressos vendidos (item 10) -->
+				<widget id="matchdayTickets" widgetDefinitionId="br.com.flamengo.matchday.widgets.matchdaytickets"
 						slotId="perspectives" template="false">
 					<virtual-sockets/>
 				</widget>
@@ -786,6 +805,10 @@
 	<widget-connection sourceWidgetId="matchdayReportsSelection" outputId="true" targetWidgetId="matchdayShowReport" inputId="genericInput"/>
 	<widget-connection sourceWidgetId="matchdayShowReport" outputId="genericOutput" targetWidgetId="matchdayContent" inputId="selectPerspectiveById"/>
 	<widget-connection sourceWidgetId="matchdayReportsSelection" outputId="true" targetWidgetId="matchdayReport" inputId="refresh"/>
+	<widget-connection sourceWidgetId="matchdayExplorerTree" outputId="nodeSelected" targetWidgetId="matchdayTicketsSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="matchdayTicketsSelection" outputId="true" targetWidgetId="matchdayShowTickets" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="matchdayShowTickets" outputId="genericOutput" targetWidgetId="matchdayContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="matchdayTicketsSelection" outputId="true" targetWidgetId="matchdayTickets" inputId="refresh"/>
 
 	<!-- Busca e lista -->
 	<widget-connection sourceWidgetId="matchdaySpaceManagement" outputId="collapseState" targetWidgetId="matchdayContainer" inputId="collapseState"/>

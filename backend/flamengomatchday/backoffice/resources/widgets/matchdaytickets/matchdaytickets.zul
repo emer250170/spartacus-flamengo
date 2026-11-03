@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Ingressos vendidos (MatchdayTicketsController) -->
+<widget xmlns="http://www.zkoss.org/2005/zul"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.zkoss.org/2005/zul http://www.hybris.com/schema/cockpitng/zul/zul.xsd"
+		height="100%">
+	<div height="100%" style="overflow:auto; box-sizing:border-box; padding:18px 24px; background:#f5f6f7;">
+		<div style="margin-bottom:12px;">
+			<label value="${labels.ticketsTitle}" style="font-size:22px; font-weight:700; color:#1d2d3e;"/>
+			<separator/>
+			<label value="${labels.ticketsSubtitle}" style="color:#556b82;"/>
+		</div>
+
+		<!-- Ficha do ingresso -->
+		<div style="background:#fff; border:1px solid #d9dde3; border-radius:12px; padding:16px 18px; margin-bottom:16px; max-width:1320px;">
+			<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+				<textbox id="ticketBox" placeholder="${labels.ticketPlaceholder}" width="260px"
+						style="font-family:ui-monospace,Menlo,Consolas,monospace;"/>
+				<button id="findButton" label="${labels.ticketFind}" sclass="y-btn-primary"/>
+				<label id="switchLabel" style="color:#bb0000; font-weight:600;"/>
+			</div>
+			<html id="ticketDetail"/>
+
+			<div id="ticketActions" visible="false" style="margin-top:14px; display:flex; flex-direction:column; gap:12px;">
+				<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+					<label value="${labels.seatLabel}" style="width:150px; color:#556b82;"/>
+					<listbox id="seatList" mold="select" rows="1" width="320px"/>
+					<button id="changeSeatButton" label="${labels.seatButton}"/>
+				</div>
+				<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+					<label value="${labels.holderLabel}" style="width:150px; color:#556b82;"/>
+					<listbox id="holderList" mold="select" rows="1" width="320px"/>
+					<textbox id="holderBox" placeholder="${labels.holderPlaceholder}" width="220px"/>
+					<button id="changeHolderButton" label="${labels.holderButton}"/>
+				</div>
+				<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+					<label value="${labels.cancelLabel}" style="width:150px; color:#556b82;"/>
+					<textbox id="reasonBox" placeholder="${labels.cancelReasonPlaceholder}" width="320px"/>
+					<button id="cancelTicketButton" label="${labels.cancelButton}"/>
+					<label id="refundLabel" style="color:#556b82;"/>
+				</div>
+				<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+					<label value="${labels.useLabel}" style="width:150px; color:#556b82;"/>
+					<button id="useButton" label="${labels.useButton}" sclass="y-btn-primary"/>
+				</div>
+			</div>
+
+			<div id="noteActions" visible="false" style="margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+				<label value="${labels.noteLabel}" style="width:150px; color:#556b82;"/>
+				<textbox id="noteBox" placeholder="${labels.notePlaceholder}" width="560px"/>
+				<button id="noteButton" label="${labels.noteButton}"/>
+			</div>
+
+			<html id="historyHtml"/>
+		</div>
+
+		<!-- Lista -->
+		<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; max-width:1320px;">
+			<textbox id="searchBox" placeholder="${labels.listSearchPlaceholder}" width="260px"/>
+			<listbox id="gameFilter" mold="select" rows="1"/>
+			<listbox id="sectorFilter" mold="select" rows="1"/>
+			<listbox id="statusFilter" mold="select" rows="1"/>
+			<button id="searchButton" label="${labels.listSearch}"/>
+			<label id="countLabel" style="color:#556b82;"/>
+		</div>
+		<div style="background:#fff; border:1px solid #d9dde3; border-radius:8px; max-width:1320px;">
+			<listbox id="resultList" mold="paging" pageSize="15" emptyMessage="${labels.listEmpty}">
+				<listhead>
+					<listheader label="${labels.colTicket}" hflex="2"/>
+					<listheader label="${labels.colGame}" hflex="2"/>
+					<listheader label="${labels.colSeat}" hflex="2"/>
+					<listheader label="${labels.colHolder}" hflex="2"/>
+					<listheader label="${labels.colCustomer}" hflex="2"/>
+					<listheader label="${labels.colPrice}" hflex="1"/>
+					<listheader label="${labels.colStatus}" hflex="1"/>
+				</listhead>
+			</listbox>
+		</div>
+	</div>
+</widget>

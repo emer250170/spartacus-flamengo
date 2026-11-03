@@ -6,7 +6,7 @@ Um único arquivo (`flamengo-mcp.mjs`) que o Claude Desktop inicia sozinho. Trê
 |---|---|---|---|
 | **Torcedor** | o torcedor (ex. torcedor1) | OCC (API da loja) | plano, jogos e preço de sócio, comprar ingressos, loja, carrinho, cupom, finalizar compra, pedidos, chamados, pedir cancelamento |
 | **Gestor do sócio-torcedor** | `gestor.socio` | Integration API (OData) | planos (ler/alterar), sócios, torcedores, situação e elegibilidade (por que não conseguiu comprar), chamados, confirmar cancelamento, relatórios de cancelamento e adesão, cupons (ler/alterar) |
-| **Gestor de jogos** | `gestor.jogos` | Integration API (OData) | jogos (ler/criar/alterar/encerrar), vendas de ingressos por jogo e setor |
+| **Gestor de jogos** | `gestor.jogos` | Integration API (OData) | jogos (ler/criar/alterar/encerrar), vendas de ingressos por jogo e setor, ingressos vendidos (consultar, trocar poltrona ou quem vai usar, cancelar com reembolso, marcar entrada, observação) |
 
 ## Instalar (5 minutos)
 
@@ -62,5 +62,6 @@ set FLAMENGO_PERSONA=jogos& set GESTOR_USUARIO=gestor.jogos& set GESTOR_SENHA=..
 - "Quais jogos estão à venda e como está a ocupação?"
 - "Cadastra Flamengo x Vasco, 29/11 às 16h, Brasileirão Rodada 37, Oeste a R$ 240" → o Commerce cria produto, 384 poltronas e as 4 ondas → abra a loja e mostre o jogo.
 - "Baixa o Norte desse jogo para R$ 70" / "Quanto vendemos de ingresso no jogo do Bahia, por setor?"
+- "Mostra os ingressos do torcedor24" / "Troca a poltrona do ingresso 00021000-0 para uma livre no mesmo setor" / "Cancela esse ingresso, o torcedor não pode ir" → `ingressos`, `detalhe_ingresso` (histórico, poltronas livres e reembolso se cancelar agora) e `acao_ingresso` (com `confirmar=true`). A ação é um evento novo no histórico (objeto `FlamengoIngressoEvento`) que o Commerce executa com as mesmas regras do Backoffice: troca só no mesmo setor, reembolso integral até 48 h antes e 80 % depois, nada depois do início do jogo. Objetos em `docs/flamengo-matchday/mcp/integracao-ingressos.impex`.
 
 Dicas: antes da demo, deixe o carrinho do torcedor vazio; para o cancelamento, use um torcedor sócio que você possa reativar (ou recompre o plano depois pela loja).

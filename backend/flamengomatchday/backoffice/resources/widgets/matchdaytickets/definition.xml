@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Perspectiva "Matchday Flamengo" > Ingressos (item 10): ingressos vendidos, ficha com histórico e ações do gestor de jogos -->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.matchdaytickets">
+	<name>Matchday - Ingressos</name>
+	<description>ingressos vendidos, ficha com histórico e ações do gestor de jogos</description>
+	<defaultTitle>Ingressos</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="matchdaytickets.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.tickets.MatchdayTicketsController"/>
+	<sockets>
+		<!-- recarrega ao clicar no menu -->
+		<input id="refresh" type="java.lang.Object"/>
+	</sockets>
+	<keywords>
+		<keyword>Tickets</keyword>
+	</keywords>
+</widget-definition>

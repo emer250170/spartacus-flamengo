@@ -702,7 +702,44 @@ Perspectiva própria (`expPerspective`, autoridade `experienceperspective`) para
 
 No Cockpit de administração, o gestor de experiências vê só Experiências e Resgates, e o painel inicial dele é o relatório das experiências.
 
-O mesmo Update cria os tipos do item 10 (`MatchdayTicket` e `MatchdayTicketEvent`, com os enums `MatchdayTicketStatus` e `MatchdayTicketEventType`). Eles ficam sem uso até o item 10.
+O mesmo Update cria os tipos do item 10 (`MatchdayTicket` e `MatchdayTicketEvent`, com os enums `MatchdayTicketStatus` e `MatchdayTicketEventType`), usados a partir do item 10 (abaixo).
+
+#### Entrega das experiências
+
+A regra de entrega fica em `FlamengoDeliveryModeLookupStrategy`, que substitui o `deliveryModeLookupStrategy` e herda do padrão.
+
+| Carrinho | Modos de entrega |
+|---|---|
+| Só experiências com voucher (tour, treino, foto, entrada em campo) | Só **Ingresso digital** (`matchday-digital`, R$ 0). O voucher fica em Meus resgates. |
+| Só experiências, com pelo menos uma enviada pelo correio | Só os modos com frete: padrão R$ 19,90 e expressa R$ 39,90. As experiências enviadas estão em `flamengo.socio.experiencias.comEnvio`, códigos separados por vírgula (padrão `MANTO-AUTOGRAFADO`). |
+| Qualquer outro (ingresso, loja, misto) | Os modos de sempre. |
+
+Chave: `flamengo.socio.experiencias.entrega.ativo` (`false` = os modos de sempre). Se a regra deixar o carrinho sem modo, valem os de sempre.
+
+### Ingressos vendidos e ações do gestor de jogos (item 10 do plano de evolução)
+
+Cada poltrona vendida vira um **ingresso** (`MatchdayTicket`), com código `<pedido>-<linha>`, o jogo, o setor, a poltrona, quem vai usar, o comprador, o valor pago e o desconto de sócio. O pedido não muda. As ações mexem no ingresso e no estoque das poltronas, e cada uma entra no histórico (`MatchdayTicketEvent`).
+
+| Parte | Como funciona |
+|---|---|
+| Criação | Ao fechar o pedido (`MatchdayTicketPlaceOrderMethodHook`, depois da baixa do estoque e dos convidados), com o evento **Venda**. Os pedidos anteriores ganham ingresso com `matchdayTicketService.backfill()`, rodado uma vez pelo HAC. |
+| Trocar poltrona | Só no mesmo jogo e setor, para uma poltrona livre (estoque disponível e sem reserva), sem diferença de preço. A poltrona antiga volta para a venda. Não vale depois do início do jogo. |
+| Trocar quem vai usar | Um convidado ativo do comprador, outro nome digitado ou de volta o titular. |
+| Cancelar | Reembolso integral até `flamengo.matchday.ingressos.reembolso.horasIntegral` horas antes do jogo (48); depois, `…percentualDepois` % (80) até o início. Depois do início não cancela. A poltrona volta para a venda. O valor fica no ingresso e o atendimento faz o estorno. |
+| Marcar como utilizado | Entrada no estádio. Depois disso o ingresso não troca nem cancela. |
+| Observação | Texto livre no histórico, em qualquer situação. |
+| Pontos | Ingresso cancelado deixa de dar pontos ao sócio (`DefaultSocioPointsService`). |
+| Relatório | Depois de uma troca, a venda aparece na poltrona nova, e não como venda simulada. |
+| Chave | `flamengo.matchday.ingressos.ativo` (`false` = os ingressos continuam registrados e consultáveis, mas as ações ficam recusadas). |
+
+**Onde o gestor de jogos usa:**
+- **Backoffice:** perspectiva Matchday Flamengo › **Ingressos** (widget `matchdaytickets`). Tem a consulta pelo código, a ficha com histórico, as ações acima e a lista com filtros por jogo, setor, situação e texto. As permissões estão em `essentialdata-flamengomatchday-role.impex`.
+- **Claude (MCP, persona gestor de jogos):** `ingressos`, `detalhe_ingresso` e `acao_ingresso`. A ação é um `MatchdayTicketEvent` novo, criado pela Integration API (objeto `FlamengoIngressoEvento`). O `MatchdayTicketEventInterceptor` executa esse evento com as mesmas regras e o grava como o registro do histórico. Os objetos de integração estão em `mcp/integracao-ingressos.impex`.
+
+Depois do deploy:
+- reset do `widgets.xml` e do `cockpit-config` no Backoffice;
+- importar as ImpEx do papel e da integração;
+- rodar o backfill.
 
 ### Cockpit Merchandising Flamengo (item 11 do plano de evolução)
 
