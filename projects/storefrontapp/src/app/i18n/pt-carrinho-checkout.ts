@@ -473,7 +473,16 @@ export const ptCarrinhoCheckout: TranslationResources = {
         statusDisplay_open: 'Aberto',
         statusDisplay_approved: 'Aprovado',
         statusDisplay_rejected: 'Recusado',
+        statusDisplay_shipped: 'Enviado',
         caption: 'Itens do pedido.',
+      },
+    },
+  },
+  // item 14: situação "shipped" (pedido com a remessa enviada), que o Spartacus não traz
+  en: {
+    order: {
+      orderDetails: {
+        statusDisplay_shipped: 'Shipped',
       },
     },
   },

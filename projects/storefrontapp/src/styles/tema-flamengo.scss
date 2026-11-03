@@ -379,6 +379,43 @@ cx-order-confirmation-thank-you-message {
   }
 }
 
+// Confirmação do pedido (03/11): o slot BodyContent é uma linha flexível na largura da tela, e o
+// "Exportar produtos para CSV" e o bloco Pagamento/Endereço de cobrança (1140px cada) cabiam lado
+// a lado, fora da coluna da página. Cada um ocupa a linha inteira, com o recuo que põe o conteúdo
+// na mesma coluna do "Itens a entregar" (medido: 684-1794 numa tela de 2479px). O resumo do pedido
+// passava 15px da borda direita da coluna.
+cx-page-layout.OrderConfirmationPageTemplate cx-page-slot.BodyContent {
+  cx-export-order-entries,
+  cx-order-detail-billing {
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: max(15px, calc((100% - var(--cx-page-width-max)) / 2 + 15px));
+  }
+
+  cx-export-order-entries {
+    margin-block: 1.25rem;
+
+    .cx-export-btn {
+      padding-inline: 0;
+    }
+  }
+
+  cx-order-confirmation-totals .cx-order-summary {
+    @media (min-width: 992px) {
+      padding-inline-end: 15px;
+    }
+  }
+}
+
+// Lista de itens (carrinho, revisão e confirmação): a variante ("Tamanho: P") é irmã do bloco
+// imagem + nome e ficava embaixo da imagem. Recuo da coluna da imagem (5rem + 1rem de espaço),
+// como o Spartacus já faz com as opções de retirada.
+cx-cart-item-list .cx-property {
+  margin-inline-start: 6rem;
+}
+
 // Itens 4, 7 e 14: as caixas próprias antes do "Finalizar pedido" (Termo do Nação e forma
 // de pagamento) entram no slot SideContent da revisão como irmãs do cx-place-order. O
 // Spartacus dá o recuo do resumo (2.5rem) só ao cx-order-summary e ao cx-place-order, por
