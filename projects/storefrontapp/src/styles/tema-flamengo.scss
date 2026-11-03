@@ -378,3 +378,27 @@ cx-order-confirmation-thank-you-message {
     display: none;
   }
 }
+
+// Itens 4, 7 e 14: as caixas próprias antes do "Finalizar pedido" (Termo do Nação e forma
+// de pagamento) entram no slot SideContent da revisão como irmãs do cx-place-order. O
+// Spartacus dá o recuo do resumo (2.5rem) só ao cx-order-summary e ao cx-place-order, por
+// seletor de elemento; sem a mesma regra, a caixa ficava 2.5rem à esquerda do resumo e do
+// botão. Mesmo recuo e mesma largura do botão em cada tamanho de tela.
+cx-page-layout.MultiStepCheckoutSummaryPageTemplate cx-page-slot.SideContent {
+  fla-socio-term-checkout,
+  fla-socio-payment-review {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    padding-inline-start: 2.5rem;
+
+    @media (max-width: 991.98px) {
+      max-width: 50%;
+      padding-inline-start: 0;
+    }
+
+    @media (max-width: 767.98px) {
+      max-width: 100%;
+    }
+  }
+}
