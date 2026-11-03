@@ -1,0 +1,51 @@
+<!-- Passo sourcePickup do order-process (item 12); instalado por order-process-retirada.groovy -->
+<!-- Item 12: remessa de retirada na loja (consignment do OMS) para as linhas com loja -->
+<scriptAction id='sourcePickup'>
+    <script type='groovy'><![CDATA[
+import de.hybris.platform.core.Registry
+import de.hybris.platform.util.Config
+import de.hybris.platform.warehousing.data.sourcing.SourcingResult
+import de.hybris.platform.warehousing.data.sourcing.SourcingResults
+def log = org.slf4j.LoggerFactory.getLogger('flamengo-retirada')
+def o = process.order
+try {
+  if (Config.getBoolean('flamengo.retirada.ativo', true) && (o.consignments == null || o.consignments.isEmpty())) {
+    def ctx = Registry.applicationContext
+    def byPos = o.entries.findAll { it.deliveryPointOfService != null && (it.quantity ?: 0) > 0 }.groupBy { it.deliveryPointOfService }
+    if (byPos) {
+      def rs = new SourcingResults()
+      rs.results = new HashSet()
+      rs.complete = true
+      byPos.each { pos, es ->
+        def w = pos.warehouses.find { !it.external && it.code == pos.name } ?: pos.warehouses.find { !it.external }
+        if (w == null) {
+          log.warn('Pedido ' + o.code + ': loja ' + pos.name + ' sem depósito; a retirada fica sem remessa')
+        } else {
+          def r = new SourcingResult()
+          r.warehouse = w
+          r.allocation = new HashMap(es.collectEntries { [(it): it.quantity] })
+          rs.results.add(r)
+        }
+      }
+      if (!rs.results.isEmpty()) {
+        def bps = ctx.getBean('businessProcessService')
+        def ms = ctx.getBean('modelService')
+        def cons = ctx.getBean('allocationService').createConsignments(o, 'cons' + o.code, rs)
+        for (c in cons) {
+          def p = bps.createProcess(c.getCode() + '_ordermanagement', 'consignment-process')
+          p.setParentProcess(process)
+          p.setConsignment(c)
+          ms.save(p)
+          bps.startProcess(p)
+          log.info('Pedido ' + o.code + ': remessa ' + c.getCode() + ' para retirada em ' + c.getDeliveryPointOfService()?.getName())
+        }
+      }
+    }
+  }
+} catch (Exception ex) {
+  log.error('Pedido ' + o.code + ': falha ao criar a remessa de retirada', ex)
+}
+return 'OK'
+]]></script>
+    <transition name='OK' to='completeOrder'/>
+</scriptAction>

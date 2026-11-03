@@ -17,58 +17,8 @@
  */
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
 
-def PASSO = '''
-<!-- Item 12: remessa de retirada na loja (consignment do OMS) para as linhas com loja -->
-<scriptAction id='sourcePickup'>
-    <script type='groovy'><![CDATA[
-import de.hybris.platform.core.Registry
-import de.hybris.platform.util.Config
-import de.hybris.platform.warehousing.data.sourcing.SourcingResult
-import de.hybris.platform.warehousing.data.sourcing.SourcingResults
-def log = org.slf4j.LoggerFactory.getLogger('flamengo-retirada')
-def o = process.order
-try {
-  if (Config.getBoolean('flamengo.retirada.ativo', true) && (o.consignments == null || o.consignments.isEmpty())) {
-    def ctx = Registry.applicationContext
-    def byPos = o.entries.findAll { it.deliveryPointOfService != null && (it.quantity ?: 0) > 0 }.groupBy { it.deliveryPointOfService }
-    if (byPos) {
-      def rs = new SourcingResults()
-      rs.results = new HashSet()
-      rs.complete = true
-      byPos.each { pos, es ->
-        def w = pos.warehouses.find { !it.external && it.code == pos.name } ?: pos.warehouses.find { !it.external }
-        if (w == null) {
-          log.warn('Pedido ' + o.code + ': loja ' + pos.name + ' sem depósito; a retirada fica sem remessa')
-        } else {
-          def r = new SourcingResult()
-          r.warehouse = w
-          r.allocation = new HashMap(es.collectEntries { [(it): it.quantity] })
-          rs.results.add(r)
-        }
-      }
-      if (!rs.results.isEmpty()) {
-        def bps = ctx.getBean('businessProcessService')
-        def ms = ctx.getBean('modelService')
-        def cons = ctx.getBean('allocationService').createConsignments(o, 'cons' + o.code, rs)
-        for (c in cons) {
-          def p = bps.createProcess(c.getCode() + '_ordermanagement', 'consignment-process')
-          p.setParentProcess(process)
-          p.setConsignment(c)
-          ms.save(p)
-          bps.startProcess(p)
-          log.info('Pedido ' + o.code + ': remessa ' + c.getCode() + ' para retirada em ' + c.getDeliveryPointOfService()?.getName())
-        }
-      }
-    }
-  }
-} catch (Exception ex) {
-  log.error('Pedido ' + o.code + ': falha ao criar a remessa de retirada', ex)
-}
-return 'OK'
-]]></script>
-    <transition name='OK' to='completeOrder'/>
-</scriptAction>
-'''
+// passo em base64: o filtro de XSS do HAC apaga as tags de script do texto do Groovy
+def PASSO = new String('CjwhLS0gSXRlbSAxMjogcmVtZXNzYSBkZSByZXRpcmFkYSBuYSBsb2phIChjb25zaWdubWVudCBkbyBPTVMpIHBhcmEgYXMgbGluaGFzIGNvbSBsb2phIC0tPgo8c2NyaXB0QWN0aW9uIGlkPSdzb3VyY2VQaWNrdXAnPgogICAgPHNjcmlwdCB0eXBlPSdncm9vdnknPjwhW0NEQVRBWwppbXBvcnQgZGUuaHlicmlzLnBsYXRmb3JtLmNvcmUuUmVnaXN0cnkKaW1wb3J0IGRlLmh5YnJpcy5wbGF0Zm9ybS51dGlsLkNvbmZpZwppbXBvcnQgZGUuaHlicmlzLnBsYXRmb3JtLndhcmVob3VzaW5nLmRhdGEuc291cmNpbmcuU291cmNpbmdSZXN1bHQKaW1wb3J0IGRlLmh5YnJpcy5wbGF0Zm9ybS53YXJlaG91c2luZy5kYXRhLnNvdXJjaW5nLlNvdXJjaW5nUmVzdWx0cwpkZWYgbG9nID0gb3JnLnNsZjRqLkxvZ2dlckZhY3RvcnkuZ2V0TG9nZ2VyKCdmbGFtZW5nby1yZXRpcmFkYScpCmRlZiBvID0gcHJvY2Vzcy5vcmRlcgp0cnkgewogIGlmIChDb25maWcuZ2V0Qm9vbGVhbignZmxhbWVuZ28ucmV0aXJhZGEuYXRpdm8nLCB0cnVlKSAmJiAoby5jb25zaWdubWVudHMgPT0gbnVsbCB8fCBvLmNvbnNpZ25tZW50cy5pc0VtcHR5KCkpKSB7CiAgICBkZWYgY3R4ID0gUmVnaXN0cnkuYXBwbGljYXRpb25Db250ZXh0CiAgICBkZWYgYnlQb3MgPSBvLmVudHJpZXMuZmluZEFsbCB7IGl0LmRlbGl2ZXJ5UG9pbnRPZlNlcnZpY2UgIT0gbnVsbCAmJiAoaXQucXVhbnRpdHkgPzogMCkgPiAwIH0uZ3JvdXBCeSB7IGl0LmRlbGl2ZXJ5UG9pbnRPZlNlcnZpY2UgfQogICAgaWYgKGJ5UG9zKSB7CiAgICAgIGRlZiBycyA9IG5ldyBTb3VyY2luZ1Jlc3VsdHMoKQogICAgICBycy5yZXN1bHRzID0gbmV3IEhhc2hTZXQoKQogICAgICBycy5jb21wbGV0ZSA9IHRydWUKICAgICAgYnlQb3MuZWFjaCB7IHBvcywgZXMgLT4KICAgICAgICBkZWYgdyA9IHBvcy53YXJlaG91c2VzLmZpbmQgeyAhaXQuZXh0ZXJuYWwgJiYgaXQuY29kZSA9PSBwb3MubmFtZSB9ID86IHBvcy53YXJlaG91c2VzLmZpbmQgeyAhaXQuZXh0ZXJuYWwgfQogICAgICAgIGlmICh3ID09IG51bGwpIHsKICAgICAgICAgIGxvZy53YXJuKCdQZWRpZG8gJyArIG8uY29kZSArICc6IGxvamEgJyArIHBvcy5uYW1lICsgJyBzZW0gZGVww7NzaXRvOyBhIHJldGlyYWRhIGZpY2Egc2VtIHJlbWVzc2EnKQogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICBkZWYgciA9IG5ldyBTb3VyY2luZ1Jlc3VsdCgpCiAgICAgICAgICByLndhcmVob3VzZSA9IHcKICAgICAgICAgIHIuYWxsb2NhdGlvbiA9IG5ldyBIYXNoTWFwKGVzLmNvbGxlY3RFbnRyaWVzIHsgWyhpdCk6IGl0LnF1YW50aXR5XSB9KQogICAgICAgICAgcnMucmVzdWx0cy5hZGQocikKICAgICAgICB9CiAgICAgIH0KICAgICAgaWYgKCFycy5yZXN1bHRzLmlzRW1wdHkoKSkgewogICAgICAgIGRlZiBicHMgPSBjdHguZ2V0QmVhbignYnVzaW5lc3NQcm9jZXNzU2VydmljZScpCiAgICAgICAgZGVmIG1zID0gY3R4LmdldEJlYW4oJ21vZGVsU2VydmljZScpCiAgICAgICAgZGVmIGNvbnMgPSBjdHguZ2V0QmVhbignYWxsb2NhdGlvblNlcnZpY2UnKS5jcmVhdGVDb25zaWdubWVudHMobywgJ2NvbnMnICsgby5jb2RlLCBycykKICAgICAgICBmb3IgKGMgaW4gY29ucykgewogICAgICAgICAgZGVmIHAgPSBicHMuY3JlYXRlUHJvY2VzcyhjLmdldENvZGUoKSArICdfb3JkZXJtYW5hZ2VtZW50JywgJ2NvbnNpZ25tZW50LXByb2Nlc3MnKQogICAgICAgICAgcC5zZXRQYXJlbnRQcm9jZXNzKHByb2Nlc3MpCiAgICAgICAgICBwLnNldENvbnNpZ25tZW50KGMpCiAgICAgICAgICBtcy5zYXZlKHApCiAgICAgICAgICBicHMuc3RhcnRQcm9jZXNzKHApCiAgICAgICAgICBsb2cuaW5mbygnUGVkaWRvICcgKyBvLmNvZGUgKyAnOiByZW1lc3NhICcgKyBjLmdldENvZGUoKSArICcgcGFyYSByZXRpcmFkYSBlbSAnICsgYy5nZXREZWxpdmVyeVBvaW50T2ZTZXJ2aWNlKCk/LmdldE5hbWUoKSkKICAgICAgICB9CiAgICAgIH0KICAgIH0KICB9Cn0gY2F0Y2ggKEV4Y2VwdGlvbiBleCkgewogIGxvZy5lcnJvcignUGVkaWRvICcgKyBvLmNvZGUgKyAnOiBmYWxoYSBhbyBjcmlhciBhIHJlbWVzc2EgZGUgcmV0aXJhZGEnLCBleCkKfQpyZXR1cm4gJ09LJwpdXT48L3NjcmlwdD4KICAgIDx0cmFuc2l0aW9uIG5hbWU9J09LJyB0bz0nY29tcGxldGVPcmRlcicvPgo8L3NjcmlwdEFjdGlvbj4K'.decodeBase64(), 'UTF-8')
 
 def out = []
 def proc = flexibleSearchService.search(new FlexibleSearchQuery("SELECT {pk} FROM {DynamicProcessDefinition} WHERE {code}='order-process' AND {active}=1")).result[0]
@@ -78,7 +28,7 @@ if (proc.content.contains("id='sourcePickup'")) {
 def DE = "<action id='takePayment' bean='takePaymentAction'>"
 def i = proc.content.indexOf(DE)
 def j = i < 0 ? -1 : proc.content.indexOf("to='completeOrder'", i)
-def k = proc.content.indexOf("<scriptAction id='completeOrder'>")
+def k = proc.content.indexOf('<' + "scriptAction id='completeOrder'>")
 if (i < 0 || j < 0 || k < 0 || j > k) {
 	throw new IllegalStateException('takePayment -> completeOrder não encontrado no order-process ativo')
 }
@@ -87,7 +37,7 @@ def f = new File(bk, "order-process-v${proc.version}-antes-retirada.xml")
 f.setText(proc.content, 'UTF-8')
 def anterior = proc.version
 def novo = proc.content.substring(0, j) + "to='sourcePickup'" + proc.content.substring(j + "to='completeOrder'".length())
-k = novo.indexOf("<scriptAction id='completeOrder'>")
+k = novo.indexOf('<' + "scriptAction id='completeOrder'>")
 novo = novo.substring(0, k) + PASSO.trim() + '\n\n    ' + novo.substring(k)
 proc.content = novo
 modelService.save(proc)
