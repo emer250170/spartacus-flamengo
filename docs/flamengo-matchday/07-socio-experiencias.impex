@@ -2,7 +2,7 @@
 #  Sócio-torcedor (item 8): vitrine de experiências resgatáveis com pontos
 #  Depois do Update que cria SocioExperience. O gestor mantém em
 #  Backoffice › Sócio-Torcedor › Experiências. Rodar de novo só atualiza os textos e regras.
-#  Atenção: ";" separa colunas, não usar dentro dos textos.
+#  Atenção: ponto e vírgula separa colunas, não usar dentro dos textos. Aspas, nem nos comentários (o leitor do ImpEx conta as aspas e a importação falha inteira).
 #  Pontos: 100 por ingresso e 1 por real em produtos (flamengo.socio.pontos.*).
 #  Item 9: com price, a experiência vira produto da loja ao salvar (EXP-<código>, categoria
 #  Experiências, sem desconto de sócio); vazio = só resgate. Depois do Update do item 9.
