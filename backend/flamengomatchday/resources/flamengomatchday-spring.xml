@@ -375,6 +375,48 @@
 		<property name="commonI18NService" ref="commonI18NService"/>
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="socioExperienceService" ref="socioExperienceService"/>
+	</bean>
+
+	<!--
+		Experiências vendidas na loja (item 9): produto gerado ao salvar a experiência com preço,
+		estoque único (vagas) para venda e resgate, voucher também na compra.
+		Chave liga/desliga: flamengo.socio.experiencias.venda.ativo
+	-->
+	<bean id="socioExperienceService" class="br.com.flamengo.matchday.socio.impl.DefaultSocioExperienceService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
+		<property name="importService" ref="importService"/>
+		<property name="mediaService" ref="mediaService"/>
+		<property name="cronJobService" ref="cronJobService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="userService" ref="userService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
+	<bean id="socioExperienceInterceptor" class="br.com.flamengo.matchday.socio.SocioExperienceInterceptor">
+		<property name="socioExperienceService" ref="socioExperienceService"/>
+	</bean>
+	<bean id="socioExperienceInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="socioExperienceInterceptor"/>
+		<property name="typeCode" value="SocioExperience"/>
+	</bean>
+	<bean id="socioRedemptionInterceptor" class="br.com.flamengo.matchday.socio.SocioRedemptionInterceptor">
+		<property name="socioExperienceService" ref="socioExperienceService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+	<bean id="socioRedemptionInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="socioRedemptionInterceptor"/>
+		<property name="typeCode" value="SocioRedemption"/>
+	</bean>
+	<bean id="socioExperiencePlaceOrderMethodHook" class="br.com.flamengo.matchday.hook.SocioExperiencePlaceOrderMethodHook">
+		<property name="socioExperienceService" ref="socioExperienceService"/>
+	</bean>
+	<bean id="socioExperiencePlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="socioExperiencePlaceOrderMethodHook"/>
 	</bean>
 
 	<!-- Relatório de ingressos (Backoffice > Matchday Flamengo > Relatórios) -->

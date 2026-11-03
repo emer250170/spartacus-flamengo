@@ -63,6 +63,11 @@ public class SocioPoints
 		public Date date;
 		public String origin;
 		public Date cancelledAt;
+		/** Compra na loja (item 9): pedido e valor pago; vazio = resgate com pontos */
+		public String orderCode;
+		public Double amount;
+		/** Voucher validado na portaria ou no atendimento */
+		public Date usedAt;
 	}
 
 	public static class Experience
@@ -79,5 +84,11 @@ public class SocioPoints
 		public boolean redeemable;
 		/** Por que não (saldo, plano, esgotada, situação) */
 		public String reason;
+		/** Preço na loja (item 9; null = só resgate) */
+		public Double price;
+		/** Produto da loja (null = não está à venda) */
+		public String productCode;
+		/** Qualquer torcedor pode comprar agora (à venda e com vaga) */
+		public boolean buyable;
 	}
 }

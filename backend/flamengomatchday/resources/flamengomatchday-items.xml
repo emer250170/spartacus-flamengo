@@ -30,6 +30,10 @@
 			<value code="PAGAMENTO_CONFIRMADO"/>
 			<!-- Pontos (item 8): resgate de experiência com pontos -->
 			<value code="RESGATE_PONTOS"/>
+			<!-- Experiências na loja (item 9): compra, voucher usado na portaria, resgate cancelado -->
+			<value code="COMPRA_EXPERIENCIA"/>
+			<value code="VOUCHER_UTILIZADO"/>
+			<value code="RESGATE_CANCELADO"/>
 		</enumtype>
 		<enumtype code="SocioPaymentMethod" autocreate="true" generate="true" dynamic="false">
 			<description>Forma de pagamento do plano de sócio-torcedor no checkout (item 7)</description>
@@ -37,6 +41,22 @@
 			<value code="CARTAO_ANUAL"/>
 			<value code="PIX"/>
 			<value code="BOLETO"/>
+		</enumtype>
+		<!-- Ingressos vendidos (item 10) -->
+		<enumtype code="MatchdayTicketStatus" autocreate="true" generate="true" dynamic="false">
+			<description>Situação do ingresso vendido</description>
+			<value code="VALIDO"/>
+			<value code="CANCELADO"/>
+			<value code="UTILIZADO"/>
+		</enumtype>
+		<enumtype code="MatchdayTicketEventType" autocreate="true" generate="true" dynamic="false">
+			<description>Evento no histórico do ingresso</description>
+			<value code="VENDA"/>
+			<value code="TROCA_POLTRONA"/>
+			<value code="TROCA_TITULAR"/>
+			<value code="CANCELAMENTO"/>
+			<value code="UTILIZACAO"/>
+			<value code="OBSERVACAO"/>
 		</enumtype>
 	</enumtypes>
 
@@ -796,6 +816,20 @@
 					<description>Ordem na vitrine</description>
 					<persistence type="property"/>
 				</attribute>
+				<!-- Venda na loja (item 9) -->
+				<attribute qualifier="price" type="java.lang.Double">
+					<description>Preço na loja em R$ (vazio = só resgate com pontos)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="product" type="Product">
+					<description>Produto da loja gerado ao salvar (catálogo Online, categoria Experiências)</description>
+					<modifiers write="true" read="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="statusMessage" type="java.lang.String">
+					<description>Resultado da última publicação na loja</description>
+					<persistence type="property"/>
+				</attribute>
 			</attributes>
 			<indexes>
 				<index name="socioExperienceCode" unique="true">
@@ -848,6 +882,31 @@
 					<description>Cancelado em (vazio = válido); pontos e vaga voltam</description>
 					<persistence type="property"/>
 				</attribute>
+				<!-- Experiências na loja (item 9) -->
+				<attribute qualifier="orderCode" type="java.lang.String">
+					<description>Pedido da compra (vazio = resgate com pontos)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="amount" type="java.lang.Double">
+					<description>Valor pago na compra (R$)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="usedAt" type="java.util.Date">
+					<description>Voucher validado (usado) em; não vale de novo</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="usedBy" type="java.lang.String">
+					<description>Quem validou o voucher</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cancelledBy" type="java.lang.String">
+					<description>Quem cancelou</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cancelReason" type="java.lang.String">
+					<description>Motivo do cancelamento</description>
+					<persistence type="property"/>
+				</attribute>
 			</attributes>
 			<indexes>
 				<index name="socioRedemptionCustomer">
@@ -855,6 +914,145 @@
 				</index>
 				<index name="socioRedemptionVoucher" unique="true">
 					<key attribute="voucher"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+
+		<!--
+			Ingresso vendido (item 10 do plano de evolução): um por poltrona, criado ao fechar o
+			pedido (e por script para os pedidos antigos). O gestor de jogos troca a poltrona,
+			troca quem vai usar, cancela com reembolso e marca como utilizado; cada ação vai
+			para o histórico (MatchdayTicketEvent). O pedido em si não muda.
+		-->
+		<itemtype code="MatchdayTicket" extends="GenericItem" autocreate="true" generate="true">
+			<description>Ingresso vendido (uma poltrona de um pedido)</description>
+			<deployment table="matchdaytickets" typecode="25912"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código do ingresso</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="game" type="MatchdayGame">
+					<description>Jogo</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="seat" type="Product">
+					<description>Poltrona (produto)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="sector" type="java.lang.String">
+					<description>Setor</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="seatLabel" type="java.lang.String">
+					<description>Poltrona como aparece para o torcedor</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="orderCode" type="java.lang.String">
+					<description>Pedido</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="entryNumber" type="java.lang.Integer">
+					<description>Linha do pedido</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="customer" type="Customer">
+					<description>Comprador</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="holder" type="java.lang.String">
+					<description>Quem vai usar (nome)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="guest" type="SocioGuest">
+					<description>Convidado do sócio que vai usar (vazio = titular)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="price" type="java.lang.Double">
+					<description>Valor pago (R$)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="memberDiscount" type="java.lang.Double">
+					<description>Desconto de sócio aplicado (R$)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="status" type="MatchdayTicketStatus">
+					<description>Situação</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="soldAt" type="java.util.Date">
+					<description>Vendido em</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cancelledAt" type="java.util.Date">
+					<description>Cancelado em</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="refundAmount" type="java.lang.Double">
+					<description>Valor reembolsado (R$)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="usedAt" type="java.util.Date">
+					<description>Utilizado (entrada no estádio) em</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="matchdayTicketCode" unique="true">
+					<key attribute="code"/>
+				</index>
+				<index name="matchdayTicketOrder">
+					<key attribute="orderCode"/>
+				</index>
+				<index name="matchdayTicketGame">
+					<key attribute="game"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<itemtype code="MatchdayTicketEvent" extends="GenericItem" autocreate="true" generate="true">
+			<description>Evento no histórico do ingresso (venda e ações do gestor)</description>
+			<deployment table="matchdayticketevents" typecode="25913"/>
+			<attributes>
+				<attribute qualifier="ticket" type="MatchdayTicket">
+					<description>Ingresso</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="type" type="MatchdayTicketEventType">
+					<description>O que aconteceu</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="date" type="java.util.Date">
+					<description>Quando</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="author" type="java.lang.String">
+					<description>Quem fez (gestor, torcedor ou sistema)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="fromValue" type="java.lang.String">
+					<description>Antes (ex.: poltrona ou titular anterior)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="toValue" type="java.lang.String">
+					<description>Depois</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="amount" type="java.lang.Double">
+					<description>Valor (ex.: reembolso)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="note" type="java.lang.String">
+					<description>Observação</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="matchdayTicketEventTicket">
+					<key attribute="ticket"/>
 				</index>
 			</indexes>
 		</itemtype>

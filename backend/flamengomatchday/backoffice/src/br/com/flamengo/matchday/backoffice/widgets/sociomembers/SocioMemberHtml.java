@@ -445,7 +445,11 @@ public class SocioMemberHtml
 		{
 			return "#107e3e";
 		}
-		if ("RESGATE_PONTOS".equals(type))
+		if ("RESGATE_CANCELADO".equals(type))
+		{
+			return "#b45309";
+		}
+		if ("RESGATE_PONTOS".equals(type) || "COMPRA_EXPERIENCIA".equals(type) || "VOUCHER_UTILIZADO".equals(type))
 		{
 			return "#0a6ed1";
 		}
