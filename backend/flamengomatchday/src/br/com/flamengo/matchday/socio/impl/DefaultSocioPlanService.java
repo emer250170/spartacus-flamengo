@@ -113,7 +113,9 @@ public class DefaultSocioPlanService implements SocioPlanService
 	private static final int STORE_COUPON_PRIORITY = 300;
 	/** Fora do desconto na loja: alimentos e bebidas, estacionamento, ingressos (jogos e poltronas) e planos */
 	private static final String[] STORE_EXCLUDED = { "flamengo_md_comidas", "flamengo_md_estacionamento", "flamengo_jogos_casa",
-			"setor", "setor-norte", "setor-sul", "setor-leste-inf", "setor-oeste-sup", "socio_torcedor", "socio_torcedor_fora" };
+			"setor", "setor-norte", "setor-sul", "setor-leste-inf", "setor-oeste-sup", "socio_torcedor", "socio_torcedor_fora",
+			// experiências vendidas na loja (item 9): sem desconto de sócio
+			"experiencias" };
 	private static final Pattern COUPONS = Pattern.compile("\"coupons\"\\s*:\\s*\\{[^{}]*?\"value\"\\s*:\\s*\\[([^\\]]*)\\]");
 	private static final Pattern DISCOUNT_VALUE = Pattern
 			.compile("\"value\"\\s*:\\s*\\{[^{}]*?\"type\"\\s*:\\s*\"java\\.math\\.BigDecimal\"[^{}]*?\"value\"\\s*:\\s*([0-9.]+)");

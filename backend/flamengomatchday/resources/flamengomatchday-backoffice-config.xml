@@ -893,6 +893,7 @@
 			<list-view:column qualifier="points"/>
 			<list-view:column qualifier="stock"/>
 			<list-view:column qualifier="minPlan"/>
+			<list-view:column qualifier="price"/>
 			<list-view:column qualifier="active"/>
 		</list-view:list-view>
 	</context>
@@ -932,6 +933,11 @@
 					<editorArea:attribute qualifier="stock"/>
 					<editorArea:attribute qualifier="minPlan"/>
 				</editorArea:section>
+				<editorArea:section name="socio.experience.editor.store">
+					<editorArea:attribute qualifier="price"/>
+					<editorArea:attribute qualifier="product" readonly="true"/>
+					<editorArea:attribute qualifier="statusMessage" readonly="true"/>
+				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>
 	</context>
@@ -952,6 +958,8 @@
 			<list-view:column qualifier="points"/>
 			<list-view:column qualifier="voucher"/>
 			<list-view:column qualifier="origin"/>
+			<list-view:column qualifier="amount"/>
+			<list-view:column qualifier="usedAt"/>
 			<list-view:column qualifier="cancelledAt"/>
 		</list-view:list-view>
 	</context>
@@ -963,6 +971,7 @@
 				<advanced-search:field name="experience" selected="true"/>
 				<advanced-search:field name="voucher" selected="true"/>
 				<advanced-search:field name="origin" selected="false"/>
+				<advanced-search:field name="orderCode" selected="false"/>
 			</advanced-search:field-list>
 			<advanced-search:sort-field name="date" asc="false"/>
 		</advanced-search:advanced-search>
@@ -983,7 +992,15 @@
 					<editorArea:attribute qualifier="date" readonly="true"/>
 					<editorArea:attribute qualifier="plan" readonly="true"/>
 					<editorArea:attribute qualifier="origin" readonly="true"/>
+					<editorArea:attribute qualifier="orderCode" readonly="true"/>
+					<editorArea:attribute qualifier="amount" readonly="true"/>
+				</editorArea:section>
+				<editorArea:section name="socio.redemption.editor.use">
+					<editorArea:attribute qualifier="usedAt"/>
+					<editorArea:attribute qualifier="usedBy" readonly="true"/>
 					<editorArea:attribute qualifier="cancelledAt"/>
+					<editorArea:attribute qualifier="cancelReason"/>
+					<editorArea:attribute qualifier="cancelledBy" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>

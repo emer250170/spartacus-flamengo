@@ -672,6 +672,25 @@ Desenho aprovado em 02/11: pontos calculados no servidor (nada de saldo gravado)
 
 Deploy (PR 8a): `ant all`; Update no HAC (tipos novos, só "Update running system" + "Localize types"); ImpEx do papel (`essentialdata-flamengomatchday-socio-role.impex`) e da vitrine (`07-socio-experiencias.impex`) importadas à parte; reiniciar antes de testar o Backoffice (rótulos dos tipos novos).
 
+### Experiências à venda na loja (item 9 do plano de evolução) — servidor
+
+As experiências da vitrine de pontos também são vendidas na loja, para qualquer torcedor, e continuam resgatáveis com pontos.
+
+| Parte | Como funciona |
+|---|---|
+| Produto | Experiência com **Preço na loja** vira o produto `EXP-<código>` ao salvar (`SocioExperienceInterceptor` → `SocioExperienceService.publish`). Ele fica no catálogo Online, na categoria `experiencias` ("Experiências"), com preço em BRL e estoque, e a busca é reindexada. Sem preço ou inativa, o produto sai da loja (fica não aprovado). |
+| Desconto de sócio | Não vale: a categoria `experiencias` está fora da regra de desconto da loja (`STORE_EXCLUDED`). |
+| Vagas únicas | O estoque do produto é a quantidade da experiência menos os vouchers válidos, de resgates e de compras. O resgate com pontos, a compra e o cancelamento ajustam o mesmo estoque. |
+| Compra | Ao fechar o pedido, cada unidade vira um voucher `NACAO-…` com origem "Compra", o pedido e o valor pago (`SocioExperiencePlaceOrderMethodHook`). O evento "Compra de experiência" entra na linha do tempo. Quem compra ganha pontos como em qualquer produto (1 por real). |
+| Plano mínimo | Vale só para o resgate com pontos. Qualquer torcedor pode comprar. |
+| Voucher | Preencher **Utilizado em** registra o uso (`usedAt`/`usedBy`) e o evento "Voucher utilizado"; um voucher usado não vale de novo. Preencher **Cancelado em** devolve a vaga (e, no resgate, os pontos) e registra o evento "Resgate cancelado". Numa compra, o reembolso é feito pelo atendimento. Tudo passa pelo `SocioRedemptionInterceptor` e pelo serviço (`useVoucher`, `cancelVoucher`), que o cockpit Gestão de experiências usa. |
+| API | `GET …/sociopoints` traz, em cada experiência, `price`, `productCode` e `buyable`, e, em cada resgate, `orderCode`, `amount` e `usedAt`. |
+| Chave | `flamengo.socio.experiencias.venda.ativo` (`false` = nada vai para a loja; o resgate continua). |
+
+Dados: `07-socio-experiencias.impex` traz a coluna `price` (Tour R$ 120, Treino R$ 180, Foto com jogador R$ 450, Manto R$ 900, Entrada em campo R$ 1.200). Importar depois do Update.
+
+O mesmo Update cria os tipos do item 10 (`MatchdayTicket` e `MatchdayTicketEvent`, com os enums `MatchdayTicketStatus` e `MatchdayTicketEventType`). Eles ficam sem uso até o item 10.
+
 ### Cockpit Merchandising Flamengo (item 11 do plano de evolução)
 
 Perspectiva nova no Backoffice para o time de marketing: promoções e cupons num lugar só, em português. Só configuração: as telas são as padrão do SAP Commerce (lista, busca e ficha, com o construtor de regras e a publicação no motor de regras).

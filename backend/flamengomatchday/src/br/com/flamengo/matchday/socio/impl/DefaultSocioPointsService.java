@@ -6,6 +6,7 @@ import br.com.flamengo.matchday.model.SocioExperienceModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.model.SocioRedemptionModel;
 import br.com.flamengo.matchday.service.SeatHoldService;
+import br.com.flamengo.matchday.socio.SocioExperienceService;
 import br.com.flamengo.matchday.socio.SocioPaymentService;
 import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -61,6 +62,7 @@ public class DefaultSocioPointsService implements SocioPointsService
 	private CommonI18NService commonI18NService;
 	private SessionService sessionService;
 	private SearchRestrictionService searchRestrictionService;
+	private SocioExperienceService socioExperienceService;
 
 	@Override
 	public boolean isEnabled()
@@ -126,6 +128,9 @@ public class DefaultSocioPointsService implements SocioPointsService
 			x.date = r.getDate() != null ? r.getDate() : r.getCreationtime();
 			x.origin = r.getOrigin();
 			x.cancelledAt = r.getCancelledAt();
+			x.orderCode = r.getOrderCode();
+			x.amount = r.getAmount();
+			x.usedAt = r.getUsedAt();
 			if (x.cancelledAt == null)
 			{
 				p.redeemed += x.points;
@@ -151,6 +156,7 @@ public class DefaultSocioPointsService implements SocioPointsService
 			}
 			x.reason = experienceReason(e, x, plan, p);
 			x.redeemable = x.reason == null;
+			sale(e, x);
 			p.experiences.add(x);
 		}
 		return p;
@@ -287,6 +293,19 @@ public class DefaultSocioPointsService implements SocioPointsService
 		return null;
 	}
 
+	/** Venda na loja (item 9): preço e produto quando a experiência está à venda */
+	protected void sale(final SocioExperienceModel e, final SocioPoints.Experience x)
+	{
+		if (socioExperienceService == null || !socioExperienceService.isSaleEnabled() || e.getProduct() == null
+				|| e.getPrice() == null || e.getPrice().doubleValue() <= 0)
+		{
+			return;
+		}
+		x.price = e.getPrice();
+		x.productCode = e.getProduct().getCode();
+		x.buyable = x.available == null || x.available.intValue() > 0;
+	}
+
 	// ------------------------------------------------------------ resgate
 
 	@Override
@@ -322,6 +341,10 @@ public class DefaultSocioPointsService implements SocioPointsService
 			r.setPlan(socioPlanService.memberPlan(customer));
 			r.setOrigin(StringUtils.defaultIfBlank(origin, "Loja"));
 			modelService.save(r);
+			if (socioExperienceService != null)
+			{
+				socioExperienceService.syncStock(experience); // vaga única: o produto da loja perde a vaga também
+			}
 			LOG.info("Resgate {}: {} usou {} pontos em {}", r.getVoucher(), customer.getUid(), x.points, experienceCode);
 			record(customer, r, x, p.balance - x.points);
 			return r;
@@ -530,5 +553,10 @@ public class DefaultSocioPointsService implements SocioPointsService
 	public void setSearchRestrictionService(final SearchRestrictionService searchRestrictionService)
 	{
 		this.searchRestrictionService = searchRestrictionService;
+	}
+
+	public void setSocioExperienceService(final SocioExperienceService socioExperienceService)
+	{
+		this.socioExperienceService = socioExperienceService;
 	}
 }

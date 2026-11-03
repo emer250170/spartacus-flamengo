@@ -149,6 +149,9 @@ public class SocioPointsController
 			x.put("date", format(r.date));
 			x.put("origin", r.origin);
 			x.put("cancelledAt", format(r.cancelledAt));
+			x.put("orderCode", r.orderCode);
+			x.put("amount", r.amount);
+			x.put("usedAt", format(r.usedAt));
 			redemptions.add(x);
 		}
 		m.put("redemptions", redemptions);
@@ -164,6 +167,9 @@ public class SocioPointsController
 			x.put("minPlanCode", e.minPlanCode);
 			x.put("minPlanName", e.minPlanName);
 			x.put("redeemable", Boolean.valueOf(e.redeemable));
+			x.put("price", e.price);
+			x.put("productCode", e.productCode);
+			x.put("buyable", Boolean.valueOf(e.buyable));
 			x.put("reason", e.reason);
 			experiences.add(x);
 		}
