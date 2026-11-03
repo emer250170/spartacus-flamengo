@@ -532,6 +532,31 @@
 		</widget>
 	</widget-extension>
 
+	<!--
+	  Painel inicial do Cockpit de administração por papel. O padrão (sem papel) mostra os
+	  gráficos do sistema (threads, CPU, memória); os gestores veem o painel do seu assunto.
+	  Os widgets ficam no slot dashboardWidgets e cada papel escolhe o seu no contexto
+	  "dashboard" (flamengomatchday-backoffice-config.xml). O administrador não muda.
+	-->
+	<widget-extension widgetId="backoffice_dashboard">
+		<widget id="flaMerchDashboard" widgetDefinitionId="br.com.flamengo.matchday.widgets.merchdashboard"
+				slotId="dashboardWidgets" template="false">
+			<virtual-sockets/>
+		</widget>
+		<widget id="flaMatchdayDashboard" widgetDefinitionId="br.com.flamengo.matchday.widgets.matchdayreport"
+				slotId="dashboardWidgets" template="false">
+			<virtual-sockets/>
+		</widget>
+		<widget id="flaSocioDashboard" widgetDefinitionId="br.com.flamengo.matchday.widgets.socioreport"
+				slotId="dashboardWidgets" template="false">
+			<virtual-sockets/>
+		</widget>
+	</widget-extension>
+
+	<!-- Atalhos do painel de merchandising: abrir lista no menu e assistente de criação -->
+	<widget-connection sourceWidgetId="flaMerchDashboard" outputId="openNode" targetWidgetId="explorerTree" inputId="nodeIdSelected"/>
+	<widget-connection sourceWidgetId="flaMerchDashboard" outputId="createWizard" targetWidgetId="configurableFlow" inputId="context"/>
+
 	<!-- Menu -->
 	<widget-connection sourceWidgetId="backofficeMainSlot" outputId="perspectiveSelected" targetWidgetId="matchdayPerspectiveChecker" inputId="input"/>
 	<widget-connection sourceWidgetId="matchdayPerspectiveChecker" outputId="true" targetWidgetId="matchdayGamesSelector" inputId="genericInput"/>

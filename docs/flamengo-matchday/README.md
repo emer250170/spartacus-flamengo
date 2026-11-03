@@ -684,6 +684,22 @@ Perspectiva nova no Backoffice para o time de marketing: promoções e cupons nu
 
 Deploy: `ant all`, reiniciar, importar a ImpEx do papel à parte, definir a senha do `gestor.merchandising` no Backoffice e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
 
+#### Painel inicial dos gestores no Cockpit de administração
+
+O painel padrão do Cockpit de administração mostra gráficos do sistema (threads, CPU, memória). Para os gestores ele foi trocado pelo painel do assunto de cada um. O administrador continua com o painel do sistema.
+
+| Papel | Painel |
+|---|---|
+| Gestor de merchandising | **Painel de merchandising** (widget `merchdashboard`, `MerchDashboardService`). Mostra regras publicadas (e quantas vencem em 7 dias), regras em rascunho, cupons ativos, usos de cupom e desconto concedido nos pedidos dos últimos 30 dias. Traz também a lista das regras publicadas por prioridade, os 5 cupons mais usados e os atalhos Nova regra, Novo cupom, Ver regras e Ver cupons. |
+| Gestor de jogos | Relatório de vendas de ingressos (o mesmo da perspectiva Matchday Flamengo). |
+| Gestor do sócio | Relatório do sócio-torcedor (o mesmo da perspectiva Sócio-Torcedor). |
+
+- **Configuração.** Os widgets ficam no slot `dashboardWidgets` do `backoffice_dashboard` (`flamengomatchday-backoffice-widgets.xml`). Cada papel escolhe o seu no contexto `dashboard` com `principal` (`flamengomatchday-backoffice-config.xml`).
+- **Regras consideradas.** Só as do grupo de promoção `flamengo.merch.painel.grupoPromocao` (padrão `electronicsPromoGrp`), na última versão de cada código.
+- **Janelas.** `flamengo.merch.painel.dias` (padrão 30) e `flamengo.merch.painel.vencendoDias` (padrão 7).
+- **Desconto.** Soma o desconto do pedido e o dos itens. Pedidos cancelados não contam.
+- **Deploy.** `ant all`, reiniciar e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.

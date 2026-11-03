@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Painel do gestor de merchandising; o conteúdo é montado pelo MerchDashboardController -->
+<widget xmlns="http://www.zkoss.org/2005/zul"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.zkoss.org/2005/zul http://www.hybris.com/schema/cockpitng/zul/zul.xsd"
+		height="100%">
+	<div height="100%" style="overflow:auto; box-sizing:border-box; padding:18px 24px; background:#f5f6f7;">
+		<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px; max-width:1320px;">
+			<label value="${labels.title}" style="font-size:22px; font-weight:700; color:#1d2d3e; margin-right:auto;"/>
+			<button id="newRuleButton" label="${labels.newRule}" sclass="y-btn-primary"/>
+			<button id="newCouponButton" label="${labels.newCoupon}"/>
+			<button id="rulesButton" label="${labels.openRules}"/>
+			<button id="couponsButton" label="${labels.openCoupons}"/>
+			<button id="refreshButton" label="${labels.refresh}"/>
+		</div>
+		<html id="dashboardContent"/>
+	</div>
+</widget>
