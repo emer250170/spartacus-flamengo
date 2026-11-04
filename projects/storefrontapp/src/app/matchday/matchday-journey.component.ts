@@ -5,7 +5,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { ActiveCartFacade, OrderEntry } from '@spartacus/cart/base/root';
 import {
   AuthRedirectService,
@@ -50,7 +50,7 @@ import {
   SocioGuestsService,
 } from '../socio/socio-guests.service';
 import { SocioService } from '../socio/socio.service';
-import { MatchdayDataService } from './matchday-data.service';
+import { MATCHES_CATEGORY, MatchdayDataService } from './matchday-data.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import {
   MATCHDAY_HOLD_MINUTES,
@@ -90,6 +90,18 @@ interface SeatCell {
 
 /** Etapas (textos em fla-texts: md.step.N) */
 const STEPS = [0, 1, 2, 3, 4, 5];
+/**
+ * Compra de ingresso (?modo=ingresso&jogo=..., 04/11): o jogo já foi escolhido na lista
+ * "Jogos em casa" (botão Escolher poltrona) ou na vitrine da home, então a etapa Jogo sai e
+ * ficam Setor e poltrona, Estacionamento, Comidas e bebidas, Camisa e Revisão; a
+ * elegibilidade vai para a coluna da direita, embaixo do resumo. A página de um jogo ou de
+ * uma poltrona também abre aqui (MatchdayTicketRedirectService).
+ */
+const TICKET_STEPS = [1, 2, 3, 4, 5];
+/** Lista "Jogos em casa": onde começa a compra de ingresso */
+export const TICKET_LIST_URL = ['/c', MATCHES_CATEGORY];
+export const TICKET_MODE_PARAM = 'modo';
+export const TICKET_MODE_VALUE = 'ingresso';
 const SEAT_ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const SEATS_PER_ROW = 12;
 const NO_PARKING = 'none';
@@ -107,7 +119,10 @@ const NO_PARKING = 'none';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatchdayJourneyComponent implements OnInit, OnDestroy {
-  readonly steps = STEPS;
+  /** Etapas visíveis (códigos md.step.N): todas, ou só as do ingresso */
+  steps: number[] = STEPS;
+  /** Compra só de ingresso (?modo=ingresso) */
+  ticketMode = false;
   readonly noParking = NO_PARKING;
   readonly seatRows = SEAT_ROWS;
 
@@ -171,6 +186,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   assigningFor?: string;
   /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
   protected requestedMatch?: string;
+  /** Poltrona vinda da página do produto (?poltrona=...): abre o setor dela */
+  protected requestedSeat?: string;
 
   /** Itens atuais do carrinho (base para ajustar o carrinho no fechamento) */
   protected cartEntries: OrderEntry[] = [];
@@ -200,12 +217,29 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     // a reserva some do carrinho por fora: o aviso aparece aqui, não no topo
     this.holdWatcher.start();
     this.holdWatcher.journeyOpen++;
-    this.requestedMatch =
-      this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
+    const query = this.router.parseUrl(this.router.url).queryParams;
+    this.requestedMatch = query['jogo'] || undefined;
+    this.requestedSeat = query['poltrona'] || undefined;
+    this.setTicketMode(query[TICKET_MODE_PARAM] === TICKET_MODE_VALUE);
+    // a mesma página troca de modo pela URL (ingresso <-> dia de jogo completo)
+    this.subscription.add(
+      this.router.events
+        .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+        .subscribe(() => {
+          const q = this.router.parseUrl(this.router.url).queryParams;
+          this.setTicketMode(q[TICKET_MODE_PARAM] === TICKET_MODE_VALUE);
+          this.cd.markForCheck();
+        })
+    );
     // volta do login: reabre o jogo, o setor e a poltrona escolhidos antes
     this.loginIntent = this.data.readLoginIntent();
     if (this.loginIntent && !this.requestedMatch) {
       this.requestedMatch = this.loginIntent.matchCode;
+    }
+    // ingresso sem jogo (link antigo): a compra começa na lista de jogos
+    if (this.ticketMode && !this.requestedMatch) {
+      this.router.navigate(TICKET_LIST_URL, { replaceUrl: true });
+      return;
     }
     // recarrega a cada visita (a ocupação das poltronas muda a cada venda) e
     // a cada troca de idioma (nomes e datas vêm da API no idioma do site)
@@ -309,6 +343,31 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   // ---------- navegação entre etapas ----------
 
+  /** Liga ou desliga a compra de ingresso (sem a etapa Jogo) */
+  protected setTicketMode(on: boolean): void {
+    if (on === this.ticketMode) {
+      return;
+    }
+    this.ticketMode = on;
+    this.steps = on ? TICKET_STEPS : STEPS;
+    if (!this.steps.includes(this.step)) {
+      this.step = this.steps[0];
+    }
+  }
+
+  /** Posição da etapa na barra (1, 2, 3...) */
+  stepPos(id: number): number {
+    return this.steps.indexOf(id);
+  }
+
+  get lastStep(): number {
+    return this.steps[this.steps.length - 1];
+  }
+
+  get firstStep(): number {
+    return this.steps[0];
+  }
+
   canOpen(index: number): boolean {
     if (index === 0) {
       return true;
@@ -332,15 +391,17 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   }
 
   next(): void {
-    if (this.step < STEPS.length - 1 && this.canOpen(this.step + 1)) {
-      this.step++;
+    const to = this.steps[this.stepPos(this.step) + 1];
+    if (to !== undefined && this.canOpen(to)) {
+      this.step = to;
       this.scrollTop();
     }
   }
 
   back(): void {
-    if (this.step > 0) {
-      this.step--;
+    const to = this.steps[this.stepPos(this.step) - 1];
+    if (to !== undefined) {
+      this.step = to;
       this.scrollTop();
     }
   }
@@ -360,7 +421,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   get nextLabel(): string {
     return this.i18n.t(
-      this.step === STEPS.length - 2 ? 'md.review' : 'md.continue'
+      this.steps[this.stepPos(this.step) + 1] === this.lastStep
+        ? 'md.review'
+        : 'md.continue'
     );
   }
 
@@ -455,7 +518,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     const guests =
       ELIGIBILITY.contractedLimit && this.guestInfo && !this.planInCart
         ? this.guestInfo.contracted
-        : this.memberPlan.maxGuests ?? 0;
+        : (this.memberPlan.maxGuests ?? 0);
     return 1 + Math.max(0, guests);
   }
 
@@ -465,8 +528,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
    * onda, biometria e limite por jogo).
    */
   eligibility(match: MatchdayMatch): EligibilityCheck[] {
-    const t = (key: string, p?: Record<string, unknown>) =>
-      this.i18n.t(key, p);
+    const t = (key: string, p?: Record<string, unknown>) => this.i18n.t(key, p);
     const checks: EligibilityCheck[] = [];
     if (this.suspendedPlan) {
       checks.push({
@@ -547,7 +609,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
             key: 'limit',
             state: 'no',
             text: t(
-              this.memberPlan ? 'md.elig.limit.member' : 'md.elig.limit.general',
+              this.memberPlan
+                ? 'md.elig.limit.member'
+                : 'md.elig.limit.general',
               { n: have, max, plan: this.memberPlan?.name ?? '' }
             ),
           }
@@ -715,9 +779,35 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           .pipe(take(1))
           .subscribe((entries) => this.restoreHold(entries));
         this.resumeLoginIntent();
+        this.applyRequestedSeat();
         this.cd.markForCheck();
       })
     );
+  }
+
+  /**
+   * Veio da página de uma poltrona (?poltrona=...): abre a etapa Setor e poltrona no setor
+   * dela. Não reserva: o torcedor confirma clicando na poltrona.
+   */
+  protected applyRequestedSeat(): void {
+    const code = this.requestedSeat;
+    const match = this.match;
+    if (!code || !match?.seatsLoaded || !code.startsWith(match.code + '-')) {
+      return;
+    }
+    this.requestedSeat = undefined;
+    if (this.held || this.sector || (!this.canBuy(match) && !this.held)) {
+      return;
+    }
+    // a poltrona está na lista do setor; no modelo antigo (só setor) o código do setor é o
+    // da variante
+    const sector =
+      match.sectors.find((s) => s.seats.some((x) => x.code === code)) ??
+      match.sectors.find((s) => s.code === code);
+    if (sector) {
+      this.step = 1;
+      this.selectSector(sector);
+    }
   }
 
   // ---------- etapa 2: setor e poltrona ----------

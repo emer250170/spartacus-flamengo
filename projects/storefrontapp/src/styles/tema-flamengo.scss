@@ -484,3 +484,23 @@ cx-page-layout.MultiStepCheckoutSummaryPageTemplate cx-page-slot.SideContent {
     }
   }
 }
+
+// Lista de produtos sem filtros (ex.: Ingressos > Jogos em casa, 04/11): a coluna de
+// filtros vazia some e a lista ocupa a largura toda. Categorias com filtros não mudam.
+cx-page-layout.ProductListPageTemplate:not(:has(cx-facet-list .tab-btn)) {
+  cx-page-slot.ProductLeftRefinements {
+    display: none !important;
+  }
+
+  cx-page-slot.ProductListSlot {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+// Card de jogo na lista: "Escolher poltrona" (MatchdayTicketActionComponent) no lugar de
+// "Adicionar ao carrinho"
+cx-product-list-item:has(.fla-ticket-btn) cx-add-to-cart,
+cx-product-grid-item:has(.fla-ticket-btn) cx-add-to-cart {
+  display: none !important;
+}

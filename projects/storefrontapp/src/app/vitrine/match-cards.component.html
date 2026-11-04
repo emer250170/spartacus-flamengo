@@ -20,7 +20,7 @@
       <a
         class="vt-media"
         [routerLink]="'/matchday'"
-        [queryParams]="{ jogo: m.code }"
+        [queryParams]="{ jogo: m.code, modo: 'ingresso' }"
         tabindex="-1"
         aria-hidden="true"
       >
@@ -50,7 +50,7 @@
           <a
             class="vt-btn"
             [routerLink]="'/matchday'"
-            [queryParams]="{ jogo: m.code }"
+            [queryParams]="{ jogo: m.code, modo: 'ingresso' }"
             >{{ 'vit.games.cta' | flaT }}</a
           >
         </div>

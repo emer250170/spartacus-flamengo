@@ -1,4 +1,4 @@
-// Mapa do Maracanã (escolha do setor). Cores herdadas da jornada (--md-*).
+// Mapa do Maracanã (escolha do setor). Cores herdadas da jornada (--md-*); claro desde 04/11.
 :host {
   display: block;
   margin-bottom: 20px;
@@ -22,7 +22,7 @@
 }
 
 .sm-shell {
-  fill: #121214;
+  fill: #e4e4e7;
   stroke: var(--md-line, #2e2e33);
   stroke-width: 2;
 }
@@ -33,9 +33,11 @@
   outline: none;
 
   .sm-area {
-    stroke: #0b0b0c;
+    stroke: #ffffff;
     stroke-width: 2;
-    transition: fill 0.15s ease, filter 0.15s ease;
+    transition:
+      fill 0.15s ease,
+      filter 0.15s ease;
   }
   text {
     text-anchor: middle;
@@ -62,16 +64,16 @@
   }
   &.is-selected .sm-area {
     fill: var(--md-red, #d70000);
-    stroke: #fff;
+    stroke: #1b1b1b;
     stroke-width: 3;
   }
   &.is-soldout {
     cursor: not-allowed;
     .sm-area {
-      fill: #3f3f46;
+      fill: #d4d4d8;
     }
     text {
-      fill: #a1a1aa;
+      fill: #71717a;
     }
   }
 
@@ -79,7 +81,7 @@
     filter: brightness(1.2);
   }
   &:focus-visible .sm-area {
-    stroke: #fff;
+    stroke: #1b1b1b;
     stroke-width: 3;
   }
 }
@@ -138,9 +140,9 @@
   }
   &.is-selected {
     background: var(--md-red, #d70000);
-    outline: 2px solid #fff;
+    outline: 2px solid #1b1b1b;
   }
   &.is-soldout {
-    background: #3f3f46;
+    background: #d4d4d8;
   }
 }

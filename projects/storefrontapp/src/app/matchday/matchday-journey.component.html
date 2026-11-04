@@ -1,10 +1,13 @@
-<section class="md" aria-labelledby="md-title">
-  <div class="md-hero">
-    <div class="md-wrap">
-      <p class="md-eyebrow">{{ 'md.eyebrow' | flaT }}</p>
-      <h1 id="md-title" class="md-title">{{ 'md.title' | flaT }}</h1>
-      <p class="md-lead">{{ 'md.lead' | flaT }}</p>
-    </div>
+<section
+  class="md"
+  [attr.aria-label]="(ticketMode ? 'md.ticketTitle' : 'md.title') | flaT"
+>
+  <!-- o título e o breadcrumb são os do cabeçalho padrão da loja (MatchdayPageMetaResolver);
+       aqui só a frase de apoio (04/11) -->
+  <div class="md-wrap">
+    <p class="md-lead">
+      {{ (ticketMode ? 'md.ticketLead' : 'md.lead') | flaT }}
+    </p>
   </div>
 
   <div class="md-wrap">
@@ -65,11 +68,11 @@
             <button
               type="button"
               class="md-step"
-              [class.is-active]="i === step"
-              [class.is-done]="i < step"
-              [disabled]="!canOpen(i)"
-              [attr.aria-current]="i === step ? 'step' : null"
-              (click)="goTo(i)"
+              [class.is-active]="n === step"
+              [class.is-done]="i < stepPos(step)"
+              [disabled]="!canOpen(n)"
+              [attr.aria-current]="n === step ? 'step' : null"
+              (click)="goTo(n)"
             >
               <span class="md-step-num" aria-hidden="true">{{ i + 1 }}</span>
               <span class="md-step-label">{{ 'md.step.' + n | flaT }}</span>
@@ -131,80 +134,41 @@
               </button>
             </div>
 
-            <p
-              *ngIf="match && !match.seatsLoaded"
-              class="md-muted md-seats-loading"
+            <ng-container *ngTemplateOutlet="matchStatusTpl"></ng-container>
+            <ng-container *ngTemplateOutlet="eligTpl"></ng-container>
+          </section>
+
+          <!-- modo ingresso (sem a etapa Jogo): situação do jogo escolhido na lista -->
+          <ng-container *ngIf="ticketMode">
+            <div
+              *ngIf="!match"
+              class="md-panel md-ticket-nomatch"
               role="status"
             >
-              {{ 'md.seatsLoading' | flaT }}
-            </p>
-
-            <ng-container *ngIf="match && waveFor(match) as w">
-              <div *ngIf="!w.open && !held" class="md-lock" role="alert">
-                <p class="md-lock-title">{{ 'md.lock.title' | flaT }}</p>
-                <p class="md-muted">{{ lockText(w) }}</p>
-                <ol class="md-wave-schedule">
-                  <li
-                    *ngFor="let s of waveSchedule(match)"
-                    [class.is-current]="s.wave === w.current"
-                    [class.is-mine]="s.wave === w.mine"
-                  >
-                    <span>{{ s.label }}</span>
-                    <span>{{ shortDate(s.at) }}</span>
-                  </li>
-                </ol>
-                <a
-                  *ngIf="suspendedPlan"
-                  class="btn btn-primary"
-                  routerLink="/my-account/socio-torcedor"
-                  >{{ 'md.regularize' | flaT }}</a
-                >
-                <a
-                  *ngIf="canUpgrade"
-                  class="btn btn-primary"
-                  routerLink="/socio-torcedor"
-                  [queryParams]="{ jogo: match.code }"
-                  >{{
-                    (memberPlan ? 'md.lock.upgrade' : 'md.lock.join') | flaT
-                  }}</a
-                >
-              </div>
-            </ng-container>
-
-            <!-- Elegibilidade: as condições que o SAP Commerce confere ao pôr a poltrona no carrinho -->
-            <ng-container *ngIf="loggedIn && match && match.seatsLoaded">
-              <div
-                *ngIf="eligibility(match) as checks"
-                class="md-elig"
-                [class.is-ok]="isEligible(checks)"
-                aria-labelledby="md-elig-title"
+              <p>{{ 'md.ticketNoMatch' | flaT }}</p>
+              <a class="md-btn" routerLink="/c/flamengo_jogos_casa">{{
+                'md.ticketPickGame' | flaT
+              }}</a>
+            </div>
+            <ng-container *ngIf="match && step === firstStep">
+              <ng-container *ngTemplateOutlet="matchStatusTpl"></ng-container>
+              <p
+                *ngIf="
+                  match.seatsLoaded &&
+                  !canOpen(firstStep) &&
+                  waveFor(match).open
+                "
+                class="md-lock"
+                role="alert"
               >
-                <p id="md-elig-title" class="md-elig-title">
-                  {{ 'md.elig.title' | flaT }}
-                </p>
-                <p class="md-small md-elig-summary">
-                  {{
-                    (isEligible(checks) ? 'md.elig.yes' : 'md.elig.no') | flaT
-                  }}
-                </p>
-                <ul class="md-elig-list">
-                  <li *ngFor="let c of checks" [class]="'is-' + c.state">
-                    <span class="md-elig-icon" aria-hidden="true">{{
-                      c.state === 'ok' ? '✓' : c.state === 'warn' ? '!' : '✕'
-                    }}</span>
-                    <span class="md-vh">{{
-                      'md.elig.state.' + c.state | flaT
-                    }}</span>
-                    <span>{{ c.text }}</span>
-                  </li>
-                </ul>
-              </div>
+                {{ 'md.ticketBlocked' | flaT }}
+              </p>
             </ng-container>
-          </section>
+          </ng-container>
 
           <!-- 2. Setor e poltrona -->
           <section
-            *ngIf="step === 1 && match"
+            *ngIf="step === 1 && match && (!ticketMode || canOpen(1))"
             class="md-panel"
             aria-labelledby="md-s2"
           >
@@ -290,7 +254,9 @@
                     (click)="selectSeat(c)"
                   >
                     {{
-                      guestSeatAt(c) ? initials(guestSeatAt(c)!.holder) : c.number
+                      guestSeatAt(c)
+                        ? initials(guestSeatAt(c)!.holder)
+                        : c.number
                     }}
                   </button>
                 </div>
@@ -407,9 +373,11 @@
                 <ng-template #noCompanions>
                   <p class="md-small">
                     {{ 'md.comp.none' | flaT }}
-                    <a routerLink="/my-account/socio-torcedor" class="md-link">{{
-                      'md.comp.register' | flaT
-                    }}</a>
+                    <a
+                      routerLink="/my-account/socio-torcedor"
+                      class="md-link"
+                      >{{ 'md.comp.register' | flaT }}</a
+                    >
                   </p>
                 </ng-template>
                 <p *ngIf="assigningFor" class="md-hold" role="status">
@@ -657,11 +625,14 @@
             </button>
           </section>
 
-          <div class="md-actions" *ngIf="step < steps.length - 1">
+          <div class="md-actions" *ngIf="step !== lastStep">
             <button
               type="button"
               class="md-btn md-btn-ghost"
-              [disabled]="step === 0"
+              [disabled]="step === firstStep"
+              [style.visibility]="
+                ticketMode && step === firstStep ? 'hidden' : null
+              "
               (click)="back()"
             >
               {{ 'md.back' | flaT }}
@@ -675,46 +646,121 @@
               {{ nextLabel }}
             </button>
           </div>
-          <div class="md-actions" *ngIf="step === steps.length - 1">
+          <div class="md-actions" *ngIf="step === lastStep">
             <button type="button" class="md-btn md-btn-ghost" (click)="back()">
               {{ 'md.back' | flaT }}
             </button>
           </div>
         </div>
 
-        <aside class="md-summary" [attr.aria-label]="'md.summary' | flaT">
-          <h2 class="md-h3">{{ 'md.summary' | flaT }}</h2>
-          <p *ngIf="!lines.length" class="md-muted">
-            {{ 'md.summaryEmpty' | flaT }}
-          </p>
-          <ul *ngIf="lines.length">
-            <li *ngFor="let l of lines">
-              <span>
-                <span class="md-sum-label">{{ l.label }}</span>
-                <span class="md-small">{{ l.detail }}</span>
-              </span>
-              <span class="md-sum-price">{{ brl(l.price) }}</span>
-            </li>
-          </ul>
-          <p class="md-sum-total">
-            <span>{{ 'md.total' | flaT }}</span>
-            <strong>{{ brl(total) }}</strong>
-          </p>
-          <p class="md-small">
-            {{
-              itemCount === 1
-                ? ('md.items.one' | flaT)
-                : ('md.items.many' | flaT: { n: itemCount })
-            }}
-          </p>
-          <p
-            *ngIf="held?.expiresAt && !holdExpired"
-            class="md-small md-sum-hold"
-          >
-            {{ 'md.heldSummary' | flaT: { time: remainingLabel } }}
-          </p>
-        </aside>
+        <div class="md-side">
+          <aside class="md-summary" [attr.aria-label]="'md.summary' | flaT">
+            <h2 class="md-h3">{{ 'md.summary' | flaT }}</h2>
+            <p *ngIf="!lines.length" class="md-muted">
+              {{ 'md.summaryEmpty' | flaT }}
+            </p>
+            <ul *ngIf="lines.length">
+              <li *ngFor="let l of lines">
+                <span>
+                  <span class="md-sum-label">{{ l.label }}</span>
+                  <span class="md-small">{{ l.detail }}</span>
+                </span>
+                <span class="md-sum-price">{{ brl(l.price) }}</span>
+              </li>
+            </ul>
+            <p class="md-sum-total">
+              <span>{{ 'md.total' | flaT }}</span>
+              <strong>{{ brl(total) }}</strong>
+            </p>
+            <p class="md-small">
+              {{
+                itemCount === 1
+                  ? ('md.items.one' | flaT)
+                  : ('md.items.many' | flaT: { n: itemCount })
+              }}
+            </p>
+            <p
+              *ngIf="held?.expiresAt && !holdExpired"
+              class="md-small md-sum-hold"
+            >
+              {{ 'md.heldSummary' | flaT: { time: remainingLabel } }}
+            </p>
+          </aside>
+          <!-- modo ingresso: a elegibilidade fica embaixo do resumo, em todas as etapas -->
+          <ng-container *ngIf="ticketMode">
+            <ng-container *ngTemplateOutlet="eligTpl"></ng-container>
+          </ng-container>
+        </div>
       </div>
     </ng-container>
   </div>
 </section>
+
+<!-- carregando poltronas e aviso da onda: na etapa Jogo, ou no topo do modo ingresso -->
+<ng-template #matchStatusTpl>
+  <p
+    *ngIf="match && !match.seatsLoaded"
+    class="md-muted md-seats-loading"
+    role="status"
+  >
+    {{ 'md.seatsLoading' | flaT }}
+  </p>
+
+  <ng-container *ngIf="match && waveFor(match) as w">
+    <div *ngIf="!w.open && !held" class="md-lock" role="alert">
+      <p class="md-lock-title">{{ 'md.lock.title' | flaT }}</p>
+      <p class="md-muted">{{ lockText(w) }}</p>
+      <ol class="md-wave-schedule">
+        <li
+          *ngFor="let s of waveSchedule(match)"
+          [class.is-current]="s.wave === w.current"
+          [class.is-mine]="s.wave === w.mine"
+        >
+          <span>{{ s.label }}</span>
+          <span>{{ shortDate(s.at) }}</span>
+        </li>
+      </ol>
+      <a
+        *ngIf="suspendedPlan"
+        class="btn btn-primary"
+        routerLink="/my-account/socio-torcedor"
+        >{{ 'md.regularize' | flaT }}</a
+      >
+      <a
+        *ngIf="canUpgrade"
+        class="btn btn-primary"
+        routerLink="/socio-torcedor"
+        [queryParams]="{ jogo: match.code }"
+        >{{ (memberPlan ? 'md.lock.upgrade' : 'md.lock.join') | flaT }}</a
+      >
+    </div>
+  </ng-container>
+</ng-template>
+
+<ng-template #eligTpl>
+  <!-- Elegibilidade: as condições que o SAP Commerce confere ao pôr a poltrona no carrinho -->
+  <ng-container *ngIf="loggedIn && match && match.seatsLoaded">
+    <div
+      *ngIf="eligibility(match) as checks"
+      class="md-elig"
+      [class.is-ok]="isEligible(checks)"
+      aria-labelledby="md-elig-title"
+    >
+      <p id="md-elig-title" class="md-elig-title">
+        {{ 'md.elig.title' | flaT }}
+      </p>
+      <p class="md-small md-elig-summary">
+        {{ (isEligible(checks) ? 'md.elig.yes' : 'md.elig.no') | flaT }}
+      </p>
+      <ul class="md-elig-list">
+        <li *ngFor="let c of checks" [class]="'is-' + c.state">
+          <span class="md-elig-icon" aria-hidden="true">{{
+            c.state === 'ok' ? '✓' : c.state === 'warn' ? '!' : '✕'
+          }}</span>
+          <span class="md-vh">{{ 'md.elig.state.' + c.state | flaT }}</span>
+          <span>{{ c.text }}</span>
+        </li>
+      </ul>
+    </div>
+  </ng-container>
+</ng-template>
