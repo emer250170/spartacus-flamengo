@@ -402,9 +402,20 @@ cx-page-layout.OrderConfirmationPageTemplate cx-page-slot.BodyContent {
     }
   }
 
-  cx-order-confirmation-totals .cx-order-summary {
-    @media (min-width: 992px) {
-      padding-inline-end: 15px;
+  // Resumo do pedido (04/11): à esquerda, na mesma coluna do bloco Pagamento/Endereço de
+  // cobrança, e com 2.5rem até o rodapé. A linha do Spartacus usa justify-content-end, que no
+  // Bootstrap tem !important.
+  cx-order-confirmation-totals {
+    margin-bottom: 2.5rem;
+
+    .cx-order-summary {
+      @media (min-width: 992px) {
+        padding-inline-end: 15px;
+      }
+
+      .row.justify-content-end {
+        justify-content: flex-start !important;
+      }
     }
   }
 }
