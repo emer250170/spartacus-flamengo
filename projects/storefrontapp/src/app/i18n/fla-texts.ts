@@ -186,6 +186,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
 
     // detalhe do pedido: linha abaixo do título
     'od.number': 'Número: {code}',
+    // detalhe da devolução: pedido de origem abaixo do título
+    'rr.order': 'Pedido nº {code}',
 
     // confirmação do pedido
     'mdc.title': 'Tudo pronto para o jogo',
@@ -817,6 +819,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'mdb.all': 'See all matches',
 
     'od.number': 'Number: {code}',
+    'rr.order': 'Order no. {code}',
     'mdc.title': 'All set for the match',
     'mdc.sub':
       'Order #{code} · ticket, parking, food and jersey in one single order.',

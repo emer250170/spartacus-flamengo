@@ -426,6 +426,28 @@ cx-order-details-totals .row.justify-content-end {
   justify-content: flex-start !important;
 }
 
+// Detalhe da devolução (04/11): Totais da devolução à esquerda, alinhados com a tabela de
+// itens (texto na mesma linha do "Descrição"), e com espaço até o rodapé, como no detalhe do
+// pedido. O Spartacus põe 40px de recuo no componente; a linha usa justify-content-end
+// (Bootstrap, !important).
+cx-return-request-totals {
+  display: block;
+  margin-bottom: 2.5rem;
+  padding-inline: 0 !important;
+
+  .row {
+    margin-inline: 0;
+  }
+
+  .row.justify-content-end {
+    justify-content: flex-start !important;
+  }
+
+  .cx-summary {
+    padding-inline-start: 8px;
+  }
+}
+
 // Detalhe do pedido (04/11): a barra do breadcrumb é uma linha flexível sem quebra; com o
 // "Número: 00025001" (fla-order-number-header) ela quebra para o número ficar embaixo do título.
 cx-page-slot.BottomHeaderSlot:has(.fla-order-number) {

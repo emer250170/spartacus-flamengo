@@ -1,24 +1,32 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RoutingService } from '@spartacus/core';
-import { Observable } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
+import { OrderReturnRequestFacade } from '@spartacus/order/root';
+import { Observable, of } from 'rxjs';
+import { distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+
+interface HeaderLine {
+  key: string;
+  code: string;
+}
 
 /**
- * Detalhe do pedido (Minha conta › Pedidos › pedido): "Número: 00025001" logo abaixo do título
- * "Detalhes do pedido", no mesmo cabeçalho cinza, como na confirmação do pedido (pedido do
- * Emerson, 04/11). Entra pelo outlet do componente de breadcrumb e só aparece na rota
- * orderDetails.
+ * Linha abaixo do título, no mesmo cabeçalho cinza, como na confirmação do pedido (pedidos do
+ * Emerson, 04/11). Entra pelo outlet do componente de breadcrumb:
+ * - detalhe do pedido (orderDetails): "Número: 00025001";
+ * - detalhe da devolução (returnRequestDetails): "Pedido nº 00024010", o pedido de origem,
+ *   lido da devolução que a própria tela já carregou (só usa o que bate com o código da rota).
+ * Nas outras páginas não aparece nada.
  */
 @Component({
   selector: 'fla-order-number-header',
   template: `
-    <div class="fla-order-number" *ngIf="code$ | async as code">
-      {{ 'od.number' | flaT: { code: code } }}
+    <div class="fla-order-number" *ngIf="line$ | async as line">
+      {{ line.key | flaT: { code: line.code } }}
     </div>
   `,
   styles: [
     `
-      /* sem caixa própria: vazio (fora do detalhe do pedido) não ocupa espaço na barra do
+      /* sem caixa própria: vazio (fora dessas telas) não ocupa espaço na barra do
          breadcrumb, que é uma linha flexível sem quebra */
       :host {
         display: contents;
@@ -39,16 +47,41 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderNumberHeaderComponent {
-  readonly code$: Observable<string | undefined> = this.routing
+  readonly line$: Observable<HeaderLine | undefined> = this.routing
     .getRouterState()
     .pipe(
-      map((router) =>
-        router?.state?.semanticRoute === 'orderDetails'
-          ? (router.state.params?.['orderCode'] as string | undefined)
-          : undefined
+      map((router) => ({
+        route: router?.state?.semanticRoute,
+        params: router?.state?.params ?? {},
+      })),
+      distinctUntilChanged(
+        (a, b) =>
+          a.route === b.route &&
+          a.params['orderCode'] === b.params['orderCode'] &&
+          a.params['returnCode'] === b.params['returnCode']
       ),
-      distinctUntilChanged()
+      switchMap(({ route, params }) => {
+        if (route === 'orderDetails' && params['orderCode']) {
+          return of({ key: 'od.number', code: params['orderCode'] as string });
+        }
+        if (route === 'returnRequestDetails' && params['returnCode']) {
+          return this.returnRequests
+            .getOrderReturnRequest()
+            .pipe(
+              map((request) =>
+                request?.rma === params['returnCode'] && request?.order?.code
+                  ? { key: 'rr.order', code: request.order.code }
+                  : undefined
+              )
+            );
+        }
+        return of(undefined);
+      }),
+      distinctUntilChanged((a, b) => a?.key === b?.key && a?.code === b?.code)
     );
 
-  constructor(protected routing: RoutingService) {}
+  constructor(
+    protected routing: RoutingService,
+    protected returnRequests: OrderReturnRequestFacade
+  ) {}
 }
