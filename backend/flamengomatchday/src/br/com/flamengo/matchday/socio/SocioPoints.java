@@ -90,5 +90,7 @@ public class SocioPoints
 		public String productCode;
 		/** Qualquer torcedor pode comprar agora (à venda e com vaga) */
 		public boolean buyable;
+		/** Imagem da vitrine (/medias/..., horizontal), ou null */
+		public String imageUrl;
 	}
 }

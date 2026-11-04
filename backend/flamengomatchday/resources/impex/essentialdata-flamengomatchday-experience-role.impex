@@ -39,4 +39,8 @@ BackofficeRole;experiencemanagerrole;;;;;;;;
 ;;;;Workflow;+;-;-;-;-
 ;;;;WorkflowAction;+;-;-;-;-
 ;;;;Comment;+;-;-;-;-
+;;;;Media;+;+;+;-;-
+;;;;MediaContainer;+;-;-;-;-
+;;;;MediaFormat;+;-;-;-;-
+;;;;MediaFolder;+;-;-;-;-
 $END_USERRIGHTS;;;;;;;;;

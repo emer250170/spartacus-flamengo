@@ -159,6 +159,7 @@ public class DefaultSocioPointsService implements SocioPointsService
 			x.reason = experienceReason(e, x, plan, p);
 			x.redeemable = x.reason == null;
 			sale(e, x);
+			x.imageUrl = e.getImage() == null ? null : e.getImage().getURL();
 			p.experiences.add(x);
 		}
 		return p;

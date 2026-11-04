@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Imagem do jogo ou da experiência (04/11): pré-visualização, botão para enviar a foto
+  (JPG, PNG ou GIF, até 5 MB) e botão para remover. A foto vira uma mídia na pasta images.
+  Parâmetro opcional "prefix": início do código da mídia (ex.: jogo, experiencia).
+-->
+<editor-definition id="br.com.flamengo.matchday.editor.image"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/editor-definition.xsd">
+	<name>Imagem (Flamengo)</name>
+	<description>Pré-visualização e envio de uma imagem</description>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<type>Reference(Media)</type>
+	<editorClassName>br.com.flamengo.matchday.backoffice.editors.FlaImageEditor</editorClassName>
+</editor-definition>

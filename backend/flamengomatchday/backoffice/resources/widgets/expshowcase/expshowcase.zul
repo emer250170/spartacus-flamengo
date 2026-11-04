@@ -31,6 +31,7 @@
 				<div><label value="${labels.formDescPt}"/><separator/><textbox id="descPtBox" rows="4" width="100%"/></div>
 				<div><label value="${labels.formDescEn}"/><separator/><textbox id="descEnBox" rows="4" width="100%"/></div>
 			</div>
+			<div style="margin-top:10px;"><label value="${labels.formImage}"/><separator/><div id="imageBox"/></div>
 			<div style="color:#556b82; font-size:12px; margin-top:8px;"><label value="${labels.formHint}"/></div>
 			<div style="display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap;">
 				<button id="saveButton" label="${labels.formSave}" sclass="y-btn-primary"/>

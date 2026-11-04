@@ -136,6 +136,11 @@
 					<description>Demonstração: % de poltronas que já abrem vendidas</description>
 					<persistence type="property"/>
 				</attribute>
+				<!-- Imagem da vitrine (04/11): uma foto horizontal (ex.: 1200x675); copiada para o produto do jogo -->
+				<attribute qualifier="image" type="Media">
+					<description>Imagem do jogo na vitrine (horizontal, ex.: 1200x675)</description>
+					<persistence type="property"/>
+				</attribute>
 				<attribute qualifier="status" type="MatchdayGameStatus">
 					<modifiers optional="false"/>
 					<persistence type="property"/>
@@ -828,6 +833,11 @@
 				</attribute>
 				<attribute qualifier="statusMessage" type="java.lang.String">
 					<description>Resultado da última publicação na loja</description>
+					<persistence type="property"/>
+				</attribute>
+				<!-- Imagem da vitrine (04/11): uma foto horizontal (ex.: 1200x675); copiada para o produto EXP- -->
+				<attribute qualifier="image" type="Media">
+					<description>Imagem da experiência na vitrine (horizontal, ex.: 1200x675)</description>
 					<persistence type="property"/>
 				</attribute>
 			</attributes>

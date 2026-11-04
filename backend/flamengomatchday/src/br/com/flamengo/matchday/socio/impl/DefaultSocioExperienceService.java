@@ -1,5 +1,6 @@
 package br.com.flamengo.matchday.socio.impl;
 
+import br.com.flamengo.matchday.media.ProductImageService;
 import br.com.flamengo.matchday.enums.SocioEventType;
 import br.com.flamengo.matchday.model.SocioEventModel;
 import br.com.flamengo.matchday.model.SocioExperienceModel;
@@ -72,6 +73,7 @@ public class DefaultSocioExperienceService implements SocioExperienceService
 	private SearchRestrictionService searchRestrictionService;
 	private UserService userService;
 	private SocioPlanService socioPlanService;
+	private ProductImageService productImageService;
 
 	@Override
 	public boolean isSaleEnabled()
@@ -138,11 +140,31 @@ public class DefaultSocioExperienceService implements SocioExperienceService
 		runImpex(lines, code);
 		final ProductModel product = findProduct(code);
 		experience.setProduct(product);
+		final String image = copyImage(experience, product);
 		reindex();
 		final String stock = remaining == null ? "sem limite de vagas" : number(remaining.intValue()) + " vagas";
-		return onSale ? "Na loja: " + code + " por " + money(experience.getPrice().doubleValue()) + ", " + stock + "."
+		return (onSale ? "Na loja: " + code + " por " + money(experience.getPrice().doubleValue()) + ", " + stock + "."
 				: "Fora da loja (" + (!isSaleEnabled() ? "venda desligada" : !active ? "experiência inativa" : "sem preço")
-						+ "). Quem já comprou continua com o voucher.";
+						+ "). Quem já comprou continua com o voucher.")
+				+ (image == null ? "" : " " + image);
+	}
+
+	/** Imagem da experiência no produto EXP-; erro na imagem não impede salvar a experiência */
+	protected String copyImage(final SocioExperienceModel experience, final ProductModel product)
+	{
+		if (productImageService == null || product == null)
+		{
+			return null;
+		}
+		try
+		{
+			return productImageService.copyToProduct(experience.getImage(), product);
+		}
+		catch (final RuntimeException e)
+		{
+			LOG.warn("Imagem da experiência {} não copiada: {}", experience.getCode(), e.getMessage(), e);
+			return "A imagem não foi copiada para o produto (" + StringUtils.defaultString(e.getMessage()) + ").";
+		}
 	}
 
 	@Override
@@ -417,6 +439,7 @@ public class DefaultSocioExperienceService implements SocioExperienceService
 				l.minPlanName = e.getMinPlan() == null ? null
 						: StringUtils.defaultIfBlank(e.getMinPlan().getName(PT), e.getMinPlan().getCode());
 				l.statusMessage = e.getStatusMessage();
+				l.imageUrl = e.getImage() == null ? null : e.getImage().getURL();
 				lines.put(e, l);
 				o.lines.add(l);
 			}
@@ -695,6 +718,11 @@ public class DefaultSocioExperienceService implements SocioExperienceService
 	public void setUserService(final UserService userService)
 	{
 		this.userService = userService;
+	}
+
+	public void setProductImageService(final ProductImageService productImageService)
+	{
+		this.productImageService = productImageService;
 	}
 
 	public void setSocioPlanService(final SocioPlanService socioPlanService)

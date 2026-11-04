@@ -104,6 +104,14 @@
 	</bean>
 
 	<!-- Jogos: tela "Jogos" do Backoffice -->
+	<!-- Imagem dos jogos e das experiências copiada para o produto da loja (04/11) -->
+	<bean id="flamengoProductImageService" class="br.com.flamengo.matchday.media.impl.DefaultProductImageService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="mediaService" ref="mediaService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+	</bean>
+
 	<bean id="matchdayGameService" class="br.com.flamengo.matchday.game.impl.DefaultMatchdayGameService">
 		<property name="modelService" ref="modelService"/>
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
@@ -112,6 +120,7 @@
 		<property name="mediaService" ref="mediaService"/>
 		<property name="cronJobService" ref="cronJobService"/>
 		<property name="configurationService" ref="configurationService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
 	</bean>
 
 	<bean id="matchdayGameInterceptor" class="br.com.flamengo.matchday.interceptor.MatchdayGameInterceptor">
@@ -417,6 +426,7 @@
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 		<property name="userService" ref="userService"/>
 		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
 	</bean>
 	<bean id="socioExperienceInterceptor" class="br.com.flamengo.matchday.socio.SocioExperienceInterceptor">
 		<property name="socioExperienceService" ref="socioExperienceService"/>

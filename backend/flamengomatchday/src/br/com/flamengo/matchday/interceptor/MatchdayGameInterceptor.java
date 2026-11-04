@@ -41,7 +41,7 @@ public class MatchdayGameInterceptor implements InitDefaultsInterceptor<Matchday
 	private static final List<String> CONTENT = Arrays.asList(MatchdayGameModel.OPPONENT, MatchdayGameModel.KICKOFF,
 			MatchdayGameModel.COMPETITION, MatchdayGameModel.VENUE, MatchdayGameModel.PRESALE, MatchdayGameModel.PRICENORTE,
 			MatchdayGameModel.PRICESUL, MatchdayGameModel.PRICELESTE, MatchdayGameModel.PRICEOESTE, MatchdayGameModel.WAVE1START,
-			MatchdayGameModel.WAVE2START, MatchdayGameModel.WAVE3START, MatchdayGameModel.GENERALSALESTART);
+			MatchdayGameModel.WAVE2START, MatchdayGameModel.WAVE3START, MatchdayGameModel.GENERALSALESTART, MatchdayGameModel.IMAGE);
 
 	/** Ondas em branco num jogo novo: 7, 6, 5 e 4 dias antes do jogo, às 10h */
 	private static final int[] DEFAULT_DAYS_BEFORE = { 7, 6, 5, 4 };

@@ -28,6 +28,7 @@ import de.hybris.platform.servicelayer.model.ModelService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
 import de.hybris.platform.servicelayer.search.FlexibleSearchService;
 import de.hybris.platform.variants.model.VariantProductModel;
+import br.com.flamengo.matchday.media.ProductImageService;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
@@ -70,6 +71,7 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 	private ModelService modelService;
 	private FlexibleSearchService flexibleSearchService;
 	private CatalogVersionService catalogVersionService;
+	private ProductImageService productImageService;
 	private ImportService importService;
 	private MediaService mediaService;
 	private CronJobService cronJobService;
@@ -124,16 +126,36 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 			throw new IllegalStateException("O produto " + game.getCode() + " não foi criado.");
 		}
 		game.setProduct(product);
+		final String image = copyImage(game, product);
 		reindex();
-		return "Jogo aberto: " + result[0] + " poltronas, " + result[1] + " à venda.";
+		return "Jogo aberto: " + result[0] + " poltronas, " + result[1] + " à venda." + (image == null ? "" : " " + image);
 	}
 
 	@Override
 	public String update(final MatchdayGameModel game)
 	{
 		importGame(game, false);
+		final String image = copyImage(game, game.getProduct());
 		reindex();
-		return "Nome, descrição e preços atualizados na loja.";
+		return "Nome, descrição e preços atualizados na loja." + (image == null ? "" : " " + image);
+	}
+
+	/** Imagem do jogo no produto (as poltronas usam a do produto do jogo); erro na imagem não impede salvar o jogo */
+	protected String copyImage(final MatchdayGameModel game, final ProductModel product)
+	{
+		if (productImageService == null || product == null)
+		{
+			return null;
+		}
+		try
+		{
+			return productImageService.copyToProduct(game.getImage(), product);
+		}
+		catch (final RuntimeException e)
+		{
+			LOG.warn("Imagem do jogo {} não copiada: {}", game.getCode(), e.getMessage(), e);
+			return "A imagem não foi copiada para o produto (" + StringUtils.defaultString(e.getMessage()) + ").";
+		}
 	}
 
 	@Override
@@ -716,6 +738,11 @@ public class DefaultMatchdayGameService implements MatchdayGameService
 	public void setFlexibleSearchService(final FlexibleSearchService flexibleSearchService)
 	{
 		this.flexibleSearchService = flexibleSearchService;
+	}
+
+	public void setProductImageService(final ProductImageService productImageService)
+	{
+		this.productImageService = productImageService;
 	}
 
 	public void setCatalogVersionService(final CatalogVersionService catalogVersionService)

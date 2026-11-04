@@ -27,7 +27,8 @@ public class SocioExperienceInterceptor implements PrepareInterceptor<SocioExper
 
 	/** Campos que mudam o produto ou o estoque */
 	private static final List<String> CONTENT = Arrays.asList(SocioExperienceModel.NAME, SocioExperienceModel.DESCRIPTION,
-			SocioExperienceModel.POINTS, SocioExperienceModel.STOCK, SocioExperienceModel.ACTIVE, SocioExperienceModel.PRICE);
+			SocioExperienceModel.POINTS, SocioExperienceModel.STOCK, SocioExperienceModel.ACTIVE, SocioExperienceModel.PRICE,
+			SocioExperienceModel.IMAGE);
 
 	private SocioExperienceService socioExperienceService;
 

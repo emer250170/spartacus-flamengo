@@ -35,4 +35,8 @@ BackofficeRole;matchdaygamemanagerrole;;;;;;;;
 ;;;;User;+;-;-;-;-
 ;;;;Workflow;+;-;-;-;-
 ;;;;WorkflowAction;+;-;-;-;-
+;;;;Media;+;+;+;-;-
+;;;;MediaContainer;+;-;-;-;-
+;;;;MediaFormat;+;-;-;-;-
+;;;;MediaFolder;+;-;-;-;-
 $END_USERRIGHTS;;;;;;;;;

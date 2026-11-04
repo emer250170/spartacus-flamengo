@@ -1,10 +1,12 @@
 package br.com.flamengo.matchday.backoffice.widgets.experiences;
 
+import br.com.flamengo.matchday.backoffice.editors.FlaImageEditor;
 import br.com.flamengo.matchday.model.SocioExperienceModel;
 import br.com.flamengo.matchday.model.SocioPlanModel;
 import br.com.flamengo.matchday.socio.SocioExperienceOverview;
 import br.com.flamengo.matchday.socio.SocioExperienceService;
 import br.com.flamengo.matchday.socio.SocioPlanService;
+import de.hybris.platform.core.model.media.MediaModel;
 import de.hybris.platform.servicelayer.model.ModelService;
 
 import java.util.Locale;
@@ -74,6 +76,8 @@ public class ExperienceShowcaseController extends ExperienceWidgetSupport
 	private Intbox sortBox;
 	@Wire
 	private Label formStatus;
+	@Wire
+	private Div imageBox;
 
 	@WireVariable
 	private transient SocioExperienceService socioExperienceService;
@@ -84,6 +88,9 @@ public class ExperienceShowcaseController extends ExperienceWidgetSupport
 
 	/** Código da experiência no formulário (null = nova) */
 	private String editing;
+	/** Imagem escolhida no formulário e se o gestor mexeu nela */
+	private transient MediaModel formImage;
+	private boolean imageTouched;
 
 	@Override
 	public void initialize(final Component comp)
@@ -149,6 +156,10 @@ public class ExperienceShowcaseController extends ExperienceWidgetSupport
 			e.setMinPlan(plan(selected(minPlanList)));
 			e.setActive(Boolean.valueOf(activeCheck.isChecked()));
 			e.setSortOrder(sortBox.getValue());
+			if (imageTouched)
+			{
+				e.setImage(formImage);
+			}
 			modelService.save(e);
 			info(label("form.saved", e.getCode(), StringUtils.defaultString(e.getStatusMessage())));
 			formPanel.setVisible(false);
@@ -189,6 +200,12 @@ public class ExperienceShowcaseController extends ExperienceWidgetSupport
 				+ "border-top:4px solid " + (l.onSale ? "#c8102e" : l.active ? "#1d2d3e" : "#c3cbd3") + ";"
 				+ (l.active ? "" : "opacity:.75;"));
 		final StringBuilder h = new StringBuilder();
+		if (StringUtils.isNotBlank(l.imageUrl))
+		{
+			// imagem da vitrine (04/11), na largura do card
+			h.append("<img src=\"").append(esc(l.imageUrl)).append("\" alt=\"\" style=\"display:block;width:calc(100% + 36px);")
+					.append("margin:-16px -18px 12px;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0\"/>");
+		}
 		h.append("<div style=\"display:flex;justify-content:space-between;gap:8px;align-items:flex-start\"><div>")
 				.append("<div style=\"font-weight:700;font-size:15px;color:#1d2d3e\">").append(esc(l.name)).append("</div>")
 				.append("<div style=\"font-size:11px;color:#6a7d8f\">").append(esc(l.code)).append("</div></div>")
@@ -286,6 +303,13 @@ public class ExperienceShowcaseController extends ExperienceWidgetSupport
 			minPlanList.setSelectedIndex(0);
 		}
 		formStatus.setValue(e == null ? "" : StringUtils.defaultString(e.getStatusMessage()));
+		formImage = e == null ? null : e.getImage();
+		imageTouched = false;
+		imageBox.getChildren().clear();
+		FlaImageEditor.build(imageBox, formImage, true, "experiencia", media -> {
+			formImage = media;
+			imageTouched = true;
+		});
 		formPanel.setVisible(true);
 	}
 
