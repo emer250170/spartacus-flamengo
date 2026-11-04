@@ -135,7 +135,6 @@
             </div>
 
             <ng-container *ngTemplateOutlet="matchStatusTpl"></ng-container>
-            <ng-container *ngTemplateOutlet="eligTpl"></ng-container>
           </section>
 
           <!-- modo ingresso (sem a etapa Jogo): situação do jogo escolhido na lista -->
@@ -686,10 +685,8 @@
               {{ 'md.heldSummary' | flaT: { time: remainingLabel } }}
             </p>
           </aside>
-          <!-- modo ingresso: a elegibilidade fica embaixo do resumo, em todas as etapas -->
-          <ng-container *ngIf="ticketMode">
-            <ng-container *ngTemplateOutlet="eligTpl"></ng-container>
-          </ng-container>
+          <!-- elegibilidade embaixo do resumo, em todas as etapas (ingresso e dia completo) -->
+          <ng-container *ngTemplateOutlet="eligTpl"></ng-container>
         </div>
       </div>
     </ng-container>
