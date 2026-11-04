@@ -1,14 +1,29 @@
-// Visual do protótipo de matchday: fundo escuro, vermelho rubro-negro de destaque.
+// Visual da jornada de matchday: o mesmo das páginas da loja (fundo branco, cabeçalho cinza
+// com breadcrumb, cards claros e vermelho rubro-negro de destaque; era escuro até 04/11).
 :host {
-  --md-bg: #0b0b0c;
-  --md-panel: #18181b;
-  --md-panel-2: #202024;
-  --md-line: #2e2e33;
-  --md-text: #f4f4f5;
-  --md-muted: #a1a1aa;
+  --md-bg: #ffffff;
+  --md-panel: #ffffff;
+  --md-panel-2: #fafafa;
+  --md-line: #e4e4e7;
+  --md-line-strong: #a1a1aa;
+  --md-text: #1b1b1b;
+  --md-strong: #1b1b1b;
+  --md-muted: #52525b;
   --md-red: var(--fla-vermelho, #d70000);
   --md-red-dark: var(--fla-vermelho-escuro, #b40000);
-  --md-selected: #2a0e13;
+  --md-selected: #fdecec;
+  --md-focus: #1b1b1b;
+  --md-warn: #b91c1c;
+  --md-warn-text: #92400e;
+  --md-ok-text: #166534;
+  --md-num-bg: #a1a1aa;
+  --md-seat-bg: #e4e4e7;
+  --md-seat-line: #a1a1aa;
+  --md-seat-text: #3f3f46;
+  --md-seat-off: #f4f4f5;
+  --md-seat-off-text: #c4c4cc;
+  --md-shirt-bg: #e4e4e7;
+  --md-header-bg: rgb(244, 244, 244);
 
   display: block;
   background: var(--md-bg);
@@ -26,37 +41,13 @@
   padding: 0 16px;
 }
 
-.md-hero {
-  background: repeating-linear-gradient(
-      90deg,
-      rgba(215, 0, 0, 0.16) 0 28px,
-      transparent 28px 56px
-    ),
-    var(--md-bg);
-  border-bottom: 1px solid var(--md-line);
-  padding: 40px 0 32px;
-  margin-bottom: 24px;
-}
-
-.md-eyebrow {
-  color: var(--md-red);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin: 0 0 8px;
-}
-
-.md-title {
-  color: #fff;
-  font-size: clamp(28px, 4vw, 44px);
-  margin: 0 0 8px;
-}
-
+// frase de apoio abaixo do cabeçalho padrão da loja (o título vem do breadcrumb)
 .md-lead {
   color: var(--md-muted);
-  font-size: 18px;
-  margin: 0;
-  max-width: 640px;
+  font-size: 16px;
+  margin: 0 auto 20px;
+  max-width: 720px;
+  text-align: center;
 }
 
 .md-state {
@@ -97,7 +88,7 @@
   }
   &.is-active {
     border-color: var(--md-red);
-    color: #fff;
+    color: var(--md-strong);
     background: var(--md-selected);
   }
 }
@@ -108,7 +99,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--md-line);
+  background: var(--md-num-bg);
   color: #fff;
   font-size: 13px;
   font-weight: 700;
@@ -139,13 +130,13 @@
 }
 
 .md-h2 {
-  color: #fff;
+  color: var(--md-strong);
   font-size: 24px;
   margin: 0 0 4px;
 }
 
 .md-h3 {
-  color: #fff;
+  color: var(--md-strong);
   font-size: 18px;
   margin: 0 0 12px;
 }
@@ -162,11 +153,11 @@
 }
 
 .md-warn {
-  color: #fca5a5;
+  color: var(--md-warn);
 }
 
 .md-price {
-  color: #fff;
+  color: var(--md-strong);
   font-weight: 700;
   font-size: 18px;
 }
@@ -192,14 +183,14 @@
   cursor: pointer;
 
   &:hover {
-    border-color: #52525b;
+    border-color: var(--md-line-strong);
   }
   &.is-selected {
     border-color: var(--md-red);
     background: var(--md-selected);
   }
   &:focus-visible {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--md-focus);
     outline-offset: 2px;
   }
 }
@@ -229,7 +220,7 @@
 }
 .md-match-title {
   display: block;
-  color: #fff;
+  color: var(--md-strong);
   font-size: 20px;
   font-weight: 700;
   text-transform: uppercase;
@@ -268,7 +259,7 @@
   gap: 4px;
 }
 .md-sector-name {
-  color: #fff;
+  color: var(--md-strong);
   font-size: 18px;
   font-weight: 700;
 }
@@ -309,10 +300,10 @@
 .md-seat {
   width: 32px;
   height: 32px;
-  border: 1px solid #3a3a40;
+  border: 1px solid var(--md-seat-line);
   border-radius: 6px 6px 3px 3px;
-  background: #26262a;
-  color: #fff;
+  background: var(--md-seat-bg);
+  color: var(--md-seat-text);
   font-size: 12px;
   cursor: pointer;
 
@@ -329,13 +320,13 @@
     font-size: 0.7rem;
   }
   &.is-occupied {
-    background: var(--md-bg);
+    background: var(--md-seat-off);
     border-color: var(--md-line);
-    color: #52525b;
+    color: var(--md-seat-off-text);
     cursor: not-allowed;
   }
   &:focus-visible {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--md-focus);
     outline-offset: 1px;
   }
 }
@@ -355,8 +346,8 @@
   height: 14px;
   margin-right: 4px;
   border-radius: 3px;
-  border: 1px solid #3a3a40;
-  background: #26262a;
+  border: 1px solid var(--md-seat-line);
+  background: var(--md-seat-bg);
   vertical-align: -2px;
 
   &.is-mine {
@@ -372,7 +363,7 @@
     font-size: 0.7rem;
   }
   &.is-occupied {
-    background: var(--md-bg);
+    background: var(--md-seat-off);
   }
 }
 
@@ -382,13 +373,13 @@
 }
 .md-option-name {
   display: block;
-  color: #fff;
+  color: var(--md-strong);
   font-weight: 700;
   font-size: 17px;
   margin: 0;
 }
 .md-reco {
-  color: #fca5a5;
+  color: var(--md-warn);
 }
 .md-food {
   cursor: default;
@@ -404,7 +395,7 @@
     border: 1px solid var(--md-line);
     border-radius: 8px;
     background: var(--md-bg);
-    color: #fff;
+    color: var(--md-strong);
     font-size: 20px;
     cursor: pointer;
 
@@ -427,7 +418,7 @@
   max-width: 320px;
 
   label {
-    color: #fff;
+    color: var(--md-strong);
     font-weight: 600;
   }
   input {
@@ -436,7 +427,7 @@
     border: 1px solid var(--md-line);
     border-radius: 8px;
     background: var(--md-bg);
-    color: #fff;
+    color: var(--md-strong);
     font: inherit;
     text-transform: uppercase;
 
@@ -454,7 +445,7 @@
   border: 0;
 
   legend {
-    color: #fff;
+    color: var(--md-strong);
     font-weight: 600;
     font-size: 16px;
     margin-bottom: 8px;
@@ -508,7 +499,7 @@
     pointer-events: none;
   }
   &:focus-within {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--md-focus);
   }
 }
 
@@ -528,14 +519,15 @@
   place-items: center;
   padding: 16px;
   border-radius: 10px;
-  background: var(--md-bg);
+  background: var(--md-shirt-bg);
 }
 .md-shirt-svg {
   width: 100%;
   max-width: 220px;
 
   path {
-    fill: #f4f4f5;
+    fill: #ffffff;
+    stroke: #d4d4d8;
   }
   .md-stripes rect {
     fill: var(--md-red);
@@ -582,13 +574,14 @@
     cursor: not-allowed;
   }
   &:focus-visible {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--md-focus);
     outline-offset: 2px;
   }
 }
 .md-btn-ghost {
-  background: transparent;
-  border-color: var(--md-line);
+  background: #fff;
+  border-color: var(--md-strong);
+  color: var(--md-strong);
 
   &:hover:not(:disabled) {
     background: var(--md-panel-2);
@@ -625,7 +618,7 @@
   }
 }
 .md-review strong {
-  color: #fff;
+  color: var(--md-strong);
 }
 .md-review-total,
 .md-sum-total {
@@ -635,7 +628,7 @@
   font-size: 20px;
 
   strong {
-    color: #fff;
+    color: var(--md-strong);
   }
 }
 
@@ -654,7 +647,7 @@
 }
 .md-sum-label {
   display: block;
-  color: #fff;
+  color: var(--md-strong);
   font-weight: 600;
 }
 .md-sum-price {
@@ -673,13 +666,13 @@
   border: 1px solid var(--md-line);
   border-left: 3px solid var(--md-red);
   border-radius: 8px;
-  background: #1c1c20;
-  color: #fff;
+  background: var(--md-panel-2);
+  color: var(--md-strong);
   font-size: 14px;
 
   &.is-warn {
     border-left-color: #f59e0b;
-    color: #fde68a;
+    color: var(--md-warn-text);
   }
 }
 .md-link {
@@ -687,14 +680,14 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #fff;
+  color: var(--md-strong);
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
 }
 .md-sum-hold {
   margin-top: 6px;
-  color: #fca5a5;
+  color: var(--md-warn);
 }
 
 // ---------- sócio-torcedor: plano, ondas de venda e desconto ----------
@@ -712,7 +705,7 @@
   border-radius: 6px;
 
   a {
-    color: #fff;
+    color: var(--md-strong);
     text-decoration: underline;
     margin-left: 4px;
   }
@@ -732,7 +725,7 @@
 .md-wave {
   &.is-open {
     border-color: #2f7d4a;
-    color: #b6f0c8;
+    color: var(--md-ok-text);
   }
   &.is-locked {
     border-style: dashed;
@@ -815,7 +808,7 @@
   }
 
   .is-no {
-    color: #fca5a5;
+    color: var(--md-warn);
   }
 }
 
@@ -831,7 +824,7 @@
 
 .md-lock-title {
   margin: 0 0 4px;
-  color: #fff;
+  color: var(--md-strong);
   font-weight: 700;
 }
 
@@ -843,7 +836,7 @@
 
 .md-socio-off {
   display: block;
-  color: #b6f0c8;
+  color: var(--md-ok-text);
 }
 
 .md-wave-schedule {
@@ -869,7 +862,7 @@
   }
   li.is-mine {
     border-left-color: var(--md-red);
-    color: #fff;
+    color: var(--md-strong);
     font-weight: 700;
   }
 }
@@ -905,7 +898,7 @@
     border-top: 1px solid var(--md-line);
 
     &.is-active {
-      color: #fff;
+      color: var(--md-strong);
     }
   }
 }
@@ -921,7 +914,7 @@
 
 .md-comp-seat {
   font-weight: 700;
-  color: #fff;
+  color: var(--md-strong);
 }
 
 .md-btn-sm {
@@ -931,6 +924,24 @@
 
   &.is-active {
     border-color: var(--md-red);
-    color: #fff;
+    color: var(--md-strong);
   }
+}
+
+// atalho do modo ingresso para o dia de jogo completo (04/11)
+.md-full-link {
+  margin: 20px 0 0;
+  color: var(--md-muted);
+
+  a {
+    margin-left: 4px;
+    color: var(--md-red);
+    font-weight: 700;
+  }
+}
+
+// cards e painéis com sombra leve, como os cards da loja
+.md-panel,
+.md-summary {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }

@@ -12,7 +12,8 @@
       <a class="mdb-btn" [routerLink]="'/matchday'">{{ 'mdb.build' | flaT }}</a>
       <a
         class="mdb-btn mdb-btn-ghost"
-        [routerLink]="'/c/flamengo_jogos_casa'"
+        [routerLink]="'/matchday'"
+        [queryParams]="{ modo: 'ingresso' }"
         >{{ 'mdb.all' | flaT }}</a
       >
     </div>

@@ -26,6 +26,15 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'tag.open': 'Vendas abertas',
 
     // matchday: jornada
+    // compra só de ingresso e cabeçalho no padrão da loja (04/11)
+    'md.crumbs': 'Você está em',
+    'md.home': 'Início',
+    'md.crumbTicket': 'Ingressos',
+    'md.ticketTitle': 'Compre seu ingresso',
+    'md.ticketLead':
+      'Escolha o jogo, o setor no mapa do Maracanã e a sua poltrona.',
+    'md.wantMore': 'Quer estacionamento, comidas e a camisa nova no mesmo pedido?',
+    'md.fullDay': 'Monte o seu dia de jogo',
     'md.eyebrow': 'Matchday',
     'md.title': 'Monte o seu dia de jogo',
     'md.lead':
@@ -671,6 +680,13 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'tag.presale': 'Member presale',
     'tag.open': 'On sale',
 
+    'md.crumbs': 'You are here',
+    'md.home': 'Home',
+    'md.crumbTicket': 'Tickets',
+    'md.ticketTitle': 'Buy your ticket',
+    'md.ticketLead': 'Pick the match, the sector on the Maracanã map and your seat.',
+    'md.wantMore': 'Want parking, food and the new shirt in the same order?',
+    'md.fullDay': 'Build your matchday',
     'md.eyebrow': 'Matchday',
     'md.title': 'Build your matchday',
     'md.lead':

@@ -11,16 +11,19 @@
       </h2>
       <p class="vt-sub">{{ 'vit.games.sub' | flaT }}</p>
     </div>
-    <a class="vt-more" [routerLink]="'/c/flamengo_jogos_casa'">{{
-      'mdb.all' | flaT
-    }}</a>
+    <a
+      class="vt-more"
+      [routerLink]="'/matchday'"
+      [queryParams]="{ modo: 'ingresso' }"
+      >{{ 'mdb.all' | flaT }}</a
+    >
   </div>
   <div class="vt-grid">
     <article class="vt-card" *ngFor="let m of matches">
       <a
         class="vt-media"
         [routerLink]="'/matchday'"
-        [queryParams]="{ jogo: m.code }"
+        [queryParams]="{ jogo: m.code, modo: 'ingresso' }"
         tabindex="-1"
         aria-hidden="true"
       >
@@ -50,7 +53,7 @@
           <a
             class="vt-btn"
             [routerLink]="'/matchday'"
-            [queryParams]="{ jogo: m.code }"
+            [queryParams]="{ jogo: m.code, modo: 'ingresso' }"
             >{{ 'vit.games.cta' | flaT }}</a
           >
         </div>

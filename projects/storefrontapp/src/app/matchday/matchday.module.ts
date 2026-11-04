@@ -3,7 +3,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { CmsConfig, provideConfig } from '@spartacus/core';
+import { CmsConfig, PageMetaResolver, provideConfig } from '@spartacus/core';
 import {
   OutletPosition,
   SpinnerModule,
@@ -13,6 +13,8 @@ import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { VitrineModule } from '../vitrine/vitrine.module';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
 import { MatchdayDeliveryTextInterceptor } from './matchday-delivery-text.interceptor';
+import { MatchdayPageMetaResolver } from './matchday-page-meta.resolver';
+import { MatchdayTicketRedirectService } from './matchday-ticket-redirect.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import { MatchdayJourneyComponent } from './matchday-journey.component';
 import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmation.component';
@@ -44,6 +46,12 @@ import { OrderNumberHeaderComponent } from './order-number-header.component';
     OrderNumberHeaderComponent,
   ],
   providers: [
+    // cabeçalho da página /matchday: título e breadcrumb do modo só ingresso (04/11)
+    {
+      provide: PageMetaResolver,
+      useExisting: MatchdayPageMetaResolver,
+      multi: true,
+    },
     // detalhe do pedido: "Número: 00025001" abaixo do título, no cabeçalho cinza
     provideOutlet({
       id: 'BreadcrumbComponent',
@@ -68,8 +76,13 @@ import { OrderNumberHeaderComponent } from './order-number-header.component';
   ],
 })
 export class MatchdayModule {
-  // vigia a poltrona reservada em qualquer página (aviso se ela sair do carrinho)
-  constructor(holdWatcher: MatchdayHoldWatcherService) {
+  // vigia a poltrona reservada em qualquer página (aviso se ela sair do carrinho) e leva a
+  // compra só de ingresso (categoria e página da poltrona) para o stepper (04/11)
+  constructor(
+    holdWatcher: MatchdayHoldWatcherService,
+    ticketRedirect: MatchdayTicketRedirectService
+  ) {
     holdWatcher.start();
+    ticketRedirect.start();
   }
 }

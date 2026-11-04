@@ -1,10 +1,13 @@
-<section class="md" aria-labelledby="md-title">
-  <div class="md-hero">
-    <div class="md-wrap">
-      <p class="md-eyebrow">{{ 'md.eyebrow' | flaT }}</p>
-      <h1 id="md-title" class="md-title">{{ 'md.title' | flaT }}</h1>
-      <p class="md-lead">{{ 'md.lead' | flaT }}</p>
-    </div>
+<section
+  class="md"
+  [attr.aria-label]="(ticketMode ? 'md.ticketTitle' : 'md.title') | flaT"
+>
+  <!-- o título e o breadcrumb são os do cabeçalho padrão da loja (MatchdayPageMetaResolver);
+       aqui só a frase de apoio (04/11) -->
+  <div class="md-wrap">
+    <p class="md-lead">
+      {{ (ticketMode ? 'md.ticketLead' : 'md.lead') | flaT }}
+    </p>
   </div>
 
   <div class="md-wrap">
@@ -65,11 +68,11 @@
             <button
               type="button"
               class="md-step"
-              [class.is-active]="i === step"
-              [class.is-done]="i < step"
-              [disabled]="!canOpen(i)"
-              [attr.aria-current]="i === step ? 'step' : null"
-              (click)="goTo(i)"
+              [class.is-active]="n === step"
+              [class.is-done]="i < stepPos(step)"
+              [disabled]="!canOpen(n)"
+              [attr.aria-current]="n === step ? 'step' : null"
+              (click)="goTo(n)"
             >
               <span class="md-step-num" aria-hidden="true">{{ i + 1 }}</span>
               <span class="md-step-label">{{ 'md.step.' + n | flaT }}</span>
@@ -290,7 +293,9 @@
                     (click)="selectSeat(c)"
                   >
                     {{
-                      guestSeatAt(c) ? initials(guestSeatAt(c)!.holder) : c.number
+                      guestSeatAt(c)
+                        ? initials(guestSeatAt(c)!.holder)
+                        : c.number
                     }}
                   </button>
                 </div>
@@ -407,9 +412,11 @@
                 <ng-template #noCompanions>
                   <p class="md-small">
                     {{ 'md.comp.none' | flaT }}
-                    <a routerLink="/my-account/socio-torcedor" class="md-link">{{
-                      'md.comp.register' | flaT
-                    }}</a>
+                    <a
+                      routerLink="/my-account/socio-torcedor"
+                      class="md-link"
+                      >{{ 'md.comp.register' | flaT }}</a
+                    >
                   </p>
                 </ng-template>
                 <p *ngIf="assigningFor" class="md-hold" role="status">
@@ -657,11 +664,11 @@
             </button>
           </section>
 
-          <div class="md-actions" *ngIf="step < steps.length - 1">
+          <div class="md-actions" *ngIf="step !== lastStep">
             <button
               type="button"
               class="md-btn md-btn-ghost"
-              [disabled]="step === 0"
+              [disabled]="step === firstStep"
               (click)="back()"
             >
               {{ 'md.back' | flaT }}
@@ -675,11 +682,20 @@
               {{ nextLabel }}
             </button>
           </div>
-          <div class="md-actions" *ngIf="step === steps.length - 1">
+          <div class="md-actions" *ngIf="step === lastStep">
             <button type="button" class="md-btn md-btn-ghost" (click)="back()">
               {{ 'md.back' | flaT }}
             </button>
           </div>
+          <!-- só ingresso: atalho para o dia de jogo completo, com o mesmo jogo -->
+          <p class="md-full-link" *ngIf="ticketMode">
+            {{ 'md.wantMore' | flaT }}
+            <a
+              routerLink="/matchday"
+              [queryParams]="match ? { jogo: match.code } : {}"
+              >{{ 'md.fullDay' | flaT }}</a
+            >
+          </p>
         </div>
 
         <aside class="md-summary" [attr.aria-label]="'md.summary' | flaT">
