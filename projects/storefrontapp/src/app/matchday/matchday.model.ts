@@ -29,6 +29,8 @@ export interface MatchdaySector {
 export interface MatchdayMatch {
   /** Código do produto base do jogo (ex.: FLA-PAL-20261019) */
   code: string;
+  /** Imagem do jogo (cadastrada no Backoffice, 04/11); vazio = usar a imagem padrão */
+  imageUrl?: string;
   title: string;
   opponent: string;
   /** Dia da semana curto no idioma do site ("SEG" / "MON") */

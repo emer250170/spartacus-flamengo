@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Maracanã">
+  <!-- Imagem padrão do jogo (sem foto cadastrada): estádio estilizado, original -->
+  <defs>
+    <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b0b0c"/>
+      <stop offset="1" stop-color="#3a0606"/>
+    </linearGradient>
+    <linearGradient id="grama" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f7a3a"/>
+      <stop offset="1" stop-color="#15602c"/>
+    </linearGradient>
+    <pattern id="arq" width="36" height="36" patternUnits="userSpaceOnUse">
+      <rect width="36" height="36" fill="#141416"/>
+      <rect width="18" height="36" fill="#c8102e" opacity=".55"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="url(#ceu)"/>
+  <g fill="#fff" opacity=".85">
+    <circle cx="150" cy="70" r="10"/><circle cx="190" cy="70" r="10"/><circle cx="230" cy="70" r="10"/>
+    <circle cx="970" cy="70" r="10"/><circle cx="1010" cy="70" r="10"/><circle cx="1050" cy="70" r="10"/>
+  </g>
+  <rect x="140" y="80" width="6" height="140" fill="#3f3f46"/>
+  <rect x="1054" y="80" width="6" height="140" fill="#3f3f46"/>
+  <path d="M0 250 Q600 120 1200 250 L1200 430 L0 430 Z" fill="url(#arq)"/>
+  <path d="M0 250 Q600 120 1200 250" fill="none" stroke="#d70000" stroke-width="8"/>
+  <path d="M-60 675 L230 400 L970 400 L1260 675 Z" fill="url(#grama)"/>
+  <g fill="#1a6d33" opacity=".7">
+    <path d="M230 400 L300 400 L80 675 L-10 675 Z"/>
+    <path d="M440 400 L510 400 L400 675 L300 675 Z"/>
+    <path d="M690 400 L760 400 L900 675 L800 675 Z"/>
+    <path d="M900 400 L970 400 L1210 675 L1120 675 Z"/>
+  </g>
+  <g fill="none" stroke="#e8f5ec" stroke-width="4" opacity=".9">
+    <path d="M230 400 L970 400 L1260 675 L-60 675 Z"/>
+    <path d="M600 400 L600 675"/>
+    <ellipse cx="600" cy="520" rx="150" ry="55"/>
+  </g>
+</svg>

@@ -1,4 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { FlaMediaUrlService } from '../vitrine/fla-media-url.service';
 import { Injectable } from '@angular/core';
 import { OccEndpointsService } from '@spartacus/core';
 import { Observable, of, throwError } from 'rxjs';
@@ -48,6 +49,8 @@ export interface SocioExperience {
   productCode?: string;
   /** Dá para comprar agora (à venda e com vaga) */
   buyable: boolean;
+  /** Foto da experiência (endereço completo; 04/11) */
+  imageUrl?: string;
 }
 
 /** Pontos do sócio (GET /users/current/sociopoints) */
@@ -104,7 +107,8 @@ const NONE: SocioPoints = {
 export class SocioPointsService {
   constructor(
     protected http: HttpClient,
-    protected occEndpoints: OccEndpointsService
+    protected occEndpoints: OccEndpointsService,
+    protected media: FlaMediaUrlService
   ) {}
 
   protected get url(): string {
@@ -114,7 +118,7 @@ export class SocioPointsService {
   /** Saldo e vitrine; com a chave desligada ou erro: enabled = false (o cartão some) */
   load(): Observable<SocioPoints> {
     return this.http.get<OccSocioPoints>(this.url).pipe(
-      map((r) => (r?.enabled ? toPoints(r) : NONE)),
+      map((r) => (r?.enabled ? toPoints(r, (u) => this.media.url(u)) : NONE)),
       catchError(() => of(NONE))
     );
   }
@@ -127,7 +131,9 @@ export class SocioPointsService {
         map((r) => ({
           voucher: r.voucher ?? '',
           points: r.points ?? 0,
-          status: r.status ? toPoints(r.status) : NONE,
+          status: r.status
+            ? toPoints(r.status, (u) => this.media.url(u))
+            : NONE,
         })),
         catchError((e: HttpErrorResponse) =>
           throwError(() => new Error(e?.error?.errors?.[0]?.message ?? ''))
@@ -136,7 +142,10 @@ export class SocioPointsService {
   }
 }
 
-function toPoints(r: OccSocioPoints): SocioPoints {
+function toPoints(
+  r: OccSocioPoints,
+  mediaUrl: (path?: string) => string | undefined
+): SocioPoints {
   const date = (v?: string) => (v ? new Date(v) : undefined);
   return {
     enabled: !!r.enabled,
@@ -184,6 +193,7 @@ function toPoints(r: OccSocioPoints): SocioPoints {
       price: x.price ?? undefined,
       productCode: x.productCode || undefined,
       buyable: !!x.buyable && !!x.productCode,
+      imageUrl: mediaUrl(x.imageUrl),
     })),
   };
 }
@@ -233,6 +243,7 @@ interface OccSocioPoints {
     reason?: string;
     price?: number | null;
     productCode?: string;
+    imageUrl?: string;
     buyable?: boolean;
   }[];
 }

@@ -121,6 +121,17 @@
   }
 }
 
+// foto da experiência (04/11), na largura do card
+.sp-exp-img {
+  display: block;
+  width: calc(100% + 28px);
+  max-width: none;
+  margin: -14px -14px 12px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 11px 11px 0 0;
+}
+
 .sp-exp-head {
   display: flex;
   flex-wrap: wrap;

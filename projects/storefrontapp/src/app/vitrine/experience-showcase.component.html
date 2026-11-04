@@ -1,0 +1,54 @@
+<section
+  class="vt"
+  [class.vt--dark]="dark"
+  *ngIf="experiences$ | async as list"
+  [hidden]="!list.length"
+  aria-labelledby="vt-exp-title"
+>
+  <div class="vt-head">
+    <div>
+      <h2 id="vt-exp-title" class="vt-title">{{ titleKey | flaT }}</h2>
+      <p class="vt-sub">{{ subKey | flaT }}</p>
+    </div>
+    <a class="vt-more" [routerLink]="'/c/experiencias'">{{
+      'vit.exp.all' | flaT
+    }}</a>
+  </div>
+  <div class="vt-grid vt-grid--exp">
+    <article class="vt-card" *ngFor="let x of list" [class.is-out]="x.soldOut">
+      <a
+        class="vt-media"
+        [routerLink]="
+          { cxRoute: 'product', params: { code: x.code, name: x.name } } | cxUrl
+        "
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <img
+          [src]="x.imageUrl || defaultImage"
+          [alt]="''"
+          loading="lazy"
+          (error)="fallback($event)"
+        />
+        <span class="vt-tag is-hot" *ngIf="x.soldOut">{{
+          'vit.exp.soldOut' | flaT
+        }}</span>
+      </a>
+      <div class="vt-body">
+        <h3 class="vt-name">{{ x.name }}</h3>
+        <p class="vt-meta" *ngIf="x.summary">{{ x.summary }}</p>
+        <div class="vt-foot">
+          <span class="vt-price" *ngIf="x.price">{{ x.price }}</span>
+          <a
+            class="vt-btn"
+            [routerLink]="
+              { cxRoute: 'product', params: { code: x.code, name: x.name } }
+                | cxUrl
+            "
+            >{{ 'vit.exp.cta' | flaT }}</a
+          >
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

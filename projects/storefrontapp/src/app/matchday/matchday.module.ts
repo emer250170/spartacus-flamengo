@@ -10,6 +10,7 @@ import {
   provideOutlet,
 } from '@spartacus/storefront';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
+import { VitrineModule } from '../vitrine/vitrine.module';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
 import { MatchdayDeliveryTextInterceptor } from './matchday-delivery-text.interceptor';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
@@ -33,6 +34,7 @@ import { OrderNumberHeaderComponent } from './order-number-header.component';
     RouterModule,
     SpinnerModule,
     FlaI18nModule,
+    VitrineModule,
   ],
   declarations: [
     MatchdayJourneyComponent,

@@ -1,0 +1,60 @@
+<section
+  class="vt"
+  *ngIf="matches$ | async as matches"
+  [hidden]="!matches.length"
+  aria-labelledby="vt-games-title"
+>
+  <div class="vt-head">
+    <div>
+      <h2 id="vt-games-title" class="vt-title">
+        {{ 'vit.games.title' | flaT }}
+      </h2>
+      <p class="vt-sub">{{ 'vit.games.sub' | flaT }}</p>
+    </div>
+    <a class="vt-more" [routerLink]="'/c/flamengo_jogos_casa'">{{
+      'mdb.all' | flaT
+    }}</a>
+  </div>
+  <div class="vt-grid">
+    <article class="vt-card" *ngFor="let m of matches">
+      <a
+        class="vt-media"
+        [routerLink]="'/matchday'"
+        [queryParams]="{ jogo: m.code }"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <img
+          [src]="m.imageUrl || defaultImage"
+          [alt]="''"
+          loading="lazy"
+          (error)="fallback($event)"
+        />
+        <span class="vt-date">
+          <b>{{ weekday(m) }}</b> {{ m.dateLabel }} · {{ m.timeLabel }}
+        </span>
+        <span class="vt-tag" *ngIf="m.tag" [class.is-hot]="m.tag === 'low'">{{
+          'tag.' + m.tag | flaT
+        }}</span>
+      </a>
+      <div class="vt-body">
+        <h3 class="vt-name">Flamengo x {{ m.opponent }}</h3>
+        <p class="vt-meta">
+          {{ m.competition
+          }}<ng-container *ngIf="m.venue"> · {{ m.venue }}</ng-container>
+        </p>
+        <div class="vt-foot">
+          <span class="vt-price" *ngIf="m.minPrice">{{
+            'md.fromPrice' | flaT: { price: price(m.minPrice) }
+          }}</span>
+          <a
+            class="vt-btn"
+            [routerLink]="'/matchday'"
+            [queryParams]="{ jogo: m.code }"
+            >{{ 'vit.games.cta' | flaT }}</a
+          >
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

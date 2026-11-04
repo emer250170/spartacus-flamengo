@@ -6,7 +6,8 @@ import { MatchdayDataService } from './matchday-data.service';
 import { MatchdayMatch } from './matchday.model';
 
 /**
- * Faixa "Próximo jogo em casa" da home, com acesso à jornada de matchday.
+ * Faixa "Próximo jogo em casa" da home, com acesso à jornada de matchday, seguida das
+ * vitrines de jogos e de experiências com as imagens cadastradas no Backoffice (04/11).
  * CMSFlexComponent com flexType MatchdayHomeBannerComponent.
  */
 @Component({

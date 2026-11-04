@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { VitrineModule } from '../vitrine/vitrine.module';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -51,6 +52,7 @@ import { SocioTermPageComponent } from './socio-term-page.component';
   imports: [
     CommonModule,
     FormsModule,
+    VitrineModule,
     // Termo do Nação: rota própria com o cabeçalho e o rodapé da página /socio-torcedor do CMS
     RouterModule.forChild([
       {
