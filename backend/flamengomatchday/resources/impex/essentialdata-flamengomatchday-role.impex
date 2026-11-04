@@ -16,6 +16,8 @@ UPDATE CatalogVersion;catalog(id)[unique=true];version[unique=true];readPrincipa
 ;flamengoProductCatalog;Online;matchdaygamemanagerrole;matchdaygamemanagerrole
 ;flamengoProductCatalog;Staged;matchdaygamemanagerrole;matchdaygamemanagerrole
 
+# Workflow e WorkflowAction (leitura): a caixa de tarefas do Cockpit de administração pesquisa
+# WorkflowAction ao entrar; sem a leitura aparece "Não foi possível executar a pesquisa" (04/11).
 $START_USERRIGHTS;;;;;;;;;
 Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
 BackofficeRole;matchdaygamemanagerrole;;;;;;;;
@@ -31,4 +33,6 @@ BackofficeRole;matchdaygamemanagerrole;;;;;;;;
 ;;;;CatalogVersion;+;-;-;-;-
 ;;;;Warehouse;+;-;-;-;-
 ;;;;User;+;-;-;-;-
+;;;;Workflow;+;-;-;-;-
+;;;;WorkflowAction;+;-;-;-;-
 $END_USERRIGHTS;;;;;;;;;
