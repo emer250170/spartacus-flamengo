@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OccEndpointsService, WindowRef } from '@spartacus/core';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { FlaMediaUrlService, bestImageUrl } from '../vitrine/fla-media-url.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import {
@@ -59,6 +60,7 @@ interface OccProduct {
   price?: OccPrice;
   stock?: OccStock;
   variantMatrix?: OccVariantMatrixElement[];
+  images?: { format?: string; imageType?: string; url?: string }[];
 }
 interface OccVariantMatrixElement {
   variantValueCategory?: { name?: string; sequence?: number };
@@ -83,7 +85,8 @@ export class MatchdayDataService {
     protected http: HttpClient,
     protected occEndpoints: OccEndpointsService,
     protected winRef: WindowRef,
-    protected i18n: FlaI18nService
+    protected i18n: FlaI18nService,
+    protected media: FlaMediaUrlService
   ) {
     // nomes, resumos e datas vêm da API no idioma do site: troca de idioma
     // descarta o que já foi buscado
@@ -273,7 +276,8 @@ export class MatchdayDataService {
         params: {
           query: `:relevance:allCategories:${category}`,
           pageSize: '50',
-          fields: `products(code,name,summary,${withDescription ? 'description,' : ''}price(value,formattedValue),stock(stockLevel,stockLevelStatus))`,
+          // lista de jogos: também a imagem do jogo (vitrine da home, 04/11)
+          fields: `products(code,name,summary,${withDescription ? 'description,images(DEFAULT),' : ''}price(value,formattedValue),stock(stockLevel,stockLevelStatus))`,
         },
       })
       .pipe(
@@ -363,6 +367,7 @@ export class MatchdayDataService {
     const weekdayIndex = this.weekdayFromCode(p.code);
     return {
       code: p.code,
+      imageUrl: this.media.url(bestImageUrl(p.images)),
       title,
       opponent,
       weekday: weekdayIndex < 0 ? '' : this.i18n.weekday(weekdayIndex),

@@ -70,6 +70,13 @@
       *ngFor="let x of d.experiences"
       [class.sp-exp--ok]="x.redeemable"
     >
+      <img
+        class="sp-exp-img"
+        *ngIf="x.imageUrl"
+        [src]="x.imageUrl"
+        alt=""
+        loading="lazy"
+      />
       <div class="sp-exp-head">
         <span class="sp-exp-points">{{ num(x.points) }} <small>{{ 'sp.pts' | flaT }}</small></span>
         <span class="sp-exp-chip" *ngIf="x.minPlanName">{{
