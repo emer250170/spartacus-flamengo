@@ -1055,6 +1055,25 @@
 	  padrão do sistema (threads, CPU, memória). unassigned="exclude": só o widget do papel.
 	  O administrador continua com o contexto dele (platformbackoffice).
 	-->
+	<!-- Administrador (04/11, pedido do Emerson): só os gráficos do sistema, como no padrão da SAP
+	     (platformbackoffice). O padrão dele não tem unassigned="exclude" e acrescentava no fim os
+	     painéis do Flamengo, que são dos gestores. Mesmas posições do platformbackoffice. -->
+	<context component="dashboard" principal="backofficeadministratorrole">
+		<dsb:dashboard xmlns:dsb="http://www.hybris.com/cockpitng/config/dashboard" defaultGridId="regular">
+			<dsb:grid id="small" minScreenWidth="1" maxScreenWidth="700" unassigned="exclude">
+				<dsb:placement widgetId="taskQueueSizeChart_master_Chart" width="2"/>
+				<dsb:placement widgetId="defaulMemoryChart" width="2" y="1"/>
+			</dsb:grid>
+			<dsb:grid id="regular" minScreenWidth="701" unassigned="exclude">
+				<dsb:placement widgetId="taskQueueSizeChart_master_Chart" width="2"/>
+				<dsb:placement widgetId="taskQueuePoolingSizeChart_master_Chart" y="1"/>
+				<dsb:placement widgetId="dbConnectionsInUseChart_master_Chart" x="1" y="1"/>
+				<dsb:placement widgetId="defaulMemoryChart" width="2" y="2"/>
+				<dsb:placement widgetId="defaulThreadsChart" y="3"/>
+				<dsb:placement widgetId="defaulOsChart" x="1" y="3"/>
+			</dsb:grid>
+		</dsb:dashboard>
+	</context>
 	<context component="dashboard" principal="merchandisingmanagerrole">
 		<dsb:dashboard xmlns:dsb="http://www.hybris.com/cockpitng/config/dashboard" defaultGridId="regular">
 			<dsb:grid id="small" minScreenWidth="1" maxScreenWidth="700" unassigned="exclude">
