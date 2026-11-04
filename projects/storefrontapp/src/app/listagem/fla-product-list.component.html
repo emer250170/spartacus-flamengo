@@ -1,0 +1,84 @@
+<div class="cx-page" *ngIf="model$ | async as model">
+  <section
+    tabindex="-1"
+    class="cx-page-section"
+    [attr.aria-label]="'productList.productListResults' | cxTranslate"
+  >
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-lg-12" *ngIf="viewMode$ | async as viewMode">
+          <div class="cx-sorting top fla-list-bar">
+            <button
+              type="button"
+              class="btn btn-primary fla-filter-btn"
+              *ngIf="model.facets?.length"
+              (click)="openFilters()"
+            >
+              {{ 'list.filter' | flaT }}
+            </button>
+            <label class="form-group cx-sort-dropdown fla-sort">
+              <span>{{ 'productList.sortBy' | cxTranslate }}</span>
+              <cx-sorting
+                [sortOptions]="model.sorts"
+                (sortListEvent)="sortList($event)"
+                [selectedOption]="model.pagination?.sort"
+                [ariaLabel]="'productList.sortResults' | cxTranslate"
+                ariaControls="product-results-list"
+                placeholder="{{ 'productList.sortBy' | cxTranslate }}"
+              ></cx-sorting>
+            </label>
+          </div>
+          <div id="product-results-list" class="cx-product-container">
+            <ng-container *ngIf="!isInfiniteScroll; else infiniteScroll">
+              <div class="row">
+                <cx-product-grid-item
+                  *ngFor="let product of model?.products"
+                  [product]="product"
+                  class="col-12 col-sm-6 col-md-4"
+                ></cx-product-grid-item>
+              </div>
+            </ng-container>
+            <ng-template #infiniteScroll>
+              <cx-product-scroll
+                [scrollConfig]="scrollConfig"
+                [model]="model"
+                [inputViewMode]="viewMode"
+              ></cx-product-scroll>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- painel de filtros (como o "Filtrar" da loja oficial) -->
+  <ng-container *ngIf="filtersOpen">
+    <cx-facet-list
+      class="dialog active fla-filter-drawer"
+      [isDialog]="true"
+      (closeList)="closeFilters()"
+    ></cx-facet-list>
+    <div class="fla-filter-foot">
+      <p class="fla-filter-count">
+        {{ 'list.found' | flaT: { n: model.pagination?.totalResults ?? 0 } }}
+      </p>
+      <div class="fla-filter-actions">
+        <a
+          class="btn fla-filter-clear"
+          [class.disabled]="!hasFilters(model.currentQuery?.query?.value)"
+          [routerLink]="[]"
+          [queryParams]="{ query: null, currentPage: null }"
+          queryParamsHandling="merge"
+          >{{ 'list.clear' | flaT }}</a
+        >
+        <button
+          type="button"
+          class="btn btn-primary fla-filter-apply"
+          (click)="apply()"
+        >
+          {{ 'list.apply' | flaT }} &rarr;
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

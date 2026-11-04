@@ -191,6 +191,12 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.line.personalization': 'Personalização',
     'md.orderError': 'Não foi possível montar o pedido agora. Tente de novo.',
 
+    // listagem de produtos no layout da loja oficial (04/11)
+    'list.filter': 'Filtrar',
+    'list.found': '{n} itens encontrados',
+    'list.clear': 'Limpar filtros',
+    'list.apply': 'Aplicar',
+    'list.installments': 'ou {n}x de {v}',
     // banner da home
     'mdb.eyebrow': 'Próximo jogo em casa',
     'mdb.build': 'Monte o seu dia de jogo',
@@ -850,6 +856,11 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
 
     'mdb.eyebrow': 'Next home match',
     'mdb.build': 'Build your matchday',
+    'list.filter': 'Filter',
+    'list.found': '{n} items found',
+    'list.clear': 'Clear filters',
+    'list.apply': 'Apply',
+    'list.installments': 'or {n}x of {v}',
     'mdb.all': 'See all matches',
     'vit.games.title': 'Upcoming matches at the Maracanã',
     'vit.games.sub': 'Pick the match and your seat and build your matchday.',
