@@ -647,7 +647,9 @@ cx-product-scroll {
   .grid-btn-padding {
     display: flex !important;
     justify-content: center;
-    margin: 12px 0 40px;
+    // o padrão deixa o primeiro botão numa caixa de 50% (margin: auto); aqui a linha toda
+    width: 100% !important;
+    margin: 12px 0 40px !important;
 
     > .btn:not(.align-btn) {
       display: none !important;
