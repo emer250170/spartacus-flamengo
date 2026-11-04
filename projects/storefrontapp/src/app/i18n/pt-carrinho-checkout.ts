@@ -130,7 +130,8 @@ export const ptCarrinhoCheckout: TranslationResources = {
         orderInProcess: 'Processando o pedido. Aguarde.',
       },
       checkoutOrderConfirmation: {
-        confirmationOfOrder: 'Confirmação do pedido',
+        // cabeçalho da confirmação: "Número: 00025001" (pedido do Emerson, 04/11)
+        confirmationOfOrder: 'Número:',
         thankYou: 'Obrigado pelo seu pedido!',
         invoiceHasBeenSentByEmail:
           'Enviamos o comprovante por e-mail. Ele deve chegar em instantes.',
@@ -483,6 +484,11 @@ export const ptCarrinhoCheckout: TranslationResources = {
     order: {
       orderDetails: {
         statusDisplay_shipped: 'Shipped',
+      },
+    },
+    checkout: {
+      checkoutOrderConfirmation: {
+        confirmationOfOrder: 'Number:',
       },
     },
   },
