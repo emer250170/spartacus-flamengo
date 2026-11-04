@@ -489,6 +489,15 @@
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
+	<!-- Resumo de vendas do painel inicial do administrador (Backoffice > Cockpit de administração > Principal) -->
+	<bean id="summaryReportService" class="br.com.flamengo.matchday.report.summary.impl.DefaultSummaryReportService">
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="matchdayReportService" ref="matchdayReportService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+	</bean>
+
 	<!-- Painel inicial do gestor de merchandising (Backoffice > Cockpit de administração) -->
 	<bean id="merchDashboardService" class="br.com.flamengo.matchday.report.merch.impl.DefaultMerchDashboardService">
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>

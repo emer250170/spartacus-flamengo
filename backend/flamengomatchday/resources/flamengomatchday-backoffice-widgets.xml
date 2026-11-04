@@ -782,6 +782,11 @@
 				slotId="dashboardWidgets" template="false">
 			<virtual-sockets/>
 		</widget>
+		<!-- Resumo de vendas: painel do administrador (contexto dashboard de backofficeadministratorrole) -->
+		<widget id="flaAdminDashboard" widgetDefinitionId="br.com.flamengo.matchday.widgets.adminsummary"
+				slotId="dashboardWidgets" template="false">
+			<virtual-sockets/>
+		</widget>
 	</widget-extension>
 
 	<!-- Atalhos do painel de merchandising: abrir lista no menu e assistente de criação -->
