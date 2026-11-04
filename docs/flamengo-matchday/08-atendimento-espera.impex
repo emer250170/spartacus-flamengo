@@ -1,0 +1,23 @@
+# Atendimento do pedido (Backoffice > Atendimento do pedido), PR "oms-retirada-espera"
+#
+# 1) Pick up / Shipping esperam o processo da consignação ficar pronto (WaitingWorkflowActionJob).
+#    Importar DEPOIS do ant all que instala os beans flaPickupConsignmentActionComEspera e
+#    flaShipConsignmentActionComEspera. Para desligar: voltar os jobHandlers para
+#    taskAssignmentPickupConsignmentAction e taskAssignmentShipConsignmentAction.
+UPDATE AutomatedWorkflowActionTemplate;code[unique=true];jobHandler
+;NPR_Automated_Pickup;flaPickupConsignmentActionComEspera
+;NPR_Automated_Shipping;flaShipConsignmentActionComEspera
+
+# 2) Nomes das tarefas em português (04/11): o "Imprimir documento" do SAP compara o nome da
+#    tarefa no idioma da sessão com "Picking"/"Packing"; sem nome em pt dava NullPointerException
+#    no Backoffice em português. As tarefas já criadas foram corrigidas por Groovy (backup em
+#    /backup/workflow-nomes-pt-20261104/antes.txt); os modelos abaixo valem para as novas.
+UPDATE WorkflowActionTemplate;code[unique=true];name[lang=pt]
+;NPR_Picking;Picking
+;NPR_Packing;Packing
+;NPR_Shipping;Shipping
+;NPR_Pickup;Pick up
+;NPR_End;End of the Workflow
+;NPR_Automated_Packing;Automated Packing
+;NPR_Automated_Shipping;Automated Shipping
+;NPR_Automated_Pickup;Automated Pick up
