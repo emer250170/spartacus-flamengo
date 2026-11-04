@@ -47,8 +47,10 @@ export class ExperienceShowcaseComponent {
   /** Chaves de texto do título e da linha de apoio (fla-texts) */
   @Input() titleKey = 'vit.exp.title';
   @Input() subKey = 'vit.exp.sub';
-  /** Fundo escuro (home) ou claro (página do sócio) */
+  /** Cards escuros (home e página Sócio-Torcedor, que é escura) */
   @Input() dark = false;
+  /** Sem fundo próprio: a página em volta já é escura (Sócio-Torcedor) */
+  @Input() flat = false;
 
   readonly defaultImage = FLA_DEFAULT_MATCH_IMAGE;
 

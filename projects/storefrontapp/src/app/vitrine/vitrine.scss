@@ -163,6 +163,17 @@
   font-size: 19px;
   line-height: 1.2;
   color: var(--fla-preto, #1b1b1b);
+  overflow-wrap: break-word;
+}
+
+// cards de experiência são mais estreitos: título na fonte estreita da loja (a de títulos é
+// larga e cortava "ACOMPANHANTE"); o tema força a fonte dos títulos com !important
+.vt-grid--exp .vt-name {
+  font-family: var(--fla-fonte) !important;
+  font-size: 19px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .vt-meta {
@@ -247,5 +258,12 @@
 
   .vt-price {
     color: #f87171;
+  }
+
+  // dentro de uma página que já é escura (Sócio-Torcedor): sem fundo próprio
+  &.vt--flat {
+    background: transparent;
+    margin-top: 0;
+    padding-inline: 0;
   }
 }

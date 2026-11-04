@@ -1,6 +1,7 @@
 <section
   class="vt"
   [class.vt--dark]="dark"
+  [class.vt--flat]="flat"
   *ngIf="experiences$ | async as list"
   [hidden]="!list.length"
   aria-labelledby="vt-exp-title"
