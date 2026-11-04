@@ -549,7 +549,7 @@ cx-product-list .fla-list-bar {
     min-width: 120px;
     padding: 10px 28px;
     font-weight: 700;
-    text-transform: none;
+    text-transform: none !important;
   }
 
   .fla-sort {
@@ -637,7 +637,7 @@ cx-product-scroll {
       background: #fff !important;
       color: #1b1b1b !important;
       font-weight: 700;
-      text-transform: none;
+      text-transform: none !important;
     }
   }
 }
