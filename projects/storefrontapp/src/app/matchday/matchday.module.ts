@@ -4,7 +4,11 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CmsConfig, provideConfig } from '@spartacus/core';
-import { SpinnerModule } from '@spartacus/storefront';
+import {
+  OutletPosition,
+  SpinnerModule,
+  provideOutlet,
+} from '@spartacus/storefront';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
 import { MatchdayDeliveryTextInterceptor } from './matchday-delivery-text.interceptor';
@@ -12,6 +16,7 @@ import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import { MatchdayJourneyComponent } from './matchday-journey.component';
 import { MatchdayOrderConfirmationComponent } from './matchday-order-confirmation.component';
 import { MatchdayStadiumMapComponent } from './matchday-stadium-map.component';
+import { OrderNumberHeaderComponent } from './order-number-header.component';
 
 /**
  * Protótipo "jornada única de matchday" do Flamengo.
@@ -34,8 +39,15 @@ import { MatchdayStadiumMapComponent } from './matchday-stadium-map.component';
     MatchdayHomeBannerComponent,
     MatchdayOrderConfirmationComponent,
     MatchdayStadiumMapComponent,
+    OrderNumberHeaderComponent,
   ],
   providers: [
+    // detalhe do pedido: "Número: 00025001" abaixo do título, no cabeçalho cinza
+    provideOutlet({
+      id: 'BreadcrumbComponent',
+      position: OutletPosition.AFTER,
+      component: OrderNumberHeaderComponent,
+    }),
     // descrição da entrega "Ingresso digital e retirada no estádio" conforme o carrinho
     {
       provide: HTTP_INTERCEPTORS,
