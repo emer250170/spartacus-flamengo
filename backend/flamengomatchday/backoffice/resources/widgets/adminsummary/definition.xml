@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Resumo de vendas do painel inicial do administrador (Cockpit de administração > Principal):
+  indicadores do período, vendas por produto e serviço, chamados em aberto por tipo, próximos
+  jogos e receita mês a mês.
+-->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.adminsummary">
+	<name>Flamengo - Resumo de vendas</name>
+	<description>Resumo de vendas, chamados e jogos para o administrador</description>
+	<defaultTitle>Resumo de vendas</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="adminsummary.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.summary.SummaryReportController"/>
+	<keywords>
+		<keyword>Flamengo</keyword>
+		<keyword>Summary</keyword>
+	</keywords>
+</widget-definition>

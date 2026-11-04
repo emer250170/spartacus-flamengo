@@ -828,13 +828,14 @@ Deploy: `ant all`, reiniciar, importar a ImpEx do papel à parte, definir a senh
 
 #### Painel inicial dos gestores no Cockpit de administração
 
-O painel padrão do Cockpit de administração mostra gráficos do sistema (threads, CPU, memória). Para os gestores ele foi trocado pelo painel do assunto de cada um. O administrador continua com o painel do sistema.
+O painel padrão do Cockpit de administração mostra gráficos do sistema (threads, CPU, memória). Para os gestores ele foi trocado pelo painel do assunto de cada um. O administrador vê o **Resumo de vendas** (04/11), sem os gráficos do sistema.
 
 | Papel | Painel |
 |---|---|
 | Gestor de merchandising | **Painel de merchandising** (widget `merchdashboard`, `MerchDashboardService`). Mostra regras publicadas (e quantas vencem em 7 dias), regras em rascunho, cupons ativos, usos de cupom e desconto concedido nos pedidos dos últimos 30 dias. Traz também a lista das regras publicadas por prioridade, os 5 cupons mais usados e os atalhos Nova regra, Novo cupom, Ver regras e Ver cupons. |
 | Gestor de jogos | Relatório de vendas de ingressos (o mesmo da perspectiva Matchday Flamengo). |
 | Gestor do sócio | Relatório do sócio-torcedor (o mesmo da perspectiva Sócio-Torcedor). |
+| Administrador | **Resumo de vendas** (widget `adminsummary`, `SummaryReportService`), com período Este mês, Últimos 30 dias, Este ano ou Desde o início. Indicadores: receita, pedidos, ticket médio, aguardando pagamento (Pix ou boleto) e chamados em aberto. Cartões: vendas por produto e serviço (ingressos, sócio-torcedor, experiências, estacionamento, alimentação, personalização, produtos da loja, frete e descontos do pedido, pelo prefixo do código do produto), chamados em aberto por tipo (categoria do chamado ou cancelamento do plano), próximos jogos (os mesmos números do relatório de vendas) e receita mês a mês (12 meses). A receita não conta pedidos cancelados, recusados na análise de fraude ou aguardando pagamento. |
 
 - **Configuração.** Os widgets ficam no slot `dashboardWidgets` do `backoffice_dashboard` (`flamengomatchday-backoffice-widgets.xml`). Cada papel escolhe o seu no contexto `dashboard` com `principal` (`flamengomatchday-backoffice-config.xml`).
 - **Regras consideradas.** Só as do grupo de promoção `flamengo.merch.painel.grupoPromocao` (padrão `electronicsPromoGrp`), na última versão de cada código.
