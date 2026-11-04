@@ -519,3 +519,28 @@ cx-order-details-items:has([data-fla-pickup='done']):not(:has([data-fla-pickup='
   > .cx-pickup-order-consigned-entries-header {
   display: none !important;
 }
+
+// Confirmação do pedido com retirada na loja (04/11): o título "Itens para retirar" vem depois
+// do quadro "Loja de retirada 1" (endereço e horário), logo acima da lista dos itens. Só no
+// contexto do pedido (div.container) e com uma loja; com várias lojas fica o padrão.
+cx-pickup-items-details
+  > div.container:has(> .cx-pickup-items-details-heading + div:last-child) {
+  display: flex;
+  flex-direction: column;
+
+  > .cx-pickup-items-details-heading {
+    order: 1;
+  }
+
+  > div {
+    display: contents;
+
+    > .cx-pickup-items-details {
+      order: 0;
+    }
+
+    > :not(.cx-pickup-items-details) {
+      order: 2;
+    }
+  }
+}
