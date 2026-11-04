@@ -420,6 +420,18 @@ cx-page-layout.OrderConfirmationPageTemplate cx-page-slot.BodyContent {
   }
 }
 
+// Detalhe do pedido (04/11): Resumo do pedido à esquerda, na coluna do bloco do pedido acima,
+// como na confirmação. A linha do Spartacus usa justify-content-end (Bootstrap, !important).
+cx-order-details-totals .row.justify-content-end {
+  justify-content: flex-start !important;
+}
+
+// Detalhe do pedido (04/11): a barra do breadcrumb é uma linha flexível sem quebra; com o
+// "Número: 00025001" (fla-order-number-header) ela quebra para o número ficar embaixo do título.
+cx-page-slot.BottomHeaderSlot:has(.fla-order-number) {
+  flex-wrap: wrap;
+}
+
 // Lista de itens (carrinho, revisão e confirmação): a variante ("Tamanho: P") é irmã do bloco
 // imagem + nome e ficava embaixo da imagem. Recuo da coluna da imagem (5rem + 1rem de espaço),
 // como o Spartacus já faz com as opções de retirada.

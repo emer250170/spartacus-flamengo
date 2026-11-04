@@ -184,6 +184,9 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'mdb.build': 'Monte o seu dia de jogo',
     'mdb.all': 'Ver todos os jogos',
 
+    // detalhe do pedido: linha abaixo do título
+    'od.number': 'Número: {code}',
+
     // confirmação do pedido
     'mdc.title': 'Tudo pronto para o jogo',
     'mdc.sub':
@@ -813,6 +816,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'mdb.build': 'Build your matchday',
     'mdb.all': 'See all matches',
 
+    'od.number': 'Number: {code}',
     'mdc.title': 'All set for the match',
     'mdc.sub':
       'Order #{code} · ticket, parking, food and jersey in one single order.',
