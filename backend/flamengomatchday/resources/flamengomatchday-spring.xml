@@ -517,4 +517,16 @@
 		<property name="configurationService" ref="configurationService"/>
 	</bean>
 
+	<!-- Atendimento do pedido: Pick up / Shipping esperam o processo da consignação ficar pronto
+	     (ligado pelo jobHandler dos modelos NPR_Automated_Pickup e NPR_Automated_Shipping,
+	     docs/flamengo-matchday/08-atendimento-espera.impex) -->
+	<bean id="flaPickupConsignmentActionComEspera" class="br.com.flamengo.matchday.fulfillment.WaitingWorkflowActionJob">
+		<property name="delegate" ref="taskAssignmentPickupConsignmentAction"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+	<bean id="flaShipConsignmentActionComEspera" class="br.com.flamengo.matchday.fulfillment.WaitingWorkflowActionJob">
+		<property name="delegate" ref="taskAssignmentShipConsignmentAction"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+
 </beans>
