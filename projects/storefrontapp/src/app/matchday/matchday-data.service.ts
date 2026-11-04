@@ -22,7 +22,7 @@ import {
 } from './matchday.model';
 
 /** Categorias e códigos criados no flamengoProductCatalog para o protótipo */
-const MATCHES_CATEGORY = 'flamengo_jogos_casa';
+export const MATCHES_CATEGORY = 'flamengo_jogos_casa';
 const SERVICES_CATEGORY = 'flamengo_matchday';
 const SHIRT_CODE = 'FLA-CAMISA-J2-2026';
 const PERSONALIZATION_CODE = 'FLA-PERSONALIZACAO';

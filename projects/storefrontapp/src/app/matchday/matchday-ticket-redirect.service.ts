@@ -7,19 +7,39 @@ import {
 } from './matchday-journey.component';
 
 /**
- * Compra só de ingresso pelo stepper (pedido do Emerson, 04/11): em vez da lista
- * "Jogos em casa" e da página da poltrona (listas Setor e Poltrona), o torcedor vai para
- * a jornada no modo ingresso (/matchday?modo=ingresso: Jogo > Setor e poltrona > Revisão).
- * - categoria Ingressos ou Jogos em casa: abre a escolha do jogo;
- * - página de um jogo ou de uma poltrona (JOGO-AAAAMMDD-ADV...): abre o jogo e, na
- *   poltrona, o setor dela.
- * Desligar: FLA_TICKET_REDIRECT = false (as telas padrão voltam a valer).
+ * Compra só de ingresso pelo stepper (pedido do Emerson, 04/11): a compra começa na lista
+ * "Jogos em casa" (botão "Escolher poltrona", MatchdayTicketActionComponent) ou na vitrine
+ * da home; a página de um jogo ou de uma poltrona (JOGO-AAAAMMDD-ADV...) vai para a jornada
+ * no modo ingresso (/matchday?modo=ingresso&jogo=...: Setor e poltrona > Estacionamento >
+ * Comidas e bebidas > Camisa > Revisão) e, na poltrona, abre o setor dela.
+ * Desligar: FLA_TICKET_REDIRECT = false (a página padrão do produto volta a valer).
  */
 export const FLA_TICKET_REDIRECT = true;
 
-const CATEGORY = /\/c\/(flamengo_jogos_casa|flamengo_ingressos)(?:[/?#]|$)/;
 const PRODUCT =
   /\/product\/(JOGO-\d{8}-[A-Za-z0-9]+)((?:-[A-Za-z0-9]+)*)(?:[/?#]|$)/;
+const CODE = /^(JOGO-\d{8}-[A-Za-z0-9]+)((?:-[A-Za-z0-9]+)*)$/;
+
+/**
+ * Parâmetros da jornada (modo ingresso) para um jogo (JOGO-AAAAMMDD-ADV) ou uma poltrona
+ * dele; null quando o código não é de ingresso.
+ */
+export function ticketQueryParams(
+  code: string | undefined
+): Record<string, string> | null {
+  const m = CODE.exec(code ?? '');
+  if (!m) {
+    return null;
+  }
+  const params: Record<string, string> = {
+    [TICKET_MODE_PARAM]: TICKET_MODE_VALUE,
+    jogo: m[1],
+  };
+  if (m[2]) {
+    params['poltrona'] = m[1] + m[2];
+  }
+  return params;
+}
 
 @Injectable({ providedIn: 'root' })
 export class MatchdayTicketRedirectService {
@@ -50,20 +70,7 @@ export class MatchdayTicketRedirectService {
 
   /** Parâmetros da jornada para a URL, ou null quando a URL não é de ingresso */
   target(url: string): Record<string, string> | null {
-    if (CATEGORY.test(url)) {
-      return { [TICKET_MODE_PARAM]: TICKET_MODE_VALUE };
-    }
     const m = PRODUCT.exec(url);
-    if (m) {
-      const params: Record<string, string> = {
-        [TICKET_MODE_PARAM]: TICKET_MODE_VALUE,
-        jogo: m[1],
-      };
-      if (m[2]) {
-        params['poltrona'] = m[1] + m[2];
-      }
-      return params;
-    }
-    return null;
+    return m ? ticketQueryParams(m[1] + m[2]) : null;
   }
 }

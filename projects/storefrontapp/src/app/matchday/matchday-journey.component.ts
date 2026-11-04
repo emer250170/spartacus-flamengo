@@ -50,7 +50,7 @@ import {
   SocioGuestsService,
 } from '../socio/socio-guests.service';
 import { SocioService } from '../socio/socio.service';
-import { MatchdayDataService } from './matchday-data.service';
+import { MATCHES_CATEGORY, MatchdayDataService } from './matchday-data.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import {
   MATCHDAY_HOLD_MINUTES,
@@ -91,11 +91,15 @@ interface SeatCell {
 /** Etapas (textos em fla-texts: md.step.N) */
 const STEPS = [0, 1, 2, 3, 4, 5];
 /**
- * Compra só de ingresso (?modo=ingresso, 04/11): Jogo, Setor e poltrona e Revisão, sem
- * estacionamento, comidas e camisa. É para onde vão Ingressos > Jogos em casa e a página
- * de uma poltrona (FlaTicketRedirectService).
+ * Compra de ingresso (?modo=ingresso&jogo=..., 04/11): o jogo já foi escolhido na lista
+ * "Jogos em casa" (botão Escolher poltrona) ou na vitrine da home, então a etapa Jogo sai e
+ * ficam Setor e poltrona, Estacionamento, Comidas e bebidas, Camisa e Revisão; a
+ * elegibilidade vai para a coluna da direita, embaixo do resumo. A página de um jogo ou de
+ * uma poltrona também abre aqui (MatchdayTicketRedirectService).
  */
-const TICKET_STEPS = [0, 1, 5];
+const TICKET_STEPS = [1, 2, 3, 4, 5];
+/** Lista "Jogos em casa": onde começa a compra de ingresso */
+export const TICKET_LIST_URL = ['/c', MATCHES_CATEGORY];
 export const TICKET_MODE_PARAM = 'modo';
 export const TICKET_MODE_VALUE = 'ingresso';
 const SEAT_ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -217,7 +221,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.requestedMatch = query['jogo'] || undefined;
     this.requestedSeat = query['poltrona'] || undefined;
     this.setTicketMode(query[TICKET_MODE_PARAM] === TICKET_MODE_VALUE);
-    // a mesma página troca de modo pelo link (ingresso <-> dia de jogo completo)
+    // a mesma página troca de modo pela URL (ingresso <-> dia de jogo completo)
     this.subscription.add(
       this.router.events
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
@@ -231,6 +235,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.loginIntent = this.data.readLoginIntent();
     if (this.loginIntent && !this.requestedMatch) {
       this.requestedMatch = this.loginIntent.matchCode;
+    }
+    // ingresso sem jogo (link antigo): a compra começa na lista de jogos
+    if (this.ticketMode && !this.requestedMatch) {
+      this.router.navigate(TICKET_LIST_URL, { replaceUrl: true });
+      return;
     }
     // recarrega a cada visita (a ocupação das poltronas muda a cada venda) e
     // a cada troca de idioma (nomes e datas vêm da API no idioma do site)
@@ -334,21 +343,15 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   // ---------- navegação entre etapas ----------
 
-  /** Liga ou desliga a compra só de ingresso; ao ligar, tira os extras da escolha */
+  /** Liga ou desliga a compra de ingresso (sem a etapa Jogo) */
   protected setTicketMode(on: boolean): void {
     if (on === this.ticketMode) {
       return;
     }
     this.ticketMode = on;
     this.steps = on ? TICKET_STEPS : STEPS;
-    if (on) {
-      this.parking = NO_PARKING;
-      this.plate = '';
-      this.food = {};
-      this.addShirt = false;
-    }
     if (!this.steps.includes(this.step)) {
-      this.step = this.steps.filter((n) => n < this.step).pop() ?? 0;
+      this.step = this.steps[0];
     }
   }
 

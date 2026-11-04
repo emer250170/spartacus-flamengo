@@ -29,12 +29,15 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     // compra só de ingresso e cabeçalho no padrão da loja (04/11)
     'md.crumbs': 'Você está em',
     'md.home': 'Início',
-    'md.crumbTicket': 'Ingressos',
+    'md.crumbTicket': 'Jogos em casa',
     'md.ticketTitle': 'Compre seu ingresso',
     'md.ticketLead':
-      'Escolha o jogo, o setor no mapa do Maracanã e a sua poltrona.',
-    'md.wantMore': 'Quer estacionamento, comidas e a camisa nova no mesmo pedido?',
-    'md.fullDay': 'Monte o seu dia de jogo',
+      'Escolha o setor e a sua poltrona no Maracanã e, se quiser, já garanta o estacionamento, a comida e a camisa nova no mesmo pedido.',
+    'md.ticketNoMatch': 'Escolha um jogo na lista para comprar o seu ingresso.',
+    'md.ticketPickGame': 'Ver os jogos',
+    'md.ticketBlocked':
+      'Confira no quadro de elegibilidade o que falta para comprar ingresso para este jogo.',
+    'md.chooseSeat': 'Escolher poltrona',
     'md.eyebrow': 'Matchday',
     'md.title': 'Monte o seu dia de jogo',
     'md.lead':
@@ -682,11 +685,15 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
 
     'md.crumbs': 'You are here',
     'md.home': 'Home',
-    'md.crumbTicket': 'Tickets',
+    'md.crumbTicket': 'Home matches',
     'md.ticketTitle': 'Buy your ticket',
-    'md.ticketLead': 'Pick the match, the sector on the Maracanã map and your seat.',
-    'md.wantMore': 'Want parking, food and the new shirt in the same order?',
-    'md.fullDay': 'Build your matchday',
+    'md.ticketLead':
+      'Pick the sector and your seat at the Maracanã and, if you like, add parking, food and the new shirt to the same order.',
+    'md.ticketNoMatch': 'Pick a match from the list to buy your ticket.',
+    'md.ticketPickGame': 'See the matches',
+    'md.ticketBlocked':
+      'Check the eligibility box for what is missing to buy a ticket for this match.',
+    'md.chooseSeat': 'Choose seat',
     'md.eyebrow': 'Matchday',
     'md.title': 'Build your matchday',
     'md.lead':

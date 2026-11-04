@@ -7,6 +7,7 @@ import {
 } from '@spartacus/core';
 import { combineLatest, Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
+import { MATCHES_CATEGORY } from './matchday-data.service';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import {
   TICKET_MODE_PARAM,
@@ -15,7 +16,7 @@ import {
 
 /**
  * Cabeçalho padrão da loja (breadcrumb e título no fundo cinza) na página /matchday
- * (matchdayPage, 04/11). No modo só ingresso (?modo=ingresso) mostra "Início / Ingressos"
+ * (matchdayPage, 04/11). No modo só ingresso (?modo=ingresso) mostra "Início / Jogos em casa" (link para a lista)
  * e "Compre seu ingresso"; no dia de jogo completo, o título do CMS ("Monte o seu dia de
  * jogo"), como antes.
  */
@@ -59,8 +60,11 @@ export class MatchdayPageMetaResolver extends ContentPageMetaResolver {
         ticket
           ? [
               ...(crumbs ?? []),
-              // sem link: é a página atual (o routerLink não aceita "?modo=" no texto)
-              { label: this.i18n.t('md.crumbTicket') } as BreadcrumbMeta,
+              // a lista onde a compra começou: dali o torcedor troca de jogo
+              {
+                label: this.i18n.t('md.crumbTicket'),
+                link: '/c/' + MATCHES_CATEGORY,
+              } as BreadcrumbMeta,
             ]
           : crumbs
       )

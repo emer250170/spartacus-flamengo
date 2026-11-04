@@ -11,12 +11,9 @@
       </h2>
       <p class="vt-sub">{{ 'vit.games.sub' | flaT }}</p>
     </div>
-    <a
-      class="vt-more"
-      [routerLink]="'/matchday'"
-      [queryParams]="{ modo: 'ingresso' }"
-      >{{ 'mdb.all' | flaT }}</a
-    >
+    <a class="vt-more" [routerLink]="'/c/flamengo_jogos_casa'">{{
+      'mdb.all' | flaT
+    }}</a>
   </div>
   <div class="vt-grid">
     <article class="vt-card" *ngFor="let m of matches">

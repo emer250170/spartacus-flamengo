@@ -632,18 +632,30 @@
   }
 }
 
-.md-summary {
+// coluna da direita: resumo e, no modo ingresso, a elegibilidade embaixo (04/11)
+.md-side {
   position: sticky;
   top: 16px;
-  padding: 20px;
-  border: 1px solid var(--md-line);
-  border-radius: 12px;
-  background: var(--md-panel);
+  display: grid;
+  gap: 16px;
+  align-self: start;
+  min-width: 0;
+
+  .md-elig {
+    margin-top: 0;
+  }
 
   @media (max-width: 991px) {
     position: static;
     order: -1;
   }
+}
+
+.md-summary {
+  padding: 20px;
+  border: 1px solid var(--md-line);
+  border-radius: 12px;
+  background: var(--md-panel);
 }
 .md-sum-label {
   display: block;
@@ -928,15 +940,14 @@
   }
 }
 
-// atalho do modo ingresso para o dia de jogo completo (04/11)
-.md-full-link {
-  margin: 20px 0 0;
-  color: var(--md-muted);
+// modo ingresso sem jogo (link antigo ou jogo que saiu da lista): volta para a lista
+.md-ticket-nomatch {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
 
-  a {
-    margin-left: 4px;
-    color: var(--md-red);
-    font-weight: 700;
+  p {
+    margin: 0;
   }
 }
 

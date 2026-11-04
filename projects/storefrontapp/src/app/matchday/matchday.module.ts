@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { CmsConfig, PageMetaResolver, provideConfig } from '@spartacus/core';
 import {
   OutletPosition,
+  ProductListOutlets,
   SpinnerModule,
   provideOutlet,
 } from '@spartacus/storefront';
@@ -14,6 +15,7 @@ import { VitrineModule } from '../vitrine/vitrine.module';
 import { MatchdayHomeBannerComponent } from './matchday-home-banner.component';
 import { MatchdayDeliveryTextInterceptor } from './matchday-delivery-text.interceptor';
 import { MatchdayPageMetaResolver } from './matchday-page-meta.resolver';
+import { MatchdayTicketActionComponent } from './matchday-ticket-action.component';
 import { MatchdayTicketRedirectService } from './matchday-ticket-redirect.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import { MatchdayJourneyComponent } from './matchday-journey.component';
@@ -44,6 +46,7 @@ import { OrderNumberHeaderComponent } from './order-number-header.component';
     MatchdayOrderConfirmationComponent,
     MatchdayStadiumMapComponent,
     OrderNumberHeaderComponent,
+    MatchdayTicketActionComponent,
   ],
   providers: [
     // cabeçalho da página /matchday: título e breadcrumb do modo só ingresso (04/11)
@@ -57,6 +60,12 @@ import { OrderNumberHeaderComponent } from './order-number-header.component';
       id: 'BreadcrumbComponent',
       position: OutletPosition.AFTER,
       component: OrderNumberHeaderComponent,
+    }),
+    // lista "Jogos em casa": "Escolher poltrona" no card do jogo (abre o stepper, 04/11)
+    provideOutlet({
+      id: ProductListOutlets.ITEM_ACTIONS,
+      position: OutletPosition.BEFORE,
+      component: MatchdayTicketActionComponent,
     }),
     // descrição da entrega "Ingresso digital e retirada no estádio" conforme o carrinho
     {
@@ -77,7 +86,7 @@ import { OrderNumberHeaderComponent } from './order-number-header.component';
 })
 export class MatchdayModule {
   // vigia a poltrona reservada em qualquer página (aviso se ela sair do carrinho) e leva a
-  // compra só de ingresso (categoria e página da poltrona) para o stepper (04/11)
+  // página de um jogo ou de uma poltrona para a compra de ingresso no stepper (04/11)
   constructor(
     holdWatcher: MatchdayHoldWatcherService,
     ticketRedirect: MatchdayTicketRedirectService
