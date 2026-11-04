@@ -523,10 +523,14 @@
 	<bean id="flaPickupConsignmentActionComEspera" class="br.com.flamengo.matchday.fulfillment.WaitingWorkflowActionJob">
 		<property name="delegate" ref="taskAssignmentPickupConsignmentAction"/>
 		<property name="configurationService" ref="configurationService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
 	</bean>
 	<bean id="flaShipConsignmentActionComEspera" class="br.com.flamengo.matchday.fulfillment.WaitingWorkflowActionJob">
 		<property name="delegate" ref="taskAssignmentShipConsignmentAction"/>
 		<property name="configurationService" ref="configurationService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
 	</bean>
 
 </beans>
