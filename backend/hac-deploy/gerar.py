@@ -82,7 +82,8 @@ def main():
 
     g = (AQUI / 'template.groovy').read_text()
     for k, v in {'@@MODO@@': a.modo, '@@ROTULO@@': a.rotulo, '@@ANTES@@': groovy_map(antes),
-                 '@@DEPOIS@@': groovy_map(depois), '@@PACOTE@@': pacote}.items():
+                 '@@DEPOIS@@': groovy_map(depois),
+                 '@@PACOTE@@': ''.join(f"\n    .append('{pacote[i:i + 20000]}')" for i in range(0, len(pacote), 20000))}.items():
         g = g.replace(k, v)
     if a.saida:
         pathlib.Path(a.saida).write_text(g)

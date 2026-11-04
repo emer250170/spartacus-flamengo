@@ -18,7 +18,8 @@ def ANTES = @@ANTES@@
 // caminho relativo -> md5 DEPOIS ('REMOVIDO' = deve sumir)
 def DEPOIS = @@DEPOIS@@
 // tar.gz (base64) só com os arquivos novos/alterados, caminhos relativos à extensão
-def PACOTE = '@@PACOTE@@'
+// em partes: o Groovy não aceita texto literal com mais de 65535 caracteres (PR #124)
+def PACOTE = new StringBuilder()@@PACOTE@@.toString()
 
 def md5 = { File f -> f.exists() ? MessageDigest.getInstance('MD5').digest(f.bytes).encodeHex().toString() : 'NAO_EXISTE' }
 def sh = { List cmd -> def p = new ProcessBuilder(cmd).redirectErrorStream(true).start(); def o = p.inputStream.text; p.waitFor(); [p.exitValue(), o.trim()] }
