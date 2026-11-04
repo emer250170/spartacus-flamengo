@@ -504,3 +504,10 @@ cx-product-list-item:has(.fla-ticket-btn) cx-add-to-cart,
 cx-product-grid-item:has(.fla-ticket-btn) cx-add-to-cart {
   display: none !important;
 }
+
+// jogo não tem avaliações: sem estrelas nem "Ainda sem avaliações" no card (04/11)
+// (lista e grade; o detalhe do item pode vir do cx-product-multi-dimensional-list-item-details)
+:is(cx-product-list-item, cx-product-grid-item):has(.fla-ticket-btn)
+  :is(cx-star-rating, .cx-product-no-review, .cx-product-rating) {
+  display: none !important;
+}
