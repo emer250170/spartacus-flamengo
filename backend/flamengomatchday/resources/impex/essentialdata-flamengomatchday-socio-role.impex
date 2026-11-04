@@ -29,6 +29,8 @@ INSERT_UPDATE UserGroup;uid[unique=true];locname[lang=pt];locname[lang=en];group
 
 # A publicação na loja (produto, preço, promoção, grupos) roda como admin no
 # SocioPlanService; o papel só precisa do cadastro de planos.
+# Workflow e WorkflowAction (leitura): a caixa de tarefas do Cockpit de administração pesquisa
+# WorkflowAction ao entrar; sem a leitura aparece "Não foi possível executar a pesquisa" (04/11).
 $START_USERRIGHTS;;;;;;;;;
 Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
 BackofficeRole;sociomanagerrole;;;;;;;;
@@ -48,4 +50,6 @@ BackofficeRole;sociomanagerrole;;;;;;;;
 ;;;;Catalog;+;-;-;-;-
 ;;;;CatalogVersion;+;-;-;-;-
 ;;;;User;+;-;-;-;-
+;;;;Workflow;+;-;-;-;-
+;;;;WorkflowAction;+;-;-;-;-
 $END_USERRIGHTS;;;;;;;;;
