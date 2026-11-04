@@ -107,7 +107,7 @@ export const ptProduto: TranslationResources = {
         sortBy: 'Ordenar por',
         sortResults: 'Ordenar resultados',
         backToTopBtn: 'VOLTAR AO TOPO',
-        showMoreBtn: 'VER MAIS',
+        showMoreBtn: 'Carregar mais produtos',
         productSearchPagination: 'Paginação da busca de produtos',
         productListResults: 'Lista de produtos encontrados',
       },
