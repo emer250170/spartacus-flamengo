@@ -511,3 +511,11 @@ cx-product-grid-item:has(.fla-ticket-btn) cx-add-to-cart {
   :is(cx-star-rating, .cx-product-no-review, .cx-product-rating) {
   display: none !important;
 }
+
+// Detalhes do pedido com retirada na loja (04/11): "Itens para retirar" e "Retirada concluída"
+// não aparecem juntos. Com toda a retirada concluída (FlaPickupConsignmentMarkComponent marca
+// data-fla-pickup), o título some e fica só o bloco "Retirada concluída".
+cx-order-details-items:has([data-fla-pickup='done']):not(:has([data-fla-pickup='open']))
+  > .cx-pickup-order-consigned-entries-header {
+  display: none !important;
+}
