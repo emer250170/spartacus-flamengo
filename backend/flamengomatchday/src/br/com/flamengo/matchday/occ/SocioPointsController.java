@@ -171,6 +171,7 @@ public class SocioPointsController
 			x.put("productCode", e.productCode);
 			x.put("buyable", Boolean.valueOf(e.buyable));
 			x.put("reason", e.reason);
+			x.put("imageUrl", e.imageUrl);
 			experiences.add(x);
 		}
 		m.put("experiences", experiences);

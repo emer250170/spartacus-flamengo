@@ -37,6 +37,8 @@ public class SocioExperienceOverview
 		public boolean onSale;
 		public String minPlanName;
 		public String statusMessage;
+		/** Imagem da vitrine (/medias/...), ou null */
+		public String imageUrl;
 		/** Resgates com pontos válidos */
 		public int redemptions;
 		/** Compras válidas */

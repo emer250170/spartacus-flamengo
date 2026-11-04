@@ -99,6 +99,12 @@
 						<wz:property qualifier="competition" type="java.lang.String"/>
 						<wz:property qualifier="venue" type="java.lang.String"/>
 						<wz:property qualifier="presale" type="java.lang.Boolean"/>
+						<wz:property qualifier="image" editor="br.com.flamengo.matchday.editor.image">
+							<wz:editor-parameter>
+								<wz:name>prefix</wz:name>
+								<wz:value>jogo</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
 					</wz:property-list>
 				</wz:content>
 				<wz:navigation id="step1.navigation">
@@ -174,6 +180,14 @@
 					<editorArea:attribute qualifier="venue"/>
 					<editorArea:attribute qualifier="presale"/>
 				</editorArea:section>
+				<editorArea:section name="matchday.editor.image">
+					<editorArea:attribute qualifier="image" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>jogo</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
 				<editorArea:section name="matchday.editor.waves">
 					<editorArea:attribute qualifier="wave1Start"/>
 					<editorArea:attribute qualifier="wave2Start"/>
@@ -220,6 +234,14 @@
 					<editorArea:attribute qualifier="competition"/>
 					<editorArea:attribute qualifier="venue"/>
 					<editorArea:attribute qualifier="presale"/>
+				</editorArea:section>
+				<editorArea:section name="matchday.editor.image">
+					<editorArea:attribute qualifier="image" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>jogo</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
 				</editorArea:section>
 				<editorArea:section name="matchday.editor.waves">
 					<editorArea:attribute qualifier="wave1Start"/>
@@ -948,6 +970,14 @@
 					</editorArea:attribute>
 					<editorArea:attribute qualifier="active"/>
 					<editorArea:attribute qualifier="sortOrder"/>
+				</editorArea:section>
+				<editorArea:section name="socio.experience.editor.image">
+					<editorArea:attribute qualifier="image" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>experiencia</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
 				</editorArea:section>
 				<editorArea:section name="socio.experience.editor.rules">
 					<editorArea:attribute qualifier="stock"/>

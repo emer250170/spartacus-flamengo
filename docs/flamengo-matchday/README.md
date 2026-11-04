@@ -843,6 +843,24 @@ O painel padrão do Cockpit de administração mostra gráficos do sistema (thre
 - **Desconto.** Soma o desconto do pedido e o dos itens. Pedidos cancelados não contam.
 - **Deploy.** `ant all`, reiniciar e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
 
+### Imagem dos jogos e das experiências (04/11)
+
+- Campo novo **Imagem** (`image`, mídia) no jogo (`MatchdayGame`) e na experiência (`SocioExperience`):
+  uma foto horizontal (1200 x 675 px, 16:9, JPG/PNG/GIF até 5 MB), para usar na vitrine.
+- Backoffice: editor próprio `br.com.flamengo.matchday.editor.image` (pré-visualização, Enviar/Trocar,
+  Remover; a foto vira uma mídia na pasta `images`) na ficha do jogo (administrador e gestor de jogos,
+  seção "Imagem da vitrine"), no passo 1 do assistente de jogo novo, na ficha da experiência e no
+  formulário da vitrine de experiências (Gestão de experiências › Vitrine), que também mostra a foto no card.
+- Ao salvar, `flamengoProductImageService` copia a foto para o produto da loja: um conjunto de mídias
+  `<produto>-fla-img` com um tamanho por formato (515, 300, 96 e 65 px de lado maior, sem cortar), que vira
+  imagem principal, miniatura e primeira da galeria. Jogo: no produto `JOGO-…` ao abrir ou ao salvar uma
+  mudança; as poltronas (variantes) usam a imagem do produto do jogo. Experiência: no `EXP-…` ao publicar.
+  Remover a foto tira do produto só o que a cópia tinha posto.
+- Chave `flamengo.produtos.imagem.copiar.ativo` (padrão `true`); formatos em `flamengo.produtos.imagem.formatos`.
+- API: `GET …/users/{userId}/sociopoints` devolve `imageUrl` em cada experiência (`/medias/…`).
+- Instalação: `ant all` + Update (Update running system + Localize types) e reiniciar antes de testar o
+  Backoffice (campo novo em tipo existente).
+
 ### Página de produto em português (30/10)
 
 - `src/app/i18n/pt-produto.ts`: traz em português os textos da página de produto e da busca. O Spartacus só traz inglês; o que faltar continua em inglês.
