@@ -165,7 +165,8 @@ export class SocioPaymentService {
   /** Boleto pela Adyen: precisa do CPF de quem paga */
   needsCpf(p?: SocioPayment, method?: SocioPaymentMethod): boolean {
     const m = method ?? p?.method;
-    return m === 'BOLETO' && !!p?.adyenMethods.includes('BOLETO');
+    // boleto e Pix pela Adyen: o CPF de quem paga (o Pix Automático exige)
+    return (m === 'BOLETO' || m === 'PIX') && !!p?.adyenMethods.includes(m);
   }
 
   setPayerCpf(cartId: string, cpf: string): void {
