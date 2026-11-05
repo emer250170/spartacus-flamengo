@@ -51,7 +51,7 @@
     </p>
     <div *ngIf="needsCpf" class="spay-cpf">
       <label for="spay-cpf">{{
-        (selected === 'PIX' ? 'spay.cpf.pix' : 'spay.cpf') | flaT
+        (isPix ? 'spay.cpf.pix' : 'spay.cpf') | flaT
       }}</label>
       <input
         id="spay-cpf"
@@ -69,7 +69,7 @@
         'spay.cpfInvalid' | flaT
       }}</small>
       <small *ngIf="!cpfTouched || cpfOk">{{
-        (selected === 'PIX' ? 'spay.cpfHint.pix' : 'spay.cpfHint') | flaT
+        (isPix ? 'spay.cpfHint.pix' : 'spay.cpfHint') | flaT
       }}</small>
     </div>
     <div class="spay-actions">

@@ -105,6 +105,11 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     return this.upfront || this.adyenCard;
   }
 
+  /** Pix à vista ou Pix Automático */
+  get isPix(): boolean {
+    return this.payment.isPix(this.selected);
+  }
+
   /** Boleto pela Adyen: pede o CPF de quem paga */
   get needsCpf(): boolean {
     return this.upfront && this.payment.needsCpf(this.opts, this.selected);
@@ -118,6 +123,9 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
   nextText(): string {
     if (this.adyenCard) {
       return this.t('spay.cardNext.adyen');
+    }
+    if (this.selected === 'PIX_AUTOMATICO') {
+      return this.t('spay.pixAutoNext');
     }
     const pix = this.selected === 'PIX';
     const adyen = !!this.opts?.adyenMethods.includes(this.selected);
@@ -185,6 +193,8 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     switch (m) {
       case 'CARTAO_MENSAL':
         return this.t('spay.a.CARTAO_MENSAL', { amount: this.brl(o.monthly) });
+      case 'PIX_AUTOMATICO':
+        return this.t('spay.a.PIX_AUTOMATICO', { amount: this.brl(o.monthly) });
       case 'CARTAO_ANUAL':
         return this.t('spay.a.CARTAO_ANUAL', {
           amount: this.brl(o.annual),

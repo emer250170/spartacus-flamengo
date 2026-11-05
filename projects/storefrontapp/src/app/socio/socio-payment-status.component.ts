@@ -53,6 +53,10 @@ export class SocioPaymentStatusComponent implements OnInit, OnDestroy {
   }
 
   /** Pedido sem plano (item 14): textos da loja ("liberar o pedido") */
+  isPix(method?: string): boolean {
+    return method === 'PIX' || method === 'PIX_AUTOMATICO';
+  }
+
   key(base: string): string {
     return this.payment?.planCode ? base : base + '.store';
   }

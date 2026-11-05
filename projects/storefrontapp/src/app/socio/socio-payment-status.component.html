@@ -8,8 +8,13 @@
     <p class="spay-kind">{{ 'spay.s.awaiting' | flaT }}</p>
     <h3 class="spay-title">
       {{
-        key(p.method === 'PIX' ? 'spay.s.pixTitle' : 'spay.s.boletoTitle')
-          | flaT: { plan: p.planName }
+        key(
+          p.method === 'PIX_AUTOMATICO'
+            ? 'spay.s.pixAutoTitle'
+            : p.method === 'PIX'
+            ? 'spay.s.pixTitle'
+            : 'spay.s.boletoTitle'
+        ) | flaT: { plan: p.planName }
       }}
     </h3>
     <p class="spay-sub">
@@ -20,13 +25,13 @@
     </p>
     <div class="spay-code">
       <img
-        *ngIf="p.method === 'PIX' && p.qrImageUrl"
+        *ngIf="isPix(p.method) && p.qrImageUrl"
         class="spay-qr"
         [src]="p.qrImageUrl"
         [alt]="'spay.s.qrAdyen' | flaT"
       />
       <svg
-        *ngIf="p.method === 'PIX' && !p.provider"
+        *ngIf="isPix(p.method) && !p.provider"
         class="spay-qr"
         viewBox="0 0 25 25"
         role="img"
@@ -50,7 +55,7 @@
       <div class="spay-copy">
         <label class="spay-kind" for="spay-code-{{ p.orderCode }}">
           {{
-            (p.method === 'PIX' ? 'spay.s.pixCode' : 'spay.s.boletoLine') | flaT
+            (isPix(p.method) ? 'spay.s.pixCode' : 'spay.s.boletoLine') | flaT
           }}
         </label>
         <textarea

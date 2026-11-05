@@ -556,7 +556,10 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		}
 		final CustomerModel customer = cart.getUser() instanceof CustomerModel ? (CustomerModel) cart.getUser() : null;
 		final Map<String, Object> shopper = shopper(cart, customer);
-		final boolean automatic = pix && pixAutomatic();
+		// Pix Automático: a mensalidade do plano (forma PIX_AUTOMATICO) ou, com a chave, todo Pix (o QR Code da conta de teste)
+		final SocioPaymentMethod socioMethod = SocioPayments.method(modelService, cart);
+		final boolean planMonthly = pix && socioMethod == SocioPaymentMethod.PIX_AUTOMATICO;
+		final boolean automatic = pix && (planMonthly || pixAutomatic());
 		if (automatic && (digits.isEmpty() || shopper.get("shopperName") == null || customer == null))
 		{
 			throw new AdyenException("O Pix pela Adyen precisa do CPF de quem vai pagar e do nome no endereço de entrega.");
@@ -600,11 +603,27 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		}
 		if (automatic)
 		{
-			// Pix Automático (Jornada 3 do Banco Central): paga agora e autoriza a assinatura
+			// Pix Automático (Jornada 3 do Banco Central): paga agora e autoriza a assinatura. Mensalidade do plano: as
+			// próximas cobranças são a mensalidade (plano + convidados), todo mês. Pix do ano inteiro: renovação anual.
+			// Compra sem plano: mensal no valor do pedido (só para ter o QR Code no teste).
+			final SocioPlanModel recurringPlan = planIn(cart);
 			final Map<String, Object> recurring = new LinkedHashMap<>();
-			recurring.put("frequency", "monthly");
-			recurring.put("recurringAmount", amount(cart));
-			recurring.put("recurringStatement", "Flamengo " + cart.getCode());
+			if (planMonthly && recurringPlan != null)
+			{
+				final double monthly = socioPaymentService.options(cart).monthly;
+				final Map<String, Object> fee = new LinkedHashMap<>();
+				fee.put("currency", currency(cart));
+				fee.put("value", Long.valueOf(Math.round(monthly * 100)));
+				recurring.put("frequency", "monthly");
+				recurring.put("recurringAmount", fee);
+			}
+			else
+			{
+				recurring.put("frequency", recurringPlan != null ? "yearly" : "monthly");
+				recurring.put("recurringAmount", amount(cart));
+			}
+			recurring.put("recurringStatement", StringUtils.left(recurringPlan != null
+					? StringUtils.defaultIfBlank(recurringPlan.getName(PT), recurringPlan.getCode()) : "Flamengo " + cart.getCode(), 35));
 			final Map<String, Object> method = new LinkedHashMap<>();
 			method.put("type", PIX);
 			method.put("pixRecurring", recurring);

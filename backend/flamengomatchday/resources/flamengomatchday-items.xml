@@ -41,6 +41,8 @@
 			<value code="CARTAO_ANUAL"/>
 			<value code="PIX"/>
 			<value code="BOLETO"/>
+			<!-- 05/11: 1ª mensalidade pelo Pix (QR Code da Adyen) e as próximas pelo Pix Automático -->
+			<value code="PIX_AUTOMATICO"/>
 		</enumtype>
 		<!-- Ingressos vendidos (item 10) -->
 		<enumtype code="MatchdayTicketStatus" autocreate="true" generate="true" dynamic="false">

@@ -8,7 +8,9 @@ export type SocioPaymentMethod =
   | 'CARTAO_MENSAL'
   | 'CARTAO_ANUAL'
   | 'PIX'
-  | 'BOLETO';
+  | 'BOLETO'
+  /** 05/11: 1ª mensalidade pelo Pix (QR Code da Adyen) e as próximas pelo Pix Automático */
+  | 'PIX_AUTOMATICO';
 
 /** Forma de pagamento do plano (item 7): opções do carrinho ou situação do pedido */
 export interface SocioPayment {
@@ -150,7 +152,12 @@ export class SocioPaymentService {
   }
 
   isUpfront(method?: SocioPaymentMethod): boolean {
-    return method === 'PIX' || method === 'BOLETO';
+    return method === 'PIX' || method === 'BOLETO' || method === 'PIX_AUTOMATICO';
+  }
+
+  /** Pix à vista ou Pix Automático: QR Code e copia e cola */
+  isPix(method?: SocioPaymentMethod): boolean {
+    return method === 'PIX' || method === 'PIX_AUTOMATICO';
   }
 
   /**
@@ -166,7 +173,10 @@ export class SocioPaymentService {
   needsCpf(p?: SocioPayment, method?: SocioPaymentMethod): boolean {
     const m = method ?? p?.method;
     // boleto e Pix pela Adyen: o CPF de quem paga (o Pix Automático exige)
-    return (m === 'BOLETO' || m === 'PIX') && !!p?.adyenMethods.includes(m);
+    return (
+      (m === 'BOLETO' || m === 'PIX' || m === 'PIX_AUTOMATICO') &&
+      !!p?.adyenMethods.includes(m)
+    );
   }
 
   setPayerCpf(cartId: string, cpf: string): void {

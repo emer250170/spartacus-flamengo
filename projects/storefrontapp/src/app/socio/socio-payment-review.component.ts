@@ -55,6 +55,9 @@ export class SocioPaymentReviewComponent implements OnInit, OnDestroy {
   }
 
   note(): string {
+    if (this.opts?.method === 'PIX_AUTOMATICO') {
+      return this.i18n.t('spay.r.pixAutoNote');
+    }
     const pix = this.opts?.method === 'PIX';
     const key = pix ? 'spay.r.pixNote' : 'spay.r.boletoNote';
     return this.i18n.t(this.store ? key + '.store' : key);

@@ -81,6 +81,18 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		return isEnabled() && configurationService.getConfiguration().getBoolean(STORE_PROPERTY, false);
 	}
 
+	/**
+	 * Pix Automático na mensalidade do plano (05/11): Adyen ligada, Pix na lista de meios da Adyen e o Pix indo
+	 * como Pix Automático (flamengo.pagamento.adyen.pix.automatico). Lido da configuração, sem depender da Adyen.
+	 */
+	protected boolean pixAutomaticOffered()
+	{
+		final var c = configurationService.getConfiguration();
+		return c.getBoolean("flamengo.pagamento.adyen.ativo", false) && c.getBoolean("flamengo.pagamento.adyen.pix.automatico", false)
+				&& java.util.Arrays.stream(c.getString("flamengo.pagamento.adyen.meios", "").split(","))
+						.anyMatch(m -> "pix".equalsIgnoreCase(m.trim()));
+	}
+
 	protected int maxInstallments()
 	{
 		return Math.max(1, Math.min(SocioPayments.MONTHS, configurationService.getConfiguration().getInt(INSTALLMENTS_PROPERTY, 12)));
@@ -112,6 +124,11 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 			if (p.enabled)
 			{
 				p.methods.add(SocioPaymentMethod.CARTAO_MENSAL.getCode());
+				if (pixAutomaticOffered())
+				{
+					// 05/11: mensalidade pelo Pix Automático da Adyen (1ª agora pelo QR Code, as próximas no débito)
+					p.methods.add(SocioPaymentMethod.PIX_AUTOMATICO.getCode());
+				}
 				p.methods.add(SocioPaymentMethod.CARTAO_ANUAL.getCode());
 				if (p.upfrontAllowed)
 				{
@@ -150,7 +167,12 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		{
 			throw new SocioPaymentException("O ano inteiro no cartão só vale com um plano de sócio no carrinho.");
 		}
-		if (plan != null && SocioPayments.upfront(chosen) && Boolean.FALSE.equals(plan.getUpfrontPayment()))
+		if (chosen == SocioPaymentMethod.PIX_AUTOMATICO && (plan == null || !pixAutomaticOffered()))
+		{
+			throw new SocioPaymentException("O Pix Automático vale só para a mensalidade de um plano de sócio, com o Pix pela Adyen ligado.");
+		}
+		if (plan != null && SocioPayments.annual(chosen) && SocioPayments.upfront(chosen)
+				&& Boolean.FALSE.equals(plan.getUpfrontPayment()))
 		{
 			throw new SocioPaymentException("O " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())
 					+ " não aceita Pix nem boleto à vista. Escolha o cartão.");
@@ -194,10 +216,14 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		{
 			throw new SocioPaymentException("Pix e boleto à vista só valem com um plano de sócio no carrinho.");
 		}
-		if (plan != null && Boolean.FALSE.equals(plan.getUpfrontPayment()))
+		if (plan != null && SocioPayments.annual(method) && Boolean.FALSE.equals(plan.getUpfrontPayment()))
 		{
 			throw new SocioPaymentException("O " + StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode())
 					+ " não aceita Pix nem boleto à vista. Escolha o cartão.");
+		}
+		if (method == SocioPaymentMethod.PIX_AUTOMATICO && plan == null)
+		{
+			throw new SocioPaymentException("O Pix Automático vale só para a mensalidade de um plano de sócio.");
 		}
 		final boolean allPickup = cart.getEntries() != null && !cart.getEntries().isEmpty()
 				&& cart.getEntries().stream().allMatch(e -> e.getDeliveryPointOfService() != null);
@@ -235,7 +261,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		if (adyenReference == null || SocioPayments.string(modelService, cart, SocioPayments.CODE) == null)
 		{
 			modelService.setAttributeValue(cart, SocioPayments.CODE,
-					method == SocioPaymentMethod.PIX ? pixCode(cart, now) : boletoLine(cart, due));
+					SocioPayments.pix(method) ? pixCode(cart, now) : boletoLine(cart, due));
 		}
 		modelService.setAttributeValue(cart, SocioPayments.CONFIRMED, null);
 		modelService.save(cart);
@@ -387,7 +413,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 				+ " AND {" + SocioPayments.METHOD + "} IN (?m) AND {" + SocioPayments.CONFIRMED + "} IS NULL"
 				+ " AND ({status} IS NULL OR {status}<>?x) ORDER BY {date} DESC");
 		q.addQueryParameter("c", customer);
-		q.addQueryParameter("m", List.of(SocioPaymentMethod.PIX, SocioPaymentMethod.BOLETO));
+		q.addQueryParameter("m", List.of(SocioPaymentMethod.PIX, SocioPaymentMethod.BOLETO, SocioPaymentMethod.PIX_AUTOMATICO));
 		q.addQueryParameter("x", OrderStatus.CANCELLED);
 		return flexibleSearchService.<OrderModel> search(q).getResult();
 	}
@@ -514,7 +540,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 	{
 		final Calendar c = Calendar.getInstance(SAO_PAULO);
 		c.setTime(now);
-		if (method == SocioPaymentMethod.PIX)
+		if (SocioPayments.pix(method))
 		{
 			c.add(Calendar.MINUTE, Math.max(1, configurationService.getConfiguration().getInt(PIX_MINUTES_PROPERTY, 30)));
 		}
@@ -605,7 +631,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 				return m;
 			}
 		}
-		throw new SocioPaymentException("Forma de pagamento desconhecida: " + method + " (CARTAO_MENSAL, CARTAO_ANUAL, PIX ou BOLETO).");
+		throw new SocioPaymentException("Forma de pagamento desconhecida: " + method + " (CARTAO_MENSAL, CARTAO_ANUAL, PIX, BOLETO ou PIX_AUTOMATICO).");
 	}
 
 	/** Plano no carrinho/pedido (o de maior onda, como no applyOrder) */

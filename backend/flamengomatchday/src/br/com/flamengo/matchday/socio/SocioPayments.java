@@ -46,13 +46,19 @@ public final class SocioPayments
 	/** A forma cobra o ano inteiro (12 mensalidades do plano e dos convidados) */
 	public static boolean annual(final SocioPaymentMethod method)
 	{
-		return method == SocioPaymentMethod.CARTAO_ANUAL || upfront(method);
+		return method == SocioPaymentMethod.CARTAO_ANUAL || method == SocioPaymentMethod.PIX || method == SocioPaymentMethod.BOLETO;
 	}
 
-	/** Pix ou boleto: o pedido espera a confirmação do pagamento */
+	/** Pix, boleto ou Pix Automático: o pedido espera a confirmação do pagamento */
 	public static boolean upfront(final SocioPaymentMethod method)
 	{
-		return method == SocioPaymentMethod.PIX || method == SocioPaymentMethod.BOLETO;
+		return method == SocioPaymentMethod.PIX || method == SocioPaymentMethod.BOLETO || method == SocioPaymentMethod.PIX_AUTOMATICO;
+	}
+
+	/** Pix à vista ou Pix Automático (QR Code e copia e cola) */
+	public static boolean pix(final SocioPaymentMethod method)
+	{
+		return method == SocioPaymentMethod.PIX || method == SocioPaymentMethod.PIX_AUTOMATICO;
 	}
 
 	/** Pedido com Pix ou boleto ainda não pago (e não cancelado) */
@@ -91,6 +97,8 @@ public final class SocioPayments
 		{
 			case PIX:
 				return "Pix";
+			case PIX_AUTOMATICO:
+				return "Pix Autom\u00e1tico (mensalidade)";
 			case BOLETO:
 				return "Boleto";
 			default:
