@@ -6,6 +6,7 @@ import br.com.flamengo.matchday.payment.adyen.AdyenPaymentService;
 import br.com.flamengo.matchday.socio.SocioPayment;
 import br.com.flamengo.matchday.socio.SocioPaymentException;
 import br.com.flamengo.matchday.socio.SocioPaymentService;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
 import de.hybris.platform.core.model.order.CartModel;
 import de.hybris.platform.core.model.order.OrderModel;
@@ -119,7 +120,7 @@ public class SocioPaymentController
 			if (adyenHandles(method))
 			{
 				final Object cpf = body == null ? null : body.get("cpf");
-				adyenPaymentService.prepareUpfront(cart, method == SocioPaymentMethod.PIX, cpf == null ? null : cpf.toString());
+				adyenPaymentService.prepareUpfront(cart, SocioPayments.pix(method), cpf == null ? null : cpf.toString());
 			}
 			final OrderModel order = socioPaymentService.placeOrder(cart);
 			return ResponseEntity.status(HttpStatus.CREATED).body(withAdyen(toMap(socioPaymentService.status(order)), order));
@@ -191,7 +192,7 @@ public class SocioPaymentController
 			return false;
 		}
 		final List<String> methods = adyenPaymentService.methods();
-		return method == SocioPaymentMethod.PIX ? methods.contains("pix")
+		return SocioPayments.pix(method) ? methods.contains("pix")
 				: method == SocioPaymentMethod.BOLETO && methods.contains("boletobancario");
 	}
 
@@ -214,6 +215,7 @@ public class SocioPaymentController
 				if (adyenHandles(SocioPaymentMethod.PIX))
 				{
 					methods.add("PIX");
+					methods.add("PIX_AUTOMATICO");
 				}
 				if (adyenHandles(SocioPaymentMethod.BOLETO))
 				{
