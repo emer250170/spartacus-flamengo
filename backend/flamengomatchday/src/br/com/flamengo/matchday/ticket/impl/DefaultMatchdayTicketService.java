@@ -419,11 +419,30 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 				setAvailable(t.getSeat(), 1);
 			}
 			final double paid = t.getPrice() == null ? 0 : t.getPrice().doubleValue();
+			// pedido pago pela Adyen (05/11): o reembolso vira estorno de verdade na Adyen
+			final String adyen = refund == null ? null : adyenRefund(t.getOrderCode(), refund.doubleValue(), "ingresso " + t.getCode());
 			event(t, MatchdayTicketEventType.CANCELAMENTO, author, null, null, refund,
 					(refund != null && refund.doubleValue() < paid ? "Reembolso parcial (perto do jogo)" : "Reembolso integral")
+							+ (adyen == null ? "" : " (" + adyen + ")")
 							+ ". A poltrona voltou para a venda." + (StringUtils.isBlank(reason) ? "" : " Motivo: " + reason.trim()));
 			return t;
 		});
+	}
+
+	/** Estorno pela Adyen quando o pedido foi pago por ela; sem Adyen (ou se falhar), só o registro de sempre */
+	protected String adyenRefund(final String orderCode, final double amount, final String reason)
+	{
+		try
+		{
+			return de.hybris.platform.core.Registry.getApplicationContext()
+					.getBean("adyenPaymentService", br.com.flamengo.matchday.payment.adyen.AdyenPaymentService.class)
+					.refund(orderCode, amount, reason);
+		}
+		catch (final RuntimeException e)
+		{
+			LOG.warn("Pedido {}: estorno pela Adyen não lançado ({}): {}", orderCode, reason, e.getMessage());
+			return null;
+		}
 	}
 
 	@Override

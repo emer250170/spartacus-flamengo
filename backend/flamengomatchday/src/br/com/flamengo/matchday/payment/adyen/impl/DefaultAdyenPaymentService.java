@@ -31,6 +31,12 @@ import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.order.CartService;
 import de.hybris.platform.order.InvalidCartException;
 import de.hybris.platform.orderprocessing.model.OrderProcessModel;
+import de.hybris.platform.payment.PaymentService;
+import de.hybris.platform.payment.dto.TransactionStatus;
+import de.hybris.platform.payment.dto.TransactionStatusDetails;
+import de.hybris.platform.payment.enums.PaymentTransactionType;
+import de.hybris.platform.payment.model.PaymentTransactionEntryModel;
+import de.hybris.platform.payment.model.PaymentTransactionModel;
 import de.hybris.platform.processengine.BusinessProcessService;
 import de.hybris.platform.search.restriction.SearchRestrictionService;
 import de.hybris.platform.servicelayer.config.ConfigurationService;
@@ -43,6 +49,8 @@ import de.hybris.platform.servicelayer.user.UserService;
 import de.hybris.platform.store.BaseStoreModel;
 import de.hybris.platform.store.services.BaseStoreService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.OffsetDateTime;
@@ -606,6 +614,174 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		return action;
 	}
 
+	// ------------------------------------------------------------ estornos (05/11)
+
+	@Override
+	public Map<String, Object> refundPayment(final String pspReference, final long cents, final String currency,
+			final String reference)
+	{
+		requireKeys();
+		if (StringUtils.isBlank(pspReference) || cents <= 0)
+		{
+			throw new AdyenException("Estorno sem pagamento da Adyen ou sem valor.");
+		}
+		final Map<String, Object> amount = new LinkedHashMap<>();
+		amount.put("currency", StringUtils.defaultIfBlank(currency, "BRL"));
+		amount.put("value", Long.valueOf(cents));
+		final Map<String, Object> body = new LinkedHashMap<>();
+		body.put("merchantAccount", str(store(), "adyenMerchantAccount"));
+		body.put("amount", amount);
+		body.put("reference", StringUtils.defaultIfBlank(reference, pspReference + "-estorno"));
+		final Map<String, Object> r = post("/payments/" + urlEncode(pspReference) + "/refunds", body);
+		LOG.info("Adyen: estorno de {} centavos em {} pedido ({}): {}", Long.valueOf(cents), pspReference, reference, r.get("status"));
+		return r;
+	}
+
+	@Override
+	public Map<String, Object> cancelPayment(final String pspReference, final String reference)
+	{
+		requireKeys();
+		final Map<String, Object> body = new LinkedHashMap<>();
+		body.put("merchantAccount", str(store(), "adyenMerchantAccount"));
+		body.put("reference", StringUtils.defaultIfBlank(reference, pspReference + "-cancelamento"));
+		final Map<String, Object> r = post("/payments/" + urlEncode(pspReference) + "/cancels", body);
+		LOG.info("Adyen: cancelamento de {} ({}): {}", pspReference, reference, r.get("status"));
+		return r;
+	}
+
+	@Override
+	public String refund(final String orderCode, final double amount, final String reason)
+	{
+		if (StringUtils.isBlank(orderCode) || amount < 0.01)
+		{
+			return null;
+		}
+		return unrestricted(() -> {
+			final FlexibleSearchQuery q = new FlexibleSearchQuery(
+					"SELECT {pk} FROM {Order} WHERE {code}=?c AND {versionID} IS NULL");
+			q.addQueryParameter("c", orderCode);
+			final List<OrderModel> orders = flexibleSearchService.<OrderModel> search(q).getResult();
+			final PaymentTransactionModel tx = orders.isEmpty() ? null : adyenTransaction(orders.get(0));
+			if (tx == null)
+			{
+				return null;
+			}
+			final BigDecimal value = BigDecimal.valueOf(amount).setScale(2, RoundingMode.HALF_UP);
+			final PaymentTransactionEntryModel e = paymentService().refundFollowOn(tx, value);
+			final boolean ok = e != null && TransactionStatus.ACCEPTED.name().equals(e.getTransactionStatus());
+			LOG.info("Pedido {}: estorno de {} pela Adyen ({}): {}", orderCode, value, reason, ok ? "aceito" : "recusado");
+			return ok ? "estorno de " + money(value) + " pela Adyen (referência " + e.getRequestId() + ")"
+					: "estorno de " + money(value) + " recusado pela Adyen; refazer pelo painel da Adyen";
+		});
+	}
+
+	/** A transação da Adyen do pedido (criada quando a Adyen autoriza o pagamento) */
+	protected PaymentTransactionModel adyenTransaction(final AbstractOrderModel order)
+	{
+		if (order.getPaymentTransactions() == null)
+		{
+			return null;
+		}
+		return order.getPaymentTransactions().stream().filter(t -> PROVIDER.equals(t.getPaymentProvider())).findFirst()
+				.orElse(null);
+	}
+
+	/**
+	 * Pagamento autorizado (cartão, Pix ou boleto): registra a transação da Adyen no pedido, com a
+	 * autorização e a captura (a conta captura na hora). É nela que o SAP lança os estornos do
+	 * cancelamento e da devolução, pelos comandos do provedor Adyen.
+	 */
+	protected void recordTransaction(final OrderModel order, final String psp, final ItemModel n)
+	{
+		if (adyenTransaction(order) != null || StringUtils.isBlank(psp))
+		{
+			return;
+		}
+		final Object raw = modelService.getAttributeValue(n, "amount");
+		final BigDecimal amount = raw instanceof Number ? BigDecimal.valueOf(((Number) raw).doubleValue()).setScale(2, RoundingMode.HALF_UP)
+				: BigDecimal.valueOf(order.getTotalPrice() == null ? 0 : order.getTotalPrice().doubleValue()).setScale(2,
+						RoundingMode.HALF_UP);
+		final Date now = new Date();
+		final PaymentTransactionModel tx = modelService.create(PaymentTransactionModel.class);
+		tx.setCode("adyen-" + StringUtils.defaultIfBlank(str(order, REFERENCE), order.getCode()));
+		tx.setOrder(order);
+		tx.setInfo(order.getPaymentInfo());
+		tx.setPaymentProvider(PROVIDER);
+		tx.setRequestId(psp);
+		tx.setRequestToken(psp);
+		tx.setCurrency(order.getCurrency());
+		tx.setPlannedAmount(amount);
+		modelService.save(tx);
+		for (final PaymentTransactionType type : new PaymentTransactionType[]
+		{ PaymentTransactionType.AUTHORIZATION, PaymentTransactionType.CAPTURE })
+		{
+			final PaymentTransactionEntryModel e = modelService.create(PaymentTransactionEntryModel.class);
+			e.setCode(tx.getCode() + "-" + type.getCode().toLowerCase(Locale.ROOT));
+			e.setPaymentTransaction(tx);
+			e.setType(type);
+			e.setAmount(amount);
+			e.setCurrency(order.getCurrency());
+			e.setTime(now);
+			e.setRequestId(psp);
+			e.setRequestToken(psp);
+			e.setTransactionStatus(TransactionStatus.ACCEPTED.name());
+			e.setTransactionStatusDetails(TransactionStatusDetails.SUCCESFULL.name());
+			modelService.save(e);
+		}
+		modelService.refresh(order);
+		LOG.info("Adyen: transação {} registrada no pedido {} ({} {})", psp, order.getCode(), amount, method(order));
+	}
+
+	/** Aviso REFUND/CANCELLATION: o lançamento do estorno fica aceito ou recusado conforme a Adyen */
+	protected String followOnResult(final OrderModel order, final String event, final boolean success, final String psp,
+			final ItemModel n)
+	{
+		final PaymentTransactionModel tx = adyenTransaction(order);
+		PaymentTransactionEntryModel entry = null;
+		if (tx != null && tx.getEntries() != null)
+		{
+			entry = tx.getEntries().stream().filter(e -> psp != null && psp.equals(e.getRequestId())
+					&& (e.getType() == PaymentTransactionType.REFUND_FOLLOW_ON || e.getType() == PaymentTransactionType.CANCEL))
+					.findFirst().orElse(null);
+		}
+		if (entry != null && !success)
+		{
+			entry.setTransactionStatus(TransactionStatus.REJECTED.name());
+			entry.setTransactionStatusDetails(TransactionStatusDetails.PROCESSOR_DECLINE.name());
+			modelService.save(entry);
+		}
+		final Object amount = modelService.getAttributeValue(n, "amount");
+		final String value = amount instanceof Number ? money(BigDecimal.valueOf(((Number) amount).doubleValue())) : "-";
+		final String what = "REFUND".equals(event) ? "Estorno" : "Cancelamento";
+		return what + " de " + value + (success ? " confirmado" : " recusado") + " pela Adyen (pedido " + order.getCode() + ")"
+				+ (entry == null ? "." : "; lançamento " + entry.getCode() + ".");
+	}
+
+	protected String method(final AbstractOrderModel order)
+	{
+		return StringUtils.defaultIfBlank(str(order, METHOD), "-");
+	}
+
+	protected static String money(final BigDecimal value)
+	{
+		return "R$ " + value.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',');
+	}
+
+	/** Chaves da loja base (estorno funciona mesmo com a loja nova desligada: o pagamento já está na Adyen) */
+	protected void requireKeys()
+	{
+		final BaseStoreModel store = store();
+		if (store == null || StringUtils.isAnyBlank(str(store, "adyenMerchantAccount"), str(store, "adyenApiKey")))
+		{
+			throw new AdyenException("Conta e chave de API da Adyen não preenchidas na loja base.");
+		}
+	}
+
+	protected PaymentService paymentService()
+	{
+		return de.hybris.platform.core.Registry.getApplicationContext().getBean("paymentService", PaymentService.class);
+	}
+
 	@Override
 	public Map<String, Object> orderPayment(final AbstractOrderModel order)
 	{
@@ -732,7 +908,13 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		final boolean success = Boolean.TRUE.equals(modelService.getAttributeValue(n, "success"));
 		final String reference = (String) modelService.getAttributeValue(n, "merchantReference");
 		final String psp = (String) modelService.getAttributeValue(n, "pspReference");
-		final OrderModel order = orderFor(reference);
+		OrderModel order = orderFor(reference);
+		// estorno/cancelamento: a referência é a do lançamento; o pedido vem pelo pagamento original
+		final String original = (String) modelService.getAttributeValue(n, "originalReference");
+		if (order == null && StringUtils.isNotBlank(original))
+		{
+			order = orderForPsp(original);
+		}
 		String result;
 		if (order == null)
 		{
@@ -752,6 +934,7 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 				{
 					set(order, PSP, psp);
 					modelService.save(order);
+					recordTransaction(order, psp, n);
 					if (SocioPayments.isAwaiting(modelService, order))
 					{
 						confirmEvent(order, psp);
@@ -769,6 +952,10 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 					result = "Pagamento recusado pela Adyen: " + StringUtils.defaultIfBlank(
 							(String) modelService.getAttributeValue(n, "reason"), "sem motivo informado") + ".";
 				}
+			}
+			else if ("REFUND".equals(event) || "CANCELLATION".equals(event) || "CANCEL_OR_REFUND".equals(event))
+			{
+				result = followOnResult(order, event, success, psp, n);
 			}
 			else if ("OFFER_CLOSED".equals(event))
 			{
@@ -790,6 +977,15 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		modelService.setAttributeValue(n, "result", result);
 		modelService.save(n);
 		LOG.info("Adyen: {} {} -> {}", event, reference, result);
+	}
+
+	protected OrderModel orderForPsp(final String psp)
+	{
+		final FlexibleSearchQuery q = new FlexibleSearchQuery(
+				"SELECT {pk} FROM {Order} WHERE {" + PSP + "}=?p AND {versionID} IS NULL ORDER BY {creationtime} DESC");
+		q.addQueryParameter("p", psp);
+		final List<OrderModel> found = flexibleSearchService.<OrderModel> search(q).getResult();
+		return found.isEmpty() ? null : found.get(0);
 	}
 
 	protected OrderModel orderFor(final String reference)
