@@ -177,6 +177,7 @@ public class SocioGuestsController
 		dto.setUsed(Integer.valueOf(o.active.size()));
 		dto.setGuestPrice(Double.valueOf(o.guestPrice));
 		dto.setSuspended(Boolean.valueOf(o.suspended));
+		dto.setPlanInCart(Boolean.valueOf(o.planInCart));
 		dto.setCanAdd(Boolean.valueOf(o.canAdd));
 		dto.setReason(o.reason);
 		o.active.forEach(g -> dto.getGuests().add(toDto(g)));

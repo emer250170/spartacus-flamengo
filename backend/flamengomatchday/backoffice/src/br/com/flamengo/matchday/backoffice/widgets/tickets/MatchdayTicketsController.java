@@ -304,6 +304,12 @@ public class MatchdayTicketsController extends ExperienceWidgetSupport
 		row(h, label("detail.kickoff"), date(t.getGame() == null ? null : t.getGame().getKickoff(), true));
 		row(h, label("detail.seat"), seatText(t));
 		row(h, label("detail.holder"), t.getGuest() != null ? label("detail.guest", t.getHolder()) : StringUtils.defaultString(t.getHolder(), "-"));
+		if (StringUtils.isNotBlank(t.getHolderCpf()))
+		{
+			// CPF, nascimento e e-mail de quem vai usar (convidado ou ingresso adicional)
+			row(h, label("detail.holderData"), label("detail.holderDataValue", formatCpf(t.getHolderCpf()),
+					date(t.getHolderBirthDate(), false), StringUtils.defaultString(t.getHolderEmail(), "-")));
+		}
 		final CustomerModel c = t.getCustomer();
 		row(h, label("detail.customer"), c == null ? "-" : StringUtils.defaultIfBlank(c.getName(), c.getUid()) + " (" + c.getUid() + ")");
 		row(h, label("detail.order"), StringUtils.defaultString(t.getOrderCode(), "-"));
@@ -434,7 +440,8 @@ public class MatchdayTicketsController extends ExperienceWidgetSupport
 		{
 			statusFilter.appendItem(label("filter.allStatus"), "");
 			for (final MatchdayTicketStatus s : new MatchdayTicketStatus[]
-			{ MatchdayTicketStatus.VALIDO, MatchdayTicketStatus.UTILIZADO, MatchdayTicketStatus.CANCELADO })
+			{ MatchdayTicketStatus.VALIDO, MatchdayTicketStatus.AGUARDANDO_PAGAMENTO, MatchdayTicketStatus.UTILIZADO,
+					MatchdayTicketStatus.CANCELADO })
 			{
 				statusFilter.appendItem(label("status." + s.getCode()), s.getCode());
 			}
@@ -503,10 +510,18 @@ public class MatchdayTicketsController extends ExperienceWidgetSupport
 		return t.getStatus() == null ? "-" : label("status." + t.getStatus().getCode());
 	}
 
+	/** 12345678909 -> 123.456.789-09 */
+	protected static String formatCpf(final String cpf)
+	{
+		final String d = StringUtils.defaultString(cpf).replaceAll("\\D", "");
+		return d.length() == 11 ? d.substring(0, 3) + "." + d.substring(3, 6) + "." + d.substring(6, 9) + "-" + d.substring(9) : d;
+	}
+
 	protected static String color(final MatchdayTicketModel t)
 	{
 		return t.getStatus() == MatchdayTicketStatus.CANCELADO ? "#bb0000"
-				: t.getStatus() == MatchdayTicketStatus.UTILIZADO ? "#556b82" : "#107e3e";
+				: t.getStatus() == MatchdayTicketStatus.UTILIZADO ? "#556b82"
+						: t.getStatus() == MatchdayTicketStatus.AGUARDANDO_PAGAMENTO ? "#b35c00" : "#107e3e";
 	}
 
 	/** Nome da poltrona ("Leste Inferior · Poltrona 12"); sem nome, o setor */

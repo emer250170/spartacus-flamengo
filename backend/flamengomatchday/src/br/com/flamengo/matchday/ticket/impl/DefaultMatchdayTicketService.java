@@ -9,8 +9,10 @@ import br.com.flamengo.matchday.model.SeatHoldModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.service.SeatHoldService;
 import br.com.flamengo.matchday.socio.SocioGuestService;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.ticket.MatchdayTicketException;
 import br.com.flamengo.matchday.ticket.MatchdayTicketService;
+import br.com.flamengo.matchday.ticket.TicketHolderService;
 import de.hybris.platform.core.enums.OrderStatus;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
@@ -90,6 +92,9 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 		{
 			return created;
 		}
+		// pedido com plano em Pix/boleto ainda não pago: os ingressos esperam a confirmação (04/11)
+		final boolean awaiting = configurationService.getConfiguration().getBoolean(AWAIT_PAYMENT_PROPERTY, true)
+				&& SocioPayments.isAwaiting(modelService, order);
 		for (final AbstractOrderEntryModel entry : order.getEntries())
 		{
 			final ProductModel seat = entry.getProduct();
@@ -110,16 +115,18 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 			t.setGuest(guest instanceof SocioGuestModel ? (SocioGuestModel) guest : null);
 			final Object holder = attr(entry, SocioGuestService.ENTRY_HOLDER);
 			t.setHolder(holder instanceof String && StringUtils.isNotBlank((String) holder) ? (String) holder : buyerName(t));
+			holderData(t, entry);
 			final double paid = entry.getTotalPrice() == null ? 0 : entry.getTotalPrice().doubleValue();
 			final double list = (entry.getBasePrice() == null ? 0 : entry.getBasePrice().doubleValue())
 					* (entry.getQuantity() == null ? 1 : entry.getQuantity().longValue());
 			t.setPrice(Double.valueOf(paid));
 			t.setMemberDiscount(list - paid > 0.004 ? Double.valueOf(Math.round((list - paid) * 100) / 100.0) : null);
-			t.setStatus(MatchdayTicketStatus.VALIDO);
+			t.setStatus(awaiting ? MatchdayTicketStatus.AGUARDANDO_PAGAMENTO : MatchdayTicketStatus.VALIDO);
 			t.setSoldAt(order.getDate() != null ? order.getDate() : new Date());
 			save(t);
 			event(t, MatchdayTicketEventType.VENDA, author, null, t.getSeatLabel(), t.getPrice(),
-					"Pedido " + order.getCode() + (t.getGuest() != null ? " · convidado " + t.getHolder() : ""));
+					"Pedido " + order.getCode() + (t.getGuest() != null ? " · convidado " + t.getHolder() : "")
+							+ (awaiting ? " · aguardando o pagamento do Pix/boleto" : ""));
 			created.add(t);
 		}
 		if (!created.isEmpty())
@@ -127,6 +134,34 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 			LOG.info("Pedido {}: {} ingresso(s) registrado(s)", order.getCode(), created.size());
 		}
 		return created;
+	}
+
+	@Override
+	public int releaseForOrder(final AbstractOrderModel order, final String author)
+	{
+		if (order == null || order.getCode() == null)
+		{
+			return 0;
+		}
+		return unrestricted(() -> {
+			final FlexibleSearchQuery q = new FlexibleSearchQuery(
+					"SELECT {pk} FROM {MatchdayTicket} WHERE {orderCode}=?o AND {status}=?s");
+			q.addQueryParameter("o", order.getCode());
+			q.addQueryParameter("s", MatchdayTicketStatus.AGUARDANDO_PAGAMENTO);
+			final List<MatchdayTicketModel> waiting = flexibleSearchService.<MatchdayTicketModel> search(q).getResult();
+			for (final MatchdayTicketModel t : waiting)
+			{
+				t.setStatus(MatchdayTicketStatus.VALIDO);
+				save(t);
+				event(t, MatchdayTicketEventType.OBSERVACAO, author, null, null, null,
+						"Pagamento confirmado: ingresso liberado");
+			}
+			if (!waiting.isEmpty())
+			{
+				LOG.info("Pedido {}: {} ingresso(s) liberado(s) com o pagamento", order.getCode(), waiting.size());
+			}
+			return waiting.size();
+		});
 	}
 
 	@Override
@@ -352,6 +387,10 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 			}
 			t.setGuest(guest);
 			t.setHolder(guest != null ? guest.getName() : StringUtils.isNotBlank(holder) ? holder.trim() : buyerName(t));
+			// nome digitado pelo gestor ou volta ao comprador: sem CPF/nascimento/e-mail de outra pessoa
+			t.setHolderCpf(guest != null ? guest.getCpf() : null);
+			t.setHolderBirthDate(guest != null ? guest.getBirthDate() : null);
+			t.setHolderEmail(guest != null ? guest.getEmail() : null);
 			save(t);
 			event(t, MatchdayTicketEventType.TROCA_TITULAR, author, from, t.getHolder(), null,
 					guest != null ? "Convidado do sócio" : StringUtils.isNotBlank(holder) ? "Nome informado pelo gestor" : "Volta para o titular");
@@ -392,6 +431,10 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 	{
 		return unrestricted(() -> {
 			final MatchdayTicketModel t = editable(code);
+			if (t.getStatus() == MatchdayTicketStatus.AGUARDANDO_PAGAMENTO)
+			{
+				throw new MatchdayTicketException("O ingresso " + code + " ainda aguarda o pagamento do pedido (Pix/boleto).");
+			}
 			t.setStatus(MatchdayTicketStatus.UTILIZADO);
 			t.setUsedAt(new Date());
 			save(t);
@@ -644,6 +687,28 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 	protected static String buyerName(final MatchdayTicketModel t)
 	{
 		return t.getCustomer() == null ? null : StringUtils.defaultIfBlank(t.getCustomer().getName(), t.getCustomer().getUid());
+	}
+
+	/**
+	 * CPF, nascimento e e-mail de quem vai usar: do convidado do sócio ou, no ingresso
+	 * adicional de quem não é sócio, os informados na compra (vazio = o comprador)
+	 */
+	protected void holderData(final MatchdayTicketModel t, final AbstractOrderEntryModel entry)
+	{
+		final SocioGuestModel guest = t.getGuest();
+		if (guest != null)
+		{
+			t.setHolderCpf(guest.getCpf());
+			t.setHolderBirthDate(guest.getBirthDate());
+			t.setHolderEmail(guest.getEmail());
+			return;
+		}
+		final Object cpf = attr(entry, TicketHolderService.ENTRY_CPF);
+		final Object birth = attr(entry, TicketHolderService.ENTRY_BIRTH_DATE);
+		final Object email = attr(entry, TicketHolderService.ENTRY_EMAIL);
+		t.setHolderCpf(cpf instanceof String && StringUtils.isNotBlank((String) cpf) ? (String) cpf : null);
+		t.setHolderBirthDate(birth instanceof Date ? (Date) birth : null);
+		t.setHolderEmail(email instanceof String && StringUtils.isNotBlank((String) email) ? (String) email : null);
 	}
 
 	protected Object attr(final Object item, final String qualifier)

@@ -48,6 +48,8 @@
 			<value code="VALIDO"/>
 			<value code="CANCELADO"/>
 			<value code="UTILIZADO"/>
+			<!-- pedido com plano em Pix/boleto: o ingresso vale quando o gestor confirma o pagamento (04/11) -->
+			<value code="AGUARDANDO_PAGAMENTO"/>
 		</enumtype>
 		<enumtype code="MatchdayTicketEventType" autocreate="true" generate="true" dynamic="false">
 			<description>Evento no histórico do ingresso</description>
@@ -558,6 +560,10 @@
 					<description>Motivo do encerramento (retirado pelo titular, cancelamento do plano)</description>
 					<persistence type="property"/>
 				</attribute>
+				<attribute qualifier="cartCode" type="java.lang.String">
+					<description>Carrinho em que o convidado foi cadastrado com o plano ainda no carrinho (vazio = plano já comprado). Se o plano sair desse carrinho, o convidado é apagado; ao fechar o pedido, fica vazio.</description>
+					<persistence type="property"/>
+				</attribute>
 			</attributes>
 			<indexes>
 				<index name="socioGuestCustomer">
@@ -675,6 +681,19 @@
 				</attribute>
 				<attribute qualifier="ticketHolder" type="java.lang.String">
 					<description>Nome de quem vai usar o ingresso (convidado), gravado na compra</description>
+					<persistence type="property"/>
+				</attribute>
+				<!-- ingresso adicional de quem não é sócio (04/11): dados de quem vai usar -->
+				<attribute qualifier="ticketHolderCpf" type="java.lang.String">
+					<description>CPF (só dígitos) de quem vai usar o ingresso adicional de quem não é sócio</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="ticketHolderBirthDate" type="java.util.Date">
+					<description>Data de nascimento de quem vai usar o ingresso adicional</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="ticketHolderEmail" type="java.lang.String">
+					<description>E-mail de quem vai usar o ingresso adicional</description>
 					<persistence type="property"/>
 				</attribute>
 			</attributes>
@@ -974,6 +993,18 @@
 				</attribute>
 				<attribute qualifier="holder" type="java.lang.String">
 					<description>Quem vai usar (nome)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="holderCpf" type="java.lang.String">
+					<description>CPF (só dígitos) de quem vai usar: convidado do sócio ou ingresso adicional (vazio = o comprador)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="holderBirthDate" type="java.util.Date">
+					<description>Data de nascimento de quem vai usar (vazio = o comprador)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="holderEmail" type="java.lang.String">
+					<description>E-mail de quem vai usar (vazio = o comprador)</description>
 					<persistence type="property"/>
 				</attribute>
 				<attribute qualifier="guest" type="SocioGuest">

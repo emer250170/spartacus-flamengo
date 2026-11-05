@@ -26,6 +26,12 @@ public class SocioGuestOverview
 	public boolean canAdd;
 	/** Por que não pode cadastrar (null quando pode) */
 	public String reason;
+	/** Plano ainda só no carrinho (04/11): as vagas vêm do carrinho e o convidado cadastrado fica preso a ele */
+	public boolean planInCart;
+	/** Carrinho do plano (só com planInCart) */
+	public transient String cartCode;
+	/** Plano que vale para os convidados (comprado ou no carrinho) */
+	public transient de.hybris.platform.core.model.ItemModel planModel;
 	public final List<SocioGuestModel> active = new ArrayList<>();
 	/** Encerrados, os mais novos primeiro (até 10) */
 	public final List<SocioGuestModel> ended = new ArrayList<>();

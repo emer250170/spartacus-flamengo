@@ -89,6 +89,7 @@
 		<property name="seatHoldService" ref="seatHoldService"/>
 		<property name="commerceCartCalculationStrategy" ref="commerceCartCalculationStrategy"/>
 		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="socioGuestService" ref="socioGuestService"/>
 		<property name="sessionService" ref="sessionService"/>
 		<property name="baseSiteService" ref="baseSiteService"/>
 		<property name="commonI18NService" ref="commonI18NService"/>
@@ -260,6 +261,7 @@
 		<property name="cartService" ref="cartService"/>
 		<property name="sessionService" ref="sessionService"/>
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="matchdayTicketService" ref="matchdayTicketService"/>
 	</bean>
 	<!-- Item 14: mudar o status do pedido para "Pagamento confirmado" confirma o Pix ou boleto -->
 	<bean id="orderPaymentStatusInterceptor" class="br.com.flamengo.matchday.interceptor.OrderPaymentStatusInterceptor">
@@ -331,8 +333,20 @@
 		Ingresso do convidado: ao fechar o pedido do sócio, cada poltrona além da dele
 		precisa de convidado (chave flamengo.socio.convidados.ingressoNominal)
 	-->
+	<!--
+		Ingresso adicional de quem não é sócio (04/11): nome, CPF, nascimento e e-mail de
+		quem vai usar; o pedido só fecha com os dados (flamengo.ingressos.portador.obrigatorio).
+	-->
+	<bean id="ticketHolderService" class="br.com.flamengo.matchday.ticket.impl.DefaultTicketHolderService">
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="seatHoldService" ref="seatHoldService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
 	<bean id="socioGuestPlaceOrderMethodHook" class="br.com.flamengo.matchday.hook.SocioGuestPlaceOrderMethodHook">
 		<property name="socioGuestService" ref="socioGuestService"/>
+		<property name="ticketHolderService" ref="ticketHolderService"/>
 	</bean>
 	<bean id="socioGuestPlaceOrderMethodHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
 		<property name="add" ref="socioGuestPlaceOrderMethodHook"/>

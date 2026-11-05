@@ -1228,7 +1228,7 @@ function jogosTools(cfg, http) {
   }
 
   // ---- ingressos vendidos (item 10)
-  const TICKET_STATUS = { VALIDO: 'válido', CANCELADO: 'cancelado', UTILIZADO: 'utilizado' };
+  const TICKET_STATUS = { VALIDO: 'válido', AGUARDANDO_PAGAMENTO: 'aguardando pagamento', CANCELADO: 'cancelado', UTILIZADO: 'utilizado' };
   const EVENT_TYPES = { VENDA: 'venda', TROCA_POLTRONA: 'troca de poltrona', TROCA_TITULAR: 'troca de quem vai usar', CANCELAMENTO: 'cancelamento', UTILIZACAO: 'entrada no estádio', OBSERVACAO: 'observação' };
   /** Regra padrão do servidor (flamengo.matchday.ingressos.reembolso.*): integral até 48 h antes, depois 80 % até o início */
   const REFUND = { hours: 48, percent: 80 };
@@ -1392,7 +1392,7 @@ function jogosTools(cfg, http) {
       inputSchema: obj({
         jogo: S.str('Código do jogo (opcional)'),
         setor: { type: 'string', enum: Object.keys(SECTORS), description: 'Setor (opcional)' },
-        situacao: { type: 'string', enum: Object.keys(TICKET_STATUS), description: 'VALIDO, CANCELADO ou UTILIZADO (opcional)' },
+        situacao: { type: 'string', enum: Object.keys(TICKET_STATUS), description: 'VALIDO, AGUARDANDO_PAGAMENTO, CANCELADO ou UTILIZADO (opcional)' },
         texto: S.str('Parte do código, do pedido, do e-mail ou do nome do comprador ou de quem vai usar (opcional)'),
       }),
       handler: async (a) => {

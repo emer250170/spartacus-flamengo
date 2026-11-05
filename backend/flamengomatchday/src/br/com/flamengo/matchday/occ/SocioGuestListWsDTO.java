@@ -18,6 +18,8 @@ public class SocioGuestListWsDTO implements Serializable
 	private Integer used;
 	private Double guestPrice;
 	private Boolean suspended;
+	/** Plano ainda só no carrinho (04/11) */
+	private Boolean planInCart;
 	private Boolean canAdd;
 	private String reason;
 	private List<SocioGuestWsDTO> guests = new ArrayList<>();
@@ -102,6 +104,16 @@ public class SocioGuestListWsDTO implements Serializable
 	public void setSuspended(final Boolean suspended)
 	{
 		this.suspended = suspended;
+	}
+
+	public Boolean getPlanInCart()
+	{
+		return planInCart;
+	}
+
+	public void setPlanInCart(final Boolean planInCart)
+	{
+		this.planInCart = planInCart;
 	}
 
 	public Boolean getCanAdd()

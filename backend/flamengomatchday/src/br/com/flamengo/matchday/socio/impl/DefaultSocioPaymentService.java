@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultSocioPaymentService implements SocioPaymentService
 {
+	private br.com.flamengo.matchday.ticket.MatchdayTicketService matchdayTicketService;
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultSocioPaymentService.class);
 	private static final Locale PT = new Locale("pt");
 	private static final String GUEST_PREFIX = "NACAO-CONVIDADO-";
@@ -412,6 +413,10 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		}
 		modelService.save(order);
 		socioPlanService.applyOrder(order);
+		if (matchdayTicketService != null)
+		{
+			matchdayTicketService.releaseForOrder(order, "Pagamento confirmado"); // ingressos do pedido (04/11)
+		}
 		LOG.info("Pagamento do pedido {} confirmado", order.getCode());
 		return true;
 	}
@@ -670,5 +675,10 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 	public void setSearchRestrictionService(final SearchRestrictionService searchRestrictionService)
 	{
 		this.searchRestrictionService = searchRestrictionService;
+	}
+
+	public void setMatchdayTicketService(final br.com.flamengo.matchday.ticket.MatchdayTicketService matchdayTicketService)
+	{
+		this.matchdayTicketService = matchdayTicketService;
 	}
 }

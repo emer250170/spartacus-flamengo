@@ -268,7 +268,7 @@
                   <span class="md-dot is-mine"></span>
                   {{ 'md.legend.mine' | flaT }}
                 </li>
-                <li *ngIf="guestSeats.length">
+                <li *ngIf="hasGuestSeats">
                   <span class="md-dot is-guest"></span>
                   {{ 'md.legend.guest' | flaT }}
                 </li>
@@ -302,6 +302,154 @@
                   {{ 'md.holdAgain' | flaT }}
                 </button>
               </p>
+              <p
+                *ngIf="multiSeat && held && !holdExpired && !holding"
+                class="md-small md-multi"
+                role="status"
+              >
+                {{
+                  'md.multi.hint'
+                    | flaT
+                      : {
+                          seats: chosenSeats.join(', '),
+                          count: chosenSeats.length,
+                          n: ticketLimit,
+                        }
+                }}
+              </p>
+              <!-- não sócio: quem vai usar cada ingresso adicional -->
+              <div
+                *ngIf="multiSeat && extraSeats.length"
+                class="md-companions"
+                role="group"
+                [attr.aria-label]="'md.who.title' | flaT"
+              >
+                <h3 class="md-h3">{{ 'md.who.title' | flaT }}</h3>
+                <p class="md-small">{{ 'md.who.lead' | flaT }}</p>
+                <ul>
+                  <li class="md-comp-you">
+                    <span class="md-comp-name">{{ 'md.comp.you' | flaT }}</span>
+                    <span class="md-comp-seat">{{
+                      'md.line.seat' | flaT: { seat: seat }
+                    }}</span>
+                  </li>
+                  <li
+                    *ngFor="let g of extraSeats; trackBy: trackByCode"
+                    [class.is-active]="holderFor === g.code"
+                  >
+                    <span
+                      class="md-comp-name"
+                      [class.md-who-missing]="!g.holder"
+                      >{{ g.holder || ('md.who.missing' | flaT) }}</span
+                    >
+                    <span class="md-comp-seat">{{
+                      'md.line.seat' | flaT: { seat: g.label }
+                    }}</span>
+                    <button
+                      type="button"
+                      class="md-btn md-btn-ghost md-btn-sm"
+                      [class.is-active]="holderFor === g.code"
+                      [disabled]="savingHolder || holding"
+                      (click)="
+                        holderFor === g.code
+                          ? cancelHolderForm()
+                          : openHolderForm(g.code)
+                      "
+                    >
+                      {{
+                        (holderFor === g.code
+                          ? 'md.comp.cancelChoose'
+                          : g.holder
+                            ? 'md.who.edit'
+                            : 'md.who.fill'
+                        ) | flaT
+                      }}
+                    </button>
+                  </li>
+                </ul>
+                <form
+                  *ngIf="holderFor"
+                  class="md-holder-form"
+                  (ngSubmit)="saveHolder()"
+                  novalidate
+                >
+                  <p class="md-holder-title md-holder-wide">
+                    {{ 'md.who.formTitle' | flaT: { seat: holderSeatLabel } }}
+                  </p>
+                  <label class="md-holder-field md-holder-wide"
+                    >{{ 'sg.f.name' | flaT }}
+                    <input
+                      name="holderName"
+                      autocomplete="off"
+                      maxlength="120"
+                      [(ngModel)]="holderForm.name"
+                      required
+                  /></label>
+                  <label class="md-holder-field"
+                    >{{ 'sg.f.cpf' | flaT }}
+                    <input
+                      name="holderCpf"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="000.000.000-00"
+                      maxlength="14"
+                      [ngModel]="holderForm.cpf"
+                      (ngModelChange)="onHolderCpf($event)"
+                      required
+                  /></label>
+                  <label class="md-holder-field"
+                    >{{ 'sg.f.birth' | flaT }}
+                    <input
+                      name="holderBirth"
+                      type="date"
+                      [max]="holderToday"
+                      [(ngModel)]="holderForm.birthDate"
+                      required
+                  /></label>
+                  <label class="md-holder-field"
+                    >{{ 'sg.f.email' | flaT }}
+                    <input
+                      name="holderEmail"
+                      type="email"
+                      autocomplete="off"
+                      maxlength="120"
+                      [(ngModel)]="holderForm.email"
+                      required
+                  /></label>
+                  <p class="md-small md-holder-wide">
+                    {{ 'md.who.privacy' | flaT }}
+                  </p>
+                  <p
+                    *ngIf="holderError"
+                    class="md-hold is-warn md-holder-wide"
+                    role="alert"
+                  >
+                    {{ holderError }}
+                  </p>
+                  <div class="md-holder-actions md-holder-wide">
+                    <button
+                      type="submit"
+                      class="md-btn md-btn-sm"
+                      [disabled]="savingHolder"
+                    >
+                      {{
+                        (savingHolder ? 'md.who.saving' : 'md.who.save') | flaT
+                      }}
+                    </button>
+                    <button
+                      type="button"
+                      class="md-btn md-btn-ghost md-btn-sm"
+                      [disabled]="savingHolder"
+                      (click)="cancelHolderForm()"
+                    >
+                      {{ 'md.comp.cancelChoose' | flaT }}
+                    </button>
+                  </div>
+                </form>
+                <p *ngIf="missingHolders" class="md-hold is-warn" role="status">
+                  {{ 'md.who.pending' | flaT }}
+                </p>
+              </div>
               <p *ngIf="holdMessage" class="md-hold is-warn" role="alert">
                 {{ holdMessage }}
               </p>
@@ -373,12 +521,117 @@
                   <p class="md-small">
                     {{ 'md.comp.none' | flaT }}
                     <a
+                      *ngIf="!guestInfo?.planInCart"
                       routerLink="/my-account/socio-torcedor"
                       class="md-link"
                       >{{ 'md.comp.register' | flaT }}</a
                     >
                   </p>
                 </ng-template>
+
+                <!-- cadastro do convidado aqui mesmo (vaga contratada ainda sem nome) -->
+                <button
+                  *ngIf="canRegisterGuest && !guestFormOpen"
+                  type="button"
+                  class="md-btn md-btn-ghost md-btn-sm md-comp-add"
+                  (click)="openGuestForm()"
+                >
+                  {{ 'md.comp.add' | flaT }}
+                </button>
+                <form
+                  *ngIf="guestFormOpen"
+                  class="md-guest-form"
+                  (ngSubmit)="saveGuest()"
+                  novalidate
+                >
+                  <p class="md-guest-form-title">
+                    {{ 'md.comp.formTitle' | flaT }}
+                  </p>
+                  <label class="md-guest-field md-guest-field--wide"
+                    >{{ 'sg.f.name' | flaT }}
+                    <input
+                      name="guestName"
+                      autocomplete="off"
+                      maxlength="120"
+                      [(ngModel)]="guestForm.name"
+                      required
+                  /></label>
+                  <label class="md-guest-field"
+                    >{{ 'sg.f.cpf' | flaT }}
+                    <input
+                      name="guestCpf"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="000.000.000-00"
+                      maxlength="14"
+                      [ngModel]="guestForm.cpf"
+                      (ngModelChange)="onGuestCpf($event)"
+                      required
+                  /></label>
+                  <label class="md-guest-field"
+                    >{{ 'sg.f.birth' | flaT }}
+                    <input
+                      name="guestBirth"
+                      type="date"
+                      [max]="guestToday"
+                      [(ngModel)]="guestForm.birthDate"
+                      required
+                  /></label>
+                  <label class="md-guest-field"
+                    >{{ 'sg.f.email' | flaT }}
+                    <input
+                      name="guestEmail"
+                      type="email"
+                      autocomplete="off"
+                      maxlength="120"
+                      [(ngModel)]="guestForm.email"
+                      required
+                  /></label>
+                  <label class="md-guest-field"
+                    >{{ 'sg.f.phone' | flaT }}
+                    <input
+                      name="guestPhone"
+                      inputmode="tel"
+                      autocomplete="off"
+                      placeholder="(21) 99999-0000"
+                      maxlength="15"
+                      [ngModel]="guestForm.phone"
+                      (ngModelChange)="onGuestPhone($event)"
+                  /></label>
+                  <p class="md-small md-guest-field--wide">
+                    {{ 'sg.privacy' | flaT }}
+                  </p>
+                  <p
+                    *ngIf="guestFormError"
+                    class="md-hold is-warn md-guest-field--wide"
+                    role="alert"
+                  >
+                    {{ guestFormError }}
+                  </p>
+                  <div class="md-guest-actions md-guest-field--wide">
+                    <button
+                      type="submit"
+                      class="md-btn md-btn-sm"
+                      [disabled]="savingGuest"
+                    >
+                      {{
+                        (savingGuest ? 'sg.saving' : 'md.comp.saveAndPick')
+                          | flaT
+                      }}
+                    </button>
+                    <button
+                      type="button"
+                      class="md-btn md-btn-ghost md-btn-sm"
+                      [disabled]="savingGuest"
+                      (click)="cancelGuestForm()"
+                    >
+                      {{ 'md.comp.cancelChoose' | flaT }}
+                    </button>
+                  </div>
+                </form>
+                <p *ngIf="guestInfo?.planInCart" class="md-small md-comp-note">
+                  {{ 'md.comp.inCartNote' | flaT }}
+                </p>
                 <p *ngIf="assigningFor" class="md-hold" role="status">
                   {{ 'md.comp.pick' | flaT: { name: assigningName } }}
                 </p>

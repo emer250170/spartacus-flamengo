@@ -48,6 +48,7 @@ public class DefaultSocioGuestService implements SocioGuestService
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultSocioGuestService.class);
 	private static final Locale PT = new Locale("pt");
 	private static final String GUEST_PREFIX = "NACAO-CONVIDADO-";
+	protected static final String CART_GUESTS_PROPERTY = "flamengo.socio.convidados.carrinho.ativo";
 	private static final int MAX_ENDED = 10;
 	private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
@@ -70,15 +71,32 @@ public class DefaultSocioGuestService implements SocioGuestService
 	{
 		final SocioGuestOverview o = new SocioGuestOverview();
 		o.enabled = isEnabled();
-		final SocioPlanModel plan = socioPlanService.memberPlan(owner);
+		SocioPlanModel plan = socioPlanService.memberPlan(owner);
+		CartModel planCart = null;
+		if (plan == null && isCartGuestsEnabled())
+		{
+			// plano ainda só no carrinho (04/11): vagas e plano vêm do carrinho
+			planCart = planCart(owner);
+			plan = planCart == null ? null : planOf(planCart);
+		}
 		if (plan != null)
 		{
 			o.planCode = plan.getCode();
 			o.planName = StringUtils.defaultIfBlank(plan.getName(PT), plan.getCode());
 			o.planMaxGuests = plan.getMaxGuests() == null ? 0 : plan.getMaxGuests().intValue();
 			o.guestPrice = plan.getGuestPrice() == null ? 0 : plan.getGuestPrice().doubleValue();
-			o.suspended = socioPlanService.isSuspended(owner);
-			o.contracted = contractedSlots(owner);
+			o.planModel = plan;
+			if (planCart != null)
+			{
+				o.planInCart = true;
+				o.cartCode = planCart.getCode();
+				o.contracted = ticketGuestSlots(owner, planCart);
+			}
+			else
+			{
+				o.suspended = socioPlanService.isSuspended(owner);
+				o.contracted = contractedSlots(owner);
+			}
 		}
 		for (final SocioGuestModel guest : guests(owner, false))
 		{
@@ -219,7 +237,8 @@ public class DefaultSocioGuestService implements SocioGuestService
 		guest.setEmail(cleanEmail);
 		guest.setPhone(phoneDigits.isEmpty() ? null : phoneDigits);
 		guest.setBirthDate(birthDate);
-		guest.setPlan(socioPlanService.memberPlan(owner));
+		guest.setPlan((SocioPlanModel) o.planModel);
+		guest.setCartCode(o.planInCart ? o.cartCode : null);
 		guest.setActive(Boolean.TRUE);
 		guest.setSince(new Date());
 		modelService.save(guest);
@@ -295,6 +314,109 @@ public class DefaultSocioGuestService implements SocioGuestService
 			{
 				setGuest(entry, null);
 			}
+		}
+	}
+
+	// ------------------------------------------------------------ convidados com o plano no carrinho (04/11)
+
+	/** Convidados com o plano ainda no carrinho (flamengo.socio.convidados.carrinho.ativo) */
+	protected boolean isCartGuestsEnabled()
+	{
+		return configurationService.getConfiguration().getBoolean(CART_GUESTS_PROPERTY, true);
+	}
+
+	/** Carrinho do titular (o mais recente, não salvo) que tem um plano do Nação */
+	protected CartModel planCart(final CustomerModel owner)
+	{
+		final FlexibleSearchQuery q = new FlexibleSearchQuery(
+				"SELECT {pk} FROM {Cart} WHERE {user}=?u AND {saveTime} IS NULL ORDER BY {modifiedtime} DESC");
+		q.addQueryParameter("u", owner);
+		for (final CartModel cart : flexibleSearchService.<CartModel> search(q).getResult())
+		{
+			if (planOf(cart) != null)
+			{
+				return cart;
+			}
+		}
+		return null;
+	}
+
+	/** Plano do Nação que está neste carrinho/pedido (null = nenhum) */
+	protected SocioPlanModel planOf(final AbstractOrderModel order)
+	{
+		if (order == null || order.getEntries() == null)
+		{
+			return null;
+		}
+		for (final AbstractOrderEntryModel entry : order.getEntries())
+		{
+			final SocioPlanModel plan = socioPlanService.findForProduct(entry.getProduct());
+			if (plan != null)
+			{
+				return plan;
+			}
+		}
+		return null;
+	}
+
+	/** Convidados cadastrados com o plano só no carrinho indicado */
+	protected List<SocioGuestModel> cartGuests(final CustomerModel owner, final String cartCode)
+	{
+		final FlexibleSearchQuery q = new FlexibleSearchQuery(
+				"SELECT {pk} FROM {SocioGuest} WHERE {customer}=?o AND {cartCode}" + (cartCode == null ? " IS NOT NULL" : "=?c"));
+		q.addQueryParameter("o", owner);
+		if (cartCode != null)
+		{
+			q.addQueryParameter("c", cartCode);
+		}
+		return flexibleSearchService.<SocioGuestModel> search(q).getResult();
+	}
+
+	@Override
+	public void dropCartGuests(final CustomerModel owner, final AbstractOrderModel cart)
+	{
+		if (owner == null || cart == null)
+		{
+			return;
+		}
+		final List<SocioGuestModel> guests = cartGuests(owner, cart.getCode());
+		if (guests.isEmpty())
+		{
+			return;
+		}
+		if (cart.getEntries() != null)
+		{
+			for (final AbstractOrderEntryModel entry : cart.getEntries())
+			{
+				if (guests.contains(modelService.getAttributeValue(entry, ENTRY_GUEST)))
+				{
+					setGuest(entry, null); // a poltrona volta a ser do titular
+				}
+			}
+		}
+		for (final SocioGuestModel guest : guests)
+		{
+			note(owner, "Convidado apagado: " + guest.getName() + " (CPF " + SocioGuestService.maskCpf(guest.getCpf()) + ")",
+					"O plano saiu do carrinho " + cart.getCode());
+		}
+		modelService.removeAll(guests);
+	}
+
+	@Override
+	public void confirmCartGuests(final CustomerModel owner, final AbstractOrderModel order)
+	{
+		if (owner == null || planOf(order) == null)
+		{
+			return;
+		}
+		final List<SocioGuestModel> guests = cartGuests(owner, null);
+		for (final SocioGuestModel guest : guests)
+		{
+			guest.setCartCode(null);
+		}
+		if (!guests.isEmpty())
+		{
+			modelService.saveAll(guests);
 		}
 	}
 
@@ -443,9 +565,9 @@ public class DefaultSocioGuestService implements SocioGuestService
 			return;
 		}
 		final CustomerModel owner = (CustomerModel) cart.getUser();
-		if (socioPlanService.memberPlan(owner) == null)
+		if (socioPlanService.memberPlan(owner) == null && !(isCartGuestsEnabled() && planOf(cart) != null))
 		{
-			return; // quem não é sócio (ou tem o plano só no carrinho) segue como antes
+			return; // quem não é sócio e não tem plano no carrinho segue como antes
 		}
 		final Map<String, List<AbstractOrderEntryModel>> byGame = new LinkedHashMap<>();
 		final Map<String, MatchdayGameModel> games = new HashMap<>();

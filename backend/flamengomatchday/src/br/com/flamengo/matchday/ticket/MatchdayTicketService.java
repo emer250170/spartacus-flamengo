@@ -29,6 +29,8 @@ import java.util.List;
 public interface MatchdayTicketService
 {
 	String ENABLED_PROPERTY = "flamengo.matchday.ingressos.ativo";
+	/** Pedido com plano em Pix/boleto: ingressos ficam "aguardando pagamento" até a confirmação (04/11) */
+	String AWAIT_PAYMENT_PROPERTY = "flamengo.matchday.ingressos.aguardarPagamento";
 	String FULL_REFUND_HOURS_PROPERTY = "flamengo.matchday.ingressos.reembolso.horasIntegral";
 	String LATE_REFUND_PERCENT_PROPERTY = "flamengo.matchday.ingressos.reembolso.percentualDepois";
 
@@ -36,6 +38,14 @@ public interface MatchdayTicketService
 
 	/** Cria os ingressos das poltronas do pedido (uma vez por pedido) */
 	List<MatchdayTicketModel> createForOrder(AbstractOrderModel order);
+
+	/**
+	 * Pagamento do pedido confirmado (Pix/boleto): os ingressos "aguardando pagamento" do pedido
+	 * passam a valer (04/11).
+	 *
+	 * @return quantos ingressos foram liberados
+	 */
+	int releaseForOrder(AbstractOrderModel order, String author);
 
 	/** Cria os ingressos dos pedidos antigos que ainda não têm; devolve quantos criou */
 	int backfill();
