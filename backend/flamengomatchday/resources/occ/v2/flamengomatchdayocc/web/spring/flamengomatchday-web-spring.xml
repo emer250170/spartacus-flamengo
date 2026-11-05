@@ -53,4 +53,13 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Pagamento pela Adyen (05/11): /users/current/adyen/config, /carts/{cartId}/adyen/sessions e /order,
+	     /orders/{code}/adyen e o webhook /{baseSiteId}/adyen/notifications -->
+	<bean id="flamengoAdyenController" class="br.com.flamengo.matchday.occ.AdyenController">
+		<property name="adyenPaymentService" ref="adyenPaymentService"/>
+		<property name="userService" ref="userService"/>
+		<property name="cartService" ref="cartService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+	</bean>
+
 </beans>
