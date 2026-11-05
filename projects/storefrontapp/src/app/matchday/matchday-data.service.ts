@@ -2,7 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OccEndpointsService, WindowRef } from '@spartacus/core';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { FlaMediaUrlService, bestImageUrl } from '../vitrine/fla-media-url.service';
+import {
+  FlaMediaUrlService,
+  bestImageUrl,
+} from '../vitrine/fla-media-url.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import {
@@ -259,9 +262,7 @@ export class MatchdayDataService {
       map((products) =>
         products
           .map((p) => this.toMatch(p))
-          .sort((a, b) =>
-            this.dateKey(a.code).localeCompare(this.dateKey(b.code))
-          )
+          .sort((a, b) => this.sortKey(a).localeCompare(this.sortKey(b)))
       )
     );
   }
@@ -364,7 +365,10 @@ export class MatchdayDataService {
       : (p.price?.value ?? 0);
     const lowStock = sectors.some((s) => s.stock !== undefined && s.stock < 20);
 
-    const weekdayIndex = this.weekdayFromCode(p.code);
+    const kickoff = this.kickoffDate(p.code, dateLabel);
+    const weekdayIndex = kickoff
+      ? kickoff.getDay()
+      : this.weekdayFromCode(p.code);
     return {
       code: p.code,
       imageUrl: this.media.url(bestImageUrl(p.images)),
@@ -486,6 +490,62 @@ export class MatchdayDataService {
     }
 
     return { matches, parking, food, shirt: shirtModel };
+  }
+
+  /**
+   * Ordem da lista: data e hora do jogo que estão no nome ("23 NOV · 20h00"),
+   * não a do código, que fica a de quando o jogo foi criado mesmo se ele mudar
+   * de data. Sem data no nome, vale a do código.
+   */
+  protected sortKey(m: MatchdayMatch): string {
+    const day = this.kickoffDate(m.code, m.dateLabel);
+    const date = day
+      ? `${day.getFullYear()}${String(day.getMonth() + 1).padStart(2, '0')}${String(day.getDate()).padStart(2, '0')}`
+      : this.dateKey(m.code);
+    const t = /(\d{1,2})\s*[h:]\s*(\d{2})?\s*(AM|PM)?/i.exec(m.timeLabel ?? '');
+    let hour = t ? Number(t[1]) : 0;
+    if (t?.[3]) {
+      hour = (hour % 12) + (t[3].toUpperCase() === 'PM' ? 12 : 0);
+    }
+    const time = t ? `${String(hour).padStart(2, '0')}${t[2] ?? '00'}` : '0000';
+    return `${date}${time}${m.code}`;
+  }
+
+  /**
+   * Dia do jogo a partir do nome ("23 NOV", "NOV 23"; o ano vem do código e
+   * passa para o seguinte/anterior quando o mês está a mais de 6 meses dele)
+   */
+  protected kickoffDate(code: string, dateLabel?: string): Date | undefined {
+    const months = [
+      ['JAN'],
+      ['FEV', 'FEB'],
+      ['MAR'],
+      ['ABR', 'APR'],
+      ['MAI', 'MAY'],
+      ['JUN'],
+      ['JUL'],
+      ['AGO', 'AUG'],
+      ['SET', 'SEP'],
+      ['OUT', 'OCT'],
+      ['NOV'],
+      ['DEZ', 'DEC'],
+    ];
+    const label = (dateLabel ?? '').toUpperCase();
+    const day = /(\d{1,2})/.exec(label);
+    const words = label.match(/[A-Z]{3}/g) ?? [];
+    const month = months.findIndex((m) => words.some((w) => m.includes(w)));
+    const ref = /(\d{4})(\d{2})\d{2}/.exec(code);
+    if (!day || month < 0 || !ref) {
+      return undefined;
+    }
+    let year = Number(ref[1]);
+    const refMonth = Number(ref[2]) - 1;
+    if (month - refMonth > 6) {
+      year--;
+    } else if (refMonth - month > 6) {
+      year++;
+    }
+    return new Date(year, month, Number(day[1]));
   }
 
   /** FLA-PAL-20261019 -> "20261019" (ordena os jogos pela data) */
