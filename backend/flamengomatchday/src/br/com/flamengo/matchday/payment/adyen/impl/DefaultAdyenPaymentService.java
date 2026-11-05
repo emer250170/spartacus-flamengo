@@ -897,19 +897,50 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 			name.put("lastName", last);
 			m.put("shopperName", name);
 		}
-		if (a != null && StringUtils.isNoneBlank(a.getLine1(), a.getTown(), a.getPostalcode())
-				&& a.getRegion() != null && a.getCountry() != null)
+		final String cep = a == null ? "" : StringUtils.defaultString(a.getPostalcode()).replaceAll("\\D", "");
+		// 05/11: a loja não tem estados do Brasil cadastrados; sem estado no endereço, o estado vem do CEP
+		final String uf = a == null ? null
+				: a.getRegion() != null ? StringUtils.substringAfterLast(a.getRegion().getIsocode(), "-") : ufFromCep(cep);
+		if (a != null && StringUtils.isNoneBlank(a.getLine1(), a.getTown(), uf) && cep.length() == 8)
 		{
 			final Map<String, Object> address = new LinkedHashMap<>();
 			address.put("street", a.getLine1());
 			address.put("houseNumberOrName", StringUtils.defaultIfBlank(a.getLine2(), "s/n"));
 			address.put("city", a.getTown());
-			address.put("postalCode", a.getPostalcode().replaceAll("\\D", ""));
-			address.put("stateOrProvince", StringUtils.substringAfterLast(a.getRegion().getIsocode(), "-"));
-			address.put("country", a.getCountry().getIsocode());
+			address.put("postalCode", cep);
+			address.put("stateOrProvince", uf);
+			address.put("country", a.getCountry() == null ? "BR" : a.getCountry().getIsocode());
 			m.put("billingAddress", address);
 		}
 		return m;
+	}
+
+	/** Estado (UF) pela faixa do CEP dos Correios; null se o CEP não tem 8 dígitos */
+	protected static String ufFromCep(final String cep)
+	{
+		if (cep == null || cep.length() != 8)
+		{
+			return null;
+		}
+		final int n = Integer.parseInt(cep.substring(0, 5));
+		final int[][] ranges =
+		{
+				{ 1000, 19999 }, { 20000, 28999 }, { 29000, 29999 }, { 30000, 39999 }, { 40000, 48999 }, { 49000, 49999 },
+				{ 50000, 56999 }, { 57000, 57999 }, { 58000, 58999 }, { 59000, 59999 }, { 60000, 63999 }, { 64000, 64999 },
+				{ 65000, 65999 }, { 66000, 68899 }, { 68900, 68999 }, { 69000, 69299 }, { 69300, 69399 }, { 69400, 69899 },
+				{ 69900, 69999 }, { 70000, 72799 }, { 72800, 72999 }, { 73000, 73699 }, { 73700, 76799 }, { 76800, 76999 },
+				{ 77000, 77999 }, { 78000, 78899 }, { 79000, 79999 }, { 80000, 87999 }, { 88000, 89999 }, { 90000, 99999 } };
+		final String[] ufs =
+		{ "SP", "RJ", "ES", "MG", "BA", "SE", "PE", "AL", "PB", "RN", "CE", "PI", "MA", "PA", "AP", "AM", "RR", "AM", "AC", "DF", "GO",
+				"DF", "GO", "RO", "TO", "MT", "MS", "PR", "SC", "RS" };
+		for (int i = 0; i < ranges.length; i++)
+		{
+			if (n >= ranges[i][0] && n <= ranges[i][1])
+			{
+				return ufs[i];
+			}
+		}
+		return null;
 	}
 
 	protected void recalculate(final CartModel cart)

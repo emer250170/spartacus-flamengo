@@ -116,7 +116,12 @@ export class SocioPaymentService {
           this.methods.delete(cartId);
           this.payerCpf.delete(cartId);
         }),
-        catchError((e) => throwError(() => new Error(errorMessage(e))))
+        // guarda o status: recusa 400 o Spartacus já mostra sozinho
+        catchError((e) =>
+          throwError(() =>
+            Object.assign(new Error(errorMessage(e)), { status: e?.status })
+          )
+        )
       );
   }
 
