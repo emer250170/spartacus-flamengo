@@ -1932,9 +1932,18 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.cd.markForCheck();
   }
 
-  /** Se o carrinho já tem uma poltrona de jogo, retoma a jornada com ela */
+  /**
+   * Se o carrinho já tem uma poltrona de jogo, retoma a jornada com ela. Aberta
+   * pelo link do jogo (?jogo=...), retoma só as poltronas daquele jogo, enquanto
+   * o torcedor ainda não escolheu setor (sem isso, a próxima poltrona tirava as
+   * anteriores do carrinho, com os dados de quem ia usar)
+   */
   protected restoreHold(entries: OrderEntry[]): void {
-    if (!this.catalog || this.held || this.holding || this.match) {
+    if (!this.catalog || this.held || this.holding) {
+      return;
+    }
+    const opened = this.match;
+    if (opened && (this.sector || !opened.seatsLoaded)) {
       return;
     }
     const inCart = this.seatCodes(entries).filter(
@@ -1943,9 +1952,16 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     const savedCode = this.data.readHold()?.code;
     const wanted =
       savedCode && inCart.includes(savedCode) ? [savedCode] : inCart;
-    for (const match of this.catalog.matches) {
+    const matches = opened ? [opened] : this.catalog.matches;
+    for (const match of matches) {
+      // link do jogo: a última reservada se for deste jogo, senão qualquer uma dele
+      const ofMatch = inCart.filter(
+        (c) => this.data.matchCodeOfSeat(c) === match.code
+      );
+      const wantedHere =
+        !opened || wanted.some((c) => ofMatch.includes(c)) ? wanted : ofMatch;
       for (const sector of match.sectors) {
-        const seat = sector.seats.find((s) => wanted.includes(s.code));
+        const seat = sector.seats.find((s) => wantedHere.includes(s.code));
         if (seat) {
           const saved = this.data.readHold();
           this.held = {
@@ -1965,6 +1981,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
           return;
         }
       }
+    }
+    if (opened) {
+      return; // link do jogo sem poltrona dele no carrinho: segue como antes
     }
     // sem poltrona no carrinho: os outros itens da jornada que ficaram nele
     // também aparecem (e não somem no fechamento)
