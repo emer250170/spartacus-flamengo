@@ -71,6 +71,8 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 	protected static final String RETURN_PROPERTY = "flamengo.pagamento.adyen.retorno";
 	protected static final String TIMEOUT_PROPERTY = "flamengo.pagamento.adyen.timeoutSegundos";
 	protected static final String INSTALLMENTS_PROPERTY = "flamengo.socio.pagamento.parcelas";
+	/** Variante do boleto na conta (05/11: a conta de teste só tem boletobancario_santander) */
+	protected static final String BOLETO_TYPE_PROPERTY = "flamengo.pagamento.adyen.boleto.tipo";
 
 	public static final String SCHEME = "scheme";
 	public static final String PIX = "pix";
@@ -153,6 +155,12 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		return out;
 	}
 
+	/** Tipo do boleto nas chamadas à Adyen (a conta pode ter só a variante de um banco) */
+	protected String boletoType()
+	{
+		return StringUtils.defaultIfBlank(configurationService.getConfiguration().getString(BOLETO_TYPE_PROPERTY), BOLETO).trim();
+	}
+
 	protected BaseStoreModel store()
 	{
 		BaseStoreModel store = null;
@@ -233,7 +241,7 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		final SocioPaymentMethod socioMethod = SocioPayments.method(modelService, cart);
 		final SocioPlanModel plan = planIn(cart);
 		final List<String> allowed = allowedMethods(plan, socioMethod);
-		allowed.retainAll(methods());
+		allowed.removeIf(m -> !methods().contains(m.startsWith(BOLETO) ? BOLETO : m));
 		if (allowed.isEmpty())
 		{
 			throw new AdyenException("Esta forma de pagamento ainda não passa pela Adyen (" + METHODS_PROPERTY + "="
@@ -327,7 +335,7 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		}
 		else if (method == SocioPaymentMethod.BOLETO)
 		{
-			allowed.add(BOLETO);
+			allowed.add(boletoType());
 		}
 		else if (plan != null || method != null)
 		{
@@ -339,7 +347,7 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 			if (socioPaymentService.isStoreEnabled())
 			{
 				allowed.add(PIX);
-				allowed.add(BOLETO);
+				allowed.add(boletoType());
 			}
 		}
 		return allowed;
@@ -506,7 +514,7 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		body.put("merchantAccount", str(store(), "adyenMerchantAccount"));
 		body.put("amount", amount(cart));
 		body.put("reference", reference);
-		body.put("paymentMethod", Collections.singletonMap("type", type));
+		body.put("paymentMethod", Collections.singletonMap("type", pix ? PIX : boletoType()));
 		body.put("countryCode", "BR");
 		body.put("shopperLocale", "pt-BR");
 		body.put("channel", "Web");
