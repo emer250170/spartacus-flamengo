@@ -21,6 +21,10 @@
 				<explorer-tree:type-node id="matchday.tree.games" code="MatchdayGame"/>
 				<explorer-tree:type-node id="matchday.tree.seatholds" code="SeatHold"/>
 			</explorer-tree:navigation-node>
+			<!-- Pagamento pela Adyen (05/11): avisos recebidos pelo webhook -->
+			<explorer-tree:navigation-node id="adyen.tree.root">
+				<explorer-tree:type-node id="adyen.tree.notifications" code="AdyenNotification"/>
+			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
 	</context>
 
@@ -304,6 +308,58 @@
 				<y:label>'Pagamento ' + (paymentProvider == 'Mockup' ? 'simulado' : (paymentProvider ?: '')) + ' · R$ ' + (plannedAmount == null ? '-' : plannedAmount.setScale(2, 4).toPlainString().replace('.', ','))</y:label>
 			</y:labels>
 		</y:base>
+	</context>
+
+	<!-- ============================ Adyen (05/11) ============================ -->
+	<!-- Aba "Adyen" na loja base: conta de lojista, chaves e usuário do webhook -->
+	<context merge-by="type" type="BaseStore" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:tab name="adyen.editor.tab">
+				<editorArea:section name="adyen.editor.account">
+					<editorArea:attribute qualifier="adyenMerchantAccount"/>
+					<editorArea:attribute qualifier="adyenClientKey"/>
+					<editorArea:attribute qualifier="adyenApiKey"/>
+				</editorArea:section>
+				<editorArea:section name="adyen.editor.webhook">
+					<editorArea:attribute qualifier="adyenWebhookUser"/>
+					<editorArea:attribute qualifier="adyenWebhookPassword"/>
+					<editorArea:attribute qualifier="adyenHmacKey"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+	<!-- Avisos do webhook: "AUTHORISATION · pedido 00031000 · aplicado" -->
+	<context merge-by="type" parent="GenericItem" type="AdyenNotification" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>(eventCode ?: '-') + ' · ' + (merchantReference ?: '-') + (orderCode == null ? '' : ' · pedido ' + orderCode)</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="AdyenNotification" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="receivedAt"/>
+			<list-view:column qualifier="eventCode"/>
+			<list-view:column qualifier="success"/>
+			<list-view:column qualifier="paymentMethod"/>
+			<list-view:column qualifier="amount"/>
+			<list-view:column qualifier="merchantReference"/>
+			<list-view:column qualifier="pspReference"/>
+			<list-view:column qualifier="orderCode"/>
+			<list-view:column qualifier="processed"/>
+			<list-view:column qualifier="result"/>
+		</list-view:list-view>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="AdyenNotification" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="merchantReference" selected="true"/>
+				<advanced-search:field name="pspReference" selected="true"/>
+				<advanced-search:field name="orderCode" selected="true"/>
+				<advanced-search:field name="eventCode"/>
+				<advanced-search:field name="processed"/>
+			</advanced-search:field-list>
+		</advanced-search:advanced-search>
 	</context>
 
 	<!-- ============================ Sócio-Torcedor ============================ -->

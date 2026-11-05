@@ -263,6 +263,27 @@
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 		<property name="matchdayTicketService" ref="matchdayTicketService"/>
 	</bean>
+	<!--
+		Pagamento pela Adyen (05/11): API de Checkout (sessões), fechamento do pedido e webhook.
+		Chave flamengo.pagamento.adyen.ativo (false = pagamento simulado). Conta e chaves na loja base.
+	-->
+	<bean id="adyenClient" class="br.com.flamengo.matchday.payment.adyen.AdyenClient"/>
+	<bean id="adyenPaymentService" class="br.com.flamengo.matchday.payment.adyen.impl.DefaultAdyenPaymentService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="baseStoreService" ref="baseStoreService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="commerceCheckoutService" ref="commerceCheckoutService"/>
+		<property name="commerceCartCalculationStrategy" ref="commerceCartCalculationStrategy"/>
+		<property name="cartService" ref="cartService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="userService" ref="userService"/>
+		<property name="socioPaymentService" ref="socioPaymentService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+		<property name="businessProcessService" ref="businessProcessService"/>
+		<property name="adyenClient" ref="adyenClient"/>
+	</bean>
 	<!-- Item 14: mudar o status do pedido para "Pagamento confirmado" confirma o Pix ou boleto -->
 	<bean id="orderPaymentStatusInterceptor" class="br.com.flamengo.matchday.interceptor.OrderPaymentStatusInterceptor">
 		<property name="modelService" ref="modelService"/>

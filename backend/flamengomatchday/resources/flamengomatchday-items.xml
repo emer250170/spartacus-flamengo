@@ -732,6 +732,83 @@
 					<description>Pagamento do Pix ou do boleto confirmado (vazio = aguardando)</description>
 					<persistence type="property"/>
 				</attribute>
+				<!-- Pagamento pela Adyen (05/11): flamengo.pagamento.adyen.ativo -->
+				<attribute qualifier="adyenReference" type="java.lang.String">
+					<description>Referência do pagamento na Adyen (merchantReference: código do carrinho + tentativa)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenSessionId" type="java.lang.String">
+					<description>Sessão de checkout da Adyen</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenPspReference" type="java.lang.String">
+					<description>pspReference do pagamento na Adyen (chega pelo webhook)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenPaymentMethod" type="java.lang.String">
+					<description>Meio de pagamento na Adyen (scheme, pix, boletobancario)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenResultCode" type="java.lang.String">
+					<description>Resultado informado pela Adyen (Authorised, Pending, PresentToShopper)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenAction" type="java.lang.String">
+					<description>Ação da Adyen para o torcedor (QR Code do Pix ou boleto), em JSON</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+			</attributes>
+		</itemtype>
+
+		<!--
+			Configuração da Adyen na loja base (05/11): digitada no Backoffice (aba Adyen da
+			loja base). Chave de API, chave HMAC e senha do webhook ficam criptografadas.
+		-->
+		<itemtype code="BaseStore" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="adyenMerchantAccount" type="java.lang.String">
+					<description>Conta de lojista na Adyen (ex.: SAP_LATAM_Partner_1)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenApiKey" type="java.lang.String">
+					<description>Chave de API da credencial Web Service (criptografada)</description>
+					<modifiers encrypted="true"/>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="adyenClientKey" type="java.lang.String">
+					<description>Client key da credencial (pública, usada pelo componente da loja)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenHmacKey" type="java.lang.String">
+					<description>Chave HMAC do webhook (criptografada)</description>
+					<modifiers encrypted="true"/>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="adyenWebhookUser" type="java.lang.String">
+					<description>Usuário (Basic) que a Adyen usa ao chamar o webhook</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="adyenWebhookPassword" type="java.lang.String">
+					<description>Senha (Basic) do webhook (criptografada)</description>
+					<modifiers encrypted="true"/>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
 			</attributes>
 		</itemtype>
 
@@ -1094,6 +1171,81 @@
 			<indexes>
 				<index name="matchdayTicketEventTicket">
 					<key attribute="ticket"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<!--
+			Aviso (webhook) recebido da Adyen (05/11): registro de cada notificação, para o
+			Backoffice e para aplicar o aviso que chega antes do pedido existir.
+		-->
+		<itemtype code="AdyenNotification" autocreate="true" generate="true" extends="GenericItem">
+			<deployment table="adyennotifications" typecode="25914"/>
+			<attributes>
+				<attribute qualifier="pspReference" type="java.lang.String">
+					<description>pspReference do pagamento</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="originalReference" type="java.lang.String">
+					<description>pspReference do pagamento original (captura, cancelamento, reembolso)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="merchantReference" type="java.lang.String">
+					<description>Referência do pagamento (a mesma do pedido)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="eventCode" type="java.lang.String">
+					<description>Evento (AUTHORISATION, CAPTURE, CANCELLATION, REFUND, OFFER_CLOSED...)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="success" type="java.lang.Boolean">
+					<description>Sucesso</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="amount" type="java.lang.Double">
+					<description>Valor</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="currency" type="java.lang.String">
+					<description>Moeda</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="paymentMethod" type="java.lang.String">
+					<description>Meio de pagamento</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="reason" type="java.lang.String">
+					<description>Motivo informado pela Adyen</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="receivedAt" type="java.util.Date">
+					<description>Recebido em</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="orderCode" type="java.lang.String">
+					<description>Pedido ao qual o aviso foi aplicado</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="processed" type="java.lang.Boolean">
+					<description>Aplicado ao pedido</description>
+					<defaultvalue>Boolean.FALSE</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="result" type="java.lang.String">
+					<description>O que o SAP Commerce fez com o aviso</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="adyenNotificationReference">
+					<key attribute="merchantReference"/>
+				</index>
+				<index name="adyenNotificationPsp">
+					<key attribute="pspReference"/>
 				</index>
 			</indexes>
 		</itemtype>
