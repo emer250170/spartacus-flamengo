@@ -88,6 +88,8 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 	public static final String BOLETO = "boletobancario";
 	/** Vencimento do boleto da Adyen (o mesmo prazo do boleto simulado) */
 	protected static final int BOLETO_DAYS = 5;
+	/** Passo do processo do pedido que lança a captura (OMS: takePaymentAction) */
+	protected static final String TAKE_PAYMENT = "takePayment";
 
 	// atributos novos (lidos por nome: funcionam antes do Update sem quebrar o resto)
 	protected static final String REFERENCE = "adyenReference";
@@ -688,8 +690,10 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 
 	/**
 	 * Pagamento autorizado (cartão, Pix ou boleto): registra a transação da Adyen no pedido, com a
-	 * autorização e a captura (a conta captura na hora). É nela que o SAP lança os estornos do
-	 * cancelamento e da devolução, pelos comandos do provedor Adyen.
+	 * autorização. É nela que o SAP lança os estornos do cancelamento e da devolução, pelos comandos do
+	 * provedor Adyen. A captura (a conta captura na hora) é lançada pelo passo takePayment do processo
+	 * do pedido, pelo comando de captura da Adyen; se o processo já passou desse passo (Pix/boleto pagos
+	 * depois, ou aviso que chegou atrasado), a captura é lançada aqui, para não contar duas vezes.
 	 */
 	protected void recordTransaction(final OrderModel order, final String psp, final ItemModel n)
 	{
@@ -712,8 +716,10 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		tx.setCurrency(order.getCurrency());
 		tx.setPlannedAmount(amount);
 		modelService.save(tx);
-		for (final PaymentTransactionType type : new PaymentTransactionType[]
-		{ PaymentTransactionType.AUTHORIZATION, PaymentTransactionType.CAPTURE })
+		final PaymentTransactionType[] types = paymentTaken(order)
+				? new PaymentTransactionType[] { PaymentTransactionType.AUTHORIZATION, PaymentTransactionType.CAPTURE }
+				: new PaymentTransactionType[] { PaymentTransactionType.AUTHORIZATION };
+		for (final PaymentTransactionType type : types)
 		{
 			final PaymentTransactionEntryModel e = modelService.create(PaymentTransactionEntryModel.class);
 			e.setCode(tx.getCode() + "-" + type.getCode().toLowerCase(Locale.ROOT));
@@ -730,6 +736,17 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		}
 		modelService.refresh(order);
 		LOG.info("Adyen: transação {} registrada no pedido {} ({} {})", psp, order.getCode(), amount, method(order));
+	}
+
+	/** O processo do pedido já passou pelo takePayment (a captura não vai mais ser lançada por ele) */
+	protected boolean paymentTaken(final OrderModel order)
+	{
+		if (order.getOrderProcess() == null)
+		{
+			return false;
+		}
+		return order.getOrderProcess().stream().anyMatch(p -> p.getTaskLogs() != null
+				&& p.getTaskLogs().stream().anyMatch(l -> TAKE_PAYMENT.equals(l.getActionId())));
 	}
 
 	/** Aviso REFUND/CANCELLATION: o lançamento do estorno fica aceito ou recusado conforme a Adyen */
