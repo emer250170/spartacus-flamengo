@@ -554,6 +554,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.comp.register': 'Cadastrar em Meu sócio-torcedor',
     'md.comp.error': 'Não foi possível marcar a poltrona para o convidado.',
     'md.comp.lost': 'A reserva de {seat} venceu e a poltrona voltou à venda. Escolha de novo.',
+    'md.comp.add': '+ Incluir convidado',
+    'md.comp.formTitle': 'Dados do convidado (o nome vai no ingresso)',
+    'md.comp.saveAndPick': 'Incluir e escolher a poltrona',
+    'md.comp.inCartNote': 'Seu plano ainda está no carrinho: os convidados incluídos aqui ficam ligados a esta compra. Se o plano sair do carrinho, eles são excluídos e as poltronas voltam para você. Com Pix ou boleto, plano e ingressos são liberados quando o pagamento for confirmado.',
 
     // sócio: Meus convidados
     // Termo do Nação (item 4)
@@ -1221,6 +1225,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.comp.register': 'Register them in My membership',
     'md.comp.error': 'The seat could not be assigned to the guest.',
     'md.comp.lost': 'The hold on {seat} expired and the seat is back on sale. Choose again.',
+    'md.comp.add': '+ Add guest',
+    'md.comp.formTitle': 'Guest details (the name goes on the ticket)',
+    'md.comp.saveAndPick': 'Add and choose the seat',
+    'md.comp.inCartNote': 'Your plan is still in the cart: guests added here are tied to this purchase. If the plan leaves the cart, they are removed and the seats go back to you. With Pix or boleto, the plan and tickets are released once the payment is confirmed.',
 
     // sócio: Meus convidados
     // Nação terms (item 4)

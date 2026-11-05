@@ -1,5 +1,6 @@
 package br.com.flamengo.matchday.hook;
 
+import de.hybris.platform.core.model.user.CustomerModel;
 import br.com.flamengo.matchday.socio.SocioGuestException;
 import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.ticket.TicketHolderService;
@@ -41,7 +42,11 @@ public class SocioGuestPlaceOrderMethodHook implements CommercePlaceOrderMethodH
 	@Override
 	public void beforeSubmitOrder(final CommerceCheckoutParameter parameter, final CommerceOrderResult result)
 	{
-		// nada
+		// convidados cadastrados com o plano no carrinho passam a ser do plano (04/11)
+		if (result != null && result.getOrder() != null && result.getOrder().getUser() instanceof CustomerModel)
+		{
+			socioGuestService.confirmCartGuests((CustomerModel) result.getOrder().getUser(), result.getOrder());
+		}
 	}
 
 	@Override

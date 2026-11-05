@@ -106,6 +106,15 @@ public interface SocioGuestService
 	 */
 	List<SocioGuestModel> endAll(CustomerModel owner, String reason);
 
+	/**
+	 * O plano saiu do carrinho (04/11): apaga os convidados cadastrados com o plano só nesse
+	 * carrinho e as poltronas deles voltam a ser do titular.
+	 */
+	void dropCartGuests(CustomerModel owner, AbstractOrderModel cart);
+
+	/** Pedido com o plano fechado: os convidados cadastrados no carrinho passam a ser do plano */
+	void confirmCartGuests(CustomerModel owner, AbstractOrderModel order);
+
 	/** CPF com 11 dígitos e dígitos verificadores corretos (aceita pontos e traço) */
 	static boolean isValidCpf(final String cpf)
 	{

@@ -48,6 +48,8 @@
 			<value code="VALIDO"/>
 			<value code="CANCELADO"/>
 			<value code="UTILIZADO"/>
+			<!-- pedido com plano em Pix/boleto: o ingresso vale quando o gestor confirma o pagamento (04/11) -->
+			<value code="AGUARDANDO_PAGAMENTO"/>
 		</enumtype>
 		<enumtype code="MatchdayTicketEventType" autocreate="true" generate="true" dynamic="false">
 			<description>Evento no histórico do ingresso</description>
@@ -556,6 +558,10 @@
 				</attribute>
 				<attribute qualifier="endReason" type="java.lang.String">
 					<description>Motivo do encerramento (retirado pelo titular, cancelamento do plano)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cartCode" type="java.lang.String">
+					<description>Carrinho em que o convidado foi cadastrado com o plano ainda no carrinho (vazio = plano já comprado). Se o plano sair desse carrinho, o convidado é apagado; ao fechar o pedido, fica vazio.</description>
 					<persistence type="property"/>
 				</attribute>
 			</attributes>

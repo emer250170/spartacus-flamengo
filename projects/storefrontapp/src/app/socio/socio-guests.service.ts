@@ -35,6 +35,12 @@ export interface SocioGuestList {
   /** Mensalidade de cada vaga (já cobrada no plano) */
   guestPrice: number;
   suspended: boolean;
+  /**
+   * O plano está só no carrinho: as vagas contratadas vêm do carrinho e os
+   * convidados incluídos agora são excluídos se o plano sair dele
+   * (flamengo.socio.convidados.carrinho.ativo)
+   */
+  planInCart?: boolean;
   canAdd: boolean;
   /** Motivo do servidor quando não pode incluir (português) */
   reason?: string;
