@@ -78,6 +78,15 @@
   white-space: nowrap;
 }
 
+.sg-locked {
+  display: inline-block;
+  max-width: 220px;
+  font-size: 12px;
+  color: var(--sa-muted, #52525b);
+  text-align: right;
+  white-space: normal;
+}
+
 .sg-remove {
   white-space: nowrap;
 }
