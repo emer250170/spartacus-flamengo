@@ -63,6 +63,7 @@ public class SocioCartService
 	private SeatHoldService seatHoldService;
 	private CommerceCartCalculationStrategy commerceCartCalculationStrategy;
 	private SocioPlanService socioPlanService;
+	private SocioGuestService socioGuestService;
 	private SessionService sessionService;
 	private BaseSiteService baseSiteService;
 	private CommonI18NService commonI18NService;
@@ -130,6 +131,10 @@ public class SocioCartService
 				changed = true;
 				lostPending = true;
 			}
+		}
+		if (lostPending && socioGuestService != null)
+		{
+			socioGuestService.dropCartGuests(customer, cart); // convidados cadastrados com o plano no carrinho (04/11)
 		}
 		if (changed)
 		{
@@ -404,6 +409,11 @@ public class SocioCartService
 	public void setCommerceCartCalculationStrategy(final CommerceCartCalculationStrategy commerceCartCalculationStrategy)
 	{
 		this.commerceCartCalculationStrategy = commerceCartCalculationStrategy;
+	}
+
+	public void setSocioGuestService(final SocioGuestService socioGuestService)
+	{
+		this.socioGuestService = socioGuestService;
 	}
 
 	public void setSocioPlanService(final SocioPlanService socioPlanService)

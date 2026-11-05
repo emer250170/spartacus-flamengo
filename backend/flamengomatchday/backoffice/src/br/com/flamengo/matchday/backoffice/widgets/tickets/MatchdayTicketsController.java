@@ -434,7 +434,8 @@ public class MatchdayTicketsController extends ExperienceWidgetSupport
 		{
 			statusFilter.appendItem(label("filter.allStatus"), "");
 			for (final MatchdayTicketStatus s : new MatchdayTicketStatus[]
-			{ MatchdayTicketStatus.VALIDO, MatchdayTicketStatus.UTILIZADO, MatchdayTicketStatus.CANCELADO })
+			{ MatchdayTicketStatus.VALIDO, MatchdayTicketStatus.AGUARDANDO_PAGAMENTO, MatchdayTicketStatus.UTILIZADO,
+					MatchdayTicketStatus.CANCELADO })
 			{
 				statusFilter.appendItem(label("status." + s.getCode()), s.getCode());
 			}
@@ -506,7 +507,8 @@ public class MatchdayTicketsController extends ExperienceWidgetSupport
 	protected static String color(final MatchdayTicketModel t)
 	{
 		return t.getStatus() == MatchdayTicketStatus.CANCELADO ? "#bb0000"
-				: t.getStatus() == MatchdayTicketStatus.UTILIZADO ? "#556b82" : "#107e3e";
+				: t.getStatus() == MatchdayTicketStatus.UTILIZADO ? "#556b82"
+						: t.getStatus() == MatchdayTicketStatus.AGUARDANDO_PAGAMENTO ? "#b35c00" : "#107e3e";
 	}
 
 	/** Nome da poltrona ("Leste Inferior · Poltrona 12"); sem nome, o setor */

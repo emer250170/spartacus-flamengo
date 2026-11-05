@@ -9,6 +9,7 @@ import br.com.flamengo.matchday.model.SeatHoldModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import br.com.flamengo.matchday.service.SeatHoldService;
 import br.com.flamengo.matchday.socio.SocioGuestService;
+import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.ticket.MatchdayTicketException;
 import br.com.flamengo.matchday.ticket.MatchdayTicketService;
 import de.hybris.platform.core.enums.OrderStatus;
@@ -90,6 +91,9 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 		{
 			return created;
 		}
+		// pedido com plano em Pix/boleto ainda não pago: os ingressos esperam a confirmação (04/11)
+		final boolean awaiting = configurationService.getConfiguration().getBoolean(AWAIT_PAYMENT_PROPERTY, true)
+				&& SocioPayments.isAwaiting(modelService, order);
 		for (final AbstractOrderEntryModel entry : order.getEntries())
 		{
 			final ProductModel seat = entry.getProduct();
@@ -115,11 +119,12 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 					* (entry.getQuantity() == null ? 1 : entry.getQuantity().longValue());
 			t.setPrice(Double.valueOf(paid));
 			t.setMemberDiscount(list - paid > 0.004 ? Double.valueOf(Math.round((list - paid) * 100) / 100.0) : null);
-			t.setStatus(MatchdayTicketStatus.VALIDO);
+			t.setStatus(awaiting ? MatchdayTicketStatus.AGUARDANDO_PAGAMENTO : MatchdayTicketStatus.VALIDO);
 			t.setSoldAt(order.getDate() != null ? order.getDate() : new Date());
 			save(t);
 			event(t, MatchdayTicketEventType.VENDA, author, null, t.getSeatLabel(), t.getPrice(),
-					"Pedido " + order.getCode() + (t.getGuest() != null ? " · convidado " + t.getHolder() : ""));
+					"Pedido " + order.getCode() + (t.getGuest() != null ? " · convidado " + t.getHolder() : "")
+							+ (awaiting ? " · aguardando o pagamento do Pix/boleto" : ""));
 			created.add(t);
 		}
 		if (!created.isEmpty())
@@ -127,6 +132,34 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 			LOG.info("Pedido {}: {} ingresso(s) registrado(s)", order.getCode(), created.size());
 		}
 		return created;
+	}
+
+	@Override
+	public int releaseForOrder(final AbstractOrderModel order, final String author)
+	{
+		if (order == null || order.getCode() == null)
+		{
+			return 0;
+		}
+		return unrestricted(() -> {
+			final FlexibleSearchQuery q = new FlexibleSearchQuery(
+					"SELECT {pk} FROM {MatchdayTicket} WHERE {orderCode}=?o AND {status}=?s");
+			q.addQueryParameter("o", order.getCode());
+			q.addQueryParameter("s", MatchdayTicketStatus.AGUARDANDO_PAGAMENTO);
+			final List<MatchdayTicketModel> waiting = flexibleSearchService.<MatchdayTicketModel> search(q).getResult();
+			for (final MatchdayTicketModel t : waiting)
+			{
+				t.setStatus(MatchdayTicketStatus.VALIDO);
+				save(t);
+				event(t, MatchdayTicketEventType.OBSERVACAO, author, null, null, null,
+						"Pagamento confirmado: ingresso liberado");
+			}
+			if (!waiting.isEmpty())
+			{
+				LOG.info("Pedido {}: {} ingresso(s) liberado(s) com o pagamento", order.getCode(), waiting.size());
+			}
+			return waiting.size();
+		});
 	}
 
 	@Override
@@ -392,6 +425,10 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 	{
 		return unrestricted(() -> {
 			final MatchdayTicketModel t = editable(code);
+			if (t.getStatus() == MatchdayTicketStatus.AGUARDANDO_PAGAMENTO)
+			{
+				throw new MatchdayTicketException("O ingresso " + code + " ainda aguarda o pagamento do pedido (Pix/boleto).");
+			}
 			t.setStatus(MatchdayTicketStatus.UTILIZADO);
 			t.setUsedAt(new Date());
 			save(t);

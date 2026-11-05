@@ -45,9 +45,13 @@ import {
   WaveStatus,
 } from '../socio/socio.model';
 import {
+  NewSocioGuest,
   SocioGuest,
   SocioGuestList,
   SocioGuestsService,
+  guestFormErrorKey,
+  maskCpf,
+  maskPhone,
 } from '../socio/socio-guests.service';
 import { SocioService } from '../socio/socio.service';
 import { MATCHES_CATEGORY, MatchdayDataService } from './matchday-data.service';
@@ -184,6 +188,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   guestSeats: GuestSeat[] = [];
   /** Convidado esperando o clique numa poltrona */
   assigningFor?: string;
+  /** Cadastro de convidado aberto no quadro "Quem vai com você" */
+  guestFormOpen = false;
+  guestForm: NewSocioGuest = this.emptyGuest();
+  guestFormError = '';
+  savingGuest = false;
+  readonly guestToday = new Date().toISOString().slice(0, 10);
   /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
   protected requestedMatch?: string;
   /** Poltrona vinda da página do produto (?poltrona=...): abre o setor dela */
@@ -516,7 +526,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       return ELIGIBILITY.generalLimit;
     }
     const guests =
-      ELIGIBILITY.contractedLimit && this.guestInfo && !this.planInCart
+      ELIGIBILITY.contractedLimit &&
+      this.guestInfo &&
+      (!this.planInCart || this.guestInfo.planInCart)
         ? this.guestInfo.contracted
         : (this.memberPlan.maxGuests ?? 0);
     return 1 + Math.max(0, guests);
@@ -1138,7 +1150,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   /** Busca convidados, vagas e ingressos (só sócio logado) */
   protected loadGuests(): void {
-    if (!this.loggedIn || !this.memberPlan || this.planInCart) {
+    // com o plano só no carrinho o servidor responde com as vagas do carrinho
+    // (planInCart); com a chave desligada, sem vagas (o quadro não aparece)
+    if (!this.loggedIn || !this.memberPlan) {
       this.guestInfo = undefined;
       return;
     }
@@ -1253,6 +1267,88 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     return (
       this.guestInfo?.guests.find((g) => g.id === this.assigningFor)?.name ?? ''
     );
+  }
+
+  /** "+ Incluir convidado": ainda há vaga contratada e cabe mais um ingresso no jogo */
+  get canRegisterGuest(): boolean {
+    return (
+      !!this.guestInfo?.canAdd &&
+      this.canAddCompanion &&
+      !this.assigningFor &&
+      !this.holding
+    );
+  }
+
+  openGuestForm(): void {
+    this.guestForm = this.emptyGuest();
+    this.guestFormError = '';
+    this.holdMessage = undefined;
+    this.guestFormOpen = true;
+  }
+
+  cancelGuestForm(): void {
+    this.guestFormOpen = false;
+    this.guestFormError = '';
+  }
+
+  onGuestCpf(value: string): void {
+    this.guestForm.cpf = maskCpf(value);
+  }
+
+  onGuestPhone(value: string): void {
+    this.guestForm.phone = maskPhone(value);
+  }
+
+  /**
+   * Cadastra o convidado (com o plano só no carrinho ele fica preso a esse
+   * carrinho) e já deixa o próximo clique no mapa para a poltrona dele
+   */
+  saveGuest(): void {
+    if (this.savingGuest) {
+      return;
+    }
+    const key = guestFormErrorKey(this.guestForm, this.guestToday);
+    if (key) {
+      this.guestFormError = this.i18n.t(key);
+      this.cd.markForCheck();
+      return;
+    }
+    const f = this.guestForm;
+    const name = f.name.trim().replace(/\s+/g, ' ');
+    const cpf = f.cpf.replace(/\D/g, '');
+    this.savingGuest = true;
+    this.guestFormError = '';
+    this.subscription.add(
+      this.socioGuests
+        .add({
+          name,
+          cpf: f.cpf,
+          email: f.email.trim(),
+          phone: f.phone?.trim() || undefined,
+          birthDate: f.birthDate,
+        })
+        .subscribe({
+          next: (info) => {
+            this.savingGuest = false;
+            this.guestFormOpen = false;
+            this.guestInfo = info;
+            const added = info.guests.find(
+              (g) => g.cpf.replace(/\D/g, '') === cpf
+            );
+            this.assigningFor = added?.id;
+            this.cd.markForCheck();
+          },
+          error: (e: Error) => {
+            this.savingGuest = false;
+            this.guestFormError = e?.message || this.i18n.t('sg.err.generic');
+            this.cd.markForCheck();
+          },
+        })
+    );
+  }
+
+  protected emptyGuest(): NewSocioGuest {
+    return { name: '', cpf: '', email: '', phone: '', birthDate: '' };
   }
 
   /** "Escolher poltrona" de um convidado: o próximo clique no mapa é para ele */
