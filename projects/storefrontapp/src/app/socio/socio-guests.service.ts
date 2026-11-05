@@ -160,3 +160,28 @@ export function maskPhone(value: string): string {
     ? `(${d.slice(0, 2)}) ${rest.slice(0, split)}-${rest.slice(split)}`
     : `(${d.slice(0, 2)}) ${rest}`;
 }
+
+/**
+ * Validações simples do cadastro do convidado (as mesmas do servidor), para
+ * avisar antes de enviar. Devolve a chave do texto do erro (fla-texts) ou ''.
+ */
+export function guestFormErrorKey(f: NewSocioGuest, today: string): string {
+  const name = (f.name ?? '').trim().replace(/\s+/g, ' ');
+  if (name.length < 3 || !name.includes(' ')) {
+    return 'sg.err.name';
+  }
+  if (!isValidCpf(f.cpf)) {
+    return 'sg.err.cpf';
+  }
+  if (!f.birthDate || f.birthDate > today) {
+    return 'sg.err.birth';
+  }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((f.email ?? '').trim())) {
+    return 'sg.err.email';
+  }
+  const phone = (f.phone ?? '').replace(/\D/g, '');
+  if (phone && (phone.length < 10 || phone.length > 11)) {
+    return 'sg.err.phone';
+  }
+  return '';
+}

@@ -961,3 +961,57 @@
 .md-multi {
   margin-top: 10px;
 }
+
+// não sócio: quem vai usar cada ingresso adicional
+.md-who-missing {
+  color: var(--md-muted);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.md-holder-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 16px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--md-line);
+  border-radius: 8px;
+  background: var(--md-bg);
+
+  p {
+    margin: 0;
+  }
+}
+
+.md-holder-title {
+  color: var(--md-strong);
+  font-weight: 700;
+}
+
+.md-holder-field {
+  display: grid;
+  gap: 6px;
+  color: var(--md-strong);
+  font-weight: 600;
+
+  input {
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--md-line);
+    border-radius: 8px;
+    background: var(--md-bg);
+    color: var(--md-strong);
+    font-weight: 400;
+  }
+}
+
+.md-holder-wide {
+  grid-column: 1 / -1;
+}
+
+.md-holder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

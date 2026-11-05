@@ -47,4 +47,10 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Quem vai usar cada ingresso adicional de quem não é sócio: /users/current/ticketholders -->
+	<bean id="flamengoTicketHoldersController" class="br.com.flamengo.matchday.occ.TicketHoldersController">
+		<property name="ticketHolderService" ref="ticketHolderService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 </beans>

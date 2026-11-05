@@ -677,6 +677,19 @@
 					<description>Nome de quem vai usar o ingresso (convidado), gravado na compra</description>
 					<persistence type="property"/>
 				</attribute>
+				<!-- ingresso adicional de quem não é sócio (04/11): dados de quem vai usar -->
+				<attribute qualifier="ticketHolderCpf" type="java.lang.String">
+					<description>CPF (só dígitos) de quem vai usar o ingresso adicional de quem não é sócio</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="ticketHolderBirthDate" type="java.util.Date">
+					<description>Data de nascimento de quem vai usar o ingresso adicional</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="ticketHolderEmail" type="java.lang.String">
+					<description>E-mail de quem vai usar o ingresso adicional</description>
+					<persistence type="property"/>
+				</attribute>
 			</attributes>
 		</itemtype>
 
@@ -974,6 +987,18 @@
 				</attribute>
 				<attribute qualifier="holder" type="java.lang.String">
 					<description>Quem vai usar (nome)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="holderCpf" type="java.lang.String">
+					<description>CPF (só dígitos) de quem vai usar: convidado do sócio ou ingresso adicional (vazio = o comprador)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="holderBirthDate" type="java.util.Date">
+					<description>Data de nascimento de quem vai usar (vazio = o comprador)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="holderEmail" type="java.lang.String">
+					<description>E-mail de quem vai usar (vazio = o comprador)</description>
 					<persistence type="property"/>
 				</attribute>
 				<attribute qualifier="guest" type="SocioGuest">

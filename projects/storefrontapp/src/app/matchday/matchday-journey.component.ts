@@ -45,10 +45,17 @@ import {
   WaveStatus,
 } from '../socio/socio.model';
 import {
+  NewSocioGuest,
   SocioGuest,
   SocioGuestList,
   SocioGuestsService,
+  guestFormErrorKey,
+  maskCpf,
 } from '../socio/socio-guests.service';
+import {
+  TicketHolderInfo,
+  TicketHoldersService,
+} from './ticket-holders.service';
 import { SocioService } from '../socio/socio.service';
 import { MATCHES_CATEGORY, MatchdayDataService } from './matchday-data.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
@@ -191,6 +198,15 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   guestSeats: GuestSeat[] = [];
   /** Convidado esperando o clique numa poltrona */
   assigningFor?: string;
+  // não sócio: quem vai usar cada ingresso adicional
+  /** Dados gravados no carrinho, por poltrona */
+  holderInfo: Record<string, TicketHolderInfo> = {};
+  /** Poltrona adicional com o formulário aberto */
+  holderFor?: string;
+  holderForm: NewSocioGuest = this.emptyHolder();
+  holderError = '';
+  savingHolder = false;
+  readonly holderToday = new Date().toISOString().slice(0, 10);
   /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
   protected requestedMatch?: string;
   /** Poltrona vinda da página do produto (?poltrona=...): abre o setor dela */
@@ -217,7 +233,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     public i18n: FlaI18nService,
     protected holdWatcher: MatchdayHoldWatcherService,
     protected socioAccount: SocioAccountService,
-    protected socioGuests: SocioGuestsService
+    protected socioGuests: SocioGuestsService,
+    protected ticketHolders: TicketHoldersService
   ) {}
 
   ngOnInit(): void {
@@ -387,7 +404,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     if (!this.canBuy(this.match) && !this.held) {
       return false;
     }
-    return index <= 1 || !!(this.sector && this.seat);
+    return index <= 1 || (!!(this.sector && this.seat) && !this.missingHolders);
   }
 
   goTo(index: number): void {
@@ -418,7 +435,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       return !this.match || !this.canOpen(1);
     }
     if (this.step === 1) {
-      return this.holding || !(this.sector && this.seat);
+      return this.holding || !(this.sector && this.seat) || this.missingHolders;
     }
     if (this.step === 2) {
       return this.parking !== NO_PARKING && !this.plateValid;
@@ -1445,6 +1462,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
               },
             ];
             this.seatMap = this.buildSeatMap(sector);
+            // já pede quem vai usar este ingresso adicional
+            this.openHolderForm(code);
           } else {
             const reason = this.deniedReason();
             this.holdMessage = reason
@@ -1468,8 +1487,18 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     }
     this.holding = true;
     const next = this.extraSeats[0];
+    if (this.holderFor === code) {
+      this.holderFor = undefined;
+    }
     if (next) {
       this.guestSeats = this.guestSeats.filter((g) => g.code !== next.code);
+      // a nova principal fica no nome do comprador
+      if (this.holderInfo[next.code]?.name) {
+        this.clearHolder(next.code);
+      }
+      if (this.holderFor === next.code) {
+        this.holderFor = undefined;
+      }
       this.held = { code: next.code, expiresAt: next.expiresAt };
       this.data.saveHold(this.held);
       this.seat = next.label;
@@ -1496,6 +1525,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
 
   /** Volta à jornada: as outras poltronas do jogo que estão no carrinho viram adicionais */
   protected restoreExtraSeats(inCart: string[]): void {
+    this.loadHolders();
     const held = this.held?.code;
     const matchCode = held ? this.data.matchCodeOfSeat(held) : undefined;
     for (const code of inCart) {
@@ -1524,6 +1554,151 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ---------- não sócio: quem vai usar cada ingresso adicional ----------
+
+  get holderSeatLabel(): string {
+    return this.extraSeats.find((g) => g.code === this.holderFor)?.label ?? '';
+  }
+
+  /** Algum ingresso adicional ainda sem os dados de quem vai usar */
+  get missingHolders(): boolean {
+    return this.multiSeat && this.extraSeats.some((g) => !g.holder);
+  }
+
+  openHolderForm(code: string): void {
+    const info = this.holderInfo[code];
+    this.holderForm = info?.name
+      ? {
+          name: info.name,
+          cpf: info.cpf ?? '',
+          birthDate: info.birthDate ?? '',
+          email: info.email ?? '',
+          phone: '',
+        }
+      : this.emptyHolder();
+    this.holderError = '';
+    this.holderFor = code;
+    this.cd.markForCheck();
+  }
+
+  cancelHolderForm(): void {
+    this.holderFor = undefined;
+    this.holderError = '';
+  }
+
+  onHolderCpf(value: string): void {
+    this.holderForm.cpf = maskCpf(value);
+  }
+
+  /** Grava no carrinho quem vai usar a poltrona adicional aberta no formulário */
+  saveHolder(): void {
+    const code = this.holderFor;
+    if (!code || this.savingHolder) {
+      return;
+    }
+    const key = guestFormErrorKey(
+      { ...this.holderForm, phone: '' },
+      this.holderToday
+    );
+    if (key) {
+      this.holderError = this.i18n.t(key);
+      this.cd.markForCheck();
+      return;
+    }
+    const f = this.holderForm;
+    this.savingHolder = true;
+    this.holderError = '';
+    this.subscription.add(
+      this.activeCart
+        .getActive()
+        .pipe(
+          take(1),
+          switchMap((cart) =>
+            this.ticketHolders.save({
+              cartId: cart.code ?? '',
+              seatCode: code,
+              name: f.name.trim().replace(/\s+/g, ' '),
+              cpf: f.cpf,
+              birthDate: f.birthDate,
+              email: f.email.trim(),
+            })
+          )
+        )
+        .subscribe({
+          next: (list) => {
+            this.savingHolder = false;
+            this.holderFor = undefined;
+            this.applyHolders(list);
+          },
+          error: (e: Error) => {
+            this.savingHolder = false;
+            this.holderError = e?.message || this.i18n.t('sg.err.generic');
+            this.cd.markForCheck();
+          },
+        })
+    );
+  }
+
+  /** A poltrona volta para o nome do comprador (virou a principal) */
+  protected clearHolder(code: string): void {
+    delete this.holderInfo[code];
+    this.subscription.add(
+      this.activeCart
+        .getActive()
+        .pipe(
+          take(1),
+          switchMap((cart) =>
+            this.ticketHolders.save({
+              cartId: cart.code ?? '',
+              seatCode: code,
+              name: '',
+              cpf: '',
+              birthDate: '',
+              email: '',
+            })
+          )
+        )
+        .subscribe({ error: () => undefined })
+    );
+  }
+
+  /** Dados já gravados no carrinho (volta à jornada) */
+  protected loadHolders(): void {
+    if (!this.loggedIn) {
+      return;
+    }
+    this.subscription.add(
+      this.activeCart
+        .getActive()
+        .pipe(
+          take(1),
+          filter((cart) => !!cart.code),
+          switchMap((cart) => this.ticketHolders.list(cart.code ?? ''))
+        )
+        .subscribe({
+          next: (list) => this.applyHolders(list),
+          error: () => undefined,
+        })
+    );
+  }
+
+  protected applyHolders(list: TicketHolderInfo[]): void {
+    this.holderInfo = {};
+    for (const h of list) {
+      if (h.name && h.cpf) {
+        this.holderInfo[h.seatCode] = h;
+      }
+    }
+    this.guestSeats = this.guestSeats.map((g) =>
+      g.guestId ? g : { ...g, holder: this.holderInfo[g.code]?.name ?? '' }
+    );
+    this.cd.markForCheck();
+  }
+
+  protected emptyHolder(): NewSocioGuest {
+    return { name: '', cpf: '', email: '', phone: '', birthDate: '' };
+  }
+
   /** "Liberar": a poltrona do convidado sai do carrinho e volta a ficar livre */
   releaseGuestSeat(seat: GuestSeat): void {
     if (this.holding) {
@@ -1540,6 +1715,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         .subscribe(() => {
           this.holding = false;
           this.guestSeats = this.guestSeats.filter((g) => g.code !== seat.code);
+          delete this.holderInfo[seat.code];
+          if (this.holderFor === seat.code) {
+            this.holderFor = undefined;
+          }
           this.refreshSeats();
           this.loadGuests();
           this.cd.markForCheck();
@@ -1937,9 +2116,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       });
       for (const g of this.guestSeats) {
         lines.push({
-          label: g.guestId
-            ? t('md.line.guestTicket', { name: g.holder })
-            : t('md.line.extraTicket'),
+          label:
+            g.guestId || g.holder
+              ? t('md.line.guestTicket', { name: g.holder })
+              : t('md.line.extraTicket'),
           detail: [
             g.sectorName,
             t('md.line.seat', { seat: g.label }),
@@ -2022,7 +2202,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       !this.sector ||
       !this.seat ||
       !this.ticketCode ||
-      this.submitting
+      this.submitting ||
+      this.missingHolders
     ) {
       return;
     }

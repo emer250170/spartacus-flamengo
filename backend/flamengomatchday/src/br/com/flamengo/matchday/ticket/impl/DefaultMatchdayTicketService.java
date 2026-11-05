@@ -11,6 +11,7 @@ import br.com.flamengo.matchday.service.SeatHoldService;
 import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.ticket.MatchdayTicketException;
 import br.com.flamengo.matchday.ticket.MatchdayTicketService;
+import br.com.flamengo.matchday.ticket.TicketHolderService;
 import de.hybris.platform.core.enums.OrderStatus;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
@@ -110,6 +111,7 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 			t.setGuest(guest instanceof SocioGuestModel ? (SocioGuestModel) guest : null);
 			final Object holder = attr(entry, SocioGuestService.ENTRY_HOLDER);
 			t.setHolder(holder instanceof String && StringUtils.isNotBlank((String) holder) ? (String) holder : buyerName(t));
+			holderData(t, entry);
 			final double paid = entry.getTotalPrice() == null ? 0 : entry.getTotalPrice().doubleValue();
 			final double list = (entry.getBasePrice() == null ? 0 : entry.getBasePrice().doubleValue())
 					* (entry.getQuantity() == null ? 1 : entry.getQuantity().longValue());
@@ -352,6 +354,10 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 			}
 			t.setGuest(guest);
 			t.setHolder(guest != null ? guest.getName() : StringUtils.isNotBlank(holder) ? holder.trim() : buyerName(t));
+			// nome digitado pelo gestor ou volta ao comprador: sem CPF/nascimento/e-mail de outra pessoa
+			t.setHolderCpf(guest != null ? guest.getCpf() : null);
+			t.setHolderBirthDate(guest != null ? guest.getBirthDate() : null);
+			t.setHolderEmail(guest != null ? guest.getEmail() : null);
 			save(t);
 			event(t, MatchdayTicketEventType.TROCA_TITULAR, author, from, t.getHolder(), null,
 					guest != null ? "Convidado do sócio" : StringUtils.isNotBlank(holder) ? "Nome informado pelo gestor" : "Volta para o titular");
@@ -644,6 +650,28 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 	protected static String buyerName(final MatchdayTicketModel t)
 	{
 		return t.getCustomer() == null ? null : StringUtils.defaultIfBlank(t.getCustomer().getName(), t.getCustomer().getUid());
+	}
+
+	/**
+	 * CPF, nascimento e e-mail de quem vai usar: do convidado do sócio ou, no ingresso
+	 * adicional de quem não é sócio, os informados na compra (vazio = o comprador)
+	 */
+	protected void holderData(final MatchdayTicketModel t, final AbstractOrderEntryModel entry)
+	{
+		final SocioGuestModel guest = t.getGuest();
+		if (guest != null)
+		{
+			t.setHolderCpf(guest.getCpf());
+			t.setHolderBirthDate(guest.getBirthDate());
+			t.setHolderEmail(guest.getEmail());
+			return;
+		}
+		final Object cpf = attr(entry, TicketHolderService.ENTRY_CPF);
+		final Object birth = attr(entry, TicketHolderService.ENTRY_BIRTH_DATE);
+		final Object email = attr(entry, TicketHolderService.ENTRY_EMAIL);
+		t.setHolderCpf(cpf instanceof String && StringUtils.isNotBlank((String) cpf) ? (String) cpf : null);
+		t.setHolderBirthDate(birth instanceof Date ? (Date) birth : null);
+		t.setHolderEmail(email instanceof String && StringUtils.isNotBlank((String) email) ? (String) email : null);
 	}
 
 	protected Object attr(final Object item, final String qualifier)
