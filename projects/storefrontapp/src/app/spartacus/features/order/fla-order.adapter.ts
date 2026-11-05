@@ -36,12 +36,15 @@ export class FlaOrderAdapter extends OccOrderAdapter {
       switchMap((p) =>
         p.enabled && this.socioPayment.isUpfront(p.method)
           ? this.socioPayment.placeOrder(cartId).pipe(
-              // recusa do servidor (ex.: Termo não aceito): mostra o motivo
-              catchError((e: Error) => {
-                this.globalMessages.add(
-                  e.message,
-                  GlobalMessageType.MSG_TYPE_ERROR
-                );
+              // recusa do servidor (ex.: Termo não aceito): mostra o motivo. A recusa 400 o
+              // tratamento de erros do Spartacus já mostra (05/11: aparecia duas vezes)
+              catchError((e: Error & { status?: number }) => {
+                if (e.status !== 400) {
+                  this.globalMessages.add(
+                    e.message,
+                    GlobalMessageType.MSG_TYPE_ERROR
+                  );
+                }
                 return throwError(() => e);
               }),
               switchMap((placed) =>
