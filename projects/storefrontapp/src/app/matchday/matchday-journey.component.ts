@@ -51,6 +51,7 @@ import {
   SocioGuestsService,
   guestFormErrorKey,
   maskCpf,
+  maskPhone,
 } from '../socio/socio-guests.service';
 import {
   TicketHolderInfo,
@@ -198,6 +199,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   guestSeats: GuestSeat[] = [];
   /** Convidado esperando o clique numa poltrona */
   assigningFor?: string;
+  /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
+  protected requestedMatch?: string;
+  /** Poltrona vinda da página do produto (?poltrona=...): abre o setor dela */
+  protected requestedSeat?: string;
   // não sócio: quem vai usar cada ingresso adicional
   /** Dados gravados no carrinho, por poltrona */
   holderInfo: Record<string, TicketHolderInfo> = {};
@@ -207,10 +212,6 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   holderError = '';
   savingHolder = false;
   readonly holderToday = new Date().toISOString().slice(0, 10);
-  /** Jogo pedido na URL (?jogo=...), por exemplo na volta da página de planos */
-  protected requestedMatch?: string;
-  /** Poltrona vinda da página do produto (?poltrona=...): abre o setor dela */
-  protected requestedSeat?: string;
 
   /** Itens atuais do carrinho (base para ajustar o carrinho no fechamento) */
   protected cartEntries: OrderEntry[] = [];
