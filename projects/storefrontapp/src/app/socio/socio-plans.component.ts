@@ -76,6 +76,8 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
   inCart: SocioPlan | null = null;
   /** Jogo de onde o torcedor veio (volta para ele depois de escolher o plano) */
   fromMatch?: string;
+  /** Veio da compra de ingresso (stepper sem a etapa Jogo): volta para ela */
+  fromTicket = false;
   guests: Record<string, number> = {};
   submitting?: string;
 
@@ -110,8 +112,9 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
         this.cd.markForCheck();
       })
     );
-    this.fromMatch =
-      this.router.parseUrl(this.router.url).queryParams['jogo'] || undefined;
+    const query = this.router.parseUrl(this.router.url).queryParams;
+    this.fromMatch = query['jogo'] || undefined;
+    this.fromTicket = query['modo'] === 'ingresso';
     this.socio.refreshMembership();
     this.subscription.add(
       this.socio.getMembership().subscribe((m) => {
@@ -224,10 +227,14 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
               }),
               GlobalMessageType.MSG_TYPE_CONFIRMATION
             );
+            // Jornada 1 (veio de um jogo): volta para o jogo, no mesmo modo (ingresso ou dia
+            // completo), já com os benefícios do plano no carrinho.
+            // Jornada 2 (veio da categoria Sócio-torcedor): vai direto finalizar a compra.
             this.router.navigateByUrl(
               this.fromMatch
-                ? `/matchday?jogo=${encodeURIComponent(this.fromMatch)}`
-                : '/matchday'
+                ? `/matchday?jogo=${encodeURIComponent(this.fromMatch)}` +
+                    (this.fromTicket ? '&modo=ingresso' : '')
+                : '/checkout'
             );
           },
           error: () => {

@@ -55,7 +55,11 @@
             }}
             <a
               routerLink="/socio-torcedor"
-              [queryParams]="match ? { jogo: match.code } : {}"
+              [queryParams]="
+                match
+                  ? { jogo: match.code, modo: ticketMode ? 'ingresso' : null }
+                  : {}
+              "
               >{{ 'md.knowPlans' | flaT }}</a
             >
           </ng-template>
@@ -727,7 +731,10 @@
         *ngIf="canUpgrade"
         class="btn btn-primary"
         routerLink="/socio-torcedor"
-        [queryParams]="{ jogo: match.code }"
+        [queryParams]="{
+          jogo: match.code,
+          modo: ticketMode ? 'ingresso' : null,
+        }"
         >{{ (memberPlan ? 'md.lock.upgrade' : 'md.lock.join') | flaT }}</a
       >
     </div>
