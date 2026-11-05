@@ -40,7 +40,7 @@
         {{ parcelText(n) }}
       </option>
     </select>
-    <small>{{ 'spay.cardBelow' | flaT }}</small>
+    <small>{{ cardWhere() }}</small>
   </div>
 
   <p *ngIf="error" class="spay-error" role="alert">{{ error }}</p>
