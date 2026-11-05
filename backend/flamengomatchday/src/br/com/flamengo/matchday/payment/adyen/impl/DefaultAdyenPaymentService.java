@@ -9,6 +9,7 @@ import br.com.flamengo.matchday.payment.adyen.AdyenException;
 import br.com.flamengo.matchday.payment.adyen.AdyenHmac;
 import br.com.flamengo.matchday.payment.adyen.AdyenPaymentService;
 import br.com.flamengo.matchday.payment.adyen.AdyenSession;
+import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.socio.SocioPaymentService;
 import br.com.flamengo.matchday.socio.SocioPayments;
 import br.com.flamengo.matchday.socio.SocioPlanService;
@@ -74,6 +75,8 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 	public static final String SCHEME = "scheme";
 	public static final String PIX = "pix";
 	public static final String BOLETO = "boletobancario";
+	/** Vencimento do boleto da Adyen (o mesmo prazo do boleto simulado) */
+	protected static final int BOLETO_DAYS = 5;
 
 	// atributos novos (lidos por nome: funcionam antes do Update sem quebrar o resto)
 	protected static final String REFERENCE = "adyenReference";
@@ -119,6 +122,7 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		final Map<String, Object> m = new LinkedHashMap<>();
 		final boolean enabled = isEnabled();
 		m.put("enabled", Boolean.valueOf(enabled));
+		m.put("methods", methods());
 		if (enabled)
 		{
 			m.put("clientKey", str(store(), "adyenClientKey"));
@@ -127,6 +131,26 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 			m.put("countryCode", "BR");
 		}
 		return m;
+	}
+
+	@Override
+	public List<String> methods()
+	{
+		final List<String> out = new ArrayList<>();
+		if (!isEnabled())
+		{
+			return out;
+		}
+		final String raw = configurationService.getConfiguration().getString(METHODS_PROPERTY, PIX + "," + BOLETO);
+		for (final String part : StringUtils.split(StringUtils.defaultString(raw), ", ;"))
+		{
+			final String m = part.trim().toLowerCase(Locale.ROOT);
+			if (List.of(SCHEME, PIX, BOLETO).contains(m) && !out.contains(m))
+			{
+				out.add(m);
+			}
+		}
+		return out;
 	}
 
 	protected BaseStoreModel store()
@@ -209,6 +233,12 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		final SocioPaymentMethod socioMethod = SocioPayments.method(modelService, cart);
 		final SocioPlanModel plan = planIn(cart);
 		final List<String> allowed = allowedMethods(plan, socioMethod);
+		allowed.retainAll(methods());
+		if (allowed.isEmpty())
+		{
+			throw new AdyenException("Esta forma de pagamento ainda não passa pela Adyen (" + METHODS_PROPERTY + "="
+					+ String.join(",", methods()) + ").");
+		}
 		final String reference = cart.getCode() + "-" + Long.toString(System.currentTimeMillis(), 36).toUpperCase(Locale.ROOT);
 
 		final Map<String, Object> body = new LinkedHashMap<>();
@@ -427,6 +457,114 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		}
 		final long minutes = PIX.equals(method) ? 60 : 5 * 24 * 60;
 		return new Date(now.getTime() + minutes * 60000L);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Map<String, Object> prepareUpfront(final CartModel cart, final boolean pix, final String cpf)
+	{
+		requireEnabled();
+		final String type = pix ? PIX : BOLETO;
+		final String name = pix ? "Pix" : "boleto";
+		if (!methods().contains(type))
+		{
+			throw new AdyenException("O " + name + " não passa pela Adyen agora (" + METHODS_PROPERTY + ").");
+		}
+		requireDelivery(cart);
+		if (!Boolean.TRUE.equals(cart.getCalculated()))
+		{
+			recalculate(cart);
+		}
+		final long cents = cents(cart);
+		if (cents <= 0)
+		{
+			throw new AdyenException("Pedido sem valor a pagar: não passa pela Adyen.");
+		}
+		final String digits = StringUtils.defaultString(cpf).replaceAll("\\D", "");
+		if (!digits.isEmpty() && !SocioGuestService.isValidCpf(digits))
+		{
+			throw new AdyenException("CPF inválido. Confira os 11 números.");
+		}
+		final CustomerModel customer = cart.getUser() instanceof CustomerModel ? (CustomerModel) cart.getUser() : null;
+		final Map<String, Object> shopper = shopper(cart, customer);
+		if (!pix)
+		{
+			if (digits.isEmpty())
+			{
+				throw new AdyenException("Informe o CPF de quem vai pagar o boleto.");
+			}
+			if (shopper.get("shopperName") == null || shopper.get("billingAddress") == null)
+			{
+				throw new AdyenException(
+						"O boleto precisa do nome e do endereço completo da entrega (rua, número, CEP, cidade e estado).");
+			}
+		}
+		final Date now = new Date();
+		final String reference = cart.getCode() + "-" + Long.toString(now.getTime(), 36).toUpperCase(Locale.ROOT);
+
+		final Map<String, Object> body = new LinkedHashMap<>();
+		body.put("merchantAccount", str(store(), "adyenMerchantAccount"));
+		body.put("amount", amount(cart));
+		body.put("reference", reference);
+		body.put("paymentMethod", Collections.singletonMap("type", type));
+		body.put("countryCode", "BR");
+		body.put("shopperLocale", "pt-BR");
+		body.put("channel", "Web");
+		body.put("returnUrl", configurationService.getConfiguration().getString(RETURN_PROPERTY));
+		if (customer != null)
+		{
+			body.put("shopperReference", shopperReference(customer));
+			body.put("shopperEmail", StringUtils.defaultIfBlank(customer.getContactEmail(), customer.getUid()));
+		}
+		if (shopper.get("shopperName") != null)
+		{
+			body.put("shopperName", shopper.get("shopperName"));
+		}
+		if (!digits.isEmpty())
+		{
+			body.put("socialSecurityNumber", digits);
+		}
+		if (!pix)
+		{
+			body.put("billingAddress", shopper.get("billingAddress"));
+			body.put("deliveryDate", OffsetDateTime.now().plusDays(BOLETO_DAYS).withNano(0).toString());
+		}
+		final Map<String, Object> metadata = new LinkedHashMap<>();
+		metadata.put("cartCode", cart.getCode());
+		final SocioPlanModel plan = planIn(cart);
+		if (plan != null)
+		{
+			metadata.put("plano", plan.getCode());
+		}
+		body.put("metadata", metadata);
+
+		final Map<String, Object> response = post("/payments", body);
+		final String resultCode = (String) response.get("resultCode");
+		final Object rawAction = response.get("action");
+		if (!(rawAction instanceof Map) || !List.of("Pending", "PresentToShopper", "Received").contains(resultCode))
+		{
+			throw new AdyenException("A Adyen não gerou o " + name + " (" + StringUtils.defaultIfBlank(
+					(String) response.get("refusalReason"), StringUtils.defaultString(resultCode, "sem resposta")) + ").", 502);
+		}
+		final Map<String, Object> action = (Map<String, Object>) rawAction;
+		final String code = pix ? (String) action.get("qrCodeData") : (String) action.get("reference");
+		if (StringUtils.isBlank(code))
+		{
+			throw new AdyenException("A Adyen não devolveu o " + (pix ? "código do Pix" : "código do boleto") + ".", 502);
+		}
+		set(cart, SESSION, null);
+		set(cart, REFERENCE, reference);
+		set(cart, PSP, response.get("pspReference"));
+		set(cart, METHOD, type);
+		set(cart, RESULT, resultCode);
+		set(cart, ACTION, adyenClient.write(action));
+		modelService.setAttributeValue(cart, SocioPayments.DUE, expiry(action, type, now));
+		modelService.setAttributeValue(cart, SocioPayments.CODE, code);
+		modelService.setAttributeValue(cart, SocioPayments.CONFIRMED, null);
+		modelService.save(cart);
+		LOG.info("Adyen: {} {} para o carrinho {} ({} centavos), referência {}", name, response.get("pspReference"),
+				cart.getCode(), Long.valueOf(cents), reference);
+		return action;
 	}
 
 	@Override

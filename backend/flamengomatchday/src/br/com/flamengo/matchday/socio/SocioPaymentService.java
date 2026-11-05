@@ -64,7 +64,19 @@ public interface SocioPaymentService
 	 */
 	SocioPayment choose(CartModel cart, String method, Integer installments) throws SocioPaymentException;
 
-	/** Fecha o pedido do carrinho com Pix ou boleto (sem cartão): o pedido fica aguardando pagamento */
+	/**
+	 * Confere se o carrinho pode fechar com Pix ou boleto (chave, forma escolhida, plano, entrega) antes
+	 * de gerar o pagamento no meio de pagamento (05/11, Adyen).
+	 *
+	 * @return a forma escolhida (PIX ou BOLETO)
+	 */
+	br.com.flamengo.matchday.enums.SocioPaymentMethod validateUpfront(CartModel cart) throws SocioPaymentException;
+
+	/**
+	 * Fecha o pedido do carrinho com Pix ou boleto (sem cartão): o pedido fica aguardando pagamento. Se
+	 * o Pix/boleto já foi gerado pela Adyen ({@code adyenPspReference} no carrinho), usa o código e o
+	 * vencimento dela; senão, o código fictício de sempre.
+	 */
 	OrderModel placeOrder(CartModel cart) throws SocioPaymentException;
 
 	/**

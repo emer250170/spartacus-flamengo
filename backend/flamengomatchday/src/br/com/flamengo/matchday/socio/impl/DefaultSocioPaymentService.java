@@ -169,6 +169,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		modelService.setAttributeValue(cart, SocioPayments.INSTALLMENTS, parcels);
 		modelService.setAttributeValue(cart, SocioPayments.DUE, null);
 		modelService.setAttributeValue(cart, SocioPayments.CODE, null);
+		clearAdyen(cart);
 		modelService.save(cart);
 		recalculate(cart);
 		LOG.info("Carrinho {}: forma de pagamento do plano {}{}", cart.getCode(), chosen.getCode(),
@@ -177,7 +178,7 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 	}
 
 	@Override
-	public OrderModel placeOrder(final CartModel cart)
+	public SocioPaymentMethod validateUpfront(final CartModel cart)
 	{
 		if (!isEnabled())
 		{
@@ -204,22 +205,37 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		{
 			throw new SocioPaymentException("Preencha o endereço e a forma de entrega antes de finalizar o pedido.");
 		}
+		return method;
+	}
+
+	@Override
+	public OrderModel placeOrder(final CartModel cart)
+	{
+		final SocioPaymentMethod method = validateUpfront(cart);
 		if (!Boolean.TRUE.equals(cart.getCalculated()))
 		{
 			recalculate(cart);
 		}
 
 		final Date now = new Date();
-		final Date due = due(method, now);
+		// Pix/boleto gerado pela Adyen (05/11): código, vencimento e referência já estão no carrinho
+		final String adyenReference = adyenString(cart, "adyenPspReference") == null ? null : adyenString(cart, "adyenReference");
+		final Date due = adyenReference != null && SocioPayments.date(modelService, cart, SocioPayments.DUE) != null
+				? SocioPayments.date(modelService, cart, SocioPayments.DUE)
+				: due(method, now);
 		final PaymentInfoModel info = modelService.create(PaymentInfoModel.class);
-		info.setCode(method.getCode().toLowerCase(Locale.ROOT) + "-" + cart.getCode() + "-" + now.getTime());
+		info.setCode(adyenReference != null ? "adyen-" + adyenReference
+				: method.getCode().toLowerCase(Locale.ROOT) + "-" + cart.getCode() + "-" + now.getTime());
 		info.setUser(cart.getUser());
 		info.setSaved(false);
 		modelService.save(info);
 		cart.setPaymentInfo(info);
 		modelService.setAttributeValue(cart, SocioPayments.DUE, due);
-		modelService.setAttributeValue(cart, SocioPayments.CODE,
-				method == SocioPaymentMethod.PIX ? pixCode(cart, now) : boletoLine(cart, due));
+		if (adyenReference == null || SocioPayments.string(modelService, cart, SocioPayments.CODE) == null)
+		{
+			modelService.setAttributeValue(cart, SocioPayments.CODE,
+					method == SocioPaymentMethod.PIX ? pixCode(cart, now) : boletoLine(cart, due));
+		}
 		modelService.setAttributeValue(cart, SocioPayments.CONFIRMED, null);
 		modelService.save(cart);
 
@@ -262,6 +278,39 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 			final String name = SocioPayments.name(method);
 			throw new SocioPaymentException("O plano está com " + name + " como forma de pagamento: finalize pelo " + name
 					+ " ou volte ao pagamento e escolha o cartão.");
+		}
+	}
+
+	/** Pix/boleto da Adyen preparado para outra forma: some quando a forma muda (atributos lidos por nome) */
+	protected void clearAdyen(final CartModel cart)
+	{
+		for (final String q : new String[]
+		{ "adyenReference", "adyenSessionId", "adyenPspReference", "adyenPaymentMethod", "adyenResultCode", "adyenAction" })
+		{
+			try
+			{
+				if (modelService.getAttributeValue(cart, q) != null)
+				{
+					modelService.setAttributeValue(cart, q, null);
+				}
+			}
+			catch (final RuntimeException e)
+			{
+				return; // antes do Update os atributos da Adyen ainda não existem
+			}
+		}
+	}
+
+	protected String adyenString(final AbstractOrderModel order, final String qualifier)
+	{
+		try
+		{
+			final Object v = modelService.getAttributeValue(order, qualifier);
+			return v instanceof String && StringUtils.isNotBlank((String) v) ? (String) v : null;
+		}
+		catch (final RuntimeException e)
+		{
+			return null;
 		}
 	}
 

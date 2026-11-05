@@ -1,8 +1,12 @@
 package br.com.flamengo.matchday.occ;
 
+import br.com.flamengo.matchday.enums.SocioPaymentMethod;
+import br.com.flamengo.matchday.payment.adyen.AdyenException;
+import br.com.flamengo.matchday.payment.adyen.AdyenPaymentService;
 import br.com.flamengo.matchday.socio.SocioPayment;
 import br.com.flamengo.matchday.socio.SocioPaymentException;
 import br.com.flamengo.matchday.socio.SocioPaymentService;
+import de.hybris.platform.core.model.order.AbstractOrderModel;
 import de.hybris.platform.core.model.order.CartModel;
 import de.hybris.platform.core.model.order.OrderModel;
 import de.hybris.platform.core.model.user.CustomerModel;
@@ -55,6 +59,8 @@ public class SocioPaymentController
 	private UserService userService;
 	private CartService cartService;
 	private FlexibleSearchService flexibleSearchService;
+	/** Pix e boleto pela Adyen (05/11); sem o bean, o código fictício de sempre */
+	private AdyenPaymentService adyenPaymentService;
 
 	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
 	@RequestMapping(value = "/carts/{cartId}/sociopayment", method = RequestMethod.GET)
@@ -67,7 +73,7 @@ public class SocioPaymentController
 		{
 			return error(HttpStatus.NOT_FOUND, "Carrinho não encontrado.");
 		}
-		return ResponseEntity.ok(toMap(socioPaymentService.options(cart)));
+		return ResponseEntity.ok(withAdyen(toMap(socioPaymentService.options(cart)), null));
 	}
 
 	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
@@ -85,9 +91,10 @@ public class SocioPaymentController
 		final Object installments = body == null ? null : body.get("installments");
 		try
 		{
-			return ResponseEntity.ok(toMap(socioPaymentService.choose(cart, method == null ? null : method.toString(),
+			return ResponseEntity.ok(withAdyen(toMap(socioPaymentService.choose(cart, method == null ? null : method.toString(),
 					installments instanceof Number ? Integer.valueOf(((Number) installments).intValue())
-							: installments == null || installments.toString().isEmpty() ? null : Integer.valueOf(installments.toString()))));
+							: installments == null || installments.toString().isEmpty() ? null : Integer.valueOf(installments.toString()))),
+					null));
 		}
 		catch (final SocioPaymentException | NumberFormatException e)
 		{
@@ -99,7 +106,7 @@ public class SocioPaymentController
 	@RequestMapping(value = "/carts/{cartId}/sociopayment/order", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Object> placeOrder(@PathVariable final String baseSiteId, @PathVariable final String userId,
-			@PathVariable final String cartId)
+			@PathVariable final String cartId, @RequestBody(required = false) final Map<String, Object> body)
 	{
 		final CartModel cart = cart(cartId);
 		if (cart == null)
@@ -108,12 +115,22 @@ public class SocioPaymentController
 		}
 		try
 		{
+			final SocioPaymentMethod method = socioPaymentService.validateUpfront(cart);
+			if (adyenHandles(method))
+			{
+				final Object cpf = body == null ? null : body.get("cpf");
+				adyenPaymentService.prepareUpfront(cart, method == SocioPaymentMethod.PIX, cpf == null ? null : cpf.toString());
+			}
 			final OrderModel order = socioPaymentService.placeOrder(cart);
-			return ResponseEntity.status(HttpStatus.CREATED).body(toMap(socioPaymentService.status(order)));
+			return ResponseEntity.status(HttpStatus.CREATED).body(withAdyen(toMap(socioPaymentService.status(order)), order));
 		}
 		catch (final SocioPaymentException e)
 		{
 			return error(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+		catch (final AdyenException e)
+		{
+			return error(e.getStatus() >= 500 ? HttpStatus.BAD_GATEWAY : HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
 
@@ -138,7 +155,7 @@ public class SocioPaymentController
 			return error(HttpStatus.NOT_FOUND, "Pedido não encontrado.");
 		}
 		final SocioPayment status = socioPaymentService.status(orders.get(0));
-		final Map<String, Object> body = status == null ? new LinkedHashMap<>() : toMap(status);
+		final Map<String, Object> body = status == null ? new LinkedHashMap<>() : withAdyen(toMap(status), orders.get(0));
 		body.put("orderCode", code);
 		return ResponseEntity.ok(body);
 	}
@@ -162,10 +179,69 @@ public class SocioPaymentController
 			body.put("awaiting", Boolean.FALSE);
 			return ResponseEntity.ok(body);
 		}
-		return ResponseEntity.ok(toMap(status));
+		return ResponseEntity.ok(withAdyen(toMap(status), order));
 	}
 
 	// ------------------------------------------------------------ apoio
+
+	protected boolean adyenHandles(final SocioPaymentMethod method)
+	{
+		if (adyenPaymentService == null || method == null)
+		{
+			return false;
+		}
+		final List<String> methods = adyenPaymentService.methods();
+		return method == SocioPaymentMethod.PIX ? methods.contains("pix")
+				: method == SocioPaymentMethod.BOLETO && methods.contains("boletobancario");
+	}
+
+	/**
+	 * Adyen (05/11): no checkout, quais formas passam por ela ({@code adyenMethods}, o boleto pede o CPF);
+	 * no pedido, o pspReference, a imagem do QR Code do Pix e o PDF do boleto.
+	 */
+	@SuppressWarnings("unchecked")
+	protected Map<String, Object> withAdyen(final Map<String, Object> m, final AbstractOrderModel order)
+	{
+		if (adyenPaymentService == null)
+		{
+			return m;
+		}
+		try
+		{
+			if (order == null)
+			{
+				final List<String> methods = new java.util.ArrayList<>();
+				if (adyenHandles(SocioPaymentMethod.PIX))
+				{
+					methods.add("PIX");
+				}
+				if (adyenHandles(SocioPaymentMethod.BOLETO))
+				{
+					methods.add("BOLETO");
+				}
+				m.put("adyenMethods", methods);
+				return m;
+			}
+			final Map<String, Object> p = adyenPaymentService.orderPayment(order);
+			if (Boolean.TRUE.equals(p.get("adyen")))
+			{
+				m.put("provider", "adyen");
+				m.put("pspReference", p.get("pspReference"));
+				final Object action = p.get("action");
+				if (action instanceof Map)
+				{
+					final Map<String, Object> a = (Map<String, Object>) action;
+					m.put("qrImageUrl", a.get("url"));
+					m.put("pdfUrl", a.get("downloadUrl"));
+				}
+			}
+		}
+		catch (final RuntimeException e)
+		{
+			// a Adyen nunca impede o resto da resposta
+		}
+		return m;
+	}
 
 	protected CartModel cart(final String cartId)
 	{
@@ -255,5 +331,10 @@ public class SocioPaymentController
 	public void setFlexibleSearchService(final FlexibleSearchService flexibleSearchService)
 	{
 		this.flexibleSearchService = flexibleSearchService;
+	}
+
+	public void setAdyenPaymentService(final AdyenPaymentService adyenPaymentService)
+	{
+		this.adyenPaymentService = adyenPaymentService;
 	}
 }

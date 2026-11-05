@@ -47,8 +47,27 @@
 
   <div *ngIf="upfront" class="spay-upfront">
     <p>
-      {{ (selected === 'PIX' ? 'spay.pixNext' : 'spay.boletoNext') | flaT }}
+      {{ nextText() }}
     </p>
+    <div *ngIf="needsCpf" class="spay-cpf">
+      <label for="spay-cpf">{{ 'spay.cpf' | flaT }}</label>
+      <input
+        id="spay-cpf"
+        class="form-control"
+        inputmode="numeric"
+        autocomplete="off"
+        maxlength="14"
+        placeholder="000.000.000-00"
+        [value]="cpf"
+        [attr.aria-invalid]="cpfTouched && !cpfOk"
+        (input)="setCpf($any($event.target).value)"
+        (blur)="cpfTouched = true"
+      />
+      <small *ngIf="cpfTouched && !cpfOk" class="spay-error" role="alert">{{
+        'spay.cpfInvalid' | flaT
+      }}</small>
+      <small *ngIf="!cpfTouched || cpfOk">{{ 'spay.cpfHint' | flaT }}</small>
+    </div>
     <div class="spay-actions">
       <button type="button" class="btn btn-secondary" (click)="back()">
         {{ 'spay.back' | flaT }}
@@ -56,7 +75,7 @@
       <button
         type="button"
         class="btn btn-primary"
-        [disabled]="busy"
+        [disabled]="busy || (needsCpf && !cpfOk)"
         (click)="next()"
       >
         {{ 'spay.next' | flaT }}

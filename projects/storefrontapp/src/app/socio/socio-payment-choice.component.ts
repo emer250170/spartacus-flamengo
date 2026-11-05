@@ -10,6 +10,7 @@ import { RoutingService } from '@spartacus/core';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { isValidCpf, maskCpf } from './socio-guests.service';
 import {
   SocioPayment,
   SocioPaymentMethod,
@@ -37,6 +38,9 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
   installments = 12;
   busy = false;
   error = '';
+  /** Boleto pela Adyen (05/11): CPF de quem paga */
+  cpf = '';
+  cpfTouched = false;
 
   protected cartId?: string;
   protected subscription = new Subscription();
@@ -82,6 +86,32 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     return this.visible && this.payment.isUpfront(this.selected);
   }
 
+  /** Boleto pela Adyen: pede o CPF de quem paga */
+  get needsCpf(): boolean {
+    return this.upfront && this.payment.needsCpf(this.opts, this.selected);
+  }
+
+  get cpfOk(): boolean {
+    return isValidCpf(this.cpf);
+  }
+
+  /** Pix/boleto pela Adyen: texto real; sem a Adyen, o simulado de sempre */
+  nextText(): string {
+    const pix = this.selected === 'PIX';
+    const adyen = !!this.opts?.adyenMethods.includes(this.selected);
+    return this.t(
+      (pix ? 'spay.pixNext' : 'spay.boletoNext') + (adyen ? '.adyen' : '')
+    );
+  }
+
+  setCpf(value: string): void {
+    this.cpf = maskCpf(value);
+    if (this.cartId) {
+      this.payment.setPayerCpf(this.cartId, this.cpfOk ? this.cpf : '');
+    }
+    this.cd.markForCheck();
+  }
+
   get parcels(): number[] {
     const max = this.opts?.maxInstallments ?? 12;
     return Array.from({ length: max }, (_, i) => i + 1);
@@ -94,7 +124,10 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
         .pipe(
           filter((id): id is string => !!id),
           distinctUntilChanged(),
-          tap((id) => (this.cartId = id)),
+          tap((id) => {
+            this.cartId = id;
+            this.cpf = maskCpf(this.payment.payerCpfOf(id));
+          }),
           switchMap((id) => this.payment.options(id))
         )
         .subscribe((opts) => this.apply(opts))
@@ -171,6 +204,10 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
   }
 
   next(): void {
+    if (this.needsCpf && !this.cpfOk) {
+      this.cpfTouched = true;
+      return;
+    }
     this.routing.go({ cxRoute: 'checkoutReviewOrder' });
   }
 
