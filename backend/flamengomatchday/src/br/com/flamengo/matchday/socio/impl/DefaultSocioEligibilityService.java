@@ -73,6 +73,27 @@ public class DefaultSocioEligibilityService implements SocioEligibilityService
 		// 1. plano (o plano no carrinho já vale, como no SocioCartService)
 		e.plan = bestPlan(groups);
 		e.planInCart = e.plan != null && e.plan.getPendingGroup() != null && groups.contains(e.plan.getPendingGroup());
+		if (e.planInCart && cart != null && !hasPlan(cart))
+		{
+			// grupo do plano "no carrinho" sem o plano neste carrinho (sobra de um carrinho
+			// que sumiu sem a sincronização): não é sócio aqui, compra como os demais (04/11)
+			final Set<PrincipalGroupModel> clean = new HashSet<>(groups);
+			for (final SocioPlanModel p : socioPlanService.getPlans())
+			{
+				if (p.getPendingGroup() != null && groups.contains(p.getPendingGroup()))
+				{
+					clean.remove(p.getPendingGroup());
+					clean.remove(p.getCustomerGroup());
+				}
+			}
+			final SocioPlanModel paid = socioPlanService.memberPlan(customer); // o plano comprado continua valendo
+			if (paid != null && paid.getCustomerGroup() != null)
+			{
+				clean.add(paid.getCustomerGroup());
+			}
+			e.plan = bestPlan(clean);
+			e.planInCart = false;
+		}
 		final int planWave = e.plan == null || e.plan.getWave() == null ? 0 : e.plan.getWave().intValue();
 		if (e.plan == null)
 		{
@@ -164,6 +185,13 @@ public class DefaultSocioEligibilityService implements SocioEligibilityService
 					+ " no carrinho).");
 		}
 		return e;
+	}
+
+	/** O carrinho tem um plano do Nação */
+	protected boolean hasPlan(final CartModel cart)
+	{
+		return cart.getEntries() != null && cart.getEntries().stream()
+				.anyMatch(entry -> socioPlanService.findForProduct(entry.getProduct()) != null);
 	}
 
 	@Override
