@@ -79,7 +79,16 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
   }
 
   hint(m: SocioPaymentMethod): string {
+    // cartão da loja pela Adyen (05/11): não há cartão salvo para escolher abaixo
+    if (this.store && m === 'CARTAO_MENSAL' && this.payment.isAdyenCard(this.opts, m)) {
+      return this.t('spay.h.store.adyenCard');
+    }
     return this.t(this.store ? 'spay.h.store.' + m : 'spay.h.' + m);
+  }
+
+  /** Parcelas do ano no cartão: o cartão vem abaixo, ou na revisão quando é pela Adyen */
+  cardWhere(): string {
+    return this.t(this.adyenCard ? 'spay.cardReview' : 'spay.cardBelow');
   }
 
   get upfront(): boolean {
