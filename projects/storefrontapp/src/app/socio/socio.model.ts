@@ -168,12 +168,15 @@ export const BIOMETRY_GROUP = 'biometria-validada';
  * - generalLimit: flamengo.ingressos.limite.geral (sócio: titular + convidados)
  * - contractedLimit: flamengo.socio.convidados.limiteContratado (sócio: titular +
  *   vagas de convidado contratadas; false = titular + máximo do plano)
+ * - generalMultiSeat: só na loja; quem não é sócio escolhe várias poltronas do
+ *   mesmo jogo no mapa, até generalLimit (false = uma poltrona por vez, como antes)
  */
 export const ELIGIBILITY = {
   blocking: true,
   biometryRequired: false,
   generalLimit: 4,
   contractedLimit: true,
+  generalMultiSeat: true,
 };
 
 /** Uma condição conferida no cartão de elegibilidade */

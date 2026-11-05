@@ -268,7 +268,7 @@
                   <span class="md-dot is-mine"></span>
                   {{ 'md.legend.mine' | flaT }}
                 </li>
-                <li *ngIf="guestSeats.length">
+                <li *ngIf="hasGuestSeats">
                   <span class="md-dot is-guest"></span>
                   {{ 'md.legend.guest' | flaT }}
                 </li>
@@ -301,6 +301,21 @@
                 <button type="button" class="md-link" (click)="renewHold()">
                   {{ 'md.holdAgain' | flaT }}
                 </button>
+              </p>
+              <p
+                *ngIf="multiSeat && held && !holdExpired && !holding"
+                class="md-small md-multi"
+                role="status"
+              >
+                {{
+                  'md.multi.hint'
+                    | flaT
+                      : {
+                          seats: chosenSeats.join(', '),
+                          count: chosenSeats.length,
+                          n: ticketLimit,
+                        }
+                }}
               </p>
               <p *ngIf="holdMessage" class="md-hold is-warn" role="alert">
                 {{ holdMessage }}
