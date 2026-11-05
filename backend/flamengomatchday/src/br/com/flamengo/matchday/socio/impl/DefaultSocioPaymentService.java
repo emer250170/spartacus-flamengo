@@ -218,8 +218,9 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		}
 
 		final Date now = new Date();
-		// Pix/boleto gerado pela Adyen (05/11): código, vencimento e referência já estão no carrinho
-		final String adyenReference = adyenString(cart, "adyenPspReference") == null ? null : adyenString(cart, "adyenReference");
+		// Pix/boleto gerado pela Adyen (05/11): código, vencimento e referência já estão no carrinho. Conferido pelo
+		// meio gravado (o Pix da Adyen pode voltar sem pspReference; o webhook grava o pspReference depois)
+		final String adyenReference = adyenString(cart, "adyenPaymentMethod") == null ? null : adyenString(cart, "adyenReference");
 		final Date due = adyenReference != null && SocioPayments.date(modelService, cart, SocioPayments.DUE) != null
 				? SocioPayments.date(modelService, cart, SocioPayments.DUE)
 				: due(method, now);

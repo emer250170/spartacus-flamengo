@@ -74,7 +74,7 @@ public interface SocioPaymentService
 
 	/**
 	 * Fecha o pedido do carrinho com Pix ou boleto (sem cartão): o pedido fica aguardando pagamento. Se
-	 * o Pix/boleto já foi gerado pela Adyen ({@code adyenPspReference} no carrinho), usa o código e o
+	 * o Pix/boleto já foi gerado pela Adyen ({@code adyenPaymentMethod} no carrinho), usa o código e o
 	 * vencimento dela; senão, o código fictício de sempre.
 	 */
 	OrderModel placeOrder(CartModel cart) throws SocioPaymentException;
