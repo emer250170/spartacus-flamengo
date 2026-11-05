@@ -749,3 +749,11 @@ cx-facet-list.fla-filter-drawer {
     font-weight: 700;
   }
 }
+
+// Cartão pela Adyen (05/11): na revisão, o "Finalizar pedido" do Spartacus dá lugar ao
+// formulário da Adyen com Termos e "Pagar e finalizar" (classe posta pelo AdyenCardComponent)
+body.fla-pay-adyen {
+  cx-place-order {
+    display: none !important;
+  }
+}

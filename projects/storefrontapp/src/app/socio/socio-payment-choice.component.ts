@@ -86,6 +86,16 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     return this.visible && this.payment.isUpfront(this.selected);
   }
 
+  /** Cartão pela Adyen (05/11): o cartão é informado na revisão, no formulário da Adyen */
+  get adyenCard(): boolean {
+    return this.visible && this.payment.isAdyenCard(this.opts, this.selected);
+  }
+
+  /** Sem o cartão do Spartacus neste passo: Pix, boleto ou cartão pela Adyen */
+  get direct(): boolean {
+    return this.upfront || this.adyenCard;
+  }
+
   /** Boleto pela Adyen: pede o CPF de quem paga */
   get needsCpf(): boolean {
     return this.upfront && this.payment.needsCpf(this.opts, this.selected);
@@ -97,6 +107,9 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
 
   /** Pix/boleto pela Adyen: texto real; sem a Adyen, o simulado de sempre */
   nextText(): string {
+    if (this.adyenCard) {
+      return this.t('spay.cardNext.adyen');
+    }
     const pix = this.selected === 'PIX';
     const adyen = !!this.opts?.adyenMethods.includes(this.selected);
     return this.t(
@@ -219,7 +232,9 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     this.selected = m;
     this.busy = true;
     this.error = '';
-    this.payment.markUpfront(this.payment.isUpfront(m));
+    this.payment.markUpfront(
+      this.payment.isUpfront(m) || this.payment.isAdyenCard(this.opts, m)
+    );
     this.cd.markForCheck();
     this.payment.choose(this.cartId, m, installments).subscribe({
       next: (opts) => {
@@ -231,7 +246,10 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
       error: (e: Error) => {
         this.busy = false;
         this.selected = previous;
-        this.payment.markUpfront(this.payment.isUpfront(previous));
+        this.payment.markUpfront(
+          this.payment.isUpfront(previous) ||
+            this.payment.isAdyenCard(this.opts, previous)
+        );
         this.error = e.message || this.t('spay.error');
         this.cd.markForCheck();
       },
@@ -245,7 +263,7 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
       opts.method === 'CARTAO_ANUAL'
         ? (opts.installments ?? 1)
         : opts.maxInstallments;
-    this.payment.markUpfront(this.upfront);
+    this.payment.markUpfront(this.direct);
     this.cd.markForCheck();
   }
 }

@@ -7,8 +7,9 @@ import { filter, switchMap, take } from 'rxjs/operators';
 import { SocioPaymentService } from '../../../socio/socio-payment.service';
 
 /**
- * Plano em Pix ou boleto (item 7): o passo de pagamento conta como feito sem
- * cartão, e a revisão abre. Nos demais casos, a regra do Spartacus.
+ * Plano em Pix ou boleto (item 7) e cartão pela Adyen (05/11, o cartão é
+ * informado na revisão): o passo de pagamento conta como feito sem cartão salvo,
+ * e a revisão abre. Nos demais casos, a regra do Spartacus.
  */
 @Injectable({ providedIn: 'root' })
 export class FlaCheckoutStepsSetGuard extends CheckoutStepsSetGuard {
@@ -22,7 +23,8 @@ export class FlaCheckoutStepsSetGuard extends CheckoutStepsSetGuard {
       take(1),
       switchMap((id) => this.socioPayment.options(id)),
       switchMap((p) =>
-        p.planCode && this.socioPayment.isUpfront(p.method)
+        (p.planCode && this.socioPayment.isUpfront(p.method)) ||
+        this.socioPayment.isAdyenCard(p)
           ? of(true)
           : super.isPaymentDetailsSet(step)
       )

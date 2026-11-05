@@ -243,3 +243,38 @@ img.spay-qr {
 .spay-review {
   margin-bottom: 14px;
 }
+
+// cartão pela Adyen na revisão (05/11)
+.acard {
+  margin-bottom: 14px;
+
+  .acard-host {
+    min-height: 40px;
+    margin: 10px 0 14px;
+  }
+
+  .acard-terms {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 6px 0 4px;
+    font-weight: 400;
+
+    input[type='checkbox'] {
+      position: static;
+      flex: 0 0 auto;
+      margin-top: 4px;
+      appearance: auto;
+    }
+  }
+
+  .spay-actions {
+    margin-top: 12px;
+  }
+
+  .acard-secure {
+    display: block;
+    margin-top: 8px;
+    color: var(--sp-muted);
+  }
+}

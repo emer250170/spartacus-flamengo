@@ -283,6 +283,8 @@
 		<property name="socioPlanService" ref="socioPlanService"/>
 		<property name="businessProcessService" ref="businessProcessService"/>
 		<property name="adyenClient" ref="adyenClient"/>
+		<!-- 05/11: as regras do "Finalizar pedido" conferidas antes de cobrar o cartão -->
+		<property name="placeOrderMethodHooks" ref="commercePlaceOrderMethodHooks"/>
 	</bean>
 	<!-- Item 14: mudar o status do pedido para "Pagamento confirmado" confirma o Pix ou boleto -->
 	<bean id="orderPaymentStatusInterceptor" class="br.com.flamengo.matchday.interceptor.OrderPaymentStatusInterceptor">

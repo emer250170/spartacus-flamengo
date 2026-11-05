@@ -153,6 +153,15 @@ export class SocioPaymentService {
     return method === 'PIX' || method === 'BOLETO';
   }
 
+  /**
+   * Cartão pela Adyen (05/11): a forma escolhida é cartão (sem forma = cartão) e a Adyen
+   * cobra o cartão; o formulário seguro dela aparece na revisão, no lugar do cartão salvo.
+   */
+  isAdyenCard(p?: SocioPayment, method?: SocioPaymentMethod): boolean {
+    const m = method ?? p?.method ?? 'CARTAO_MENSAL';
+    return !!p?.enabled && !this.isUpfront(m) && !!p.adyenMethods.includes(m);
+  }
+
   /** Boleto pela Adyen: precisa do CPF de quem paga */
   needsCpf(p?: SocioPayment, method?: SocioPaymentMethod): boolean {
     const m = method ?? p?.method;
