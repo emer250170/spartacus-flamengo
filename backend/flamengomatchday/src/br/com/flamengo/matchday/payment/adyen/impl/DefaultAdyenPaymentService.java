@@ -82,6 +82,14 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 	protected static final String INSTALLMENTS_PROPERTY = "flamengo.socio.pagamento.parcelas";
 	/** Variante do boleto na conta (05/11: a conta de teste só tem boletobancario_santander) */
 	protected static final String BOLETO_TYPE_PROPERTY = "flamengo.pagamento.adyen.boleto.tipo";
+	/**
+	 * Pix como Pix Automático (05/11): na conta de teste, só o cadastro de Pix com recorrência devolve o QR Code
+	 * (ação qrCode com o link do simulador da Adyen); o Pix comum volta sem QR Code. true = o Pix vai com os campos
+	 * do Pix Automático (assinatura mensal no valor do pedido). false = Pix comum, como antes.
+	 */
+	protected static final String PIX_AUTOMATIC_PROPERTY = "flamengo.pagamento.adyen.pix.automatico";
+	/** Imagem do QR Code feita pela Adyen a partir do qrCodeData (o mesmo endereço que o componente da Adyen usa) */
+	protected static final String QR_IMAGE_PATH = "utility/v1/barcode.png?type=qrCode&data=";
 
 	public static final String SCHEME = "scheme";
 	public static final String PIX = "pix";
@@ -196,6 +204,18 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 	{
 		return StringUtils.removeEnd(
 				configurationService.getConfiguration().getString(URL_PROPERTY, "https://checkout-test.adyen.com/v71"), "/");
+	}
+
+	protected boolean pixAutomatic()
+	{
+		return configurationService.getConfiguration().getBoolean(PIX_AUTOMATIC_PROPERTY, false);
+	}
+
+	/** checkoutshopper-test (ou -live) + utility/v1/barcode.png com o qrCodeData e a client key (pública) */
+	protected String qrImageUrl(final String qrCodeData)
+	{
+		return "https://checkoutshopper-" + environment() + ".adyen.com/checkoutshopper/" + QR_IMAGE_PATH + urlEncode(qrCodeData)
+				+ "&clientKey=" + urlEncode(StringUtils.defaultString(str(store(), "adyenClientKey")));
 	}
 
 	protected String environment()
@@ -536,6 +556,11 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		}
 		final CustomerModel customer = cart.getUser() instanceof CustomerModel ? (CustomerModel) cart.getUser() : null;
 		final Map<String, Object> shopper = shopper(cart, customer);
+		final boolean automatic = pix && pixAutomatic();
+		if (automatic && (digits.isEmpty() || shopper.get("shopperName") == null || customer == null))
+		{
+			throw new AdyenException("O Pix pela Adyen precisa do CPF de quem vai pagar e do nome no endereço de entrega.");
+		}
 		if (!pix)
 		{
 			if (digits.isEmpty())
@@ -573,6 +598,21 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		{
 			body.put("socialSecurityNumber", digits);
 		}
+		if (automatic)
+		{
+			// Pix Automático (Jornada 3 do Banco Central): paga agora e autoriza a assinatura
+			final Map<String, Object> recurring = new LinkedHashMap<>();
+			recurring.put("frequency", "monthly");
+			recurring.put("recurringAmount", amount(cart));
+			recurring.put("recurringStatement", "Flamengo " + cart.getCode());
+			final Map<String, Object> method = new LinkedHashMap<>();
+			method.put("type", PIX);
+			method.put("pixRecurring", recurring);
+			body.put("paymentMethod", method);
+			body.put("shopperInteraction", "Ecommerce");
+			body.put("recurringProcessingModel", "Subscription");
+			body.put("storePaymentMethod", Boolean.TRUE);
+		}
 		if (!pix)
 		{
 			body.put("billingAddress", shopper.get("billingAddress"));
@@ -595,8 +635,13 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 			throw new AdyenException("A Adyen não gerou o " + name + " (" + StringUtils.defaultIfBlank(
 					(String) response.get("refusalReason"), StringUtils.defaultString(resultCode, "sem resposta")) + ").", 502);
 		}
-		final Map<String, Object> action = (Map<String, Object>) rawAction;
+		final Map<String, Object> action = new LinkedHashMap<>((Map<String, Object>) rawAction);
 		final String code = pix ? (String) action.get("qrCodeData") : (String) action.get("reference");
+		if (pix && StringUtils.isNotBlank(code) && action.get("url") == null)
+		{
+			// a loja mostra o QR Code pela imagem (qrImageUrl = action.url), feita pela Adyen
+			action.put("url", qrImageUrl(code));
+		}
 		if (StringUtils.isBlank(code))
 		{
 			throw new AdyenException("A Adyen não devolveu o " + (pix ? "código do Pix" : "código do boleto") + ".", 502);
@@ -810,7 +855,8 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 			return m;
 		}
 		m.put("method", method);
-		m.put("pspReference", str(order, PSP));
+		// o Pix pela Adyen pode voltar sem pspReference: mostra a referência do pedido na Adyen
+		m.put("pspReference", StringUtils.defaultIfBlank(str(order, PSP), str(order, REFERENCE)));
 		m.put("resultCode", str(order, RESULT));
 		m.put("awaiting", Boolean.valueOf(SocioPayments.isAwaiting(modelService, order)));
 		m.put("confirmedAt", SocioPayments.date(modelService, order, SocioPayments.CONFIRMED));
