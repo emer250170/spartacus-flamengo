@@ -136,8 +136,9 @@ import { SocioTermPageComponent } from './socio-term-page.component';
       component: SocioPaymentStatusComponent,
     }),
     // Adyen (05/11): o Pix/boleto do pedido também no detalhe em Minha conta › Pedidos
+    // (o componente da página nesta loja é o AccountOrderDetailsSimpleOverviewComponent)
     provideOutlet({
-      id: 'AccountOrderDetailsOverviewComponent',
+      id: 'AccountOrderDetailsSimpleOverviewComponent',
       position: OutletPosition.AFTER,
       component: SocioOrderPaymentComponent,
     }),
