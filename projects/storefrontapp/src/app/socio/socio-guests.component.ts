@@ -243,10 +243,28 @@ export class SocioGuestsComponent implements OnInit, OnDestroy {
         this.t(t.orderCode ? 'sg.ticket' : 'sg.ticketCart', {
           game: t.gameName ?? t.gameCode,
           date: this.date(t.kickoff),
-          seat: (t.seatName ?? t.seatCode).replace(`${t.gameName ?? ''} · `, ''),
+          seat: (t.seatName ?? t.seatCode).replace(
+            `${t.gameName ?? ''} · `,
+            ''
+          ),
           order: t.orderCode ?? '',
         })
       );
+  }
+
+  /**
+   * Data do último jogo futuro com ingresso do convidado num pedido: até lá ele não pode
+   * sair (o servidor recusa; o nome dele está no ingresso). Sem ingresso em pedido, undefined.
+   */
+  lockedUntil(guest: SocioGuest): string | undefined {
+    const kickoffs = (this.data?.tickets ?? [])
+      .filter((t) => t.guestId === guest.id && !!t.orderCode)
+      .map((t) => t.kickoff ?? '')
+      .filter(Boolean)
+      .sort();
+    return kickoffs.length
+      ? this.date(kickoffs[kickoffs.length - 1])
+      : undefined;
   }
 
   trackById(_: number, guest: SocioGuest): string {

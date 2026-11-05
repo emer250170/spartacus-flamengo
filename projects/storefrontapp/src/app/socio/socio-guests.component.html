@@ -3,7 +3,12 @@
 
   <ng-container *ngIf="data as d">
     <div class="sg-top">
-      <div class="sg-slots" [attr.aria-label]="'sg.slotsAria' | flaT: { used: d.used, n: d.contracted }">
+      <div
+        class="sg-slots"
+        [attr.aria-label]="
+          'sg.slotsAria' | flaT: { used: d.used, n: d.contracted }
+        "
+      >
         <span
           *ngFor="let s of slots; let i = index"
           class="sg-slot"
@@ -31,7 +36,9 @@
             <th>{{ 'sg.col.cpf' | flaT }}</th>
             <th class="sg-col-opt">{{ 'sg.col.birth' | flaT }}</th>
             <th class="sg-col-opt">{{ 'sg.col.contact' | flaT }}</th>
-            <th class="sa-num"><span class="sg-vh">{{ 'sg.col.actions' | flaT }}</span></th>
+            <th class="sa-num">
+              <span class="sg-vh">{{ 'sg.col.actions' | flaT }}</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -52,16 +59,24 @@
               <span class="sg-since" *ngIf="g.phone">{{ phone(g.phone) }}</span>
             </td>
             <td class="sa-num">
-              <ng-container *ngIf="confirming !== g.id; else confirm">
-                <button
-                  type="button"
-                  class="sa-link sg-remove"
-                  [disabled]="busy"
-                  (click)="askRemove(g)"
-                >
-                  {{ 'sg.remove' | flaT }}
-                </button>
-              </ng-container>
+              <!-- com ingresso de jogo futuro num pedido: só sai depois do jogo (regra do servidor) -->
+              <span
+                class="sg-locked"
+                *ngIf="lockedUntil(g) as until; else canRemove"
+                >{{ 'sg.removeLocked' | flaT: { date: until } }}</span
+              >
+              <ng-template #canRemove>
+                <ng-container *ngIf="confirming !== g.id; else confirm">
+                  <button
+                    type="button"
+                    class="sa-link sg-remove"
+                    [disabled]="busy"
+                    (click)="askRemove(g)"
+                  >
+                    {{ 'sg.remove' | flaT }}
+                  </button>
+                </ng-container>
+              </ng-template>
               <ng-template #confirm>
                 <span class="sg-confirm">
                   <span>{{ 'sg.removeConfirm' | flaT: { name: g.name } }}</span>
@@ -174,7 +189,12 @@
         <button type="submit" class="sa-btn sa-btn--primary" [disabled]="busy">
           {{ (busy ? 'sg.saving' : 'sg.save') | flaT }}
         </button>
-        <button type="button" class="sa-btn" [disabled]="busy" (click)="cancelForm()">
+        <button
+          type="button"
+          class="sa-btn"
+          [disabled]="busy"
+          (click)="cancelForm()"
+        >
           {{ 'sa.back' | flaT }}
         </button>
       </div>
@@ -204,7 +224,7 @@
                 : {
                     from: date(g.since),
                     to: date(g.until),
-                    reason: reason(g)
+                    reason: reason(g),
                   }
           }}</span>
         </li>
