@@ -19,8 +19,14 @@
       }}
     </p>
     <div class="spay-code">
+      <img
+        *ngIf="p.method === 'PIX' && p.qrImageUrl"
+        class="spay-qr"
+        [src]="p.qrImageUrl"
+        [alt]="'spay.s.qrAdyen' | flaT"
+      />
       <svg
-        *ngIf="p.method === 'PIX'"
+        *ngIf="p.method === 'PIX' && !p.provider"
         class="spay-qr"
         viewBox="0 0 25 25"
         role="img"
@@ -54,10 +60,27 @@
           readonly
           [value]="p.code"
         ></textarea>
-        <button type="button" class="btn btn-secondary btn-sm" (click)="copy()">
-          {{ (copied ? 'spay.s.copied' : 'spay.s.copy') | flaT }}
-        </button>
-        <small>{{ 'spay.s.fake' | flaT }}</small>
+        <div class="spay-links">
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            (click)="copy()"
+          >
+            {{ (copied ? 'spay.s.copied' : 'spay.s.copy') | flaT }}
+          </button>
+          <a
+            *ngIf="p.method === 'BOLETO' && p.pdfUrl"
+            class="btn btn-secondary btn-sm"
+            [href]="p.pdfUrl"
+            target="_blank"
+            rel="noopener"
+            >{{ 'spay.s.pdf' | flaT }}</a
+          >
+        </div>
+        <small>{{
+          (p.provider ? 'spay.s.adyen' : 'spay.s.fake')
+            | flaT: { psp: p.pspReference || '-' }
+        }}</small>
       </div>
     </div>
     <p class="spay-note">

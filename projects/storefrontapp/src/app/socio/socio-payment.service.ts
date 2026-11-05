@@ -33,6 +33,13 @@ export interface SocioPayment {
   confirmedAt?: Date;
   awaiting: boolean;
   summary?: string;
+  /** Formas que passam pela Adyen (05/11): hoje Pix e boleto; o boleto pede o CPF */
+  adyenMethods: SocioPaymentMethod[];
+  /** Pedido pago pela Adyen: pspReference, imagem do QR Code do Pix e PDF do boleto */
+  provider?: 'adyen';
+  pspReference?: string;
+  qrImageUrl?: string;
+  pdfUrl?: string;
 }
 
 const NONE: SocioPayment = {
@@ -45,6 +52,7 @@ const NONE: SocioPayment = {
   maxInstallments: 12,
   total: 0,
   awaiting: false,
+  adyenMethods: [],
 };
 
 /** Classe no body enquanto o plano está com Pix/boleto: esconde o cartão do checkout */
@@ -61,6 +69,8 @@ const UPFRONT_CLASS = 'fla-pay-upfront';
 export class SocioPaymentService {
   /** Última forma conhecida por carrinho (o guard e o pedido consultam o servidor de novo) */
   protected methods = new Map<string, SocioPaymentMethod | undefined>();
+  /** CPF de quem paga o boleto da Adyen, por carrinho (só na memória da página) */
+  protected payerCpf = new Map<string, string>();
 
   constructor(
     protected http: HttpClient,
@@ -95,13 +105,17 @@ export class SocioPaymentService {
       );
   }
 
-  /** Fecha o pedido com Pix ou boleto (sem cartão) */
+  /** Fecha o pedido com Pix ou boleto (sem cartão); boleto da Adyen leva o CPF do pagador */
   placeOrder(cartId: string): Observable<SocioPayment> {
+    const cpf = this.payerCpf.get(cartId);
     return this.http
-      .post<OccSocioPayment>(`${this.cartUrl(cartId)}/order`, {})
+      .post<OccSocioPayment>(`${this.cartUrl(cartId)}/order`, cpf ? { cpf } : {})
       .pipe(
         map(toPayment),
-        tap(() => this.methods.delete(cartId)),
+        tap(() => {
+          this.methods.delete(cartId);
+          this.payerCpf.delete(cartId);
+        }),
         catchError((e) => throwError(() => new Error(errorMessage(e))))
       );
   }
@@ -134,6 +148,24 @@ export class SocioPaymentService {
     return method === 'PIX' || method === 'BOLETO';
   }
 
+  /** Boleto pela Adyen: precisa do CPF de quem paga */
+  needsCpf(p?: SocioPayment, method?: SocioPaymentMethod): boolean {
+    const m = method ?? p?.method;
+    return m === 'BOLETO' && !!p?.adyenMethods.includes('BOLETO');
+  }
+
+  setPayerCpf(cartId: string, cpf: string): void {
+    if (cpf) {
+      this.payerCpf.set(cartId, cpf.replace(/\D/g, ''));
+    } else {
+      this.payerCpf.delete(cartId);
+    }
+  }
+
+  payerCpfOf(cartId: string): string {
+    return this.payerCpf.get(cartId) ?? '';
+  }
+
   /** Esconde (ou mostra de volta) o cartão do Spartacus no pagamento e na revisão */
   markUpfront(upfront: boolean): void {
     this.winRef.document?.body?.classList.toggle(UPFRONT_CLASS, upfront);
@@ -164,6 +196,11 @@ interface OccSocioPayment {
   confirmedAt?: string;
   awaiting?: boolean;
   summary?: string;
+  adyenMethods?: SocioPaymentMethod[];
+  provider?: string;
+  pspReference?: string;
+  qrImageUrl?: string;
+  pdfUrl?: string;
 }
 
 function toPayment(r: OccSocioPayment): SocioPayment {
@@ -188,7 +225,17 @@ function toPayment(r: OccSocioPayment): SocioPayment {
     confirmedAt: date(r?.confirmedAt),
     awaiting: !!r?.awaiting,
     summary: r?.summary ?? undefined,
+    adyenMethods: r?.adyenMethods ?? [],
+    provider: r?.provider === 'adyen' ? 'adyen' : undefined,
+    pspReference: r?.pspReference ?? undefined,
+    qrImageUrl: safeUrl(r?.qrImageUrl),
+    pdfUrl: safeUrl(r?.pdfUrl),
   };
+}
+
+/** Só links https (vêm da Adyen) */
+function safeUrl(v?: string): string | undefined {
+  return v && /^https:\/\//i.test(v) ? v : undefined;
 }
 
 function errorMessage(e: any): string {

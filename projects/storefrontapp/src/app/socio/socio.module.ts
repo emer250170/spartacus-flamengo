@@ -22,6 +22,7 @@ import { SocioNavigationService } from './socio-navigation.service';
 import { SocioPaymentChoiceComponent } from './socio-payment-choice.component';
 import { SocioPaymentReviewComponent } from './socio-payment-review.component';
 import { SocioPaymentStatusComponent } from './socio-payment-status.component';
+import { SocioOrderPaymentComponent } from './socio-order-payment.component';
 import { SocioPlansComponent } from './socio-plans.component';
 import { SocioPointsComponent } from './socio-points.component';
 import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
@@ -84,6 +85,7 @@ import { SocioTermPageComponent } from './socio-term-page.component';
     SocioPaymentChoiceComponent,
     SocioPaymentReviewComponent,
     SocioPaymentStatusComponent,
+    SocioOrderPaymentComponent,
     SocioPointsComponent,
     SocioCardComponent,
     SocioCardPageComponent,
@@ -132,6 +134,12 @@ import { SocioTermPageComponent } from './socio-term-page.component';
       id: 'OrderConfirmationThankMessageComponent',
       position: OutletPosition.AFTER,
       component: SocioPaymentStatusComponent,
+    }),
+    // Adyen (05/11): o Pix/boleto do pedido também no detalhe em Minha conta › Pedidos
+    provideOutlet({
+      id: 'AccountOrderDetailsOverviewComponent',
+      position: OutletPosition.AFTER,
+      component: SocioOrderPaymentComponent,
     }),
   ],
 })

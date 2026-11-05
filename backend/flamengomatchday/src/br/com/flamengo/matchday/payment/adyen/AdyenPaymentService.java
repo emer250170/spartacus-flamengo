@@ -42,6 +42,29 @@ public interface AdyenPaymentService
 	OrderModel placeOrder(CartModel cart, String sessionId, String sessionResult, String resultCode,
 			Map<String, Object> action);
 
+	/** Propriedade com os meios que passam pela Adyen (05/11: pix,boletobancario; cartão = scheme) */
+	String METHODS_PROPERTY = "flamengo.pagamento.adyen.meios";
+
+	/**
+	 * Meios que passam pela Adyen agora (scheme, pix, boletobancario), conforme
+	 * {@value #METHODS_PROPERTY}; vazio com a Adyen desligada. O que não está na lista segue o
+	 * pagamento simulado de hoje (o cartão, enquanto a Adyen não libera Visa/Mastercard).
+	 */
+	java.util.List<String> methods();
+
+	/**
+	 * Pix ou boleto pela Adyen sem o componente da Adyen (05/11): o servidor chama /payments, grava
+	 * no carrinho o código (Pix copia e cola ou linha digitável), o vencimento e a referência, e a
+	 * loja fecha o pedido aguardando pagamento como no item 7; o webhook confirma.
+	 *
+	 * @param pix
+	 *           true = Pix, false = boleto
+	 * @param cpf
+	 *           CPF do pagador (só dígitos; obrigatório no boleto)
+	 * @return a ação da Adyen (qrCode ou voucher)
+	 */
+	Map<String, Object> prepareUpfront(CartModel cart, boolean pix, String cpf);
+
 	/** Pagamento do pedido na Adyen para a loja: meio, pspReference, ação (Pix/boleto) e situação */
 	Map<String, Object> orderPayment(AbstractOrderModel order);
 
