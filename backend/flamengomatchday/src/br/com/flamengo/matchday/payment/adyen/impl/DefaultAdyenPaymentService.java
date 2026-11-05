@@ -16,6 +16,7 @@ import br.com.flamengo.matchday.socio.SocioPlanService;
 import de.hybris.platform.commerceservices.enums.SalesApplication;
 import de.hybris.platform.commerceservices.order.CommerceCartCalculationStrategy;
 import de.hybris.platform.commerceservices.order.CommerceCheckoutService;
+import de.hybris.platform.commerceservices.order.hook.CommercePlaceOrderMethodHook;
 import de.hybris.platform.commerceservices.service.data.CommerceCartParameter;
 import de.hybris.platform.commerceservices.service.data.CommerceCheckoutParameter;
 import de.hybris.platform.commerceservices.service.data.CommerceOrderResult;
@@ -103,6 +104,8 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 	private SocioPlanService socioPlanService;
 	private BusinessProcessService businessProcessService;
 	private AdyenClient adyenClient;
+	/** As mesmas regras do "Finalizar pedido", conferidas antes de cobrar o cartão */
+	private List<CommercePlaceOrderMethodHook> placeOrderMethodHooks = Collections.emptyList();
 
 	// ------------------------------------------------------------ configuração
 
@@ -238,6 +241,7 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		{
 			throw new AdyenException("Pedido sem valor a pagar: não passa pela Adyen.");
 		}
+		check(cart);
 		final SocioPaymentMethod socioMethod = SocioPayments.method(modelService, cart);
 		final SocioPlanModel plan = planIn(cart);
 		final List<String> allowed = allowedMethods(plan, socioMethod);
@@ -323,6 +327,33 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 		modelService.save(cart);
 		LOG.info("Adyen: sessão {} para o carrinho {} ({} centavos, {})", session.id, cart.getCode(), Long.valueOf(cents), allowed);
 		return session;
+	}
+
+	@Override
+	public void check(final CartModel cart)
+	{
+		requireDelivery(cart);
+		final CommerceCheckoutParameter parameter = new CommerceCheckoutParameter();
+		parameter.setEnableHooks(true);
+		parameter.setCart(cart);
+		parameter.setSalesApplication(SalesApplication.WEB);
+		for (final CommercePlaceOrderMethodHook hook : placeOrderMethodHooks)
+		{
+			// só as regras da demo (poltronas, Termo, convidados, ingressos, forma do plano): as do SAP
+			// (cupons, aprovação B2B...) podem ter efeitos e continuam só no fechamento do pedido
+			if (!hook.getClass().getName().startsWith("br.com.flamengo."))
+			{
+				continue;
+			}
+			try
+			{
+				hook.beforePlaceOrder(parameter);
+			}
+			catch (final InvalidCartException e)
+			{
+				throw new AdyenException(StringUtils.defaultIfBlank(e.getMessage(), "O pedido não pode ser fechado."));
+			}
+		}
 	}
 
 	/** Plano com forma escolhida: só ela; sem plano: cartão, Pix e boleto (Pix/boleto com a operação da loja ligada) */
@@ -1082,5 +1113,10 @@ public class DefaultAdyenPaymentService implements AdyenPaymentService
 	public void setAdyenClient(final AdyenClient adyenClient)
 	{
 		this.adyenClient = adyenClient;
+	}
+
+	public void setPlaceOrderMethodHooks(final List<CommercePlaceOrderMethodHook> placeOrderMethodHooks)
+	{
+		this.placeOrderMethodHooks = placeOrderMethodHooks == null ? Collections.emptyList() : placeOrderMethodHooks;
 	}
 }

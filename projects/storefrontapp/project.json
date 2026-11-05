@@ -112,6 +112,11 @@
           {
             "input": "projects/storefrontapp/src/styles/lib-s4-service.scss",
             "bundleName": "s4-service"
+          },
+          {
+            "input": "node_modules/@adyen/adyen-web/styles/adyen.css",
+            "bundleName": "adyen",
+            "inject": false
           }
         ],
         "ngswConfigPath": "projects/storefrontlib/cms-structure/pwa/ngsw-config.json",

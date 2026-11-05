@@ -36,6 +36,13 @@ public interface AdyenPaymentService
 	AdyenSession createSession(CartModel cart);
 
 	/**
+	 * Confere o carrinho com as mesmas regras do "Finalizar pedido" (poltronas reservadas, Termo do
+	 * Nação, convidados, ingressos de quem não é sócio, forma de pagamento do plano) antes de cobrar o
+	 * cartão: a cobrança só acontece se o pedido vai poder ser fechado (05/11).
+	 */
+	void check(CartModel cart);
+
+	/**
 	 * Fecha o pedido depois do Drop-in: confere a sessão na Adyen; cartão só com pagamento concluído,
 	 * Pix/boleto com a ação (QR Code ou boleto) apresentada ao torcedor.
 	 */

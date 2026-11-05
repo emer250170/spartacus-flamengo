@@ -219,6 +219,12 @@ public class SocioPaymentController
 				{
 					methods.add("BOLETO");
 				}
+				// cartão pela Adyen (05/11): o formulário seguro da Adyen na revisão, no lugar do cartão salvo
+				if (adyenPaymentService.methods().contains("scheme"))
+				{
+					methods.add("CARTAO_MENSAL");
+					methods.add("CARTAO_ANUAL");
+				}
 				m.put("adyenMethods", methods);
 				return m;
 			}

@@ -1,0 +1,40 @@
+<section *ngIf="visible" class="spay acard" aria-labelledby="acard-title">
+  <h3 id="acard-title" class="spay-title">{{ 'acard.title' | flaT }}</h3>
+  <p class="spay-sub">{{ 'acard.sub' | flaT }}</p>
+
+  <div class="acard-host" #cardHost></div>
+  <p *ngIf="loading" class="spay-note">{{ 'acard.loading' | flaT }}</p>
+
+  <label class="acard-terms">
+    <input
+      type="checkbox"
+      [checked]="terms"
+      [disabled]="busy"
+      (change)="setTerms($any($event.target).checked)"
+    />
+    <span>
+      {{ 'acard.terms' | flaT }}
+      <a [routerLink]="{ cxRoute: 'termsAndConditions' } | cxUrl" target="_blank">{{
+        'acard.termsLink' | flaT
+      }}</a>
+      *
+    </span>
+  </label>
+  <small *ngIf="termsTouched && !terms" class="spay-error" role="alert">{{
+    'acard.termsRequired' | flaT
+  }}</small>
+
+  <p *ngIf="error" class="spay-error" role="alert">{{ error }}</p>
+
+  <div class="spay-actions">
+    <button
+      type="button"
+      class="btn btn-primary btn-block"
+      [disabled]="busy || loading"
+      (click)="pay()"
+    >
+      {{ busy ? ('acard.paying' | flaT) : payText() }}
+    </button>
+  </div>
+  <small class="acard-secure">{{ 'acard.secure' | flaT }}</small>
+</section>

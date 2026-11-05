@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CartOutlets } from '@spartacus/cart/base/root';
-import { AuthGuard, CmsConfig, provideConfig } from '@spartacus/core';
+import { AuthGuard, CmsConfig, UrlModule, provideConfig } from '@spartacus/core';
 import {
   CmsPageGuard,
   NavigationService,
@@ -23,6 +23,7 @@ import { SocioPaymentChoiceComponent } from './socio-payment-choice.component';
 import { SocioPaymentReviewComponent } from './socio-payment-review.component';
 import { SocioPaymentStatusComponent } from './socio-payment-status.component';
 import { SocioOrderPaymentComponent } from './socio-order-payment.component';
+import { AdyenCardComponent } from './adyen-card.component';
 import { SocioPlansComponent } from './socio-plans.component';
 import { SocioPointsComponent } from './socio-points.component';
 import { SocioTicketHolderComponent } from './socio-ticket-holder.component';
@@ -72,6 +73,7 @@ import { SocioTermPageComponent } from './socio-term-page.component';
     ]),
     SpinnerModule,
     FlaI18nModule,
+    UrlModule,
   ],
   declarations: [
     SocioPlansComponent,
@@ -86,6 +88,7 @@ import { SocioTermPageComponent } from './socio-term-page.component';
     SocioPaymentReviewComponent,
     SocioPaymentStatusComponent,
     SocioOrderPaymentComponent,
+    AdyenCardComponent,
     SocioPointsComponent,
     SocioCardComponent,
     SocioCardPageComponent,
@@ -129,6 +132,12 @@ import { SocioTermPageComponent } from './socio-term-page.component';
       id: 'CheckoutPlaceOrder',
       position: OutletPosition.BEFORE,
       component: SocioPaymentReviewComponent,
+    }),
+    // Cartão pela Adyen (05/11): formulário da Adyen e "Pagar e finalizar" no lugar do Finalizar pedido
+    provideOutlet({
+      id: 'CheckoutPlaceOrder',
+      position: OutletPosition.AFTER,
+      component: AdyenCardComponent,
     }),
     provideOutlet({
       id: 'OrderConfirmationThankMessageComponent',

@@ -75,7 +75,10 @@ export class SocioPaymentReviewComponent implements OnInit, OnDestroy {
         )
         .subscribe((opts) => {
           this.opts = opts;
-          this.payment.markUpfront(this.upfront);
+          // cartão pela Adyen (05/11): o cartão salvo também sai da revisão
+          this.payment.markUpfront(
+            this.upfront || this.payment.isAdyenCard(opts)
+          );
           this.cd.markForCheck();
         })
     );

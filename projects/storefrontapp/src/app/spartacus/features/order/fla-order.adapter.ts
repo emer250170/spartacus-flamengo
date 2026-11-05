@@ -9,6 +9,7 @@ import { OccOrderAdapter } from '@spartacus/order/occ';
 import { ORDER_NORMALIZER, Order } from '@spartacus/order/root';
 import { Observable, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
+import { AdyenCardService } from '../../../socio/adyen-card.service';
 import { SocioPaymentService } from '../../../socio/socio-payment.service';
 
 /**
@@ -23,6 +24,7 @@ import { SocioPaymentService } from '../../../socio/socio-payment.service';
 export class FlaOrderAdapter extends OccOrderAdapter {
   protected socioPayment = inject(SocioPaymentService);
   protected globalMessages = inject(GlobalMessageService);
+  protected adyenCard = inject(AdyenCardService);
 
   public override placeOrder(
     userId: string,
@@ -31,6 +33,13 @@ export class FlaOrderAdapter extends OccOrderAdapter {
   ): Observable<Order> {
     if (userId === OCC_USER_ID_ANONYMOUS) {
       return super.placeOrder(userId, cartId, termsChecked);
+    }
+    // cartão já autorizado na Adyen (05/11): o pedido fecha pelo servidor com o resultado dela
+    const adyen = this.adyenCard.takeResult(cartId);
+    if (adyen) {
+      return this.adyenCard
+        .placeOrder(cartId, adyen)
+        .pipe(switchMap((placed) => this.orderDetails(userId, placed.orderCode)));
     }
     return this.socioPayment.options(cartId).pipe(
       switchMap((p) =>
@@ -48,17 +57,22 @@ export class FlaOrderAdapter extends OccOrderAdapter {
                 return throwError(() => e);
               }),
               switchMap((placed) =>
-                this.http
-                  .get<Occ.Order>(
-                    this.occEndpoints.buildUrl('orderDetail', {
-                      urlParams: { userId, orderId: placed.orderCode ?? '' },
-                    })
-                  )
-                  .pipe(this.converter.pipeable(ORDER_NORMALIZER))
+                this.orderDetails(userId, placed.orderCode ?? '')
               )
             )
           : super.placeOrder(userId, cartId, termsChecked)
       )
     );
+  }
+
+  /** O pedido completo da API, para a confirmação do Spartacus seguir igual */
+  protected orderDetails(userId: string, orderCode: string): Observable<Order> {
+    return this.http
+      .get<Occ.Order>(
+        this.occEndpoints.buildUrl('orderDetail', {
+          urlParams: { userId, orderId: orderCode },
+        })
+      )
+      .pipe(this.converter.pipeable(ORDER_NORMALIZER));
   }
 }

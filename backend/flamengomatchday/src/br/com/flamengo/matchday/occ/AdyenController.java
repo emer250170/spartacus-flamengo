@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * <li>GET /{baseSiteId}/users/current/adyen/config: ligado, client key e ambiente;</li>
  * <li>GET .../users/current/carts/{cartId}/adyen/paymentmethods: meios que a conta oferece (diagnóstico);</li>
  * <li>POST .../users/current/carts/{cartId}/adyen/sessions: sessão de checkout para o Drop-in;</li>
+ * <li>POST .../users/current/carts/{cartId}/adyen/check: confere o carrinho antes de cobrar o cartão;</li>
  * <li>POST .../users/current/carts/{cartId}/adyen/order {"sessionId","sessionResult","resultCode","action"}:
  * fecha o pedido (cartão pago; Pix/boleto aguardando);</li>
  * <li>GET .../users/current/orders/{code}/adyen: meio, pspReference e o Pix/boleto da Adyen;</li>
@@ -114,6 +115,29 @@ public class AdyenController
 			m.put("environment", s.environment);
 			m.put("shopper", s.shopper);
 			return ResponseEntity.status(HttpStatus.CREATED).body(m);
+		}
+		catch (final AdyenException e)
+		{
+			return error(HttpStatus.valueOf(e.getStatus()), e.getMessage());
+		}
+	}
+
+	/** Confere o carrinho antes de cobrar o cartão (as regras do "Finalizar pedido"); 204 = pode cobrar */
+	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
+	@RequestMapping(value = "/users/{userId}/carts/{cartId}/adyen/check", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Object> check(@PathVariable final String baseSiteId, @PathVariable final String userId,
+			@PathVariable final String cartId)
+	{
+		final CartModel cart = cart(cartId);
+		if (cart == null)
+		{
+			return error(HttpStatus.NOT_FOUND, "Carrinho não encontrado.");
+		}
+		try
+		{
+			adyenPaymentService.check(cart);
+			return ResponseEntity.noContent().build();
 		}
 		catch (final AdyenException e)
 		{
