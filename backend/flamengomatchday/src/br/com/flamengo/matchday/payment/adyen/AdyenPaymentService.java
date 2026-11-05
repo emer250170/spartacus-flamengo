@@ -72,6 +72,24 @@ public interface AdyenPaymentService
 	 */
 	Map<String, Object> prepareUpfront(CartModel cart, boolean pix, String cpf);
 
+	/** Provedor das transações de pagamento dos pedidos pagos pela Adyen (comandos do SAP: estorno, cancelamento) */
+	String PROVIDER = "Adyen";
+
+	/** Estorno na Adyen do pagamento (POST /payments/{psp}/refunds); devolve a resposta (pspReference do estorno, status) */
+	Map<String, Object> refundPayment(String pspReference, long cents, String currency, String reference);
+
+	/** Cancelamento do pagamento na Adyen (POST /payments/{psp}/cancels) */
+	Map<String, Object> cancelPayment(String pspReference, String reference);
+
+	/**
+	 * Estorna pela Adyen parte do pedido pago por ela (ingresso cancelado, arrependimento do plano):
+	 * lança o estorno na transação da Adyen do pedido pelo PaymentService do SAP. Pedido sem
+	 * pagamento na Adyen (ou Adyen desligada): nada acontece, como hoje (reembolso só registrado).
+	 *
+	 * @return "Estorno de R$ X pela Adyen (referência ...)", ou null se o pedido não foi pago pela Adyen
+	 */
+	String refund(String orderCode, double amount, String reason);
+
 	/** Pagamento do pedido na Adyen para a loja: meio, pspReference, ação (Pix/boleto) e situação */
 	Map<String, Object> orderPayment(AbstractOrderModel order);
 

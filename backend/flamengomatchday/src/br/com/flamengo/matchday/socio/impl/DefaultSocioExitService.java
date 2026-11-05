@@ -37,6 +37,8 @@ import java.util.Locale;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -47,6 +49,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DefaultSocioExitService implements SocioExitService
 {
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultSocioExitService.class);
 	private static final Locale PT = new Locale("pt");
 	private static final Locale PT_BR = new Locale("pt", "BR");
 	private static final ZoneId ZONE = ZoneId.of("America/Sao_Paulo");
@@ -234,7 +237,25 @@ public class DefaultSocioExitService implements SocioExitService
 		event.setRefundAmount(quote.withinWithdrawal ? Double.valueOf(quote.refund) : null);
 		event.setFineAmount(quote.withinWithdrawal ? null : Double.valueOf(quote.fine));
 		final String text = describe(quote);
-		return text == null ? null : StringUtils.uncapitalize(text);
+		// arrependimento de pedido pago pela Adyen (05/11): o reembolso vira estorno na Adyen
+		final String adyen = quote.withinWithdrawal && quote.refund > 0 ? adyenRefund(quote.orderCode, quote.refund) : null;
+		final String full = text == null ? null : adyen == null ? text : text + " (" + adyen + ")";
+		return full == null ? null : StringUtils.uncapitalize(full);
+	}
+
+	protected String adyenRefund(final String orderCode, final double amount)
+	{
+		try
+		{
+			return de.hybris.platform.core.Registry.getApplicationContext()
+					.getBean("adyenPaymentService", br.com.flamengo.matchday.payment.adyen.AdyenPaymentService.class)
+					.refund(orderCode, amount, "arrependimento do plano");
+		}
+		catch (final RuntimeException e)
+		{
+			LOG.warn("Pedido {}: estorno do arrependimento pela Adyen não lançado: {}", orderCode, e.getMessage());
+			return null;
+		}
 	}
 
 	@Override
