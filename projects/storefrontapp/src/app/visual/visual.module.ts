@@ -50,6 +50,7 @@ import {
   FlaCheckoutIdentityIntroComponent,
 } from './fla-checkout-identity.component';
 import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component';
+import { FlaOcBodyComponent, FlaOcHeroComponent } from './fla-order-confirmation.component';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -92,6 +93,8 @@ import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component'
     FlaCheckoutDeliveryComponent,
     FlaCheckoutDoneComponent,
     FlaCheckoutSummaryComponent,
+    FlaOcHeroComponent,
+    FlaOcBodyComponent,
   ],
   providers: [
     // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
@@ -217,6 +220,18 @@ import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component'
       id: 'SideContent',
       position: OutletPosition.BEFORE,
       component: FlaCheckoutSummaryComponent,
+    }),
+    // Confirmação do pedido (mockup, 06/11): topo (antes do Pix/boleto e do "Seu dia de jogo")
+    // e corpo com itens, entrega, pagamento e pontos (depois); os componentes padrão somem no tema
+    provideOutlet({
+      id: 'BodyContent',
+      position: OutletPosition.BEFORE,
+      component: FlaOcHeroComponent,
+    }),
+    provideOutlet({
+      id: 'BodyContent',
+      position: OutletPosition.AFTER,
+      component: FlaOcBodyComponent,
     }),
     // Pagamento: Aceites (Termos e Privacidade) antes do "Finalizar pedido" do Spartacus
     provideOutlet({
