@@ -935,3 +935,29 @@ Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglê
   navegador. Chaves `flamengo.frete.simulacao.ativo` e `.ignorar`.
 - **Matchday:** a camisa da jornada continua com `FLA-PERSONALIZACAO` (R$ 40,00) e o nome fica só no
   navegador. Gravar no item é o próximo passo.
+
+## Integração com o Emarsys: Web Extend (06/11)
+
+- **Tag**: o `scarab-v2.js` da conta `1CD483F6C27FCA99` fica no `<head>` do
+  `projects/storefrontapp/src/index.html`. A loja é uma página única, então a tag vale para todas as páginas.
+- **Comandos**: o `EmarsysTrackingService` (`src/app/emarsys/`) manda os comandos a cada navegação e fecha com `go`:
+
+  | Página | Comandos |
+  |---|---|
+  | qualquer uma | `setEmail` (torcedor logado), `cart` (carrinho atual; vazio se não houver nada) |
+  | produto (`/product/<código>`) e jornada com `?jogo=` | `view` com o código do produto base |
+  | categoria | `category` com o nome da categoria como aparece na tela |
+  | busca | `searchTerm` |
+  | confirmação do pedido | `cart` vazio + `purchase` (número do pedido e itens), uma vez por pedido na aba |
+
+- Quando o carrinho muda sem troca de página (gaveta do carrinho), o serviço manda `cart` + `go` de novo.
+- **Código base**: poltrona vira jogo (`JOGO-…`) e tamanho vira camisa. O serviço sobe pelo `baseProduct` da OCC até
+  4 níveis. Linhas com o mesmo produto base são somadas, e o `price` de cada linha é o total da linha. O catálogo de
+  produtos exportado para o Emarsys precisa usar os mesmos códigos base.
+- **Categoria**: vai só o nome da categoria atual, porque a loja não conhece a hierarquia acima dela. No catálogo
+  exportado, o campo `category` precisa usar os mesmos nomes. Categoria de primeiro nível casa direto; para
+  subcategoria, é preciso alinhar no exportador.
+- **Conferir**: no navegador, rodar `localStorage['fla-emarsys-debug'] = '1'`. Cada envio aparece no console como
+  `[Emarsys] comandos enviados`. Na aba Rede, aparecem as chamadas a `recommender.scarabresearch.com`.
+- **Desligar**: tirar a tag do `index.html`, porque sem `ScarabQueue` nada é enviado, ou tirar o `EmarsysModule` do `AppModule`.
+- Teste de compra só com torcedor de teste (`torcedorN@example.com`).
