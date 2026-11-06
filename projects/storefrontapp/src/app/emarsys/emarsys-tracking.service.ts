@@ -1,8 +1,10 @@
 import { Injectable, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ActiveCartFacade, OrderEntry } from '@spartacus/cart/base/root';
 import {
   AuthService,
+  OccEndpointsService,
   PageMetaService,
   ProductScope,
   ProductService,
@@ -60,7 +62,8 @@ const CHAVE_DEBUG = 'fla-emarsys-debug';
  * - `setEmail`: torcedor logado (o uid é o e-mail);
  * - `cart`: carrinho atual (em toda página, vazio se não houver nada);
  * - `view`: página de produto ou jornada de matchday com `?jogo=`;
- * - `category`: página de categoria (nome da categoria, como na tela);
+ * - `category`: página de categoria, com o caminho completo do catálogo exportado
+ *   (`GET /emarsys/categorias`; sem ele, o nome da categoria como na tela);
  * - `searchTerm`: página de busca;
  * - `purchase`: confirmação do pedido (uma vez por pedido).
  *
@@ -80,11 +83,15 @@ export class EmarsysTrackingService implements OnDestroy {
   protected products = inject(ProductService);
   protected orders = inject(OrderFacade);
   protected pageMeta = inject(PageMetaService);
+  protected http = inject(HttpClient);
+  protected occEndpoints = inject(OccEndpointsService);
   protected winRef = inject(WindowRef);
   protected platformId = inject(PLATFORM_ID);
 
   protected subscription = new Subscription();
   protected baseCache = new Map<string, Observable<string>>();
+  /** Caminho de cada categoria, igual ao campo category do catálogo exportado */
+  protected caminhos$?: Observable<Record<string, string>>;
   protected iniciado = false;
   /** Assinatura do último carrinho enviado (evita reenviar o mesmo) */
   protected ultimoCarrinho?: string;
@@ -165,12 +172,19 @@ export class EmarsysTrackingService implements OnDestroy {
 
       comandos.push(...(await this.comandosDoCarrinho()).slice(0, -1));
 
+      const jogo = query['jogo'];
       const produto =
-        route === 'product' ? params['productCode'] : query['jogo'];
+        route === 'product'
+          ? params['productCode']
+          : jogo && jogo !== 'undefined'
+            ? jogo
+            : undefined;
       if (produto) {
         comandos.push(['view', await this.base(produto)]);
       } else if (route === 'category') {
-        const categoria = await this.nomeDaCategoria();
+        const categoria =
+          (await this.caminhoDaCategoria(params['categoryCode'])) ??
+          (await this.nomeDaCategoria());
         if (categoria) {
           comandos.push(['category', categoria]);
         }
@@ -277,7 +291,31 @@ export class EmarsysTrackingService implements OnDestroy {
     );
   }
 
-  /** Nome da categoria como aparece na tela (último item do breadcrumb) */
+  /**
+   * Caminho completo da categoria ("Masculino > Roupas > Camisas Diversas"), o mesmo
+   * do campo category do catálogo (GET /emarsys/categorias). Busca uma vez por sessão.
+   */
+  protected caminhoDaCategoria(code?: string): Promise<string | undefined> {
+    if (!code) {
+      return Promise.resolve(undefined);
+    }
+    if (!this.caminhos$) {
+      this.caminhos$ = this.http
+        .get<
+          Record<string, string>
+        >(`${this.occEndpoints.getBaseUrl()}/emarsys/categorias`)
+        .pipe(
+          catchError(() => of({} as Record<string, string>)),
+          shareReplay(1)
+        );
+    }
+    return this.comEspera(
+      this.caminhos$.pipe(map((mapa) => mapa?.[code] || undefined)),
+      undefined
+    );
+  }
+
+  /** Nome da categoria como aparece na tela (último item do breadcrumb), se não houver o caminho */
   protected nomeDaCategoria(): Promise<string | undefined> {
     return this.comEspera(
       this.pageMeta.getMeta().pipe(
