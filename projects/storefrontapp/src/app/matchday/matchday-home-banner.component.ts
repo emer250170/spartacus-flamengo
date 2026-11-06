@@ -50,7 +50,15 @@ export class MatchdayHomeBannerComponent implements OnInit, OnDestroy {
     this.renderer.removeClass(this.document.documentElement, 'fla-home');
   }
 
-  weekday(match: MatchdayMatch): string {
+  /** "15 nov" (pt, como no mockup) ou "Nov 15" (en); o rótulo do jogo vem em maiúsculas */
+  day(match: MatchdayMatch): string {
+    const label = match.dateLabel ?? '';
+    return this.i18n.lang === 'en'
+      ? label.toLowerCase().replace(/\b\p{L}/u, (c) => c.toUpperCase())
+      : label.toLowerCase();
+  }
+
+    weekday(match: MatchdayMatch): string {
     return match.weekdayIndex < 0
       ? match.weekday
       : this.i18n.weekday(match.weekdayIndex, true);
