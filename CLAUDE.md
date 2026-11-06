@@ -64,7 +64,7 @@ Site `electronics-spa`, catálogo de produtos `flamengoProductCatalog`, conteúd
 | `projects/storefrontapp/src/app/socio/` | planos, selo, área "Meu sócio-torcedor" (`/my-account/socio-torcedor`), `SocioNavigationService` (esconde o menu de quem nunca foi sócio) |
 | `projects/storefrontapp/src/app/i18n/` | `fla-texts.ts` (textos pt/en das telas próprias, via `FlaI18nService`/pipe) e `pt-*.ts` (traduções que sobrescrevem as do Spartacus) |
 | `projects/storefrontapp/src/app/pickup/` | retirada em loja |
-| `projects/storefrontapp/src/app/visual/` | visual da loja oficial: header em três faixas (links e menu do portal, botão Ingressos) e rodapé escuro, por outlets dos slots; disposição no tema |
+| `projects/storefrontapp/src/app/visual/` | visual da loja oficial: header em três faixas (links e menu do portal, botão Ingressos), rodapé escuro em 4 colunas, logo sem tooltip e carrinho em box lateral à direita (`FlaCartDrawerComponent`, no `ADDED_TO_CART` com `SIDEBAR_END`; `FlaMiniCartComponent` abre o box); disposição no tema |
 | `projects/storefrontapp/src/styles/tema-flamengo.scss` | tema (vermelho/preto) |
 | `backend/flamengomatchday/` | extensão Commerce: reserva de poltrona, jogos, sócio, relatórios e perspectivas do Backoffice |
 | `backend/hac-deploy/` | gerador do deploy da extensão pelo HAC (ver abaixo) |
