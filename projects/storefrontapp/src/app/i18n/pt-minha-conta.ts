@@ -23,9 +23,11 @@ export const ptMinhaConta: TranslationResources = {
         zoomOut: 'Reduzir',
       },
       pageMetaResolver: {
+        // visual da loja oficial (06/11): o título da categoria é só o nome ("Linha Adidas");
+        // a quantidade vai ao lado do "Filtrar"
         category: {
-          title: '{{count}} resultado para {{query}}',
-          title_other: '{{count}} resultados para {{query}}',
+          title: '{{query}}',
+          title_other: '{{query}}',
         },
         checkout: {
           title: 'Finalizar compra',

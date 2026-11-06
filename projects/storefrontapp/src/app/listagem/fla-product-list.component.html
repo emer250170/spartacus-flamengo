@@ -8,14 +8,22 @@
       <div class="row">
         <div class="col-12 col-lg-12" *ngIf="viewMode$ | async as viewMode">
           <div class="cx-sorting top fla-list-bar">
-            <button
-              type="button"
-              class="btn btn-primary fla-filter-btn"
-              *ngIf="model.facets?.length"
-              (click)="openFilters()"
-            >
-              {{ 'list.filter' | flaT }}
-            </button>
+            <div class="fla-list-left">
+              <button
+                type="button"
+                class="btn btn-primary fla-filter-btn"
+                *ngIf="model.facets?.length"
+                (click)="openFilters()"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+                  <path d="M4 6h16M7 12h10M10 18h4" />
+                </svg>
+                {{ 'list.filter' | flaT }}
+              </button>
+              <span class="fla-list-count" *ngIf="model.pagination?.totalResults as n">{{
+                (n === 1 ? 'list.countOne' : 'list.count') | flaT: { n: n }
+              }}</span>
+            </div>
             <label class="form-group cx-sort-dropdown fla-sort">
               <span>{{ 'productList.sortBy' | cxTranslate }}</span>
               <cx-sorting
