@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, UrlTree } from '@angular/router';
 import { CheckoutStepsSetGuard } from '@spartacus/checkout/base/components';
 import { CheckoutStep, CheckoutStepType } from '@spartacus/checkout/base/root';
-import { Observable, of } from 'rxjs';
-import { filter, switchMap, take } from 'rxjs/operators';
+import { Observable, combineLatest, of } from 'rxjs';
+import { filter, map, switchMap, take } from 'rxjs/operators';
 import { SocioPaymentService } from '../../../socio/socio-payment.service';
 
 /**
@@ -15,6 +15,10 @@ import { SocioPaymentService } from '../../../socio/socio-payment.service';
  * passo de endereço e manda /checkout/delivery-address para o pagamento; a tela de
  * Entrega (FlaCheckoutDeliveryComponent) fica nessa rota, então ela continua
  * acessível para o torcedor trocar a loja ou voltar para "Receber em casa".
+ *
+ * Forma de entrega que deixou de valer (06/11): a forma gravada no carrinho só conta como feita
+ * se ainda estiver entre as permitidas (ex.: "retirada no estádio" de antes, num carrinho que
+ * agora só tem o manto para receber em casa); senão o torcedor volta para escolher o frete.
  */
 @Injectable({ providedIn: 'root' })
 export class FlaCheckoutStepsSetGuard extends CheckoutStepsSetGuard {
@@ -27,6 +31,26 @@ export class FlaCheckoutStepsSetGuard extends CheckoutStepsSetGuard {
       return of(true);
     }
     return super.canActivate(route);
+  }
+
+  protected override isDeliveryModeSet(step: CheckoutStep): Observable<boolean | UrlTree> {
+    return combineLatest([
+      this.checkoutDeliveryModesFacade.getSelectedDeliveryModeState().pipe(filter((st) => !st.loading)),
+      this.checkoutDeliveryModesFacade.getSupportedDeliveryModesState().pipe(filter((st) => !st.loading)),
+    ]).pipe(
+      take(1),
+      map(([selected, supported]) => {
+        const code = selected.data?.code;
+        const modes = supported.data ?? [];
+        if (!code) {
+          return this.getUrl(step.routeName);
+        }
+        // retirada na loja não vem na lista; sem lista (erro), a regra do Spartacus
+        return code === 'pickup' || !modes.length || modes.some((m) => m.code === code)
+          ? true
+          : this.getUrl(step.routeName);
+      })
+    );
   }
 
   protected override isPaymentDetailsSet(

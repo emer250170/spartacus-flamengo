@@ -17,7 +17,6 @@ import { UserAccountFacade } from '@spartacus/user/account/root';
 import { Observable, Subscription, combineLatest, of } from 'rxjs';
 import {
   distinctUntilChanged,
-  filter,
   map,
   startWith,
   switchMap,
@@ -238,11 +237,11 @@ export class FlaCheckoutDoneComponent implements OnInit, OnDestroy {
       </ul>
       <div class="fla-cp-line"><span>{{ 'cd.subtotal' | flaT }}</span><span>{{ v.cart.subtotal }}</span></div>
       <div class="fla-cp-line fla-cp-discount" *ngIf="v.cart.discount"><span>{{ v.cart.discountLabel }}</span><span>− {{ v.cart.discount }}</span></div>
-      <div class="fla-cp-line" *ngIf="v.cart.delivery">
+      <div class="fla-cp-line" *ngIf="v.delivery">
         <span>{{ 'cp.shipping' | flaT }}<ng-container *ngIf="v.mode"> · {{ v.mode }}</ng-container></span>
-        <span>{{ v.cart.delivery }}</span>
+        <span>{{ v.delivery }}</span>
       </div>
-      <div class="fla-cp-line fla-cp-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ v.cart.total }}</span></div>
+      <div class="fla-cp-line fla-cp-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ v.total }}</span></div>
       <p class="fla-cs-hold" *ngIf="v.cart.holdLeft">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
         {{ 'cp.hold' | flaT: { t: v.cart.holdLeft } }}
@@ -252,18 +251,34 @@ export class FlaCheckoutDoneComponent implements OnInit, OnDestroy {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlaCheckoutSummaryComponent {
+  // frete e total do próprio carrinho (o carrinho da loja traz só o valor formatado do frete:
+  // somar no resumo deixava o frete de fora); "Grátis" com frete zero
   readonly view$ = combineLatest([
     this.routing.getRouterState().pipe(map((s) => payPage(s?.state?.url ?? ''))),
     this.cartView.view$,
+    this.activeCart.getActive(),
     this.deliveryModes.getSelectedDeliveryModeState().pipe(map((s) => s.data?.name)),
   ]).pipe(
-    filter(([page]) => page !== undefined),
-    map(([page, cart, mode]) => (page && cart ? { cart, mode } : null))
+    map(([page, cart, active, mode]) => {
+      if (!page || !cart) {
+        return null;
+      }
+      const cost = active?.deliveryCost;
+      const free = cost?.value === 0 || /^\D*0,00$/.test(cost?.formattedValue ?? '');
+      return {
+        cart,
+        mode,
+        delivery: cost ? (free ? this.i18n.t('cs.free') : cost.formattedValue) : undefined,
+        total: active?.totalPriceWithTax?.formattedValue || active?.totalPrice?.formattedValue || cart.total,
+      };
+    })
   );
 
   constructor(
     protected routing: RoutingService,
     protected cartView: FlaCartViewService,
-    protected deliveryModes: CheckoutDeliveryModesFacade
+    protected activeCart: ActiveCartFacade,
+    protected deliveryModes: CheckoutDeliveryModesFacade,
+    protected i18n: FlaI18nService
   ) {}
 }

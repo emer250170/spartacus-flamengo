@@ -1271,7 +1271,8 @@ body.fla-pay-adyen fla-checkout-accept:not(.fla-acc-inline) {
 
 fla-checkout-accept {
   display: block;
-  margin: 0 0 16px;
+  margin: 0;
+  padding-bottom: 16px; // padding (não margem): na revisão o fundo branco do bloco continua
 }
 
 .fla-acc {
@@ -1374,6 +1375,13 @@ html.fla-co-pay.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate 
   cx-payment-method {
     padding-bottom: 30px;
     border-radius: 0 0 4px 4px;
+  }
+
+  fla-socio-payment-choice .spay {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
   }
 }
 
@@ -1502,6 +1510,13 @@ html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTempla
     grid-column: 1 / -1;
     grid-row: 12;
     margin-top: 20px;
+  }
+
+  // o título "Pagamento" já está no topo do bloco; a nota de campos obrigatórios do Spartacus
+  // não vale (os aceites dizem "Obrigatório")
+  fla-socio-payment-review .spay-kind,
+  cx-place-order > .form-legend {
+    display: none !important;
   }
 
   // os blocos do pagamento ficam no branco do bloco, sem a moldura própria
