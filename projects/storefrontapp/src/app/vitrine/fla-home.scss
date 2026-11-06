@@ -319,7 +319,14 @@
 }
 
 .fh-card-name {
+  // sempre 2 linhas (o que passa vira "…"): a faixa tem a mesma altura em todas as abas
+  display: -webkit-box;
+  min-height: calc(2 * 1.4em);
+  overflow: hidden;
   font-size: 16px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .fh-card-price {
@@ -328,6 +335,7 @@
   }
 
   span {
+    margin-left: 6px;
     color: #cfcfcf;
     font-size: 14px;
   }
@@ -523,6 +531,17 @@
 
   .fh-cat-title {
     font-size: 24px;
+  }
+
+  // celular: preço e parcelas podem quebrar em 2 linhas; reserva as 2 em todas as abas
+  .fh-card-price {
+    min-height: calc(2 * 1.4em);
+    line-height: 1.4;
+
+    span {
+      margin-left: 0;
+      display: block;
+    }
   }
 
   .fh-personalize {
