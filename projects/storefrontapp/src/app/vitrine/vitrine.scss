@@ -228,9 +228,10 @@
   padding-bottom: 36px;
   margin-top: 28px;
 
+  // faixa escura de borda a borda; conteúdo nas bordas do header (1140px; antes 1168px)
   .vt-head,
   .vt-grid {
-    max-width: 1168px;
+    max-width: var(--cx-page-width-max, 1140px);
     margin-inline: auto;
   }
 
