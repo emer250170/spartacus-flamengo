@@ -110,7 +110,7 @@ export class FlaStoreSearchService {
       const base = this.occEndpoints.getBaseUrl();
       this.names.set(
         name,
-        this.http.get<any>(`${base}/stores/${encodeURIComponent(name)}`, { params: { fields: 'BASIC' } }).pipe(
+        this.http.get<any>(`${base}/stores/${encodeURIComponent(name)}`, { params: { fields: 'DEFAULT' } }).pipe(
           map((s) => (s?.displayName as string) || name),
           catchError(() => of(name)),
           shareReplay(1)
