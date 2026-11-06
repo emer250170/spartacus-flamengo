@@ -1,0 +1,551 @@
+// Home no visual da loja oficial (mockup "Home", 06/11). Conteúdo na largura do container da
+// loja (1140px, as mesmas bordas do header); faixas escuras de borda a borda. Sem <header>: o
+// tema pinta qualquer header de vermelho.
+:host {
+  display: block;
+  width: 100%;
+}
+
+.fh-wrap {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--cx-page-width-max, 1140px);
+  margin: 0 auto;
+}
+
+.fh-section {
+  padding: 0 0 56px;
+}
+
+.fh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 4px;
+  background: var(--fla-vermelho, #d70000);
+  color: #fff !important;
+  font-weight: 700;
+  text-decoration: none !important;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--fla-vermelho-escuro, #b40000);
+  }
+
+  &.is-small {
+    height: 40px;
+    padding: 0 18px;
+  }
+}
+
+// destaques --------------------------------------------------------------------------------
+.fh-hero {
+  position: relative;
+  overflow: hidden;
+  background: #2b2b2b;
+  color: #fff;
+}
+
+.fh-slide {
+  display: none;
+
+  &.is-active {
+    display: block;
+  }
+}
+
+.fh-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  box-sizing: border-box;
+  max-width: var(--cx-page-width-max, 1140px);
+  min-height: 440px;
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.fh-promo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.fh-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--fla-vermelho, #d70000);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fh-promo-title {
+  margin: 0;
+  color: #fff;
+  font-family: var(--fla-fonte-titulo);
+  font-size: 88px;
+  font-weight: 800;
+  line-height: 0.95;
+  text-transform: uppercase;
+
+  span {
+    color: #ff3b3b;
+  }
+}
+
+.fh-promo-name {
+  margin: 0;
+  color: #d6d6d6;
+  font-size: 18px;
+}
+
+.fh-promo-price {
+  margin: 0;
+  font-family: var(--fla-fonte-titulo);
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+
+  span {
+    font-size: 28px;
+    font-weight: 600;
+  }
+}
+
+.fh-promo-inst {
+  margin: 0;
+  color: #d6d6d6;
+  font-size: 16px;
+}
+
+.fh-promo-img {
+  flex: 0 1 420px;
+  min-width: 0;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #f2f2f2;
+}
+
+.fh-banner {
+  display: block;
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 520px;
+    object-fit: cover;
+  }
+}
+
+.fh-arrow {
+  position: absolute;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  &.is-prev {
+    left: 24px;
+  }
+
+  &.is-next {
+    right: 24px;
+  }
+}
+
+.fh-dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  display: flex;
+  gap: 6px;
+  transform: translateX(-50%);
+
+  button {
+    width: 28px;
+    height: 12px;
+    padding: 0;
+    border: 0;
+    background: linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)) center / 100% 3px no-repeat;
+    cursor: pointer;
+
+    &.is-active {
+      background-image: linear-gradient(#fff, #fff);
+    }
+  }
+}
+
+// compre por categoria ------------------------------------------------------------------------
+.fh-dark {
+  padding: 48px 0 56px;
+  background: #111;
+  color: #fff;
+}
+
+.fh-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.fh-cat-title {
+  margin: 0;
+  color: #fff;
+  font-family: var(--fla-fonte) !important;
+  font-size: 30px;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  strong {
+    font-family: var(--fla-fonte-titulo);
+    font-weight: 800;
+  }
+}
+
+.fh-tabs {
+  display: flex;
+  gap: 28px;
+  overflow-x: auto;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #444;
+
+  button {
+    flex: none;
+    padding: 10px 0;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: #bdbdbd;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &.is-active {
+      border-bottom-color: #fff;
+      color: #fff;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.fh-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.fh-cat-promo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 380px;
+  padding: 24px;
+  border-radius: 4px;
+  background: #8e1b1b;
+
+  strong {
+    font-family: var(--fla-fonte-titulo);
+    font-size: 30px;
+    font-style: italic;
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+
+  a {
+    align-self: flex-start;
+    padding: 10px 16px;
+    border-radius: 4px;
+    background: #fff;
+    color: #111 !important;
+    font-weight: 700;
+    text-decoration: none !important;
+  }
+}
+
+.fh-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  color: #fff !important;
+  text-decoration: none !important;
+
+  &:hover .fh-card-name {
+    text-decoration: underline;
+  }
+}
+
+.fh-card-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #f2f2f2;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.fh-card-name {
+  font-size: 16px;
+}
+
+.fh-card-price {
+  strong {
+    font-size: 17px;
+  }
+
+  span {
+    color: #cfcfcf;
+    font-size: 14px;
+  }
+}
+
+// personalize ---------------------------------------------------------------------------------
+.fh-personalize {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 160px;
+  box-sizing: border-box;
+  padding: 40px 48px;
+  border-radius: 4px;
+  background: var(--fla-vermelho, #d70000);
+  color: #fff !important;
+  text-decoration: none !important;
+
+  strong {
+    font-family: var(--fla-fonte-titulo);
+    font-size: 34px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  span {
+    padding: 12px 20px;
+    border-radius: 4px;
+    background: #111;
+    font-weight: 700;
+  }
+}
+
+// linhas --------------------------------------------------------------------------------------
+.fh-lines {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.fh-line {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 300px;
+  overflow: hidden;
+  padding: 24px;
+  border-radius: 4px;
+  background: #2b2b2b;
+  color: #fff !important;
+  text-decoration: none !important;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+    transition: transform 0.3s;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0) 55%);
+  }
+
+  strong {
+    position: relative;
+    z-index: 1;
+    font-family: var(--fla-fonte-titulo);
+    font-size: 24px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  &:hover img {
+    transform: scale(1.04);
+  }
+}
+
+// acessórios ----------------------------------------------------------------------------------
+:host(fla-home-accessories) .fh-section {
+  padding-top: 56px;
+  padding-bottom: 64px;
+}
+
+.fh-acc {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.fh-acc-item {
+  display: flex;
+  align-items: stretch;
+  min-height: 260px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #2b2b2b;
+  color: #fff !important;
+  text-decoration: none !important;
+
+  &.is-red {
+    background: #8e1b1b;
+  }
+
+  img {
+    flex: 0 0 42%;
+    width: 42%;
+    object-fit: contain;
+    background: #f2f2f2;
+  }
+}
+
+.fh-acc-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 32px;
+
+  strong {
+    font-family: var(--fla-fonte-titulo);
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+}
+
+.fh-acc-cta {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+// telas menores que o container: recuo lateral -----------------------------------------------
+@media (max-width: 1171.98px) {
+  .fh-wrap,
+  .fh-promo {
+    padding-inline: 16px;
+  }
+
+  .fh-arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .fh-cat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fh-cat-promo {
+    grid-column: 1 / -1;
+    min-height: 0;
+  }
+
+  .fh-lines {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fh-line {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .fh-promo {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    min-height: 0;
+    padding-block: 24px 48px;
+  }
+
+  .fh-promo-img {
+    flex: none;
+    max-height: 240px;
+  }
+
+  .fh-promo-title {
+    font-size: 56px;
+  }
+
+  .fh-promo-price {
+    font-size: 34px;
+  }
+
+  .fh-cat-title {
+    font-size: 24px;
+  }
+
+  .fh-personalize {
+    padding: 28px 20px;
+
+    strong {
+      font-size: 24px;
+    }
+  }
+
+  .fh-acc {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fh-acc-item {
+    min-height: 200px;
+  }
+
+  .fh-acc-text {
+    padding: 20px;
+
+    strong {
+      font-size: 20px;
+    }
+  }
+}

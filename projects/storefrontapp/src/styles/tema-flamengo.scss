@@ -1492,3 +1492,25 @@ fla-cart-drawer.cx-sidebar-end {
   gap: 16px;
   padding: 24px;
 }
+
+// Home no visual da loja oficial (mockup "Home", 06/11): a home inteira vem do
+// MatchdayHomeBannerComponent (Section1), que marca o <html> com fla-home. Os outros blocos do
+// CMS somem: os banners de campanha viraram destaques, os carrosséis viraram abas do "Compre por
+// categoria" e as fileiras de categorias e de acessórios deram lugar às linhas e aos acessórios
+// do mockup (decisões do Emerson, 06/11).
+html.fla-home cx-page-layout.LandingPage2Template {
+  > cx-page-slot:not(.Section1) {
+    display: none !important;
+  }
+
+  > cx-page-slot.Section1 {
+    display: block !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    > :not(fla-matchday-home-banner) {
+      display: none !important;
+    }
+  }
+}
