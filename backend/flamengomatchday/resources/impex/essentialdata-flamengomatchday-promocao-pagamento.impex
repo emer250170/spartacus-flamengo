@@ -1,0 +1,14 @@
+# Condição "Forma de pagamento" do construtor de promoções (05/11).
+# Ex.: "Forma de pagamento é Pix à vista" + ação "Desconto percentual no pedido" 5% = 5% no Pix da loja.
+# Tradutor: flaPaymentMethodConditionTranslator; a forma chega ao motor pelo flaPaymentModeRaoPopulator.
+# Em servidor já instalado: importar à parte (base64 + ImportConfig), sem "Create essential data".
+
+INSERT_UPDATE RuleConditionDefinition;id[unique=true];name[lang=pt];name[lang=en];breadcrumb[lang=pt];breadcrumb[lang=en];priority;allowsChildren;translatorId;categories(id)
+;fla_forma_pagamento;Forma de pagamento;Payment method;Forma de pagamento é {value};Payment method is {value};1150;false;flaPaymentMethodConditionTranslator;cart
+
+INSERT_UPDATE RuleConditionDefinitionParameter;definition(id)[unique=true];id[unique=true];priority;name[lang=pt];name[lang=en];description[lang=pt];description[lang=en];type;value;required
+;fla_forma_pagamento;value;1100;Forma de pagamento;Payment method;Forma escolhida pelo torcedor no checkout;Method the fan chose at checkout;Enum(br.com.flamengo.matchday.enums.SocioPaymentMethod);"""PIX""";true
+;fla_forma_pagamento;incluirPlanos;1000;Também com plano de sócio no carrinho;Also with a membership plan in the cart;Desmarcado: carrinho com plano de sócio-torcedor não entra na promoção;Unchecked: carts with a membership plan are left out;java.lang.Boolean;false;true
+
+INSERT_UPDATE RuleConditionDefinitionRuleTypeMapping;definition(id)[unique=true];ruleType(code)[unique=true]
+;fla_forma_pagamento;PromotionSourceRule
