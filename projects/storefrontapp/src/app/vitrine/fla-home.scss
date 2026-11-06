@@ -116,6 +116,17 @@
   }
 }
 
+.fh-promo-lead {
+  margin: 0;
+  color: #d6d6d6;
+  font-size: 20px;
+}
+
+// destaque sem preço (campanha): título em 2 linhas, como no banner ("MANTO / SAGRADO")
+.fh-promo.is-stacked .fh-promo-title span {
+  display: block;
+}
+
 .fh-promo-inst {
   margin: 0;
   color: #d6d6d6;
