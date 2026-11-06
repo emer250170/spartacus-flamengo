@@ -1,0 +1,52 @@
+# =====================================================================
+#  Personalização do manto na página do produto (06/11; PR produto-personalizacao)
+#  Produtos de preço das opções: nome e número, kit de patrocínio e patches.
+#  A escolha fica na linha do manto (flaPers*); estes produtos entram como linhas
+#  próprias com a mesma quantidade do manto (PersonalizationService).
+#  Catálogo flamengoProductCatalog, Staged e Online (sem sincronizar).
+#  Chaves: flamengo.personalizacao.* (project.properties da extensão).
+# =====================================================================
+$productCatalog=flamengoProductCatalog
+$warehouse=warehouse_s
+$currency=BRL
+
+#### ---------- Staged ----------
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code,$catalogVersion)
+$approved=approvalstatus(code)[default='approved']
+
+INSERT_UPDATE Category;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];allowedPrincipals(uid)[default='customergroup']
+;flamengo_personalizacao;;Personalização do manto;Jersey personalization
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];summary[lang=en];description[lang=pt];$supercategories;unit(code)[default=pieces];$approved
+;FLA-PERS-NOMENUMERO;;Personalização nome e número;Name and number print;Nome e número nas costas do manto;Name and number on the back;Nome (até 13 letras) e número (0 a 99) com a fonte oficial da linha de jogo. Produto personalizado não pode ser trocado, devolvido ou cancelado.;flamengo_personalizacao
+;FLA-PERS-PATROCINIO;;Kit de patrocínio;Sponsor kit;Patrocinadores oficiais aplicados no manto;Official sponsors applied;Kit com os patrocinadores oficiais da temporada aplicados no manto. Produto personalizado não pode ser trocado, devolvido ou cancelado.;flamengo_personalizacao
+;FLA-PERS-PATCH-LIBERTADORES;;Patch Campeão da Libertadores;Libertadores champion patch;Patch aplicado na manga;Sleeve patch;Patch oficial de campeão da CONMEBOL Libertadores aplicado na manga.;flamengo_personalizacao
+;FLA-PERS-PATCH-BRASILEIRO;;Patch Campeão Brasileiro;Brazilian champion patch;Patch aplicado na manga;Sleeve patch;Patch oficial de campeão brasileiro aplicado na manga.;flamengo_personalizacao
+
+#### ---------- Online ----------
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Online'])[unique=true,default=$productCatalog:Online]
+$supercategories=supercategories(code,$catalogVersion)
+$approved=approvalstatus(code)[default='approved']
+
+INSERT_UPDATE Category;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];allowedPrincipals(uid)[default='customergroup']
+;flamengo_personalizacao;;Personalização do manto;Jersey personalization
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;name[lang=pt];name[lang=en];summary[lang=pt];summary[lang=en];description[lang=pt];$supercategories;unit(code)[default=pieces];$approved
+;FLA-PERS-NOMENUMERO;;Personalização nome e número;Name and number print;Nome e número nas costas do manto;Name and number on the back;Nome (até 13 letras) e número (0 a 99) com a fonte oficial da linha de jogo. Produto personalizado não pode ser trocado, devolvido ou cancelado.;flamengo_personalizacao
+;FLA-PERS-PATROCINIO;;Kit de patrocínio;Sponsor kit;Patrocinadores oficiais aplicados no manto;Official sponsors applied;Kit com os patrocinadores oficiais da temporada aplicados no manto. Produto personalizado não pode ser trocado, devolvido ou cancelado.;flamengo_personalizacao
+;FLA-PERS-PATCH-LIBERTADORES;;Patch Campeão da Libertadores;Libertadores champion patch;Patch aplicado na manga;Sleeve patch;Patch oficial de campeão da CONMEBOL Libertadores aplicado na manga.;flamengo_personalizacao
+;FLA-PERS-PATCH-BRASILEIRO;;Patch Campeão Brasileiro;Brazilian champion patch;Patch aplicado na manga;Sleeve patch;Patch oficial de campeão brasileiro aplicado na manga.;flamengo_personalizacao
+
+#### ---------- preços e estoque (valem para as duas versões) ----------
+INSERT_UPDATE PriceRow;productId[unique=true];unit(code[unique=true,default=pieces]);currency(isocode)[unique=true];price;minqtd;unitFactor;net
+;FLA-PERS-NOMENUMERO;;$currency;49.99;1;1;false
+;FLA-PERS-PATROCINIO;;$currency;59.99;1;1;false
+;FLA-PERS-PATCH-LIBERTADORES;;$currency;29.99;1;1;false
+;FLA-PERS-PATCH-BRASILEIRO;;$currency;29.99;1;1;false
+
+INSERT_UPDATE StockLevel;productCode[unique=true];warehouse(code)[unique=true,default=$warehouse];available;reserved;preOrder;maxPreOrder;maxStockLevelHistoryCount;inStockStatus(code)
+;FLA-PERS-NOMENUMERO;;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATROCINIO;;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-LIBERTADORES;;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-BRASILEIRO;;5000;0;0;0;0;notSpecified

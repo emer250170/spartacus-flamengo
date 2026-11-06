@@ -21,13 +21,26 @@ cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) {
   }
 }
 
-// mesma coluna e recuo dos outros blocos do resumo (o Spartacus dá 20px a cada um)
+// mesma coluna e recuo dos outros blocos do resumo (no desktop o Spartacus dá 20px a cada um;
+// no celular o resumo é uma coluna só, sem recuo)
 cx-page-slot.Summary {
   fla-pdp-header,
-  fla-size-chips {
+  fla-size-chips,
+  fla-pdp-personalize,
+  fla-pdp-shipping {
     display: block;
-    grid-column: 2;
-    padding-inline: 20px;
+  }
+}
+
+@media (min-width: 992px) {
+  cx-page-slot.Summary {
+    fla-pdp-header,
+    fla-size-chips,
+    fla-pdp-personalize,
+    fla-pdp-shipping {
+      grid-column: 2;
+      padding-inline: 20px;
+    }
   }
 }
 
@@ -158,4 +171,276 @@ cx-page-slot.Summary:has(fla-size-chips .fla-sizes) cx-product-multi-dimensional
 cx-storefront.ProductDetailsPageTemplate cx-page-slot.Summary cx-add-to-cart .btn-primary {
   height: 52px;
   font-size: 16px;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Personalizar (FlaPdpPersonalizeComponent, 06/11): nome e número, patrocínio e patch
+// ---------------------------------------------------------------------------------------------
+.fla-pz {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 0;
+  border-top: 1px solid #e2e2e2;
+  margin-top: 8px;
+}
+
+.fla-pz-title {
+  margin: 0;
+  font-family: var(--fla-fonte-titulo) !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+}
+
+.fla-pz-intro {
+  margin: 0;
+  font-size: 15px;
+}
+
+.fla-pz-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 12px 16px 12px 32px;
+  border-radius: 4px;
+  background: #fff8e6;
+  font-size: 14px;
+}
+
+.fla-pz-login a {
+  font-weight: 700;
+  color: var(--fla-vermelho) !important;
+}
+
+.fla-pz-box {
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+}
+
+.fla-pz-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--fla-preto);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    margin-left: auto;
+    color: var(--fla-vermelho);
+  }
+}
+
+.fla-pz-chosen {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+}
+
+.fla-pz-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0 16px 14px;
+  border: 0;
+  min-width: 0;
+}
+
+.fla-pz-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 10px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    font-size: 13px;
+    color: #555;
+  }
+
+  input {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    color: var(--fla-preto);
+    font: inherit;
+    font-size: 16px; // evita o zoom do iPhone ao focar
+    text-transform: uppercase;
+  }
+}
+
+.fla-pz-hint {
+  font-size: 13px;
+  color: #555;
+}
+
+.fla-pz-price {
+  font-size: 14px;
+}
+
+.fla-pz-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  font-size: 15px;
+  cursor: pointer;
+
+  // o Spartacus posiciona radio/checkbox como absolute
+  input {
+    position: static !important;
+    appearance: auto !important;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--fla-vermelho);
+  }
+
+  .fla-pz-price {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+}
+
+.fla-pz-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+}
+
+.fla-pz-clear {
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.fla-pz-error {
+  margin: 0;
+  color: var(--fla-vermelho);
+  font-size: 14px;
+}
+
+.fla-pz-saving {
+  margin: 0;
+  font-size: 14px;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Calcule o frete (FlaPdpShippingComponent, 06/11)
+// ---------------------------------------------------------------------------------------------
+.fla-ship {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 0 8px;
+}
+
+.fla-ship-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.fla-ship-label {
+  margin: 0;
+  font-weight: 700;
+}
+
+.fla-ship-field {
+  display: flex;
+  flex: 1 1 220px;
+  border: 1px solid #cfcfcf;
+  border-radius: 2px;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border: 0;
+    font: inherit;
+    font-size: 16px;
+  }
+
+  button {
+    padding: 0 18px;
+    border: 0;
+    background: #e2e2e2;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+.fla-ship-error {
+  margin: 0;
+  color: var(--fla-vermelho);
+  font-size: 14px;
+}
+
+.fla-ship-result {
+  padding: 12px 14px;
+  border-radius: 4px;
+  background: #f4f4f4;
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+  }
+}
+
+.fla-ship-place {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+.fla-ship-returns {
+  font-size: 14px;
+  color: var(--fla-preto) !important;
+}
+
+// carrinho lateral: personalização do manto embaixo do nome
+.fla-cd-pers {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fla-vermelho);
 }

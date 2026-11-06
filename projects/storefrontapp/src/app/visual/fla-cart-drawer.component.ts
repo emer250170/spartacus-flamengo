@@ -14,11 +14,23 @@ import {
 } from '@spartacus/cart/base/root';
 import { RoutingService } from '@spartacus/core';
 import { FocusConfig, LaunchDialogService } from '@spartacus/storefront';
-import { Observable, Subscription, combineLatest, interval } from 'rxjs';
-import { filter, map, startWith } from 'rxjs/operators';
+import { Observable, Subscription, combineLatest, interval, of } from 'rxjs';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  startWith,
+  switchMap,
+} from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { MatchdayDataService } from '../matchday/matchday-data.service';
 import { SocioService } from '../socio/socio.service';
+import {
+  FlaPersonalizationService,
+  PERSONALIZATION_ADDON,
+  PersonalizationInfo,
+  personalizationSummary,
+} from './fla-personalization.service';
 
 /** Item do carrinho como o box mostra */
 export interface DrawerEntry {
@@ -31,6 +43,10 @@ export interface DrawerEntry {
   price: string;
   /** Poltrona de jogo: sem quantidade e sem remover aqui (a jornada cuida) */
   seat: boolean;
+  /** "Nome EMERSON · 10 · Kit de patrocínio" (manto personalizado) */
+  personalization?: string;
+  /** Linha de preço da personalização: a quantidade segue a do manto */
+  addOn?: boolean;
 }
 
 export interface DrawerView {
@@ -79,19 +95,43 @@ export class FlaCartDrawerComponent implements OnInit, OnDestroy {
     protected i18n: FlaI18nService,
     protected matchday: MatchdayDataService,
     protected socio: SocioService,
-    protected el: ElementRef<HTMLElement>
+    protected el: ElementRef<HTMLElement>,
+    protected personalization: FlaPersonalizationService
   ) {
     const member$ = this.socio.getMembership().pipe(
       map((m) => !!(m.member || m.inCart)),
       startWith(false)
     );
     const tick$ = interval(1000).pipe(startWith(0));
+    // personalização dos mantos: só busca quando há linha de preço (FLA-PERS-*) no carrinho
+    const pers$ = this.activeCart.getActive().pipe(
+      map((cart) =>
+        cart?.code &&
+        (cart.entries ?? []).some((e) =>
+          PERSONALIZATION_ADDON.test(e.product?.code ?? '')
+        )
+          ? `${cart.code}|${(cart.entries ?? [])
+              .map((e) => `${e.entryNumber}:${e.product?.code}:${e.quantity}`)
+              .join(',')}`
+          : ''
+      ),
+      distinctUntilChanged(),
+      switchMap((key) =>
+        key
+          ? this.personalization.forCart('current', key.split('|')[0])
+          : of([] as PersonalizationInfo[])
+      ),
+      startWith([] as PersonalizationInfo[])
+    );
     this.view$ = combineLatest([
       this.activeCart.getActive(),
       member$,
       tick$,
       this.i18n.lang$,
-    ]).pipe(map(([cart, member]) => this.toView(cart, member)));
+      pers$,
+    ]).pipe(
+      map(([cart, member, , , pers]) => this.toView(cart, member, pers))
+    );
   }
 
   ngOnInit(): void {
@@ -148,7 +188,11 @@ export class FlaCartDrawerComponent implements OnInit, OnDestroy {
     return e.entry.entryNumber;
   }
 
-  protected toView(cart: Cart, member: boolean): DrawerView | null {
+  protected toView(
+    cart: Cart,
+    member: boolean,
+    pers: PersonalizationInfo[] = []
+  ): DrawerView | null {
     const entries = cart?.entries ?? [];
     if (!entries.length) {
       return null;
@@ -171,6 +215,8 @@ export class FlaCartDrawerComponent implements OnInit, OnDestroy {
         fullPrice: full > total + 0.004 ? money(full) : undefined,
         price: entry.totalPrice?.formattedValue ?? money(total),
         seat: !!this.matchday.matchCodeOfSeat(entry.product?.code ?? ''),
+        personalization: this.personalizationOf(entry, pers),
+        addOn: PERSONALIZATION_ADDON.test(entry.product?.code ?? ''),
       };
     });
     // subTotal = itens já com o desconto de cada item; orderDiscounts = desconto no pedido
@@ -186,6 +232,16 @@ export class FlaCartDrawerComponent implements OnInit, OnDestroy {
       total: money(total),
       holdLeft: this.holdLeft(entries),
     };
+  }
+
+  protected personalizationOf(
+    entry: OrderEntry,
+    pers: PersonalizationInfo[]
+  ): string | undefined {
+    const p = pers.find((x) => x.entryNumber === entry.entryNumber);
+    return p
+      ? personalizationSummary(p, this.i18n.t('pz.sponsorShort'))
+      : undefined;
   }
 
   /** Tempo que falta da reserva da poltrona que está no carrinho */
