@@ -244,3 +244,11 @@ cx-storefront:is(
 .fla-list-bar {
   margin-inline: -15px;
 }
+
+// Carrinho (página): o layout do Spartacus tem 24px de recuo dos lados; sem ele o carrinho
+// começa na mesma borda do header e das outras páginas
+@media (min-width: 992px) {
+  main cx-page-layout.CartPageTemplate {
+    padding-inline: 0 !important;
+  }
+}

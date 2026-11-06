@@ -85,6 +85,14 @@ O resto é o Spartacus padrão: não mexer sem necessidade.
   - o CSS global do Spartacus posiciona `input[type=radio]` como `absolute`: resetar
     (`position: static; appearance: auto`);
   - o slot `SiteLogin` no desktop fica em coluna para o mini-carrinho caber na linha do logo.
+- **Alinhamento do header (regra):** no desktop o header não tem recuo; logo e carrinho ficam nas bordas
+  do container de 1140px, as mesmas do conteúdo (banner da home, fotos da listagem, produto, carrinho). Toda
+  mudança de visual: medir na loja (logo × borda do conteúdo, carrinho × borda direita) em 1024, 1280, 1440 e
+  1920px e nas páginas home, listagem, produto, carrinho, matchday, sócio e minha conta. Antes de dizer que
+  algo está desalinhado, conferir se a loja publicada já tem o PR (o CSS no ar pode ser o antigo).
+- **Celular (regra):** todo layout novo contempla o celular; conferir também em ~390px (sem rolagem lateral).
+- Funcionalidade que a tela atual tem e o mockup aprovado não contempla: avisar o Emerson antes (retirar ou
+  incluir no mockup).
 - Para mudar menu de navegação: estender `NavigationService` e registrar com `useExisting`.
 - Conferir tipos antes do PR (o build completo é pesado; o Emerson publica).
 
