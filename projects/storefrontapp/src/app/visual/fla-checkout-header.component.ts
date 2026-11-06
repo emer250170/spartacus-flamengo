@@ -149,6 +149,7 @@ export class FlaCheckoutHeaderComponent implements OnInit, OnDestroy {
         <span>{{ 'co.copyright' | flaT: { y: year } }}</span>
         <nav [attr.aria-label]="'co.legal' | flaT">
           <a [routerLink]="{ cxRoute: 'termsAndConditions' } | cxUrl">{{ 'co.terms' | flaT }}</a>
+          <a routerLink="/politica-de-privacidade">{{ 'co.privacy' | flaT }}</a>
           <a routerLink="/faq">{{ 'co.returns' | flaT }}</a>
           <a routerLink="/contact">{{ 'ft.contact' | flaT }}</a>
         </nav>

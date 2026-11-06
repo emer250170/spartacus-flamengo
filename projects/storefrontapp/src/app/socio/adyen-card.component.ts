@@ -14,6 +14,7 @@ import { OrderFacade } from '@spartacus/order/root';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { FlaCheckoutAcceptService } from '../visual/fla-checkout-accept';
 import {
   AdyenCardResult,
   AdyenCardService,
@@ -26,9 +27,9 @@ const ADYEN_CLASS = 'fla-pay-adyen';
 
 /**
  * Cartão pela Adyen na revisão do pedido (05/11), no lugar do "Finalizar pedido"
- * do Spartacus: Termos e Condições, o formulário seguro de cartão da Adyen
+ * do Spartacus: o formulário seguro de cartão da Adyen
  * (número, validade, código, nome; parcelas no plano anual; 3D Secure) e o botão
- * "Pagar e finalizar". Antes de cobrar, o servidor confere o carrinho com as
+ * "Pagar e finalizar", com o bloco Aceites (Termos e Privacidade, 06/11) antes. Antes de cobrar, o servidor confere o carrinho com as
  * regras do pedido; com o pagamento autorizado, o pedido fecha pelo servidor e a
  * loja segue para a confirmação. Só aparece com a Adyen ligada e o cartão na
  * lista flamengo.pagamento.adyen.meios (scheme).
@@ -45,8 +46,6 @@ export class AdyenCardComponent implements OnInit, OnDestroy {
   visible = false;
   loading = false;
   busy = false;
-  terms = false;
-  termsTouched = false;
   error = '';
   amount = 0;
 
@@ -64,7 +63,8 @@ export class AdyenCardComponent implements OnInit, OnDestroy {
     protected i18n: FlaI18nService,
     protected winRef: WindowRef,
     protected zone: NgZone,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected accept: FlaCheckoutAcceptService
   ) {}
 
   ngOnInit(): void {
@@ -97,20 +97,15 @@ export class AdyenCardComponent implements OnInit, OnDestroy {
     return this.t('acard.pay', { amount: this.i18n.money(this.amount / 100) });
   }
 
-  setTerms(checked: boolean): void {
-    this.terms = checked;
-    this.termsTouched = true;
-    this.cd.markForCheck();
-  }
-
   /** Confere o carrinho no servidor e manda o cartão para a Adyen */
   pay(): void {
     if (this.busy || !this.card || !this.cartId) {
       return;
     }
-    this.termsTouched = true;
     this.error = '';
-    if (!this.terms) {
+    // Termos e Privacidade (bloco Aceites, FlaCheckoutAcceptService)
+    if (!this.accept.ok()) {
+      this.accept.touch();
       this.cd.markForCheck();
       return;
     }

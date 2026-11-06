@@ -1,3 +1,4 @@
+import { FlaCheckoutAcceptComponent, FlaCheckoutAcceptModule } from './fla-checkout-accept';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
@@ -65,6 +66,7 @@ import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component'
     MediaModule,
     KeyboardFocusModule,
     FlaI18nModule,
+    FlaCheckoutAcceptModule,
   ],
   declarations: [
     FlaPortalLinksComponent,
@@ -200,6 +202,12 @@ import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component'
       id: 'CheckoutDeliveryAddress',
       position: OutletPosition.BEFORE,
       component: FlaCheckoutDeliveryComponent,
+    }),
+    // Pagamento: Aceites (Termos e Privacidade) antes do "Finalizar pedido" do Spartacus
+    provideOutlet({
+      id: 'CheckoutPlaceOrder',
+      position: OutletPosition.BEFORE,
+      component: FlaCheckoutAcceptComponent,
     }),
     // rodapé: endereços antes dos links do CMS e a linha final depois
     provideOutlet({
