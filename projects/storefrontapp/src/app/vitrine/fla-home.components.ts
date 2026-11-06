@@ -5,12 +5,14 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
+  Optional,
 } from '@angular/core';
-import { WindowRef } from '@spartacus/core';
+import { CmsService, WindowRef } from '@spartacus/core';
+import { CmsComponentData } from '@spartacus/storefront';
 import { Observable, combineLatest, of } from 'rxjs';
-import { map, startWith, switchMap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, startWith, switchMap } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { FlaHomeProduct, FlaHomeService } from './fla-home.service';
+import { FlaHomeHeroRegistry, FlaHomeProduct, FlaHomeService } from './fla-home.service';
 
 /**
  * Conteúdo da home (mockup "Home", 06/11). Tudo vem do SAP Commerce: o produto da promoção, os
@@ -19,9 +21,9 @@ import { FlaHomeProduct, FlaHomeService } from './fla-home.service';
  */
 export const FLA_HOME = {
   /**
-   * Destaques, todos no mesmo modelo (selo, título com destaque em vermelho, texto ou preço,
-   * botão e a foto do produto à direita). O 2º era a imagem do banner do CMS com o texto dentro
-   * (1400x440), que cortava conforme a tela (06/11); virou um destaque com o mesmo conteúdo.
+   * Destaques de reserva, usados só sem o carrossel "Destaques da home" no CMS (o normal é o
+   * CMS: ImpEx 12-home-destaques, editável no Backoffice e no SmartEdit). Mesmo conteúdo dos
+   * banners cadastrados.
    */
   hero: [
     // promoção do Manto 3: preço e parcelas do produto
@@ -60,20 +62,48 @@ export const FLA_HOME = {
 };
 
 interface HeroSlide {
-  product: FlaHomeProduct;
-  badgeKey: string;
-  titleKey: string;
-  accentKey: string;
-  textKey?: string;
+  badge: string;
+  title: string;
+  accent: string;
+  text?: string;
   link: string;
-  price: boolean;
+  img?: string;
+  /** link de produto: nome, preço e parcelas */
+  product?: FlaHomeProduct;
+}
+
+/** Código do produto num link da loja (/product/<código> ou .../p/<código>) */
+function productCodeOf(link: string): string | undefined {
+  const m = /\/(?:product|p)\/([^/?#\s]+)\/?(?:[?#].*)?$/.exec(link ?? '');
+  return m ? decodeURIComponent(m[1]) : undefined;
+}
+
+/** Parágrafos de um texto do CMS (HTML), sem as tags */
+function paragraphsOf(html: string): string[] {
+  const clean = (t: string) =>
+    t
+      .replace(/<br\s*\/?>/gi, ' ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const ps = [...String(html ?? '').matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => clean(m[1]));
+  const list = ps.length ? ps : [clean(String(html ?? ''))];
+  return list.filter((t) => !!t);
 }
 
 /**
- * Destaques no topo da home, todos no mesmo modelo: a promoção do Manto 3 (nome, preço e
- * parcelas do produto) e a campanha da Coleção Adidas 2026; setas, marcadores e troca
- * automática (pausa com o mouse ou o foco em cima, e sem troca automática para quem pede menos
- * movimento).
+ * Destaques no topo da home, todos no mesmo modelo (selo, título com a última palavra em
+ * vermelho, preço ou frase, botão e foto à direita); setas, marcadores e troca automática (pausa
+ * com o mouse ou o foco em cima, e sem troca automática para quem pede menos movimento).
+ *
+ * Gerenciado no CMS (06/11): é o componente do carrossel "Destaques da home"
+ * (RotatingImagesComponent FlaHomeHeroComponent, ImpEx 12-home-destaques), editável no Backoffice
+ * e no SmartEdit. Cada banner do carrossel é um destaque: título (headline), 1º parágrafo do
+ * conteúdo = selo, demais = frase, link e imagem (se vazia, a foto do produto do link). Link de
+ * produto mostra nome, preço e parcelas atuais. Sem o componente no CMS, a home mostra os
+ * destaques de FLA_HOME.hero (instância dentro do MatchdayHomeBannerComponent).
  */
 @Component({
   selector: 'fla-home-hero',
@@ -83,23 +113,23 @@ interface HeroSlide {
       <ng-container *ngFor="let s of slides; let i = index">
         <div class="fh-slide" [class.is-active]="i === current" [attr.aria-hidden]="i !== current"
           role="group" [attr.aria-roledescription]="'home.slide' | flaT" [attr.aria-label]="(i + 1) + ' / ' + slides.length">
-          <div class="fh-promo" [class.is-stacked]="!s.price">
+          <div class="fh-promo" [class.is-stacked]="!s.product">
             <div class="fh-promo-text">
-              <span class="fh-badge">{{ s.badgeKey | flaT }}</span>
-              <h1 *ngIf="i === 0; else h2" class="fh-promo-title">{{ s.titleKey | flaT }} <span>{{ s.accentKey | flaT }}</span></h1>
-              <ng-template #h2><h2 class="fh-promo-title">{{ s.titleKey | flaT }} <span>{{ s.accentKey | flaT }}</span></h2></ng-template>
-              <ng-container *ngIf="s.price; else text">
-                <p class="fh-promo-name">{{ s.product.name }}</p>
-                <p class="fh-promo-price"><span>{{ 'home.for' | flaT }}</span> {{ s.product.price }}</p>
-                <p class="fh-promo-inst" *ngIf="s.product.installments">{{ s.product.installments }}</p>
+              <span class="fh-badge" *ngIf="s.badge">{{ s.badge }}</span>
+              <h1 *ngIf="i === 0; else h2" class="fh-promo-title">{{ s.title }} <span>{{ s.accent }}</span></h1>
+              <ng-template #h2><h2 class="fh-promo-title">{{ s.title }} <span>{{ s.accent }}</span></h2></ng-template>
+              <ng-container *ngIf="s.product as p; else text">
+                <p class="fh-promo-name">{{ p.name }}</p>
+                <p class="fh-promo-price"><span>{{ 'home.for' | flaT }}</span> {{ p.price }}</p>
+                <p class="fh-promo-inst" *ngIf="p.installments">{{ p.installments }}</p>
               </ng-container>
-              <ng-template #text><p class="fh-promo-lead">{{ (s.textKey || '') | flaT }}</p></ng-template>
+              <ng-template #text><p class="fh-promo-lead" *ngIf="s.text">{{ s.text }}</p></ng-template>
               <a class="fh-btn" [routerLink]="s.link" [attr.tabindex]="i === current ? null : -1">
                 {{ 'home.buyNow' | flaT }}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </a>
             </div>
-            <img *ngIf="s.product.img" class="fh-promo-img" [src]="s.product.img" alt="" />
+            <img *ngIf="s.img" class="fh-promo-img" [src]="s.img" alt="" />
           </div>
         </div>
       </ng-container>
@@ -117,20 +147,20 @@ interface HeroSlide {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlaHomeHeroComponent implements OnInit, OnDestroy {
-  readonly slides$: Observable<HeroSlide[]> = combineLatest(
-    FLA_HOME.hero.map((h) =>
-      this.home.byCodes([h.product], 1).pipe(
-        map((ps): HeroSlide | null =>
-          ps[0] ? { ...h, product: ps[0], link: h.link ?? ps[0].link } : null
-        ),
-        startWith(null as HeroSlide | null)
-      )
-    )
+  /** desenhado pelo CMS (componente do slot) ou a reserva dentro do bloco da home */
+  protected readonly fromCms = !!this.cmsData;
+
+  readonly slides$: Observable<HeroSlide[] | null> = (
+    this.fromCms
+      ? this.cmsSlides()
+      : this.registry.cms$.pipe(switchMap((cms) => (cms ? of(null) : this.defaultSlides())))
   ).pipe(
     map((slides) => {
-      const ok = slides.filter((s): s is HeroSlide => !!s);
-      this.count = ok.length;
-      return ok;
+      this.count = slides?.length ?? 0;
+      if (this.current >= this.count) {
+        this.current = 0;
+      }
+      return slides?.length ? slides : null;
     })
   );
 
@@ -140,10 +170,98 @@ export class FlaHomeHeroComponent implements OnInit, OnDestroy {
   protected timer?: ReturnType<typeof setInterval>;
 
   constructor(
+    @Optional() protected cmsData: CmsComponentData<any> | null,
     protected home: FlaHomeService,
+    protected registry: FlaHomeHeroRegistry,
+    protected cms: CmsService,
+    protected i18n: FlaI18nService,
     protected winRef: WindowRef,
     protected cd: ChangeDetectorRef
-  ) {}
+  ) {
+    if (this.fromCms) {
+      this.registry.cms$.next(true);
+    }
+  }
+
+  /** Banners do carrossel do CMS, na ordem cadastrada */
+  protected cmsSlides(): Observable<HeroSlide[]> {
+    return (this.cmsData as CmsComponentData<any>).data$.pipe(
+      map((c) =>
+        (Array.isArray(c?.banners) ? c.banners : String(c?.banners ?? '').split(/\s+/)).filter(
+          (uid: string) => !!uid
+        ) as string[]
+      ),
+      distinctUntilChanged((a, b) => a.join() === b.join()),
+      switchMap((uids) =>
+        uids.length
+          ? combineLatest(
+              uids.map((uid) =>
+                this.cms.getComponentData<any>(uid).pipe(
+                  filter((b) => !!b),
+                  switchMap((b) => this.fromBanner(b)),
+                  startWith(null as HeroSlide | null)
+                )
+              )
+            ).pipe(map((slides) => slides.filter((s): s is HeroSlide => !!s)))
+          : of([] as HeroSlide[])
+      )
+    );
+  }
+
+  /** Um banner do CMS vira um destaque */
+  protected fromBanner(b: any): Observable<HeroSlide | null> {
+    const words = String(b.headline ?? '').trim().split(/\s+/).filter((w) => !!w);
+    const accent = words.length > 1 ? (words.pop() as string) : '';
+    const [badge = '', ...rest] = paragraphsOf(b.content ?? '');
+    const link: string = b.urlLink || '/';
+    const media = b.media?.url ?? b.media?.desktop?.url ?? b.media?.widescreen?.url;
+    const base: HeroSlide = {
+      badge,
+      title: words.join(' '),
+      accent,
+      text: rest.join(' '),
+      link,
+      img: this.home.mediaUrl(media),
+    };
+    if (!base.title && !accent) {
+      return of(null);
+    }
+    const code = productCodeOf(link);
+    return code
+      ? this.home.byCodes([code], 1).pipe(
+          map((ps) => (ps[0] ? { ...base, product: ps[0], img: base.img ?? ps[0].img } : base))
+        )
+      : of(base);
+  }
+
+  /** Destaques do código (sem o carrossel no CMS) */
+  protected defaultSlides(): Observable<HeroSlide[]> {
+    return this.i18n.lang$.pipe(
+      switchMap(() =>
+        combineLatest(
+          FLA_HOME.hero.map((h) =>
+            this.home.byCodes([h.product], 1).pipe(
+              map((ps): HeroSlide | null =>
+                ps[0]
+                  ? {
+                      badge: this.i18n.t(h.badgeKey),
+                      title: this.i18n.t(h.titleKey),
+                      accent: this.i18n.t(h.accentKey),
+                      text: h.textKey ? this.i18n.t(h.textKey) : '',
+                      link: h.link ?? ps[0].link,
+                      img: ps[0].img,
+                      product: h.price ? ps[0] : undefined,
+                    }
+                  : null
+              ),
+              startWith(null as HeroSlide | null)
+            )
+          )
+        )
+      ),
+      map((slides) => slides.filter((s): s is HeroSlide => !!s))
+    );
+  }
 
   ngOnInit(): void {
     const win = this.winRef.nativeWindow;
@@ -165,6 +283,9 @@ export class FlaHomeHeroComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.timer) {
       clearInterval(this.timer);
+    }
+    if (this.fromCms) {
+      this.registry.cms$.next(false);
     }
   }
 }

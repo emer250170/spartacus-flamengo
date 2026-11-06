@@ -1,11 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CmsService, OccEndpointsService } from '@spartacus/core';
-import { Observable, forkJoin, of } from 'rxjs';
+import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { installments } from '../listagem/fla-product-card-price.component';
 import { FlaMediaUrlService, bestImageUrl } from './fla-media-url.service';
+
+/**
+ * Avisa a reserva dos destaques (dentro do bloco da home) que o carrossel do CMS está na página:
+ * com ele, a reserva não aparece
+ */
+@Injectable({ providedIn: 'root' })
+export class FlaHomeHeroRegistry {
+  readonly cms$ = new BehaviorSubject<boolean>(false);
+}
 
 /** Produto como os blocos da home mostram */
 export interface FlaHomeProduct {
@@ -67,6 +76,11 @@ export class FlaHomeService {
       }),
       catchError(() => of(null))
     );
+  }
+
+  /** Endereço completo de uma imagem do CMS (o caminho vem relativo ao servidor) */
+  mediaUrl(path?: string): string | undefined {
+    return path ? this.media.url(path) : undefined;
   }
 
   /** Carrossel de produtos do CMS pelo uid (título no idioma do site e os códigos) */

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { UrlModule } from '@spartacus/core';
+import { CmsConfig, UrlModule, provideConfig } from '@spartacus/core';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { ExperienceShowcaseComponent } from './experience-showcase.component';
 import { MatchCardsComponent } from './match-cards.component';
@@ -26,5 +26,14 @@ const HOME = [
   imports: [CommonModule, RouterModule, UrlModule, FlaI18nModule],
   declarations: [MatchCardsComponent, ExperienceShowcaseComponent, ...HOME],
   exports: [MatchCardsComponent, ExperienceShowcaseComponent, ...HOME],
+  providers: [
+    // destaques da home gerenciados no CMS (06/11): o carrossel "Destaques da home"
+    // (RotatingImagesComponent) é desenhado no visual do mockup, editável no SmartEdit
+    provideConfig(<CmsConfig>{
+      cmsComponents: {
+        RotatingImagesComponent: { component: FlaHomeHeroComponent },
+      },
+    }),
+  ],
 })
 export class VitrineModule {}

@@ -1519,7 +1519,8 @@ html.fla-home cx-page-layout.LandingPage2Template {
     margin: 0 !important;
     padding: 0 !important;
 
-    > :not(fla-matchday-home-banner) {
+    // destaques (carrossel do CMS, 1º do slot) e o bloco da home; o resto do slot some
+    > :not(fla-matchday-home-banner):not(fla-home-hero) {
       display: none !important;
     }
   }
