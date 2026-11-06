@@ -1,0 +1,105 @@
+<aside
+  class="fla-cd"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="'cd.title' | flaT"
+  [cxFocus]="focusConfig"
+  (esc)="close('escape')"
+>
+  <div class="fla-cd-head">
+    <h2>{{ 'cd.title' | flaT }}</h2>
+    <button
+      type="button"
+      class="fla-cd-close"
+      [attr.aria-label]="'cd.close' | flaT"
+      (click)="close('close')"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
+
+  <ng-container *ngIf="view$ | async as v; else empty">
+    <p class="fla-cd-hold" *ngIf="v.holdLeft" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+      </svg>
+      {{ 'cd.hold' | flaT }} <strong>{{ v.holdLeft }}</strong>
+    </p>
+
+    <ul class="fla-cd-items" [class.is-busy]="loading$ | async">
+      <li *ngFor="let e of v.entries; trackBy: trackEntry" class="fla-cd-item">
+        <a class="fla-cd-thumb" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl">
+          <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="e.name"></cx-media>
+        </a>
+        <div class="fla-cd-info">
+          <div class="fla-cd-row">
+            <strong class="fla-cd-name">{{ e.name }}</strong>
+            <button
+              *ngIf="!e.seat"
+              type="button"
+              class="fla-cd-remove"
+              [attr.aria-label]="'cd.remove' | flaT: { name: e.name }"
+              (click)="remove(e)"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+                <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+              </svg>
+            </button>
+          </div>
+          <span class="fla-cd-details" *ngIf="e.details">{{ e.details }}</span>
+          <div class="fla-cd-row fla-cd-bottom">
+            <div class="fla-cd-qty" *ngIf="!e.seat && e.entry.updateable !== false; else fixedQty">
+              <button type="button" [attr.aria-label]="'cd.less' | flaT" (click)="decrease(e)">−</button>
+              <span aria-live="polite">{{ e.entry.quantity }}</span>
+              <button type="button" [attr.aria-label]="'cd.more' | flaT" (click)="increase(e)">+</button>
+            </div>
+            <ng-template #fixedQty>
+              <span class="fla-cd-fixed">{{ 'cd.qty' | flaT: { n: e.entry.quantity } }}</span>
+            </ng-template>
+            <span class="fla-cd-price">
+              <s *ngIf="e.fullPrice">{{ e.fullPrice }}</s>
+              <strong>{{ e.price }}</strong>
+            </span>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="fla-cd-foot">
+      <div class="fla-cd-coupon">
+        <label class="cx-visually-hidden" for="fla-cd-coupon">{{ 'cd.coupon' | flaT }}</label>
+        <input #couponInput id="fla-cd-coupon" type="text" [placeholder]="'cd.coupon' | flaT" (keydown.enter)="applyCoupon(couponInput)" />
+        <button type="button" (click)="applyCoupon(couponInput)">{{ 'cd.apply' | flaT }}</button>
+      </div>
+      <div class="fla-cd-line">
+        <span>{{ 'cd.subtotal' | flaT }}</span><span>{{ v.subtotal }}</span>
+      </div>
+      <div class="fla-cd-line fla-cd-discount" *ngIf="v.discount">
+        <span>{{ v.discountLabel }}</span><span>− {{ v.discount }}</span>
+      </div>
+      <div class="fla-cd-line fla-cd-total">
+        <span>{{ 'cd.total' | flaT }}</span><span>{{ v.total }}</span>
+      </div>
+      <a class="fla-cd-checkout" [routerLink]="{ cxRoute: 'cart' } | cxUrl">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+          <path d="M3 4h2l2.4 11h11.2L21 8H6.2" /><circle cx="9" cy="19" r="1.5" /><circle cx="17" cy="19" r="1.5" />
+        </svg>
+        {{ 'cd.checkout' | flaT }}
+      </a>
+      <button type="button" class="fla-cd-continue" (click)="close('continue')">
+        {{ 'cd.continue' | flaT }}
+      </button>
+    </div>
+  </ng-container>
+
+  <ng-template #empty>
+    <div class="fla-cd-empty">
+      <p>{{ 'cd.empty' | flaT }}</p>
+      <button type="button" class="fla-cd-continue" (click)="close('continue')">
+        {{ 'cd.continue' | flaT }}
+      </button>
+    </div>
+  </ng-template>
+</aside>

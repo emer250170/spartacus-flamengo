@@ -1217,3 +1217,274 @@ html header :focus-visible:not(main) {
   outline-offset: 2px !important;
   box-shadow: none !important;
 }
+
+// ---------------------------------------------------------------------------------------------
+// Carrinho em box lateral à direita (06/11; FlaCartDrawerComponent, mockup tela 5). O host
+// vem com .cx-sidebar-end do Spartacus (fixo na tela toda, conteúdo à direita); aqui o
+// fundo escuro e o box de 420px que entra deslizando.
+// ---------------------------------------------------------------------------------------------
+fla-cart-drawer.cx-sidebar-end {
+  background: rgba(0, 0, 0, 0.6);
+  animation: fla-cd-fade 0.2s ease;
+}
+
+@keyframes fla-cd-fade {
+  from {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes fla-cd-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+.fla-cd {
+  display: flex;
+  flex-direction: column;
+  width: 420px;
+  max-width: 100vw;
+  height: 100%;
+  background: #fff;
+  color: var(--fla-preto);
+  font-family: var(--fla-fonte);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
+  animation: fla-cd-in 0.25s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.fla-cd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 12px;
+
+  h2 {
+    margin: 0;
+    font-family: var(--fla-fonte-titulo) !important;
+    font-size: 22px;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+  }
+
+  .fla-cd-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: none;
+    color: var(--fla-preto);
+    cursor: pointer;
+  }
+}
+
+.fla-cd-hold {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 24px 8px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+}
+
+.fla-cd-items {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0 24px;
+  overflow-y: auto;
+  list-style: none;
+
+  &.is-busy {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.fla-cd-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.fla-cd-thumb {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 2px;
+  background: #f2f2f2;
+  overflow: hidden;
+
+  cx-media,
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.fla-cd-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fla-cd-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fla-cd-name {
+  font-size: 15px;
+}
+
+.fla-cd-details {
+  font-size: 13px;
+  color: #555;
+}
+
+.fla-cd-remove {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: none;
+  color: #8a8a8a;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--fla-vermelho);
+  }
+}
+
+.fla-cd-bottom {
+  align-items: center;
+  margin-top: 4px;
+}
+
+.fla-cd-qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #cfcfcf;
+    background: #fff;
+    cursor: pointer;
+  }
+}
+
+.fla-cd-fixed {
+  font-size: 13px;
+  color: #555;
+}
+
+.fla-cd-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 15px;
+
+  s {
+    font-size: 12px;
+    color: #555;
+  }
+}
+
+.fla-cd-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid #e2e2e2;
+  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.fla-cd-coupon {
+  display: flex;
+  gap: 8px;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid #cfcfcf;
+    font: inherit;
+  }
+
+  button {
+    padding: 0 14px;
+    border: 0;
+    background: #e2e2e2;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+.fla-cd-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  color: #333;
+}
+
+.fla-cd-discount {
+  color: var(--fla-vermelho);
+}
+
+.fla-cd-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fla-preto);
+}
+
+.fla-cd-checkout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 2px;
+  background: var(--fla-vermelho);
+  color: #fff !important;
+  font-weight: 700;
+  text-decoration: none !important;
+
+  &:hover {
+    background: var(--fla-vermelho-escuro);
+  }
+}
+
+.fla-cd-continue {
+  height: 44px;
+  border: 0;
+  border-radius: 2px;
+  background: #eee;
+  color: var(--fla-preto);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fla-cd-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}

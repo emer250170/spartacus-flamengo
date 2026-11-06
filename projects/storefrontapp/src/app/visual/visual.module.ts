@@ -1,7 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { OutletPosition, provideOutlet } from '@spartacus/storefront';
+import { CmsConfig, I18nModule, UrlModule, provideConfig } from '@spartacus/core';
+import {
+  DIALOG_TYPE,
+  IconModule,
+  KeyboardFocusModule,
+  LayoutConfig,
+  MediaModule,
+  OutletPosition,
+  provideOutlet,
+} from '@spartacus/storefront';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import {
   FlaFooterBottomComponent,
@@ -10,7 +19,9 @@ import {
   FlaPortalNavComponent,
   FlaTicketsButtonComponent,
 } from './fla-header.components';
+import { FlaCartDrawerComponent } from './fla-cart-drawer.component';
 import { FlaLogoLabelComponent } from './fla-logo-label.component';
+import { FlaMiniCartComponent } from './fla-mini-cart.component';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -19,7 +30,16 @@ import { FlaLogoLabelComponent } from './fla-logo-label.component';
  * Desligar: tirar VisualModule do AppModule e a seção do tema.
  */
 @NgModule({
-  imports: [CommonModule, RouterModule, FlaI18nModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    I18nModule,
+    UrlModule,
+    IconModule,
+    MediaModule,
+    KeyboardFocusModule,
+    FlaI18nModule,
+  ],
   declarations: [
     FlaPortalLinksComponent,
     FlaPortalNavComponent,
@@ -27,8 +47,26 @@ import { FlaLogoLabelComponent } from './fla-logo-label.component';
     FlaFooterInfoComponent,
     FlaFooterBottomComponent,
     FlaLogoLabelComponent,
+    FlaMiniCartComponent,
+    FlaCartDrawerComponent,
   ],
   providers: [
+    // carrinho em box lateral à direita: ao clicar no carrinho do header e ao adicionar
+    // um produto (no lugar do "Adicionado ao carrinho" do Spartacus)
+    provideConfig(<CmsConfig>{
+      cmsComponents: {
+        MiniCartComponent: { component: FlaMiniCartComponent },
+      },
+    }),
+    provideConfig(<LayoutConfig>{
+      launch: {
+        ADDED_TO_CART: {
+          inlineRoot: true,
+          component: FlaCartDrawerComponent,
+          dialogType: DIALOG_TYPE.SIDEBAR_END,
+        },
+      },
+    }),
     // faixa de cima: links do portal (no lugar dos links do CMS, no desktop)
     provideOutlet({
       id: 'SiteLinks',
