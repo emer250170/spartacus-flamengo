@@ -957,6 +957,10 @@ Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglê
 - **Categoria**: vai o caminho completo da categoria (`Masculino > Roupas > Camisas Diversas`), lido uma vez por
   sessão de `GET …/emarsys/categorias`, igual ao campo `category` do catálogo exportado. Sem o endpoint, vai o nome da
   categoria como aparece na tela.
+- **Web Channel** (06/11): a tag também manda `ScarabQueue.push(['webChannel'])` antes de carregar o `scarab-v2.js`, o que liga as
+  campanhas na página (pop-up, barra, zonas embutidas). No Emarsys, o domínio `spartacus-flamengo.democc.online` precisa
+  estar em Web Channel › Domains. As campanhas são avaliadas a cada `go`, e uma zona embutida precisa que a área
+  (seletor CSS) já exista na página nesse momento.
 - **Conferir**: no navegador, rodar `localStorage['fla-emarsys-debug'] = '1'`. Cada envio aparece no console como
   `[Emarsys] comandos enviados`. Na aba Rede, aparecem as chamadas a `recommender.scarabresearch.com`.
 - **Desligar**: tirar a tag do `index.html`, porque sem `ScarabQueue` nada é enviado, ou tirar o `EmarsysModule` do `AppModule`.
