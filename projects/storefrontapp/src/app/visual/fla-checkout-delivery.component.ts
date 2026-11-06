@@ -142,6 +142,10 @@ export class FlaCheckoutDeliveryComponent implements OnInit, OnDestroy {
       v.physical.forEach((e) =>
         this.activeCart.updateEntry(e.entryNumber as number, e.quantity ?? 1, undefined, true)
       );
+      // a forma "pickup" gravada no "Ir para o pagamento" não vale mais: o torcedor escolhe o frete
+      if (this.cart?.deliveryMode?.code === 'pickup') {
+        this.deliveryModes.clearCheckoutDeliveryMode().subscribe({ error: () => undefined });
+      }
       this.afterChange();
     }
     this.cd.markForCheck();
@@ -209,6 +213,16 @@ export class FlaCheckoutDeliveryComponent implements OnInit, OnDestroy {
       this.searching = false;
       this.cd.markForCheck();
     });
+  }
+
+  /** Nome da loja escolhida (o carrinho só traz o código; o nome vem da busca) */
+  storeLabel(v: DeliveryView): string {
+    return (
+      this.stores?.find((s) => s.name === v.pickupStore)?.displayName ||
+      v.pickupStoreName ||
+      v.pickupStore ||
+      ''
+    );
   }
 
   visible(stores: PickupStore[]): PickupStore[] {
