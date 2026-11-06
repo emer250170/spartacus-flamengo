@@ -64,4 +64,19 @@
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 	</bean>
 
+	<!-- Personalização do manto (06/11): /flapersonalization/options e /users/current/carts/{cartId}/flapersonalization
+	     (+ /orders/{code}/flapersonalization) -->
+	<bean id="flamengoPersonalizationController" class="br.com.flamengo.matchday.occ.PersonalizationController">
+		<property name="personalizationService" ref="personalizationService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
+	<!-- "Calcule o frete" da página do produto (06/11): /fladelivery/quote?postalCode=... -->
+	<bean id="flamengoDeliveryQuoteController" class="br.com.flamengo.matchday.occ.DeliveryQuoteController">
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="baseStoreService" ref="baseStoreService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+
 </beans>
