@@ -18,7 +18,8 @@ import { SocioPaymentService } from '../../../socio/socio-payment.service';
  *
  * Forma de entrega que deixou de valer (06/11): a forma gravada no carrinho só conta como feita
  * se ainda estiver entre as permitidas (ex.: "retirada no estádio" de antes, num carrinho que
- * agora só tem o manto para receber em casa); senão o torcedor volta para escolher o frete.
+ * agora só tem o manto para receber em casa); senão o torcedor volta para escolher o frete. Vale
+ * também para a revisão aberta direto pelo endereço.
  */
 @Injectable({ providedIn: 'root' })
 export class FlaCheckoutStepsSetGuard extends CheckoutStepsSetGuard {
@@ -53,7 +54,25 @@ export class FlaCheckoutStepsSetGuard extends CheckoutStepsSetGuard {
     );
   }
 
+  /**
+   * Revisão (passo depois do pagamento): o Spartacus só confere o passo anterior; aqui a forma de
+   * entrega também é conferida antes (06/11), para quem digita /checkout/review-order direto com uma
+   * forma que deixou de valer voltar para escolher o frete.
+   */
   protected override isPaymentDetailsSet(
+    step: CheckoutStep
+  ): Observable<boolean | UrlTree> {
+    const modeStep = this.checkoutStepService.getCheckoutStep(CheckoutStepType.DELIVERY_MODE);
+    if (!modeStep || modeStep.disabled) {
+      return this.paymentDetailsSet(step);
+    }
+    return this.isDeliveryModeSet(modeStep).pipe(
+      take(1),
+      switchMap((ok) => (ok === true ? this.paymentDetailsSet(step) : of(ok)))
+    );
+  }
+
+  protected paymentDetailsSet(
     step: CheckoutStep
   ): Observable<boolean | UrlTree> {
     return this.activeCartFacade.getActiveCartId().pipe(
