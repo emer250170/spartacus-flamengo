@@ -10,6 +10,7 @@ import {
   FlaPortalNavComponent,
   FlaTicketsButtonComponent,
 } from './fla-header.components';
+import { FlaLogoLabelComponent } from './fla-logo-label.component';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -25,6 +26,7 @@ import {
     FlaTicketsButtonComponent,
     FlaFooterInfoComponent,
     FlaFooterBottomComponent,
+    FlaLogoLabelComponent,
   ],
   providers: [
     // faixa de cima: links do portal (no lugar dos links do CMS, no desktop)
@@ -38,6 +40,12 @@ import {
       id: 'SiteLogo',
       position: OutletPosition.AFTER,
       component: FlaPortalNavComponent,
+    }),
+    // logo sem o tooltip "SAP Commerce" do CMS (tira os title, nome para leitor de tela)
+    provideOutlet({
+      id: 'SiteLogo',
+      position: OutletPosition.AFTER,
+      component: FlaLogoLabelComponent,
     }),
     // barra vermelha: "Ingressos" antes da busca
     provideOutlet({

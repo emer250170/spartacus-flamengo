@@ -263,16 +263,40 @@ html cx-page-layout.footer cx-footer-navigation,
 html cx-page-layout.footer cx-navigation-ui {
   background: transparent !important;
 }
-html cx-page-layout.footer cx-paragraph {
-  display: none !important;
+html cx-page-layout.footer cx-paragraph,
+html cx-page-layout.footer cx-footer-navigation {
+  display: none !important; // (06/11) as colunas do rodapé vêm do FlaFooterInfoComponent
 }
 .fla-footer-info {
   max-width: 1140px;
   margin: 0 auto;
   padding: 48px 15px 8px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 32px;
+  padding-bottom: 40px;
+
+  address,
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  nav a {
+    color: #cfcfcf !important;
+    font-size: 15px;
+    text-decoration: none;
+
+    &:hover {
+      color: #fff !important;
+      text-decoration: underline;
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
   address {
     margin: 0;
@@ -788,6 +812,11 @@ body.fla-pay-adyen {
 //   3. preta: categorias da loja (NavigationBar)
 // A grade é montada no cx-page-layout.header; o celular continua com o menu hambúrguer.
 // ---------------------------------------------------------------------------------------------
+// componente sem nada na tela que tira o tooltip "SAP Commerce" do logo (não ocupa espaço)
+fla-logo-label {
+  display: none !important;
+}
+
 @media (max-width: 991.98px) {
   fla-portal-links,
   fla-portal-nav,
@@ -1173,11 +1202,4 @@ body.fla-pay-adyen {
   header cx-page-slot.NavigationBar {
     grid-area: nav;
   }
-}
-
-// rodapé: links do CMS na mesma coluna dos endereços
-html cx-page-layout.footer cx-navigation-ui > nav {
-  max-width: 1140px;
-  margin-inline: auto;
-  justify-content: flex-start;
 }

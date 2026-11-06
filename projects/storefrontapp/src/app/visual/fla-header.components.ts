@@ -99,8 +99,9 @@ export class FlaPortalNavComponent {
 export class FlaTicketsButtonComponent {}
 
 /**
- * Rodapé (visual da loja oficial): endereços da Sede Gávea e do CT, antes dos links do
- * CMS. Entra pelo outlet do slot Footer (BEFORE).
+ * Rodapé (visual da loja oficial, como no mockup aprovado): quatro colunas — Sede Gávea,
+ * CT George Helal, Atendimento e Nação. Os links do CMS (SAP Commerce Cloud, SAP Customer
+ * Experience, Siga a gente) ficam escondidos no tema. Entra pelo outlet do slot Footer (BEFORE).
  */
 @Component({
   selector: 'fla-footer-info',
@@ -118,11 +119,30 @@ export class FlaTicketsButtonComponent {}
         <span>{{ 'ft.ctCity' | flaT }}</span>
         <span>{{ 'ft.ctZip' | flaT }}</span>
       </address>
+      <nav [attr.aria-label]="'ft.service' | flaT">
+        <strong>{{ 'ft.service' | flaT }}</strong>
+        <a routerLink="/my-account/orders">{{ 'ft.orders' | flaT }}</a>
+        <a routerLink="/faq">{{ 'ft.returns' | flaT }}</a>
+        <a routerLink="/store-finder">{{ 'ft.stores' | flaT }}</a>
+        <a routerLink="/contact">{{ 'ft.contact' | flaT }}</a>
+      </nav>
+      <nav [attr.aria-label]="'ft.nation' | flaT">
+        <strong>{{ 'ft.nation' | flaT }}</strong>
+        <a routerLink="/socio-torcedor">{{ 'ft.join' | flaT }}</a>
+        <a routerLink="/matchday">{{ 'hd.tickets' | flaT }}</a>
+        <a routerLink="/c/experiencias">{{ 'ft.experiences' | flaT }}</a>
+        <a [href]="portal" target="_blank" rel="noopener"
+          >{{ 'ft.schools' | flaT
+          }}<span class="cx-visually-hidden">{{ 'hd.newTab' | flaT }}</span></a
+        >
+      </nav>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlaFooterInfoComponent {}
+export class FlaFooterInfoComponent {
+  readonly portal = PORTAL;
+}
 
 /**
  * Linha final do rodapé: "Flamengo © 2026 Todos os direitos reservados" e links. Substitui
