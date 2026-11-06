@@ -1203,3 +1203,17 @@ fla-logo-label {
     grid-area: nav;
   }
 }
+
+// Foco no header (06/11): ao clicar no logo (ou em qualquer link do header) com o mouse, o
+// Spartacus desenhava a moldura de foco (contorno vermelho + sombra branca de 2px) — sobre o
+// vermelho ficava uma caixa branca em volta. Com o mouse não desenha nada; pelo teclado
+// (Tab) continua visível, em branco.
+html header :focus:not(main):not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+html header :focus-visible:not(main) {
+  outline: 2px solid #fff !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
