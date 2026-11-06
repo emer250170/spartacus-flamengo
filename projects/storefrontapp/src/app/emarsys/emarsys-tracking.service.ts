@@ -166,6 +166,8 @@ export class EmarsysTrackingService implements OnDestroy {
           ]);
           this.marcarCompra(order.code);
           this.ultimoCarrinho = this.assinatura([]);
+          // sem o go a compra fica na fila e não chega ao Emarsys
+          comandos.push(['go']);
           return comandos;
         }
       }
