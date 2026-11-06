@@ -17,7 +17,10 @@
         (change)="pick(m)"
       />
       <span class="spay-body">
-        <span class="spay-name">{{ name(m) }}</span>
+        <span class="spay-name">
+          {{ name(m) }}
+          <span *ngIf="pixOff(m) as off" class="spay-badge">{{ off }}</span>
+        </span>
         <span class="spay-amount">{{ amount(m) }}</span>
         <small class="spay-hint">{{ hint(m) }}</small>
       </span>

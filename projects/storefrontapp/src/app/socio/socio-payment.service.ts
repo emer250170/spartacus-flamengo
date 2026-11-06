@@ -27,6 +27,10 @@ export interface SocioPayment {
   method?: SocioPaymentMethod;
   installments?: number;
   total: number;
+  /** Desconto do Pix (06/11): percentual da promoção publicada e o total no Pix e nas outras formas */
+  pixPercent?: number;
+  pixTotal?: number;
+  baseTotal?: number;
   orderCode?: string;
   orderDate?: Date;
   /** Pix e boleto: vencimento, código fictício e confirmação */
@@ -214,6 +218,9 @@ interface OccSocioPayment {
   method?: SocioPaymentMethod;
   installments?: number;
   total?: number;
+  pixPercent?: number;
+  pixTotal?: number;
+  baseTotal?: number;
   orderCode?: string;
   orderDate?: string;
   due?: string;
@@ -243,6 +250,9 @@ function toPayment(r: OccSocioPayment): SocioPayment {
     method: r?.method ?? undefined,
     installments: r?.installments ?? undefined,
     total: r?.total ?? 0,
+    pixPercent: r?.pixPercent || undefined,
+    pixTotal: r?.pixTotal ?? undefined,
+    baseTotal: r?.baseTotal ?? undefined,
     orderCode: r?.orderCode ?? undefined,
     orderDate: date(r?.orderDate),
     due: date(r?.due),

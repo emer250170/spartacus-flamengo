@@ -179,15 +179,30 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
   }
 
   /** "R$ 67,10 hoje e depois todo mês" / "R$ 805,20 em até 12x" / "R$ 805,20 à vista" */
+  /** Selo "5% off" no card do Pix (loja, com a promoção do Pix publicada) */
+  pixOff(m: SocioPaymentMethod): string {
+    const pct = this.opts?.pixPercent;
+    if (!this.store || m !== 'PIX' || !pct) {
+      return '';
+    }
+    return this.t('spay.pixOff', { p: String(Math.round(pct * 100) / 100).replace('.', ',') });
+  }
+
   amount(m: SocioPaymentMethod): string {
     const o = this.opts;
     if (!o) {
       return '';
     }
     if (this.store) {
+      // com desconto no Pix (06/11): o Pix com o desconto e as outras formas sem ele
+      const total = o.pixPercent
+        ? m === 'PIX'
+          ? o.pixTotal ?? o.total
+          : o.baseTotal ?? o.total
+        : o.total;
       return this.t(
         m === 'CARTAO_MENSAL' ? 'spay.a.store.CARD' : 'spay.a.store.UPFRONT',
-        { amount: this.brl(o.total) }
+        { amount: this.brl(total) }
       );
     }
     switch (m) {
