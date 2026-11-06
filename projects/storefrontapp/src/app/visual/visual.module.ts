@@ -1,7 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { CmsConfig, I18nModule, UrlModule, provideConfig } from '@spartacus/core';
+import {
+  CmsConfig,
+  I18nModule,
+  OccConfig,
+  UrlModule,
+  provideConfig,
+} from '@spartacus/core';
 import {
   DIALOG_TYPE,
   IconModule,
@@ -22,6 +28,12 @@ import {
 import { FlaCartDrawerComponent } from './fla-cart-drawer.component';
 import { FlaLogoLabelComponent } from './fla-logo-label.component';
 import { FlaMiniCartComponent } from './fla-mini-cart.component';
+import {
+  FLA_SIZES_ENDPOINT,
+  FLA_SIZES_SCOPE,
+  FlaPdpHeaderComponent,
+  FlaSizeChipsComponent,
+} from './fla-pdp.components';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -49,8 +61,27 @@ import { FlaMiniCartComponent } from './fla-mini-cart.component';
     FlaLogoLabelComponent,
     FlaMiniCartComponent,
     FlaCartDrawerComponent,
+    FlaPdpHeaderComponent,
+    FlaSizeChipsComponent,
   ],
   providers: [
+    // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
+    // resumo; tamanhos em botões
+    provideOutlet({
+      id: 'ProductIntroComponent',
+      position: OutletPosition.BEFORE,
+      component: FlaPdpHeaderComponent,
+    }),
+    provideOutlet({
+      id: 'ProductMultiDimensionalSelectorComponent',
+      position: OutletPosition.AFTER,
+      component: FlaSizeChipsComponent,
+    }),
+    provideConfig(<OccConfig>{
+      backend: {
+        occ: { endpoints: { product: { [FLA_SIZES_SCOPE]: FLA_SIZES_ENDPOINT } } },
+      },
+    }),
     // carrinho em box lateral à direita: ao clicar no carrinho do header e ao adicionar
     // um produto (no lugar do "Adicionado ao carrinho" do Spartacus)
     provideConfig(<CmsConfig>{

@@ -1,0 +1,161 @@
+// ---------------------------------------------------------------------------------------------
+// Visual da loja oficial — página do produto (06/11; mockup tela 4). Arquivo próprio para os
+// PRs do visual não brigarem no fim do mesmo arquivo.
+// Com o bloco do FlaPdpHeaderComponent (.fla-pdp) na página:
+// - some a faixa cinza do título (o nome passa para a coluna da direita) e o "Ainda sem
+//   avaliações"/código padrão e o preço padrão (o bloco mostra código, nome e preço)
+// - tamanhos em botões (FlaSizeChipsComponent) no lugar da lista suspensa
+// ---------------------------------------------------------------------------------------------
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) {
+  cx-page-slot.BottomHeaderSlot {
+    display: none !important;
+  }
+
+  cx-product-intro,
+  cx-product-summary .price {
+    display: none !important;
+  }
+
+  cx-page-layout.ProductDetailsPageTemplate cx-page-slot.Summary {
+    padding-top: 32px;
+  }
+}
+
+// mesma coluna e recuo dos outros blocos do resumo (o Spartacus dá 20px a cada um)
+cx-page-slot.Summary {
+  fla-pdp-header,
+  fla-size-chips {
+    display: block;
+    grid-column: 2;
+    padding-inline: 20px;
+  }
+}
+
+.fla-pdp {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e2e2e2;
+  margin-bottom: 18px;
+}
+
+.fla-pdp-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: #555;
+
+  a {
+    color: var(--fla-preto, #1b1b1b) !important;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.fla-pdp-code {
+  font-size: 13px;
+  color: #555;
+}
+
+.fla-pdp-name {
+  margin: 0;
+  font-family: var(--fla-fonte-titulo) !important;
+  font-size: 30px;
+  font-weight: 800 !important;
+  line-height: 1.1;
+  text-transform: uppercase !important;
+  color: var(--fla-preto, #1b1b1b);
+}
+
+.fla-pdp-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  strong {
+    font-family: var(--fla-fonte-titulo);
+    font-size: 26px;
+    color: var(--fla-vermelho, #d70000);
+  }
+
+  span {
+    font-size: 15px;
+  }
+}
+
+.fla-pdp-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font-size: 15px;
+
+  a {
+    color: #ff5a5a !important;
+    font-weight: 700;
+  }
+}
+
+// tamanhos em botões: o seletor padrão some quando os botões aparecem
+cx-product-multi-dimensional-selector:has(+ fla-size-chips .fla-sizes),
+cx-page-slot.Summary:has(fla-size-chips .fla-sizes) cx-product-multi-dimensional-selector {
+  display: none !important;
+}
+
+.fla-sizes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+
+  .fla-sizes-label {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .fla-sizes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  button {
+    min-width: 48px;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #fff;
+    color: var(--fla-preto, #1b1b1b);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--fla-preto, #1b1b1b);
+    }
+
+    &.is-selected {
+      border-color: #111;
+      background: #111;
+      color: #fff;
+    }
+  }
+}
+
+// "Adicionar ao carrinho" mais alto, como no mockup
+cx-storefront.ProductDetailsPageTemplate cx-page-slot.Summary cx-add-to-cart .btn-primary {
+  height: 52px;
+  font-size: 16px;
+}
