@@ -14,7 +14,7 @@ import { GlobalMessageService, GlobalMessageType, RoutingService } from '@sparta
 import { PreferredStoreFacade } from '@spartacus/pickup-in-store/root';
 import { UserAccountFacade } from '@spartacus/user/account/root';
 import { Observable, Subscription, combineLatest, of } from 'rxjs';
-import { filter, map, startWith, take } from 'rxjs/operators';
+import { filter, map, startWith, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { FlaPersonalizationService, PERSONALIZATION_ADDON } from './fla-personalization.service';
 import { FlaStoreSearchService, GeoPoint, PickupStore, RIO } from './fla-store-search.service';
@@ -143,9 +143,16 @@ export class FlaCheckoutDeliveryComponent implements OnInit, OnDestroy {
         this.activeCart.updateEntry(e.entryNumber as number, e.quantity ?? 1, undefined, true)
       );
       // a forma "pickup" gravada no "Ir para o pagamento" não vale mais: o torcedor escolhe o frete
-      if (this.cart?.deliveryMode?.code === 'pickup') {
-        this.deliveryModes.clearCheckoutDeliveryMode().subscribe({ error: () => undefined });
-      }
+      // (o carrinho ativo não traz a forma; ela vem do estado do checkout)
+      this.deliveryModes
+        .getSelectedDeliveryModeState()
+        .pipe(
+          filter((st) => !st.loading),
+          take(1),
+          filter((st) => st.data?.code === 'pickup'),
+          switchMap(() => this.deliveryModes.clearCheckoutDeliveryMode())
+        )
+        .subscribe({ error: () => undefined });
       this.afterChange();
     }
     this.cd.markForCheck();
