@@ -1,0 +1,47 @@
+# =====================================================================
+#  Política de Privacidade (06/11; checkout no visual da loja oficial, etapa 4)
+#  Página de conteúdo /politica-de-privacidade, linkada no aceite obrigatório
+#  do pagamento e no rodapé do checkout. Mesmo modelo da página de Termos
+#  (ContentPage1Template: menu no Section2A, texto no Section2B).
+#  Texto de demonstração (não é a política oficial do clube). Staged e Online.
+# =====================================================================
+
+$staged=catalogVersion(CatalogVersion.catalog(Catalog.id[default=electronics-spaContentCatalog]),CatalogVersion.version[default=Staged])[default=electronics-spaContentCatalog:Staged]
+$online=catalogVersion(CatalogVersion.catalog(Catalog.id[default=electronics-spaContentCatalog]),CatalogVersion.version[default=Online])[default=electronics-spaContentCatalog:Online]
+
+$menuPt=<div class='cx-page-title'><h1>Política de Privacidade</h1></div><ul><li><a href='#dados'>Dados que coletamos</a></li><li><a href='#uso'>Como usamos</a></li><li><a href='#compartilhamento'>Compartilhamento</a></li><li><a href='#direitos'>Seus direitos (LGPD)</a></li><li><a href='#contato'>Contato do encarregado</a></li></ul>
+$menuEn=<div class='cx-page-title'><h1>Privacy Policy</h1></div><ul><li><a href='#dados'>Data we collect</a></li><li><a href='#uso'>How we use it</a></li><li><a href='#compartilhamento'>Sharing</a></li><li><a href='#direitos'>Your rights (LGPD)</a></li><li><a href='#contato'>Data protection officer</a></li></ul>
+$textPt=<p><em>Texto de demonstração do ambiente de testes — não é a política oficial do Clube de Regatas do Flamengo.</em></p><h2 id='dados'>Dados que coletamos</h2><p>Nome, CPF, e-mail, telefone, endereço de entrega e dados do pedido (produtos, ingressos, poltrona, plano de sócio-torcedor). Os dados do cartão vão direto para o processador de pagamento e não ficam na loja.</p><h2 id='uso'>Como usamos</h2><p>Para processar o pedido, emitir o ingresso nominal e o acesso ao estádio, entregar ou separar os produtos para retirada, administrar o programa de sócio-torcedor e cumprir obrigações legais e fiscais. Ofertas por e-mail ou WhatsApp só com o seu consentimento, que pode ser retirado a qualquer momento.</p><h2 id='compartilhamento'>Compartilhamento</h2><p>Com o processador de pagamento, a transportadora, a administração do estádio (controle de acesso) e autoridades quando exigido por lei. Não vendemos dados pessoais.</p><h2 id='direitos'>Seus direitos (LGPD)</h2><p>Você pode pedir acesso, correção, portabilidade e exclusão dos seus dados, além de informações sobre o compartilhamento, pela área Minha conta ou pelo Fale Conosco.</p><h2 id='contato'>Contato do encarregado</h2><p>privacidade@exemplo.com.br</p>
+$textEn=<p><em>Demo text for the test environment — this is not Clube de Regatas do Flamengo's official policy.</em></p><h2 id='dados'>Data we collect</h2><p>Name, tax ID (CPF), e-mail, phone, delivery address and order data (products, tickets, seat, membership plan). Card data goes straight to the payment processor and is not kept by the store.</p><h2 id='uso'>How we use it</h2><p>To process the order, issue the named ticket and stadium access, deliver or prepare products for pickup, run the membership programme and meet legal and tax obligations. Offers by e-mail or WhatsApp only with your consent, which you can withdraw at any time.</p><h2 id='compartilhamento'>Sharing</h2><p>With the payment processor, the carrier, the stadium management (access control) and authorities when required by law. We do not sell personal data.</p><h2 id='direitos'>Your rights (LGPD)</h2><p>You can request access, correction, portability and deletion of your data, as well as information about sharing, in My account or through Contact us.</p><h2 id='contato'>Data protection officer</h2><p>privacidade@exemplo.com.br</p>
+
+# ---------- Staged ----------
+INSERT_UPDATE ContentPage;$staged[unique=true];uid[unique=true];name;masterTemplate(uid,$staged);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;privacyPolicy;Política de Privacidade;ContentPage1Template;/politica-de-privacidade;;;;Política de Privacidade;Privacy Policy
+
+INSERT_UPDATE CMSParagraphComponent;$staged[unique=true];uid[unique=true];name;&componentRef;content[lang=pt];content[lang=en]
+;;privacyPolicyMenuParagraph;Política de Privacidade - menu;privacyPolicyMenuParagraph;$menuPt;$menuEn
+;;privacyPolicyTextParagraph;Política de Privacidade - texto;privacyPolicyTextParagraph;$textPt;$textEn
+
+INSERT_UPDATE ContentSlot;$staged[unique=true];uid[unique=true];name;active;cmsComponents(&componentRef)
+;;Section2ASlot-PrivacyPolicy;Section2A Slot for Privacy Policy;true;privacyPolicyMenuParagraph
+;;Section2BSlot-PrivacyPolicy;Section2B Slot for Privacy Policy;true;privacyPolicyTextParagraph
+
+INSERT_UPDATE ContentSlotForPage;$staged[unique=true];uid[unique=true];position[unique=true];page(uid,$staged)[unique=true][default='privacyPolicy'];contentSlot(uid,$staged)[unique=true]
+;;Section2A-PrivacyPolicy;Section2A;;Section2ASlot-PrivacyPolicy
+;;Section2B-PrivacyPolicy;Section2B;;Section2BSlot-PrivacyPolicy
+
+# ---------- Online ----------
+INSERT_UPDATE ContentPage;$online[unique=true];uid[unique=true];name;masterTemplate(uid,$online);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;privacyPolicy;Política de Privacidade;ContentPage1Template;/politica-de-privacidade;;;;Política de Privacidade;Privacy Policy
+
+INSERT_UPDATE CMSParagraphComponent;$online[unique=true];uid[unique=true];name;&componentRef;content[lang=pt];content[lang=en]
+;;privacyPolicyMenuParagraph;Política de Privacidade - menu;privacyPolicyMenuParagraph;$menuPt;$menuEn
+;;privacyPolicyTextParagraph;Política de Privacidade - texto;privacyPolicyTextParagraph;$textPt;$textEn
+
+INSERT_UPDATE ContentSlot;$online[unique=true];uid[unique=true];name;active;cmsComponents(&componentRef)
+;;Section2ASlot-PrivacyPolicy;Section2A Slot for Privacy Policy;true;privacyPolicyMenuParagraph
+;;Section2BSlot-PrivacyPolicy;Section2B Slot for Privacy Policy;true;privacyPolicyTextParagraph
+
+INSERT_UPDATE ContentSlotForPage;$online[unique=true];uid[unique=true];position[unique=true];page(uid,$online)[unique=true][default='privacyPolicy'];contentSlot(uid,$online)[unique=true]
+;;Section2A-PrivacyPolicy;Section2A;;Section2ASlot-PrivacyPolicy
+;;Section2B-PrivacyPolicy;Section2B;;Section2BSlot-PrivacyPolicy

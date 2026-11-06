@@ -1,3 +1,4 @@
+import { FlaCheckoutAcceptModule } from '../visual/fla-checkout-accept';
 import { CommonModule } from '@angular/common';
 import { VitrineModule } from '../vitrine/vitrine.module';
 import { NgModule } from '@angular/core';
@@ -55,6 +56,8 @@ import { SocioTermPageComponent } from './socio-term-page.component';
     CommonModule,
     FormsModule,
     VitrineModule,
+    // bloco Aceites (Termos e Privacidade) dentro do cartão da Adyen
+    FlaCheckoutAcceptModule,
     // Termo do Nação: rota própria com o cabeçalho e o rodapé da página /socio-torcedor do CMS
     RouterModule.forChild([
       {

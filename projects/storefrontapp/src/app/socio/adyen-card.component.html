@@ -5,24 +5,8 @@
   <div class="acard-host" #cardHost></div>
   <p *ngIf="loading" class="spay-note">{{ 'acard.loading' | flaT }}</p>
 
-  <label class="acard-terms">
-    <input
-      type="checkbox"
-      [checked]="terms"
-      [disabled]="busy"
-      (change)="setTerms($any($event.target).checked)"
-    />
-    <span>
-      {{ 'acard.terms' | flaT }}
-      <a [routerLink]="{ cxRoute: 'termsAndConditions' } | cxUrl" target="_blank">{{
-        'acard.termsLink' | flaT
-      }}</a>
-      *
-    </span>
-  </label>
-  <small *ngIf="termsTouched && !terms" class="spay-error" role="alert">{{
-    'acard.termsRequired' | flaT
-  }}</small>
+  <!-- Aceites (Termos e Privacidade), o mesmo estado do "Finalizar pedido" do Spartacus -->
+  <fla-checkout-accept></fla-checkout-accept>
 
   <p *ngIf="error" class="spay-error" role="alert">{{ error }}</p>
 
