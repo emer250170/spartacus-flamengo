@@ -76,6 +76,19 @@
 
     <title>Spartacus Storefront</title>
     <base href="/" />
+
+    <!-- Emarsys Web Extend (os comandos de cada página saem do EmarsysTrackingService) -->
+    <script type="text/javascript">
+      var ScarabQueue = ScarabQueue || [];
+      (function (id) {
+        if (document.getElementById(id)) return;
+        var js = document.createElement('script');
+        js.id = id;
+        js.src = '//cdn.scarabresearch.com/js/1CD483F6C27FCA99/scarab-v2.js';
+        var fs = document.getElementsByTagName('script')[0];
+        fs.parentNode.insertBefore(js, fs);
+      })('scarab-js-api');
+    </script>
   </head>
 
   <body>
