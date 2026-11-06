@@ -44,6 +44,7 @@ import { ptProduto } from './i18n/pt-produto';
 import { FlaPickupModule } from './pickup/fla-pickup.module';
 import { ListagemModule } from './listagem/listagem.module';
 import { SpartacusModule } from './spartacus/spartacus.module';
+import { VisualModule } from './visual/visual.module';
 
 registerLocaleData(localeDe);
 registerLocaleData(localeJa);
@@ -67,6 +68,7 @@ if (!environment.production) {
     SocioModule,
     FlaPickupModule, // "Minha loja" com os textos do cartão traduzidos
     ListagemModule, // listagem no layout da loja oficial: grade, Filtrar, Carregar mais
+    VisualModule, // header em três faixas e rodapé escuro da loja oficial
     TestOutletModule, // custom usages of cxOutletRef only for e2e testing
     TestConfigModule.forRoot({ cookie: 'cxConfigE2E' }), // Injects config dynamically from e2e tests. Should be imported after other config modules.
 
