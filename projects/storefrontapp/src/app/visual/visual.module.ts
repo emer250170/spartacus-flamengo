@@ -101,7 +101,7 @@ import {
     }),
     // página do produto: "Calcule o frete" e trocas e devoluções depois do botão do carrinho
     provideOutlet({
-      id: 'AddToCartComponent',
+      id: 'ProductAddToCartComponent',
       position: OutletPosition.AFTER,
       component: FlaPdpShippingComponent,
     }),
