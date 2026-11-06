@@ -3,72 +3,78 @@
   width: 100%;
 }
 
+// Próximo jogo em casa (mockup "Home", 06/11): faixa preta lisa com filete vermelho embaixo,
+// título, data e local à esquerda e os dois botões à direita; conteúdo nas bordas do header
+// (1140px + 16px de recuo). Sem <header>: o tema pinta qualquer header de vermelho.
 .mdb {
-  background: repeating-linear-gradient(
-      90deg,
-      rgba(215, 0, 0, 0.18) 0 28px,
-      transparent 28px 56px
-    ),
-    #0b0b0c;
-  color: #f4f4f5;
   border-bottom: 4px solid var(--fla-vermelho, #d70000);
+  background: #111;
+  color: #fff;
 }
 
 .mdb-inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
   box-sizing: border-box;
-  // 1140px de conteúdo (bordas do header), com 16px de recuo
   max-width: calc(var(--cx-page-width-max, 1140px) + 32px);
   margin: 0 auto;
-  padding: 40px 16px;
+  padding: 28px 16px;
+}
+
+.mdb-text {
+  display: flex;
+  flex: 1 1 400px;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
 .mdb-eyebrow {
-  margin: 0 0 6px;
-  color: #fca5a5;
+  margin: 0;
+  color: #ff5a5a;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .mdb-title {
-  margin: 0 0 8px;
+  margin: 0;
   color: #fff;
-  font-size: clamp(28px, 4vw, 48px);
+  font-family: var(--fla-fonte-titulo);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .mdb-line {
   margin: 0;
-  color: #d4d4d8;
-  font-size: 18px;
-}
-
-.mdb-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  color: #d6d6d6;
+  font-size: 16px;
 }
 
 .mdb-btn {
   display: inline-flex;
   align-items: center;
-  min-height: 48px;
-  padding: 10px 22px;
+  height: 48px;
+  padding: 0 22px;
   border: 1px solid var(--fla-vermelho, #d70000);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--fla-vermelho, #d70000);
   color: #fff !important;
   font-weight: 700;
   text-transform: uppercase;
   text-decoration: none !important;
+  white-space: nowrap;
 
   &:hover {
+    border-color: var(--fla-vermelho-escuro, #b40000);
     background: var(--fla-vermelho-escuro, #b40000);
   }
+
   &:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 2px;
@@ -76,10 +82,27 @@
 }
 
 .mdb-btn-ghost {
+  border-color: #fff;
   background: transparent;
-  border-color: #52525b;
 
   &:hover {
-    background: #18181b;
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .mdb-inner {
+    gap: 16px;
+    padding-block: 24px;
+  }
+
+  .mdb-title {
+    font-size: 28px;
+  }
+
+  .mdb-btn {
+    flex: 1 1 100%;
+    justify-content: center;
   }
 }

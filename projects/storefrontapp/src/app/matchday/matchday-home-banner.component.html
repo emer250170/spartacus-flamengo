@@ -5,21 +5,19 @@
 <section *ngIf="next$ | async as m" class="mdb" aria-labelledby="mdb-title">
   <div class="mdb-inner">
     <div class="mdb-text">
-      <p class="mdb-eyebrow">{{ 'mdb.eyebrow' | flaT }}</p>
+      <p class="mdb-eyebrow">
+        {{ 'mdb.eyebrow' | flaT }}<ng-container *ngIf="m.tag"> · {{ 'tag.' + m.tag | flaT }}</ng-container>
+      </p>
       <h2 id="mdb-title" class="mdb-title">Flamengo x {{ m.opponent }}</h2>
       <p class="mdb-line">
-        {{ weekday(m) }}, {{ m.dateLabel }} · {{ m.timeLabel }} ·
-        {{ m.venue }} · {{ m.competition }}
+        {{ weekday(m) }}, {{ day(m) }} · {{ m.timeLabel }} · {{ m.venue }} ·
+        {{ m.competition }}
       </p>
     </div>
-    <div class="mdb-actions">
-      <a class="mdb-btn" [routerLink]="'/matchday'">{{ 'mdb.build' | flaT }}</a>
-      <a
-        class="mdb-btn mdb-btn-ghost"
-        [routerLink]="'/c/flamengo_jogos_casa'"
-        >{{ 'mdb.all' | flaT }}</a
-      >
-    </div>
+    <a class="mdb-btn" [routerLink]="'/matchday'">{{ 'mdb.build' | flaT }}</a>
+    <a class="mdb-btn mdb-btn-ghost" [routerLink]="'/c/flamengo_jogos_casa'">{{
+      'mdb.all' | flaT
+    }}</a>
   </div>
 </section>
 
