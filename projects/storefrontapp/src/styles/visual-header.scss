@@ -1,0 +1,246 @@
+// ---------------------------------------------------------------------------------------------
+// Visual da loja oficial — complemento do header (06/11; mockup "Header da loja").
+// Arquivo separado do tema-flamengo.scss para os PRs do visual não brigarem no mesmo trecho.
+// - faixa de cima com 32px e idioma compacto (globo + sigla)
+// - "Ingressos ▾" com a lista dos próximos jogos
+// - faixa preta alinhada à esquerda, com "Loja Oficial" primeiro e texto sem caixa alta
+// - título da listagem na mesma borda do header e das fotos
+// ---------------------------------------------------------------------------------------------
+
+@media (max-width: 991.98px) {
+  fla-language,
+  fla-store-home-link {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  // 1a faixa: 32px como no mockup
+  header cx-page-slot.SiteLinks,
+  header cx-page-slot.SiteLogin,
+  header cx-page-slot.SiteContext {
+    min-height: 32px !important;
+  }
+
+  // idioma: o componente próprio no lugar do seletor do CMS (o tema já esconde o de tema/cores)
+  header cx-page-slot.SiteContext cx-site-context-selector {
+    display: none !important;
+  }
+
+  .fla-lang {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+
+    select {
+      appearance: none;
+      padding: 4px 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      color: #fff !important;
+      font: inherit;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    option {
+      color: var(--fla-preto);
+    }
+  }
+
+  // carrinho rente à borda direita (o Spartacus dá 14px de margem ao mini-carrinho)
+  html header cx-mini-cart {
+    margin: 0 !important;
+  }
+
+  // 2a faixa: "Ingressos ▾" ---------------------------------------------------------------
+  .fla-tk {
+    position: relative;
+  }
+
+  button.fla-tickets-btn {
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .fla-tk-chevron {
+    transition: transform 0.15s;
+  }
+
+  .fla-tickets-btn[aria-expanded='true'] .fla-tk-chevron {
+    transform: rotate(180deg);
+  }
+
+  .fla-tk-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 30;
+    width: 340px;
+    padding: 16px;
+    border-radius: 4px;
+    background: #fff;
+    color: var(--fla-preto);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li + li {
+      border-top: 1px solid #eee;
+    }
+
+    li a {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 10px 4px;
+      color: var(--fla-preto) !important;
+      text-decoration: none !important;
+
+      &:hover .fla-tk-name {
+        color: var(--fla-vermelho);
+      }
+    }
+  }
+
+  .fla-tk-title {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .fla-tk-name {
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .fla-tk-meta {
+    font-size: 13px;
+    color: #555;
+  }
+
+  .fla-tk-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--fla-vermelho);
+  }
+
+  .fla-tk-note {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #555;
+  }
+
+  a.fla-tk-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    margin-top: 8px;
+    border-radius: 2px;
+    background: var(--fla-vermelho);
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none !important;
+
+    &:hover {
+      background: var(--fla-vermelho-escuro);
+    }
+  }
+
+  // 3a faixa: categorias à esquerda, "Loja Oficial" primeiro, sem caixa alta --------------
+  html header cx-page-slot.NavigationBar {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 0;
+    min-height: 48px;
+  }
+
+  // os itens do slot vêm com flex 1 1 100% do Spartacus: o link ficava com metade da faixa
+  header cx-page-slot.NavigationBar > fla-store-home-link {
+    flex: none !important;
+    width: auto !important;
+  }
+
+  header cx-page-slot.NavigationBar > cx-category-navigation {
+    flex: 1 1 auto !important;
+    min-width: 0;
+  }
+
+  header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul {
+    flex-wrap: nowrap !important;
+  }
+
+  header cx-page-slot.NavigationBar cx-category-navigation,
+  header cx-page-slot.NavigationBar cx-navigation-ui.flyout,
+  header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav,
+  header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul {
+    justify-content: flex-start !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  header cx-navigation-ui.flyout > nav > ul > li > cx-generic-link > a,
+  header cx-navigation-ui.flyout > nav > ul > li > span,
+  header cx-navigation-ui.flyout > nav > ul > li > button,
+  .fla-store-home {
+    text-transform: none !important;
+  }
+
+  .fla-store-home {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 9px;
+    padding: 4px 0;
+    color: #fff !important;
+    font-family: var(--fla-fonte);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none !important;
+
+    &.is-active {
+      box-shadow: inset 0 -2px 0 #fff;
+    }
+
+    &:hover {
+      box-shadow: inset 0 -3px 0 var(--fla-vermelho);
+    }
+  }
+}
+
+// Listagem: trilha e título na mesma borda do header e das fotos (sem o recuo de 15px)
+cx-storefront:is(
+    .ProductListPageTemplate,
+    .ProductGridPageTemplate,
+    .SearchResultsListPageTemplate,
+    .SearchResultsGridPageTemplate
+  )
+  cx-page-slot.BottomHeaderSlot
+  cx-breadcrumb {
+  padding-inline: 0 !important;
+}
+
+// Listagem: "Filtrar" e "Ordenar por" na mesma borda das fotos (a coluna do Bootstrap dava 15px;
+// a grade de produtos já compensa com a margem negativa da .row)
+.fla-list-bar {
+  margin-inline: -15px;
+}
