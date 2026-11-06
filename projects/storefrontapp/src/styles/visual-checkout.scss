@@ -1069,12 +1069,14 @@ button.fla-co-primary-btn {
     cursor: pointer;
   }
 
+  // o CSS global do Spartacus põe margem negativa e 22px no checkbox (no celular saía do quadro)
   input {
     position: static !important;
     appearance: auto !important;
-    width: 18px;
-    height: 18px;
-    margin: 0;
+    flex: none;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
     accent-color: var(--fla-vermelho);
   }
 }

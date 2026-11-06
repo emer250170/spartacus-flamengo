@@ -96,7 +96,7 @@
       <p class="fla-cdl-loading" *ngIf="searching && !stores" role="status">{{ 'cdl.searching' | flaT }}</p>
 
       <div class="fla-cdl-go" *ngIf="v.onlyPhysical">
-        <p *ngIf="v.pickupStore">{{ 'cdl.pickupAt' | flaT: { store: v.pickupStoreName || v.pickupStore } }}</p>
+        <p *ngIf="v.pickupStore">{{ 'cdl.pickupAt' | flaT: { store: storeLabel(v) } }}</p>
         <button type="button" class="fla-co-primary-btn" [disabled]="!v.pickupStore || applying" (click)="goToPayment(v)">
           {{ 'cdl.goPayment' | flaT }}
         </button>
