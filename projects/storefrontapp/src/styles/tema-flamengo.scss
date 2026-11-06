@@ -1503,8 +1503,13 @@ html.fla-home cx-page-layout.LandingPage2Template {
     display: none !important;
   }
 
+  // o layout é flexível: sem flex/min-width o slot ficava com a largura mínima do conteúdo
+  // (1062px numa tela de 1024px, com rolagem lateral)
   > cx-page-slot.Section1 {
     display: block !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 0 !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
