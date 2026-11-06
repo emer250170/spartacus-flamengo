@@ -43,6 +43,10 @@ import {
   FlaCheckoutFooterComponent,
   FlaCheckoutHeaderComponent,
 } from './fla-checkout-header.component';
+import {
+  FlaCheckoutIdentityExtraComponent,
+  FlaCheckoutIdentityIntroComponent,
+} from './fla-checkout-identity.component';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -79,6 +83,8 @@ import {
     FlaCartPageComponent,
     FlaCheckoutHeaderComponent,
     FlaCheckoutFooterComponent,
+    FlaCheckoutIdentityIntroComponent,
+    FlaCheckoutIdentityExtraComponent,
   ],
   providers: [
     // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
@@ -174,6 +180,18 @@ import {
       id: 'cx-footer',
       position: OutletPosition.AFTER,
       component: FlaCheckoutFooterComponent,
+    }),
+    // login a caminho do checkout (Identificação): título antes do formulário; motivos,
+    // próximas etapas e Resumo depois
+    provideOutlet({
+      id: 'LeftContentSlot',
+      position: OutletPosition.BEFORE,
+      component: FlaCheckoutIdentityIntroComponent,
+    }),
+    provideOutlet({
+      id: 'LeftContentSlot',
+      position: OutletPosition.AFTER,
+      component: FlaCheckoutIdentityExtraComponent,
     }),
     // rodapé: endereços antes dos links do CMS e a linha final depois
     provideOutlet({
