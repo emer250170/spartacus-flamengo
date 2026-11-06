@@ -3,98 +3,97 @@
   class="mdc"
   aria-labelledby="mdc-title"
 >
-  <h2 id="mdc-title" class="mdc-title">{{ 'mdc.title' | flaT }}</h2>
-  <p class="mdc-sub">{{ 'mdc.sub' | flaT: { code: c.orderCode } }}</p>
+  <div class="mdc-main">
+    <span class="mdc-eyebrow">{{ 'mdc.eyebrow' | flaT }}</span>
+    <h2 id="mdc-title" class="mdc-title">{{ c.selection.matchTitle }}</h2>
+    <span class="mdc-line">{{ c.selection.matchLine }}</span>
 
-  <div class="mdc-grid">
-    <article class="mdc-card mdc-ticket">
-      <div>
-        <p class="mdc-kind">{{ 'mdc.ticket' | flaT }}</p>
-        <p class="mdc-name">{{ c.selection.matchTitle }}</p>
-        <p class="mdc-detail">{{ c.selection.matchLine }}</p>
-        <p class="mdc-detail">
-          {{
-            'mdc.sectorSeat'
-              | flaT: { sector: c.selection.sectorName, seat: c.selection.seat }
-          }}
-        </p>
-      </div>
-      <svg
-        class="mdc-qr"
-        viewBox="0 0 21 21"
-        role="img"
-        [attr.aria-label]="'mdc.qr' | flaT"
-        shape-rendering="crispEdges"
-      >
-        <rect width="21" height="21" fill="#fff"></rect>
-        <ng-container *ngFor="let row of c.qr; let r = index">
-          <ng-container *ngFor="let on of row; let col = index">
-            <rect
-              *ngIf="on"
-              [attr.x]="col"
-              [attr.y]="r"
-              width="1"
-              height="1"
-              fill="#0b0b0c"
-            ></rect>
-          </ng-container>
-        </ng-container>
-      </svg>
-    </article>
+    <div class="mdc-grid">
+      <article class="mdc-card">
+        <span class="mdc-kind">{{ 'mdc.ticket' | flaT }}</span>
+        <strong class="mdc-name">{{
+          'mdc.sectorSeat'
+            | flaT: { sector: c.selection.sectorName, seat: c.selection.seat }
+        }}</strong>
+        <span class="mdc-detail">{{ 'mdc.ticketNote' | flaT }}</span>
+      </article>
 
-    <article class="mdc-card">
-      <p class="mdc-kind">{{ 'mdc.parking' | flaT }}</p>
-      <ng-container *ngIf="c.selection.parkingName; else noPark">
-        <p class="mdc-name">{{ c.selection.parkingName }}</p>
-        <p class="mdc-detail">
-          {{
+      <article class="mdc-card">
+        <span class="mdc-kind">{{ 'mdc.parking' | flaT }}</span>
+        <ng-container *ngIf="c.selection.parkingName; else noPark">
+          <strong class="mdc-name">{{ c.selection.parkingName }}</strong>
+          <span class="mdc-detail">{{
             c.selection.plate
               ? ('mdc.plate' | flaT: { plate: c.selection.plate })
               : ('mdc.spot' | flaT)
-          }}
-        </p>
-      </ng-container>
-      <ng-template #noPark
-        ><p class="mdc-detail">{{ 'mdc.noParking' | flaT }}</p></ng-template
-      >
-    </article>
+          }}</span>
+        </ng-container>
+        <ng-template #noPark
+          ><span class="mdc-detail">{{ 'mdc.noParking' | flaT }}</span></ng-template
+        >
+      </article>
 
-    <article class="mdc-card">
-      <p class="mdc-kind">{{ 'mdc.food' | flaT }}</p>
-      <ng-container *ngIf="c.selection.food.length; else noFood">
-        <p class="mdc-name">
-          {{ 'mdc.foodItems' | flaT: { n: foodTotal(c.selection) } }}
-        </p>
-        <p class="mdc-detail">
-          {{
+      <article class="mdc-card">
+        <span class="mdc-kind">{{ 'mdc.food' | flaT }}</span>
+        <ng-container *ngIf="c.selection.food.length; else noFood">
+          <strong class="mdc-name">{{
+            'mdc.foodItems' | flaT: { n: foodTotal(c.selection) }
+          }}</strong>
+          <span class="mdc-detail">{{
             c.selection.foodDelivery === 'seat'
               ? ('mdc.atSeat' | flaT: { seat: c.selection.seat })
               : ('mdc.atKiosk' | flaT: { sector: c.selection.sectorName })
-          }}
-        </p>
-      </ng-container>
-      <ng-template #noFood
-        ><p class="mdc-detail">{{ 'mdc.noFood' | flaT }}</p></ng-template
-      >
-    </article>
+          }}</span>
+        </ng-container>
+        <ng-template #noFood
+          ><span class="mdc-detail">{{ 'mdc.noFood' | flaT }}</span></ng-template
+        >
+      </article>
 
-    <article class="mdc-card">
-      <p class="mdc-kind">{{ 'mdc.shirt' | flaT }}</p>
-      <ng-container *ngIf="c.selection.shirtCode; else noShirt">
-        <p class="mdc-name">
-          {{ 'mdc.shirtName' | flaT: { size: c.selection.shirtSize } }}
-        </p>
-        <p class="mdc-detail">
-          {{
-            c.selection.shirtName || c.selection.shirtNumber
-              ? c.selection.shirtName + ' ' + c.selection.shirtNumber + ' · '
-              : ''
-          }}{{ 'mdc.pickup' | flaT }}
-        </p>
+      <article class="mdc-card">
+        <span class="mdc-kind">{{ 'mdc.shirt' | flaT }}</span>
+        <ng-container *ngIf="c.selection.shirtCode; else noShirt">
+          <strong class="mdc-name">{{
+            'mdc.shirtName' | flaT: { size: c.selection.shirtSize }
+          }}</strong>
+          <span class="mdc-detail"
+            >{{
+              c.selection.shirtName || c.selection.shirtNumber
+                ? c.selection.shirtName + ' ' + c.selection.shirtNumber + ' · '
+                : ''
+            }}{{ 'mdc.pickup' | flaT }}</span
+          >
+        </ng-container>
+        <ng-template #noShirt
+          ><span class="mdc-detail">{{ 'mdc.noShirt' | flaT }}</span></ng-template
+        >
+      </article>
+    </div>
+  </div>
+
+  <div class="mdc-qr-panel">
+    <svg
+      class="mdc-qr"
+      viewBox="0 0 21 21"
+      role="img"
+      [attr.aria-label]="'mdc.qr' | flaT"
+      shape-rendering="crispEdges"
+    >
+      <rect width="21" height="21" fill="#fff"></rect>
+      <ng-container *ngFor="let row of c.qr; let r = index">
+        <ng-container *ngFor="let on of row; let col = index">
+          <rect
+            *ngIf="on"
+            [attr.x]="col"
+            [attr.y]="r"
+            width="1"
+            height="1"
+            fill="#111"
+          ></rect>
+        </ng-container>
       </ng-container>
-      <ng-template #noShirt
-        ><p class="mdc-detail">{{ 'mdc.noShirt' | flaT }}</p></ng-template
-      >
-    </article>
+    </svg>
+    <strong>{{ 'mdc.qrTicket' | flaT: { seat: c.selection.seat } }}</strong>
+    <span>{{ 'mdc.app' | flaT }}</span>
   </div>
 </section>

@@ -1568,3 +1568,240 @@ html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTempla
     padding-inline: 16px;
   }
 }
+
+// confirmação do pedido (mockup "Confirmação", 06/11) ----------------------------------------
+// Com <html class="fla-oc"> (FlaOcHeroComponent): coluna de caixas na largura do conteúdo, na
+// ordem do mockup: topo (FlaOcHeroComponent), Pix/boleto (outlet do agradecimento), "Seu dia de
+// jogo" (MatchdayOrderConfirmationComponent) e itens/entrega/pagamento/pontos (FlaOcBodyComponent).
+// Os componentes padrão do Spartacus (agradecimento, itens, cobrança, totais, exportar CSV,
+// continuar) ficam escondidos; o endereço de cobrança saiu (decisão do Emerson, 06/11).
+html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate {
+  cx-page-slot.BodyContent {
+    display: flex !important;
+    flex-direction: column;
+    flex-wrap: nowrap !important;
+    gap: 20px;
+    max-width: $fla-co-width;
+    margin: 0 auto !important;
+    padding: 48px 0 !important;
+    background: transparent !important;
+
+    > :not(fla-oc-hero):not(fla-oc-body):not(fla-matchday-order-confirmation):not(fla-socio-payment-status) {
+      display: none !important;
+    }
+
+    > * {
+      flex: none !important;
+      width: 100%;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  }
+
+  cx-page-slot.SideContent {
+    display: none !important;
+  }
+
+  fla-socio-payment-status:empty {
+    display: none !important;
+  }
+
+  fla-socio-payment-status .spay {
+    max-width: none;
+    margin: 0;
+    padding: 24px 28px;
+    border-radius: 4px;
+  }
+}
+
+.fla-oc-box {
+  min-width: 0;
+  padding: 28px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.fla-oc-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  text-align: center;
+
+  h1 {
+    margin: 0;
+    font-family: var(--fla-fonte-titulo);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.15;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.fla-oc-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #1d8b21;
+  color: #fff;
+
+  &.is-wait {
+    background: #b26a00;
+  }
+}
+
+.fla-oc-number {
+  font-size: 18px;
+}
+
+.fla-oc-muted {
+  color: #555;
+  font-size: 16px;
+}
+
+.fla-oc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+a.fla-oc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 22px;
+  border: 1px solid var(--fla-vermelho);
+  border-radius: 4px;
+  background: var(--fla-vermelho);
+  color: #fff !important;
+  font-weight: 700;
+  text-decoration: none !important;
+
+  &:hover {
+    background: var(--fla-vermelho-escuro);
+  }
+
+  &.is-outline {
+    border-color: #111;
+    background: #fff;
+    color: #111 !important;
+
+    &:hover {
+      background: #f3f2f2;
+    }
+  }
+}
+
+.fla-oc-cols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.fla-oc-items {
+  display: flex;
+  flex: 999 1 520px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fla-oc-side {
+  display: flex;
+  flex: 1 1 300px;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.fla-oc-h2,
+.fla-oc-h3 {
+  margin: 0 0 10px !important;
+  font-family: var(--fla-fonte-titulo) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+}
+
+.fla-oc-h2 {
+  font-size: 20px !important;
+}
+
+.fla-oc-h3 {
+  margin-bottom: 6px !important;
+  font-size: 17px !important;
+}
+
+.fla-oc-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+}
+
+.fla-oc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px;
+  font-size: 15px;
+}
+
+.fla-oc-points {
+  background: var(--fla-vermelho);
+  color: #fff;
+
+  strong {
+    font-family: var(--fla-fonte-titulo);
+    font-size: 17px;
+    text-transform: uppercase;
+  }
+}
+
+a.fla-oc-back {
+  display: block;
+  margin-top: 20px;
+  color: var(--fla-preto) !important;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 1171.98px) {
+  html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate cx-page-slot.BodyContent {
+    padding: 32px 16px !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate cx-page-slot.BodyContent {
+    padding: 24px 16px !important;
+  }
+
+  .fla-oc-hero {
+    padding: 28px 16px;
+
+    h1 {
+      font-size: 24px;
+    }
+  }
+
+  .fla-oc-box {
+    padding: 20px 16px;
+  }
+
+  a.fla-oc-btn {
+    flex: 1 1 100%;
+  }
+}
