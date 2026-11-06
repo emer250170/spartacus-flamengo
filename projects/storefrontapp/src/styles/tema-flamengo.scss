@@ -1519,3 +1519,25 @@ html.fla-home cx-page-layout.LandingPage2Template {
     }
   }
 }
+
+// Foco (06/11): o Spartacus (opção a11yImproveContrast) põe uma moldura de 2px (box-shadow) em
+// qualquer elemento focado, também depois de um clique com o mouse (ex.: a aba "Novidades da
+// loja" ficava emoldurada). Clique com o mouse: sem moldura. Teclado (Tab, :focus-visible): a
+// moldura continua, para acessibilidade. Os elementos que usam sombra de propósito voltam a ela.
+html :focus:not(:focus-visible),
+html .cxFeat_a11yImproveContrast :focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html .fla-portal-nav a.fla-ativo:focus:not(:focus-visible) {
+  box-shadow: inset 0 -3px 0 #fff !important;
+}
+
+html .fla-store-home.is-active:focus:not(:focus-visible) {
+  box-shadow: inset 0 -2px 0 #fff !important;
+}
+
+html .fla-sb:focus:not(:focus-visible) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28) !important;
+}
