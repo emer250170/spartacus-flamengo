@@ -56,7 +56,9 @@ import org.slf4j.LoggerFactory;
  * <li>{@code price}: menor preço BRL de lista (sem grupo de preço) do produto ou das variantes.</li>
  * <li>{@code available}: estoque em alguma variante (ou forçado em estoque); serviços do dia de jogo
  * (estacionamento, comida, personalização) sempre {@code false}, para não serem recomendados.</li>
- * <li>Campos em inglês com o sufixo {@code _en}; campo próprio {@code tipo}.</li>
+ * <li>Campos em inglês com o sufixo {@code _en}. Campo próprio com o tipo do produto só quando
+ * {@code flamengo.emarsys.catalogo.campoTipo} tem o nome do campo já criado no Emarsys (o Emarsys recusa
+ * coluna desconhecida: "Unexpected column name").</li>
  * </ul>
  * O formato do arquivo não deve mudar depois que o Emarsys começa a importar (colunas novas só no fim).
  */
@@ -66,7 +68,7 @@ public class DefaultEmarsysCatalogService implements EmarsysCatalogService
 
 	/** Ordem das colunas: não mudar (o Emarsys exige o mesmo formato; colunas novas só no fim). */
 	static final List<String> HEADER = Collections.unmodifiableList(Arrays.asList("item", "title", "title_en", "link",
-			"link_en", "image", "category", "category_en", "price", "available", "description", "description_en", "tipo"));
+			"link_en", "image", "category", "category_en", "price", "available", "description", "description_en"));
 
 	private static final Locale PT = new Locale("pt");
 	private static final Locale EN = Locale.ENGLISH;
@@ -151,7 +153,14 @@ public class DefaultEmarsysCatalogService implements EmarsysCatalogService
 		final List<ProductModel> products = flexibleSearchService.<ProductModel> search(query).getResult();
 
 		final StringBuilder csv = new StringBuilder();
-		csv.append(String.join(",", HEADER)).append('\n');
+		final String typeField = StringUtils.trimToEmpty(
+				configurationService.getConfiguration().getString("flamengo.emarsys.catalogo.campoTipo", ""));
+		csv.append(String.join(",", HEADER));
+		if (!typeField.isEmpty())
+		{
+			csv.append(',').append(quote(typeField));
+		}
+		csv.append('\n');
 		final Map<String, String> categoryPaths = new TreeMap<>();
 		int rows = 0;
 		for (final ProductModel product : products)
@@ -162,7 +171,7 @@ public class DefaultEmarsysCatalogService implements EmarsysCatalogService
 			}
 			try
 			{
-				csv.append(row(product, store, media, maxDescription, stock, categoryPaths)).append('\n');
+				csv.append(row(product, store, media, maxDescription, stock, categoryPaths, !typeField.isEmpty())).append('\n');
 				rows++;
 			}
 			catch (final RuntimeException e)
@@ -175,7 +184,7 @@ public class DefaultEmarsysCatalogService implements EmarsysCatalogService
 	}
 
 	protected String row(final ProductModel product, final String store, final String media, final int maxDescription,
-			final Map<String, Boolean> stock, final Map<String, String> categoryPaths)
+			final Map<String, Boolean> stock, final Map<String, String> categoryPaths, final boolean withType)
 	{
 		final String code = product.getCode();
 		final String type = type(code);
@@ -220,11 +229,15 @@ public class DefaultEmarsysCatalogService implements EmarsysCatalogService
 		}
 
 		final String route = "ingresso".equals(type) ? "/matchday?jogo=" + encode(code) : "/product/" + encode(code);
-		final List<String> values = Arrays.asList(code, clean(product.getName(PT)), clean(product.getName(EN)),
+		final List<String> values = new ArrayList<>(Arrays.asList(code, clean(product.getName(PT)), clean(product.getName(EN)),
 				store + "/pt/BRL" + route, store + "/en/BRL" + route, image(product, media), String.join("|", pathsPt),
 				String.join("|", pathsEn), price == null ? "" : String.format(Locale.ROOT, "%.2f", price),
 				available ? "true" : "false", cut(clean(product.getDescription(PT)), maxDescription),
-				cut(clean(product.getDescription(EN)), maxDescription), type);
+				cut(clean(product.getDescription(EN)), maxDescription)));
+		if (withType)
+		{
+			values.add(type);
+		}
 		final StringBuilder line = new StringBuilder();
 		for (int i = 0; i < values.size(); i++)
 		{
@@ -237,7 +250,7 @@ public class DefaultEmarsysCatalogService implements EmarsysCatalogService
 		return line.toString();
 	}
 
-	/** Tipo do produto pelo prefixo do código (também vai para o campo próprio {@code tipo}). */
+	/** Tipo do produto pelo prefixo do código (decide a disponibilidade; vai para o campo próprio, se configurado). */
 	protected String type(final String code)
 	{
 		if (code.startsWith("JOGO-"))

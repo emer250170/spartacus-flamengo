@@ -988,7 +988,7 @@ isso, porque o `?context=` da URL muda a cada gravação. Por isso, o catálogo 
 | `price` | menor preço BRL de lista (sem grupo de preço) do produto ou das variantes (jogo = poltrona mais barata) |
 | `available` | estoque em alguma variante no `warehouse_s` (ou forçado em estoque); plano de sócio sempre disponível; estacionamento, comida e personalização sempre `false`, para entrarem nos pedidos sem ser recomendados |
 | `description`, `description_en` | descrição sem HTML, até `flamengo.emarsys.descricao.max` (1000) caracteres |
-| `tipo` | campo próprio: `produto`, `ingresso`, `experiencia`, `socio_torcedor`, `estacionamento`, `alimentacao`, `personalizacao` |
+| (opcional) | campo próprio com o tipo (`produto`, `ingresso`, `experiencia`, `socio_torcedor`, `estacionamento`, `alimentacao`, `personalizacao`), só se `flamengo.emarsys.catalogo.campoTipo` tiver o nome do campo já criado no Emarsys. Em 06/11 o Emarsys recusou a coluna `tipo` ("Unexpected column name"), por isso ela sai desligada. |
 
 - Prévia de 06/11 (Groovy no HAC, sem gravar): 684 linhas, cerca de 700 KB, 74 indisponíveis, 18 sem foto (serviços e
   planos), nenhum sem preço ou categoria, nenhuma foto WEBP ou acima de 1 MB.
