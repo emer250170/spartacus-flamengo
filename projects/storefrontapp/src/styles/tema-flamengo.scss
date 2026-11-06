@@ -1499,6 +1499,11 @@ fla-cart-drawer.cx-sidebar-end {
 // categoria" e as fileiras de categorias e de acessórios deram lugar às linhas e aos acessórios
 // do mockup (decisões do Emerson, 06/11).
 html.fla-home cx-page-layout.LandingPage2Template {
+  // faixas (destaques, próximo jogo, compre por categoria, experiências) de borda a borda em
+  // qualquer tela: o layout do Spartacus para em 1700px e sobrava branco dos lados em telas
+  // maiores; o conteúdo continua em 1140px (cada bloco centraliza o seu)
+  max-width: none !important;
+
   > cx-page-slot:not(.Section1) {
     display: none !important;
   }
