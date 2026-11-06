@@ -301,6 +301,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'cd.checkout': 'Finalizar compra',
     'cd.continue': 'Continuar comprando',
     'cd.empty': 'Seu carrinho está vazio.',
+    // página do produto (FlaPdpHeaderComponent)
+    'pdp.member': 'Sócio {plan} paga {v} ({d}% off)',
+    'pdp.memberMine': 'Seu preço de sócio {plan}: {v} ({d}% off)',
+    'pdp.join': 'Seja sócio',
     'ft.hq': 'Sede Gávea',
     'ft.hqStreet': 'Av. Borges de Medeiros, 997',
     'ft.hqCity': 'Lagoa, Rio de Janeiro/RJ · Brasil',
@@ -1061,6 +1065,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'cd.checkout': 'Checkout',
     'cd.continue': 'Continue shopping',
     'cd.empty': 'Your cart is empty.',
+    // product page (FlaPdpHeaderComponent)
+    'pdp.member': '{plan} members pay {v} ({d}% off)',
+    'pdp.memberMine': 'Your {plan} member price: {v} ({d}% off)',
+    'pdp.join': 'Become a member',
     'ft.hq': 'Gávea headquarters',
     'ft.hqStreet': 'Av. Borges de Medeiros, 997',
     'ft.hqCity': 'Lagoa, Rio de Janeiro/RJ · Brazil',
