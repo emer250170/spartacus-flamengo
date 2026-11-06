@@ -55,7 +55,13 @@ public interface PersonalizationService
 	List<Personalization> set(CustomerModel owner, String cartCode, String productCode, String name, String number,
 			boolean sponsor, String patchCode) throws PersonalizationException;
 
-	/** Deixa as linhas de preço iguais ao que está personalizado; true se mudou algo */
+	/**
+	 * Ajusta as linhas de preço do carrinho do torcedor (quantidade e loja de retirada do manto);
+	 * o front chama depois de trocar entre receber em casa e retirar na loja.
+	 */
+	List<Personalization> sync(CustomerModel owner, String cartCode) throws PersonalizationException;
+
+	/** Deixa as linhas de preço iguais ao que está personalizado (quantidade e loja); true se mudou algo */
 	boolean syncAddOns(CartModel cart);
 
 	/**

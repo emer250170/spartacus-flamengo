@@ -47,6 +47,7 @@ import {
   FlaCheckoutIdentityExtraComponent,
   FlaCheckoutIdentityIntroComponent,
 } from './fla-checkout-identity.component';
+import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -85,6 +86,7 @@ import {
     FlaCheckoutFooterComponent,
     FlaCheckoutIdentityIntroComponent,
     FlaCheckoutIdentityExtraComponent,
+    FlaCheckoutDeliveryComponent,
   ],
   providers: [
     // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
@@ -192,6 +194,12 @@ import {
       id: 'LeftContentSlot',
       position: OutletPosition.AFTER,
       component: FlaCheckoutIdentityExtraComponent,
+    }),
+    // Entrega: dados pessoais, receber em casa ou retirar na loja (com a busca de lojas)
+    provideOutlet({
+      id: 'CheckoutDeliveryAddress',
+      position: OutletPosition.BEFORE,
+      component: FlaCheckoutDeliveryComponent,
     }),
     // rodapé: endereços antes dos links do CMS e a linha final depois
     provideOutlet({
