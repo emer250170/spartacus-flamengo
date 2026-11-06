@@ -837,8 +837,9 @@ fla-logo-label {
     row-gap: 0;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
-    // mesmo recuo do conteúdo (container de 1140 com 15px): logo e "Filtrar" na mesma linha
-    padding-inline: 15px !important;
+    // sem recuo: o conteúdo (home, listagem, produto) começa na borda do container de 1140px
+    // (06/11: com 15px o logo ficava 15px para dentro do banner e das fotos da listagem)
+    padding-inline: 0 !important;
   }
 
   // fio entre a faixa de cima e a barra vermelha, de ponta a ponta (e quebra de linha)
