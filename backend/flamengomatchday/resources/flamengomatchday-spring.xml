@@ -630,4 +630,14 @@
 		<property name="add" ref="personalizationCartHooks"/>
 	</bean>
 
+	<!-- Catálogo de produtos para o Emarsys (06/11): CSV público em /{baseSiteId}/emarsys/produtos.csv -->
+	<bean id="flamengoEmarsysCatalogService" class="br.com.flamengo.matchday.emarsys.impl.DefaultEmarsysCatalogService">
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="userService" ref="userService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+	</bean>
+
 </beans>

@@ -946,7 +946,7 @@ Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglê
   |---|---|
   | qualquer uma | `setEmail` (torcedor logado), `cart` (carrinho atual; vazio se não houver nada) |
   | produto (`/product/<código>`) e jornada com `?jogo=` | `view` com o código do produto base |
-  | categoria | `category` com o nome da categoria como aparece na tela |
+  | categoria | `category` com o caminho completo da categoria (igual ao catálogo exportado) |
   | busca | `searchTerm` |
   | confirmação do pedido | `cart` vazio + `purchase` (número do pedido e itens), uma vez por pedido na aba |
 
@@ -954,10 +954,43 @@ Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglê
 - **Código base**: poltrona vira jogo (`JOGO-…`) e tamanho vira camisa. O serviço sobe pelo `baseProduct` da OCC até
   4 níveis. Linhas com o mesmo produto base são somadas, e o `price` de cada linha é o total da linha. O catálogo de
   produtos exportado para o Emarsys precisa usar os mesmos códigos base.
-- **Categoria**: vai só o nome da categoria atual, porque a loja não conhece a hierarquia acima dela. No catálogo
-  exportado, o campo `category` precisa usar os mesmos nomes. Categoria de primeiro nível casa direto; para
-  subcategoria, é preciso alinhar no exportador.
+- **Categoria**: vai o caminho completo da categoria (`Masculino > Roupas > Camisas Diversas`), lido uma vez por
+  sessão de `GET …/emarsys/categorias`, igual ao campo `category` do catálogo exportado. Sem o endpoint, vai o nome da
+  categoria como aparece na tela.
 - **Conferir**: no navegador, rodar `localStorage['fla-emarsys-debug'] = '1'`. Cada envio aparece no console como
   `[Emarsys] comandos enviados`. Na aba Rede, aparecem as chamadas a `recommender.scarabresearch.com`.
 - **Desligar**: tirar a tag do `index.html`, porque sem `ScarabQueue` nada é enviado, ou tirar o `EmarsysModule` do `AppModule`.
 - Teste de compra só com torcedor de teste (`torcedorN@example.com`).
+
+## Catálogo de produtos para o Emarsys (06/11)
+
+O Emarsys baixa o catálogo de um endereço fixo (de hora em hora, por padrão). Uma mídia do Commerce não serve para
+isso, porque o `?context=` da URL muda a cada gravação. Por isso, o catálogo sai de um endpoint público da API de comércio:
+
+| Endereço | O quê |
+|---|---|
+| `https://api-flamengo.democc.online/occ/v2/electronics-spa/emarsys/produtos.csv` | CSV no formato do Emarsys (cadastrar em Product Data › URL) |
+| `…/electronics-spa/emarsys/categorias` | `{"código": "A > B"}`: a loja usa no comando `category` do Web Extend |
+
+- **Código**: `EmarsysCatalogController` (OCC, sem login) e `DefaultEmarsysCatalogService` (`br.com.flamengo.matchday.emarsys`).
+  O CSV fica em cache por `flamengo.emarsys.catalogo.cache.minutos` (60). Desligar: `flamengo.emarsys.catalogo.ativo=false` (404).
+- **Formato** (guias "Product catalog onboarding in CSV format" e "CSV Guidelines" do SAP Emarsys): UTF-8, vírgula,
+  cabeçalho, sem quebra de linha nos campos, aspas dobradas, decimal com ponto, vários valores com `|`, categoria com `>`.
+  **Não mudar a ordem das colunas** depois que o Emarsys começar a importar (coluna nova só no fim).
+
+| Coluna | De onde vem |
+|---|---|
+| `item` | código do produto **base** (684 itens em 06/11; as 3.531 variantes ficam de fora) |
+| `title`, `title_en` | nome em pt e en, sem HTML |
+| `link`, `link_en` | `/{pt,en}/BRL/product/<código>`; jogo (`JOGO-…`) abre `/matchday?jogo=<código>` |
+| `image` | maior formato do 1º conjunto da galeria (hoje 515 px), JPG/PNG/GIF até 1 MB; WEBP fica de fora |
+| `category`, `category_en` | caminho completo de cada categoria de navegação, várias com `\|`; categorias de variante (tamanho, setor) e de classificação ficam de fora |
+| `price` | menor preço BRL de lista (sem grupo de preço) do produto ou das variantes (jogo = poltrona mais barata) |
+| `available` | estoque em alguma variante no `warehouse_s` (ou forçado em estoque); plano de sócio sempre disponível; estacionamento, comida e personalização sempre `false`, para entrarem nos pedidos sem ser recomendados |
+| `description`, `description_en` | descrição sem HTML, até `flamengo.emarsys.descricao.max` (1000) caracteres |
+| `tipo` | campo próprio: `produto`, `ingresso`, `experiencia`, `socio_torcedor`, `estacionamento`, `alimentacao`, `personalizacao` |
+
+- Prévia de 06/11 (Groovy no HAC, sem gravar): 684 linhas, cerca de 700 KB, 74 indisponíveis, 18 sem foto (serviços e
+  planos), nenhum sem preço ou categoria, nenhuma foto WEBP ou acima de 1 MB.
+- O fabricante está vazio no catálogo, então a coluna `brand` não foi incluída. O add-on Loyalty do Emarsys exige `brand`.
+- Instalação: deploy pelo HAC + `ant all` (sem Update, porque não há tipo novo). Conferir abrindo os dois endereços no navegador.

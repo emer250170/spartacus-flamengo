@@ -79,4 +79,9 @@
 		<property name="configurationService" ref="configurationService"/>
 	</bean>
 
+	<bean id="flamengoEmarsysCatalogController" class="br.com.flamengo.matchday.occ.EmarsysCatalogController">
+		<property name="emarsysCatalogService" ref="flamengoEmarsysCatalogService"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+
 </beans>
