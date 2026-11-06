@@ -26,19 +26,65 @@ import java.util.stream.Collectors;
  * </ul>
  * Chave: {@value #ENABLED_PROPERTY} (false = os modos de sempre). Se a regra deixaria o carrinho
  * sem nenhum modo, devolve os modos de sempre.
+ * <p>
+ * Retirada no estádio (06/11): o modo digital ("Ingresso digital e retirada no estádio", R$ 0)
+ * só vale com item do dia de jogo no carrinho (ingresso, estacionamento, comida:
+ * {@value #STADIUM_PREFIXES_PROPERTY}). Carrinho com produto físico da loja e sem item de jogo
+ * (ex.: só o manto para receber em casa) não vê o modo digital. Carrinho sem produto físico
+ * (plano, experiências) não muda. Chave: {@value #STADIUM_PROPERTY} (false = como antes).
  */
 public class FlamengoDeliveryModeLookupStrategy extends DefaultDeliveryModeLookupStrategy
 {
 	public static final String ENABLED_PROPERTY = "flamengo.socio.experiencias.entrega.ativo";
 	public static final String SHIPPED_PROPERTY = "flamengo.socio.experiencias.comEnvio";
 	public static final String DIGITAL_MODE = "matchday-digital";
+	public static final String STADIUM_PROPERTY = "flamengo.entrega.estadio.ativo";
+	public static final String STADIUM_PREFIXES_PROPERTY = "flamengo.entrega.estadio.prefixos";
+	/** Itens sem entrega física: ingresso, experiência, plano, estacionamento, comida, linha de personalização */
+	protected static final String[] NOT_PHYSICAL = { "JOGO-", "EXP-", "NACAO-", "FLA-EST-", "FLA-FOOD-", "FLA-PERS-" };
 
 	private ConfigurationService configurationService;
 
 	@Override
 	public List<DeliveryModeModel> getSelectableDeliveryModesForOrder(final AbstractOrderModel order)
 	{
-		final List<DeliveryModeModel> modes = super.getSelectableDeliveryModesForOrder(order);
+		return stadiumRule(order, experienceRule(order, super.getSelectableDeliveryModesForOrder(order)));
+	}
+
+	/** Sem item do dia de jogo e com produto físico da loja: tira o modo digital (retirada no estádio) */
+	protected List<DeliveryModeModel> stadiumRule(final AbstractOrderModel order, final List<DeliveryModeModel> modes)
+	{
+		if (modes == null || modes.isEmpty() || order == null || order.getEntries() == null || order.getEntries().isEmpty()
+				|| !configurationService.getConfiguration().getBoolean(STADIUM_PROPERTY, false))
+		{
+			return modes;
+		}
+		final List<String> stadium = Arrays
+				.stream(configurationService.getConfiguration().getString(STADIUM_PREFIXES_PROPERTY, "JOGO-,FLA-EST-,FLA-FOOD-")
+						.split(","))
+				.map(String::trim).filter(p -> !p.isEmpty()).collect(Collectors.toList());
+		boolean physical = false;
+		for (final AbstractOrderEntryModel entry : order.getEntries())
+		{
+			final String code = entry.getProduct() == null ? "" : entry.getProduct().getCode();
+			if (stadium.stream().anyMatch(code::startsWith))
+			{
+				return modes; // dia de jogo: o modo digital vale
+			}
+			physical |= Arrays.stream(NOT_PHYSICAL).noneMatch(code::startsWith);
+		}
+		if (!physical)
+		{
+			return modes;
+		}
+		final List<DeliveryModeModel> result = modes.stream().filter(m -> !DIGITAL_MODE.equals(m.getCode()))
+				.collect(Collectors.toList());
+		return result.isEmpty() ? modes : result;
+	}
+
+	/** Experiências (item 10): só o digital, ou só as entregas com frete quando alguma vai pelo correio */
+	protected List<DeliveryModeModel> experienceRule(final AbstractOrderModel order, final List<DeliveryModeModel> modes)
+	{
 		if (modes == null || modes.isEmpty() || order == null || order.getEntries() == null || order.getEntries().isEmpty()
 				|| !configurationService.getConfiguration().getBoolean(ENABLED_PROPERTY, false))
 		{

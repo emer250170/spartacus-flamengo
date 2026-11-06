@@ -35,12 +35,12 @@ INSERT_UPDATE ContentPage;$online[unique=true];uid[unique=true];name;masterTempl
 ;;privacyPolicy;Política de Privacidade;ContentPage1Template;/politica-de-privacidade;;;;Política de Privacidade;Privacy Policy
 
 INSERT_UPDATE CMSParagraphComponent;$online[unique=true];uid[unique=true];name;&componentRef;content[lang=pt];content[lang=en]
-;;privacyPolicyMenuParagraph;Política de Privacidade - menu;privacyPolicyMenuParagraph;$menuPt;$menuEn
-;;privacyPolicyTextParagraph;Política de Privacidade - texto;privacyPolicyTextParagraph;$textPt;$textEn
+;;privacyPolicyMenuParagraph;Política de Privacidade - menu;privacyPolicyMenuParagraphOnline;$menuPt;$menuEn
+;;privacyPolicyTextParagraph;Política de Privacidade - texto;privacyPolicyTextParagraphOnline;$textPt;$textEn
 
 INSERT_UPDATE ContentSlot;$online[unique=true];uid[unique=true];name;active;cmsComponents(&componentRef)
-;;Section2ASlot-PrivacyPolicy;Section2A Slot for Privacy Policy;true;privacyPolicyMenuParagraph
-;;Section2BSlot-PrivacyPolicy;Section2B Slot for Privacy Policy;true;privacyPolicyTextParagraph
+;;Section2ASlot-PrivacyPolicy;Section2A Slot for Privacy Policy;true;privacyPolicyMenuParagraphOnline
+;;Section2BSlot-PrivacyPolicy;Section2B Slot for Privacy Policy;true;privacyPolicyTextParagraphOnline
 
 INSERT_UPDATE ContentSlotForPage;$online[unique=true];uid[unique=true];position[unique=true];page(uid,$online)[unique=true][default='privacyPolicy'];contentSlot(uid,$online)[unique=true]
 ;;Section2A-PrivacyPolicy;Section2A;;Section2ASlot-PrivacyPolicy
