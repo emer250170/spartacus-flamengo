@@ -290,6 +290,12 @@ public class SocioPaymentController
 		m.put("method", p.method);
 		m.put("installments", p.installments);
 		m.put("total", Double.valueOf(p.total));
+		if (p.pixPercent > 0)
+		{
+			m.put("pixPercent", Double.valueOf(p.pixPercent));
+			m.put("pixTotal", Double.valueOf(p.pixTotal));
+			m.put("baseTotal", Double.valueOf(p.baseTotal));
+		}
 		m.put("orderCode", p.orderCode);
 		m.put("orderDate", format(p.orderDate));
 		m.put("due", format(p.due));

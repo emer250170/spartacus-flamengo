@@ -21,6 +21,7 @@ import de.hybris.platform.core.model.order.CartModel;
 import de.hybris.platform.core.model.order.OrderModel;
 import de.hybris.platform.core.model.order.payment.CreditCardPaymentInfoModel;
 import de.hybris.platform.core.model.order.payment.PaymentInfoModel;
+import de.hybris.platform.core.model.ItemModel;
 import de.hybris.platform.core.model.product.ProductModel;
 import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.order.CartService;
@@ -147,7 +148,76 @@ public class DefaultSocioPaymentService implements SocioPaymentService
 		p.method = method == null || (plan == null && !isStoreEnabled()) ? null : method.getCode();
 		p.installments = method == SocioPaymentMethod.CARTAO_ANUAL ? SocioPayments.integer(modelService, cart, SocioPayments.INSTALLMENTS)
 				: null;
+		if (plan == null && p.methods.contains(SocioPaymentMethod.PIX.getCode()))
+		{
+			pixPreview(cart, p, method == SocioPaymentMethod.PIX);
+		}
 		return p;
+	}
+
+	private static final Pattern PIX_CONDITION = Pattern
+			.compile("\"fla_forma_pagamento\".*?\"value\"\\s*:\\s*\"PIX\"", Pattern.DOTALL);
+	private static final Pattern ORDER_PERCENT = Pattern.compile(
+			"\"y_order_percentage_discount\".*?\"value\"\\s*:\\s*\\{[^{}]*?\"value\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)", Pattern.DOTALL);
+
+	/**
+	 * Preço no Pix e nas outras formas (06/11), para o card do Pix mostrar o valor com desconto e o selo antes da
+	 * escolha: o percentual vem da promoção publicada com a condição "Forma de pagamento = Pix" e a ação "desconto
+	 * percentual no pedido" (o motor aplica sobre o subtotal dos produtos, sem o frete). Com o Pix já escolhido o
+	 * total do carrinho já tem o desconto. Sem promoção (ou com a chave flamengo.promocao.formaPagamento.ativo
+	 * desligada), nada muda.
+	 */
+	protected void pixPreview(final CartModel cart, final SocioPayment p, final boolean pixChosen)
+	{
+		final double percent = pixPercent();
+		if (percent <= 0)
+		{
+			return;
+		}
+		final double off = round(value(cart.getSubtotal()) * percent / 100.0);
+		p.pixPercent = percent;
+		p.pixTotal = pixChosen ? p.total : round(p.total - off);
+		p.baseTotal = pixChosen ? round(p.total + off) : p.total;
+	}
+
+	/** Maior percentual entre as promoções publicadas "Forma de pagamento = Pix" (0 = nenhuma) */
+	protected double pixPercent()
+	{
+		if (!configurationService.getConfiguration().getBoolean("flamengo.promocao.formaPagamento.ativo", true))
+		{
+			return 0;
+		}
+		try
+		{
+			final List<ItemModel> rules = flexibleSearchService.<ItemModel> search(new FlexibleSearchQuery(
+					"SELECT {r.pk} FROM {PromotionSourceRule AS r JOIN RuleStatus AS s ON {r.status} = {s.pk}} "
+							+ "WHERE {s.code} = 'PUBLISHED' AND {r.conditions} LIKE '%fla_forma_pagamento%'"))
+					.getResult();
+			final Date now = new Date();
+			double best = 0;
+			for (final ItemModel rule : rules)
+			{
+				final Object start = modelService.getAttributeValue(rule, "startDate");
+				final Object end = modelService.getAttributeValue(rule, "endDate");
+				if ((start instanceof Date && now.before((Date) start)) || (end instanceof Date && now.after((Date) end)))
+				{
+					continue;
+				}
+				final String conditions = String.valueOf(modelService.<Object> getAttributeValue(rule, "conditions"));
+				final String actions = String.valueOf(modelService.<Object> getAttributeValue(rule, "actions"));
+				final Matcher action = ORDER_PERCENT.matcher(actions);
+				if (PIX_CONDITION.matcher(conditions).find() && action.find())
+				{
+					best = Math.max(best, Double.parseDouble(action.group(1)));
+				}
+			}
+			return best;
+		}
+		catch (final RuntimeException e)
+		{
+			// a prévia nunca impede a escolha da forma de pagamento
+			return 0;
+		}
 	}
 
 	@Override

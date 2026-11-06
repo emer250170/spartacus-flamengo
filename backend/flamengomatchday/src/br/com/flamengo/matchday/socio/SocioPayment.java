@@ -33,6 +33,13 @@ public class SocioPayment
 	public Integer installments;
 	/** Total do carrinho ou do pedido */
 	public double total;
+	/**
+	 * Desconto do Pix (06/11): percentual da promoção publicada "Forma de pagamento = Pix" (0 = nenhuma) e o
+	 * total do carrinho no Pix e nas outras formas, para os cards mostrarem o preço de cada forma antes da escolha.
+	 */
+	public double pixPercent;
+	public double pixTotal;
+	public double baseTotal;
 
 	/** Pedido (pagamentos já feitos) */
 	public String orderCode;

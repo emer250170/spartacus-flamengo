@@ -96,6 +96,19 @@
   font-weight: 700;
 }
 
+// selo "5% off" no Pix (06/11)
+.spay-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #1d8b21;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
 .spay-amount {
   font-weight: 600;
 }
