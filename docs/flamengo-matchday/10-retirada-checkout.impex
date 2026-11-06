@@ -1,0 +1,24 @@
+# =====================================================================
+#  Retirada na loja no checkout (06/11; PR checkout-visual-3)
+#  1. As linhas de preço da personalização (FLA-PERS-*) vão para a loja
+#     junto com o manto: precisam de estoque nos depósitos das lojas.
+#  2. Loja Maracanã com as coordenadas de lojas-retirada.groovy (estavam
+#     0,0 e a loja aparecia a 5.317 km na busca por proximidade).
+# =====================================================================
+
+INSERT_UPDATE StockLevel;productCode[unique=true];warehouse(code)[unique=true];available;reserved;preOrder;maxPreOrder;maxStockLevelHistoryCount;inStockStatus(code)
+;FLA-PERS-NOMENUMERO;barrastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-NOMENUMERO;copacabanastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-NOMENUMERO;maracanastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATROCINIO;barrastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATROCINIO;copacabanastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATROCINIO;maracanastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-LIBERTADORES;barrastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-LIBERTADORES;copacabanastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-LIBERTADORES;maracanastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-BRASILEIRO;barrastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-BRASILEIRO;copacabanastore;5000;0;0;0;0;notSpecified
+;FLA-PERS-PATCH-BRASILEIRO;maracanastore;5000;0;0;0;0;notSpecified
+
+UPDATE PointOfService;name[unique=true];latitude;longitude
+;maracanastore;-22.9122;-43.2302

@@ -1,0 +1,106 @@
+<ng-container *ngIf="view$ | async as v">
+  <!-- dados pessoais -->
+  <section class="fla-cdl-person" aria-labelledby="fla-cdl-person-title">
+    <div>
+      <h2 id="fla-cdl-person-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true" focusable="false"><path d="M5 12l5 5L20 7" /></svg>
+        {{ 'cdl.person' | flaT }}
+      </h2>
+      <span>{{ v.name }}<ng-container *ngIf="v.email"> · {{ v.email }}</ng-container></span>
+    </div>
+    <a [routerLink]="{ cxRoute: 'updateProfile' } | cxUrl">{{ 'cdl.change' | flaT }}</a>
+  </section>
+
+  <section class="fla-cdl" aria-labelledby="fla-cdl-title">
+    <h1 id="fla-cdl-title" class="fla-co-title">{{ 'co.step.delivery' | flaT }}</h1>
+
+    <p class="fla-cdl-note" *ngIf="v.hasDigital">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
+      {{ (v.physical.length ? 'cdl.digitalMixed' : 'cdl.digitalOnly') | flaT }}
+    </p>
+
+    <!-- como receber -->
+    <div class="fla-cdl-modes" role="radiogroup" [attr.aria-label]="'cdl.how' | flaT" *ngIf="v.physical.length && v.canPickup">
+      <button type="button" role="radio" [attr.aria-checked]="mode === 'home'" [class.is-on]="mode === 'home'" (click)="setMode('home', v)" [disabled]="applying">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" /></svg>
+        <span><strong>{{ 'cdl.home' | flaT }}</strong><span>{{ 'cdl.homeFrom' | flaT }}</span></span>
+      </button>
+      <button type="button" role="radio" [attr.aria-checked]="mode === 'pickup'" [class.is-on]="mode === 'pickup'" (click)="setMode('pickup', v)" [disabled]="applying">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M4 9l1-5h14l1 5M4 9v11h16V9M4 9h16M9 20v-6h6v6" /></svg>
+        <span><strong>{{ 'cdl.pickup' | flaT }}</strong><span>{{ 'cdl.pickupFree' | flaT }}</span></span>
+      </button>
+    </div>
+
+    <!-- retirada: escolha da loja -->
+    <div class="fla-cdl-pickup" *ngIf="mode === 'pickup' && v.canPickup">
+      <h2>{{ 'cdl.chooseStore' | flaT }}</h2>
+      <form class="fla-cdl-search" (submit)="searchText($event, q.value)">
+        <label class="fla-cdl-search-field">
+          <span class="cx-visually-hidden">{{ 'cdl.searchLabel' | flaT }}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></svg>
+          <input #q type="text" [placeholder]="'cdl.searchPlaceholder' | flaT" autocomplete="postal-code" />
+        </label>
+        <button type="submit" class="fla-cdl-btn" [disabled]="searching">{{ 'cdl.search' | flaT }}</button>
+        <button type="button" class="fla-cdl-link" (click)="useLocation()" [disabled]="searching">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+          {{ 'cdl.useLocation' | flaT }}
+        </button>
+      </form>
+      <p class="fla-cdl-error" *ngIf="searchError" role="alert">{{ searchError }}</p>
+
+      <ng-container *ngIf="stores as all">
+        <div class="fla-cdl-bar">
+          <span role="status">{{ 'cdl.found' | flaT: { n: visible(all).length, place: point.label || '' } }}</span>
+          <label>
+            <input type="checkbox" [checked]="hideOutOfStock" (change)="hideOutOfStock = $any($event.target).checked" />
+            {{ 'cdl.hideOut' | flaT }}
+          </label>
+        </div>
+        <ul class="fla-cdl-stores" [class.is-busy]="searching || applying">
+          <li *ngFor="let s of visible(all); trackBy: trackStore" [class.is-chosen]="v.pickupStore === s.name" [class.is-out]="!s.inStock">
+            <div class="fla-cdl-store-top">
+              <div class="fla-cdl-store-info">
+                <strong>
+                  {{ s.displayName }}
+                  <span class="fla-cdl-mine" *ngIf="preferred === s.name">{{ 'cdl.myStore' | flaT }}</span>
+                </strong>
+                <span>{{ s.address }}</span>
+                <span>{{ s.distance }}<ng-container *ngIf="todayLabel(s)"> · {{ todayLabel(s) }}</ng-container></span>
+              </div>
+              <div class="fla-cdl-stock" [class.is-low]="s.inStock && s.stock !== undefined && s.stock <= 2" [class.is-none]="!s.inStock">
+                <span>{{ stockLabel(s) }}</span>
+                <span *ngIf="s.inStock">{{ 'cdl.readyTomorrow' | flaT }}</span>
+              </div>
+            </div>
+            <dl class="fla-cdl-hours" *ngIf="openHours === s.name">
+              <ng-container *ngFor="let h of s.hours">
+                <dt>{{ h.day }}</dt>
+                <dd>{{ h.closed ? ('cdl.closed' | flaT) : h.hours }}</dd>
+              </ng-container>
+            </dl>
+            <div class="fla-cdl-actions">
+              <button type="button" class="fla-cdl-link" (click)="toggleHours(s)" [attr.aria-expanded]="openHours === s.name">
+                {{ (openHours === s.name ? 'cdl.hideHours' : 'cdl.showHours') | flaT }}
+              </button>
+              <button type="button" class="fla-cdl-link" *ngIf="preferred !== s.name" (click)="setPreferred(s)">{{ 'cdl.setMine' | flaT }}</button>
+              <span class="fla-cdl-spacer"></span>
+              <button type="button" class="fla-cdl-choose" *ngIf="s.inStock; else out" [attr.aria-pressed]="v.pickupStore === s.name" (click)="choose(s, v)" [disabled]="applying">
+                {{ (v.pickupStore === s.name ? 'cdl.chosen' : 'cdl.choose') | flaT }}
+              </button>
+              <ng-template #out><span class="fla-cdl-unavailable">{{ 'cdl.unavailable' | flaT }}</span></ng-template>
+            </div>
+          </li>
+        </ul>
+        <p class="fla-cdl-empty" *ngIf="!visible(all).length">{{ 'cdl.none' | flaT }}</p>
+      </ng-container>
+      <p class="fla-cdl-loading" *ngIf="searching && !stores" role="status">{{ 'cdl.searching' | flaT }}</p>
+
+      <div class="fla-cdl-go" *ngIf="v.onlyPhysical">
+        <p *ngIf="v.pickupStore">{{ 'cdl.pickupAt' | flaT: { store: v.pickupStoreName || v.pickupStore } }}</p>
+        <button type="button" class="fla-co-primary-btn" [disabled]="!v.pickupStore || applying" (click)="goToPayment(v)">
+          {{ 'cdl.goPayment' | flaT }}
+        </button>
+      </div>
+    </div>
+  </section>
+</ng-container>

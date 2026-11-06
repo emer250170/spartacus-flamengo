@@ -841,3 +841,414 @@ html.fla-co-mode cx-page-layout.LoginPageTemplate {
     padding-inline: 16px;
   }
 }
+
+// Entrega (FlaCheckoutDeliveryComponent) ---------------------------------------------------------
+// retirada só de itens físicos: o endereço do Spartacus sai (não é preciso)
+html.fla-co-pickup cx-page-slot.BodyContent cx-delivery-address {
+  display: none !important;
+}
+
+button.fla-co-primary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--fla-vermelho);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.fla-cdl-person {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+
+    svg {
+      color: #1d8b21;
+    }
+  }
+
+  span {
+    font-size: 15px;
+    color: #555;
+    overflow-wrap: anywhere;
+  }
+
+  a {
+    font-size: 14px;
+    color: var(--fla-vermelho) !important;
+  }
+}
+
+.fla-cdl {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  .fla-co-title {
+    margin: 0 !important;
+  }
+}
+
+.fla-cdl-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 4px;
+  background: #f3f2f2;
+  font-size: 14px;
+
+  svg {
+    flex: none;
+    margin-top: 1px;
+  }
+}
+
+.fla-cdl-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    background: #fff;
+    color: var(--fla-preto);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &.is-on {
+      border: 2px solid #111;
+      padding: 15px;
+    }
+
+    > span {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    span span {
+      font-size: 14px;
+      color: #555;
+    }
+  }
+}
+
+.fla-cdl-pickup {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+  }
+}
+
+.fla-cdl-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.fla-cdl-search-field {
+  display: flex;
+  flex: 1 1 260px;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid #cfcfcf;
+  border-radius: 2px;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 44px;
+    border: 0;
+    font: inherit;
+    font-size: 16px;
+  }
+}
+
+.fla-cdl-btn,
+.fla-cdl-choose {
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid #111;
+  border-radius: 2px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fla-cdl-btn {
+  background: #111;
+  color: #fff;
+}
+
+.fla-cdl-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--fla-preto);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.fla-cdl-error {
+  margin: 0;
+  color: var(--fla-vermelho);
+  font-size: 14px;
+}
+
+.fla-cdl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  font-size: 14px;
+  color: #555;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  input {
+    position: static !important;
+    appearance: auto !important;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--fla-vermelho);
+  }
+}
+
+.fla-cdl-stores {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &.is-busy {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  > li {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    background: #fff;
+
+    &.is-chosen {
+      border: 2px solid #111;
+      padding: 15px;
+    }
+
+    &.is-out {
+      background: #fafafa;
+    }
+  }
+}
+
+.fla-cdl-store-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fla-cdl-store-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  font-size: 14px;
+  color: #555;
+
+  strong {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: var(--fla-preto);
+  }
+}
+
+.fla-cdl-mine {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fla-cdl-stock {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1d8b21;
+  text-align: right;
+
+  span + span {
+    font-weight: 400;
+    color: #555;
+  }
+
+  &.is-low {
+    color: #b45309;
+  }
+
+  &.is-none {
+    color: #555;
+  }
+}
+
+.fla-cdl-hours {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: #f3f2f2;
+  font-size: 14px;
+
+  dt {
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.fla-cdl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.fla-cdl-spacer {
+  flex: 1 1 auto;
+}
+
+.fla-cdl-choose[aria-pressed='true'] {
+  background: #111;
+  color: #fff;
+}
+
+.fla-cdl-unavailable {
+  font-size: 14px;
+  color: #555;
+}
+
+.fla-cdl-empty,
+.fla-cdl-loading {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.fla-cdl-go {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+
+  p {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .fla-cdl-modes {
+    grid-template-columns: 1fr;
+  }
+
+  .fla-cdl-store-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .fla-cdl-stock {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .fla-cdl-choose {
+    flex: 1 1 100%;
+  }
+
+  .fla-cdl-spacer {
+    display: none;
+  }
+}

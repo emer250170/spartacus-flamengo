@@ -96,6 +96,19 @@ export class FlaPersonalizationService {
       );
   }
 
+  /** Linhas de preço com a quantidade e a loja de retirada do manto (depois de trocar a entrega) */
+  sync(userId: string, cartId: string): Observable<PersonalizationInfo[]> {
+    return this.http
+      .post<{ items?: PersonalizationInfo[] }>(
+        `${this.base}/users/${userId}/carts/${cartId}/flapersonalization/sync`,
+        {}
+      )
+      .pipe(
+        map((r) => r?.items ?? []),
+        catchError(() => of([]))
+      );
+  }
+
   save(
     userId: string,
     cartId: string,

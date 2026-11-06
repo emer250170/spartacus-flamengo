@@ -23,6 +23,7 @@ import de.hybris.platform.servicelayer.config.ConfigurationService;
 import de.hybris.platform.servicelayer.model.ModelService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
 import de.hybris.platform.servicelayer.search.FlexibleSearchService;
+import de.hybris.platform.storelocator.model.PointOfServiceModel;
 import de.hybris.platform.variants.model.VariantProductModel;
 
 import java.text.Normalizer;
@@ -34,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -223,6 +225,7 @@ public class DefaultPersonalizationService implements PersonalizationService
 		}
 		// o que cada manto personalizado pede: código do manto -> (produto de preço -> quantidade)
 		final Map<String, Map<String, Long>> wanted = new LinkedHashMap<>();
+		final Map<String, AbstractOrderEntryModel> parents = new LinkedHashMap<>();
 		final List<AbstractOrderEntryModel> addOns = new ArrayList<>();
 		for (final AbstractOrderEntryModel e : cart.getEntries())
 		{
@@ -239,6 +242,7 @@ public class DefaultPersonalizationService implements PersonalizationService
 			if (!want.isEmpty())
 			{
 				wanted.put(e.getProduct().getCode(), want);
+				parents.put(e.getProduct().getCode(), e);
 			}
 		}
 		boolean changed = false;
@@ -253,12 +257,27 @@ public class DefaultPersonalizationService implements PersonalizationService
 				modelService.remove(a);
 				changed = true;
 			}
-			else if (a.getQuantity() == null || a.getQuantity().longValue() != qty.longValue())
+			else
 			{
-				a.setQuantity(qty);
-				a.setCalculated(Boolean.FALSE);
-				modelService.save(a);
-				changed = true;
+				boolean dirty = false;
+				if (a.getQuantity() == null || a.getQuantity().longValue() != qty.longValue())
+				{
+					a.setQuantity(qty);
+					a.setCalculated(Boolean.FALSE);
+					dirty = true;
+				}
+				// retirada na loja: a linha de preço vai junto com o manto (senão vira item com frete)
+				final PointOfServiceModel pos = parents.get(of) == null ? null : parents.get(of).getDeliveryPointOfService();
+				if (!Objects.equals(pos, a.getDeliveryPointOfService()))
+				{
+					a.setDeliveryPointOfService(pos);
+					dirty = true;
+				}
+				if (dirty)
+				{
+					modelService.save(a);
+					changed = true;
+				}
 			}
 		}
 		for (final Map.Entry<String, Map<String, Long>> w : wanted.entrySet())
@@ -278,6 +297,7 @@ public class DefaultPersonalizationService implements PersonalizationService
 				final CartEntryModel added = cartService.addNewEntry(cart, product, item.getValue().longValue(), product.getUnit(),
 						-1, false);
 				modelService.setAttributeValue(added, ENTRY_OF, w.getKey());
+				added.setDeliveryPointOfService(parents.get(w.getKey()).getDeliveryPointOfService());
 				modelService.save(added);
 				changed = true;
 			}
@@ -293,6 +313,14 @@ public class DefaultPersonalizationService implements PersonalizationService
 			LOG.info("Personalização: linhas de preço do carrinho {} ajustadas", cart.getCode());
 		}
 		return changed;
+	}
+
+	@Override
+	public List<Personalization> sync(final CustomerModel owner, final String cartCode) throws PersonalizationException
+	{
+		final CartModel cart = cart(owner, cartCode);
+		syncAddOns(cart);
+		return of(cart);
 	}
 
 	@Override

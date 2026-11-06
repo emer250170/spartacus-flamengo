@@ -119,6 +119,28 @@ public class PersonalizationController
 		}
 	}
 
+	/** POST .../carts/{cartId}/flapersonalization/sync: linhas de preço com a quantidade e a loja do manto */
+	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
+	@RequestMapping(value = "/users/{userId}/carts/{cartId}/flapersonalization/sync", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Object> sync(@PathVariable final String baseSiteId, @PathVariable final String userId,
+			@PathVariable final String cartId)
+	{
+		final CustomerModel owner = currentCustomer();
+		if (owner == null)
+		{
+			return error(HttpStatus.UNAUTHORIZED, "Entre na sua conta.");
+		}
+		try
+		{
+			return ResponseEntity.ok(toDto(personalizationService.sync(owner, cartId)));
+		}
+		catch (final PersonalizationException e)
+		{
+			return error(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
 	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
 	@RequestMapping(value = "/users/{userId}/orders/{code}/flapersonalization", method = RequestMethod.GET)
 	@ResponseBody
