@@ -10,7 +10,7 @@ import { WindowRef } from '@spartacus/core';
 import { Observable, combineLatest, of } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { FlaHomeBanner, FlaHomeProduct, FlaHomeService } from './fla-home.service';
+import { FlaHomeProduct, FlaHomeService } from './fla-home.service';
 
 /**
  * Conteúdo da home (mockup "Home", 06/11). Tudo vem do SAP Commerce: o produto da promoção, os
@@ -18,10 +18,25 @@ import { FlaHomeBanner, FlaHomeProduct, FlaHomeService } from './fla-home.servic
  * Trocar um código aqui muda o bloco; trocar o banner ou os produtos do carrossel no CMS também.
  */
 export const FLA_HOME = {
-  /** Destaque 1: promoção do Manto 3 (preço do produto) */
-  promoProduct: 'flamengo_5248',
-  /** Destaques seguintes: banners do CMS (campanha do Manto Sagrado) */
-  heroBanners: ['ElectronicsHompageSplashBannerComponent'],
+  /**
+   * Destaques, todos no mesmo modelo (selo, título com destaque em vermelho, texto ou preço,
+   * botão e a foto do produto à direita). O 2º era a imagem do banner do CMS com o texto dentro
+   * (1400x440), que cortava conforme a tela (06/11); virou um destaque com o mesmo conteúdo.
+   */
+  hero: [
+    // promoção do Manto 3: preço e parcelas do produto
+    { product: 'flamengo_5248', badgeKey: 'home.promoBadge', titleKey: 'home.promoTitle', accentKey: 'home.promoAccent', price: true },
+    // campanha da coleção (o conteúdo do banner "Coleção Adidas 2026"): foto do Manto Jogo 1
+    {
+      product: 'flamengo_4899',
+      badgeKey: 'home.colBadge',
+      titleKey: 'home.colTitle',
+      accentKey: 'home.colAccent',
+      textKey: 'home.colText',
+      link: '/c/flamengo_c115',
+      price: false,
+    },
+  ] as { product: string; badgeKey: string; titleKey: string; accentKey: string; textKey?: string; link?: string; price: boolean }[],
   /** "Compre por categoria": carrosséis do CMS (decisão do Emerson: viram abas) e categorias */
   tabs: [
     { carousel: 'ElectronicsHomepageProductCarouselComponent', link: '/c/flamengo_c115' },
@@ -45,15 +60,20 @@ export const FLA_HOME = {
 };
 
 interface HeroSlide {
-  kind: 'promo' | 'banner';
-  product?: FlaHomeProduct;
-  banner?: FlaHomeBanner;
+  product: FlaHomeProduct;
+  badgeKey: string;
+  titleKey: string;
+  accentKey: string;
+  textKey?: string;
+  link: string;
+  price: boolean;
 }
 
 /**
- * Destaques no topo da home: a promoção do Manto 3 (nome, preço e parcelas do produto) e os
- * banners de campanha do CMS, com setas, marcadores e troca automática (pausa com o mouse ou
- * o foco em cima, e sem troca automática para quem pede menos movimento).
+ * Destaques no topo da home, todos no mesmo modelo: a promoção do Manto 3 (nome, preço e
+ * parcelas do produto) e a campanha da Coleção Adidas 2026; setas, marcadores e troca
+ * automática (pausa com o mouse ou o foco em cima, e sem troca automática para quem pede menos
+ * movimento).
  */
 @Component({
   selector: 'fla-home-hero',
@@ -63,23 +83,24 @@ interface HeroSlide {
       <ng-container *ngFor="let s of slides; let i = index">
         <div class="fh-slide" [class.is-active]="i === current" [attr.aria-hidden]="i !== current"
           role="group" [attr.aria-roledescription]="'home.slide' | flaT" [attr.aria-label]="(i + 1) + ' / ' + slides.length">
-          <div *ngIf="s.kind === 'promo' && s.product as p" class="fh-promo">
+          <div class="fh-promo" [class.is-stacked]="!s.price">
             <div class="fh-promo-text">
-              <span class="fh-badge">{{ 'home.promoBadge' | flaT }}</span>
-              <h1 class="fh-promo-title">{{ 'home.promoTitle' | flaT }} <span>{{ 'home.promoAccent' | flaT }}</span></h1>
-              <p class="fh-promo-name">{{ p.name }}</p>
-              <p class="fh-promo-price"><span>{{ 'home.for' | flaT }}</span> {{ p.price }}</p>
-              <p class="fh-promo-inst" *ngIf="p.installments">{{ p.installments }}</p>
-              <a class="fh-btn" [routerLink]="p.link" [attr.tabindex]="i === current ? null : -1">
+              <span class="fh-badge">{{ s.badgeKey | flaT }}</span>
+              <h1 *ngIf="i === 0; else h2" class="fh-promo-title">{{ s.titleKey | flaT }} <span>{{ s.accentKey | flaT }}</span></h1>
+              <ng-template #h2><h2 class="fh-promo-title">{{ s.titleKey | flaT }} <span>{{ s.accentKey | flaT }}</span></h2></ng-template>
+              <ng-container *ngIf="s.price; else text">
+                <p class="fh-promo-name">{{ s.product.name }}</p>
+                <p class="fh-promo-price"><span>{{ 'home.for' | flaT }}</span> {{ s.product.price }}</p>
+                <p class="fh-promo-inst" *ngIf="s.product.installments">{{ s.product.installments }}</p>
+              </ng-container>
+              <ng-template #text><p class="fh-promo-lead">{{ (s.textKey || '') | flaT }}</p></ng-template>
+              <a class="fh-btn" [routerLink]="s.link" [attr.tabindex]="i === current ? null : -1">
                 {{ 'home.buyNow' | flaT }}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </a>
             </div>
-            <img *ngIf="p.img" class="fh-promo-img" [src]="p.img" alt="" />
+            <img *ngIf="s.product.img" class="fh-promo-img" [src]="s.product.img" alt="" />
           </div>
-          <a *ngIf="s.kind === 'banner' && s.banner as b" class="fh-banner" [routerLink]="b.link" [attr.tabindex]="i === current ? null : -1">
-            <img [src]="b.img" [alt]="b.alt" />
-          </a>
         </div>
       </ng-container>
       <ng-container *ngIf="slides.length > 1">
@@ -96,16 +117,20 @@ interface HeroSlide {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlaHomeHeroComponent implements OnInit, OnDestroy {
-  readonly slides$: Observable<HeroSlide[]> = combineLatest([
-    this.home.byCodes([FLA_HOME.promoProduct], 1).pipe(startWith([] as FlaHomeProduct[])),
-    combineLatest(FLA_HOME.heroBanners.map((uid) => this.home.banner(uid))).pipe(startWith([] as (FlaHomeBanner | null)[])),
-  ]).pipe(
-    map(([promo, banners]) => {
-      this.count = promo.length + banners.filter((b) => !!b?.img).length;
-      return [
-        ...promo.map((product) => ({ kind: 'promo' as const, product })),
-        ...banners.filter((b): b is FlaHomeBanner => !!b?.img).map((banner) => ({ kind: 'banner' as const, banner })),
-      ];
+  readonly slides$: Observable<HeroSlide[]> = combineLatest(
+    FLA_HOME.hero.map((h) =>
+      this.home.byCodes([h.product], 1).pipe(
+        map((ps): HeroSlide | null =>
+          ps[0] ? { ...h, product: ps[0], link: h.link ?? ps[0].link } : null
+        ),
+        startWith(null as HeroSlide | null)
+      )
+    )
+  ).pipe(
+    map((slides) => {
+      const ok = slides.filter((s): s is HeroSlide => !!s);
+      this.count = ok.length;
+      return ok;
     })
   );
 
