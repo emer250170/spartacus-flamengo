@@ -14,6 +14,8 @@
         <requires-extension name="backoffice"/>
         <!-- a validação de carrinho da loja vem da b2bacceleratorservices; carregar depois dela -->
         <requires-extension name="b2bacceleratorservices"/>
+        <!-- 05/11: condição "Forma de pagamento" no construtor de promoções (tradutor do compilador de regras) -->
+        <requires-extension name="ruleengineservices"/>
 
         <coremodule generated="true" manager="de.hybris.platform.jalo.extension.GenericManager" packageroot="br.com.flamengo.matchday"/>
 

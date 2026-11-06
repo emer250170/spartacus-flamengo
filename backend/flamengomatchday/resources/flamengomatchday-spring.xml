@@ -591,4 +591,18 @@
 		<property name="modelService" ref="modelService"/>
 	</bean>
 
+	<!-- 05/11: condição "Forma de pagamento" no construtor de promoções (ex.: 5% no Pix à vista da loja).
+	     O populador leva a forma escolhida no checkout ao CartRAO (paymentMode); o tradutor compara na regra.
+	     Chave flamengo.promocao.formaPagamento.ativo (false = o motor não recebe a forma). -->
+	<bean id="flaPaymentModeRaoPopulator" class="br.com.flamengo.matchday.promotion.FlaPaymentModeRaoPopulator">
+		<property name="modelService" ref="modelService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
+	<bean parent="modifyPopulatorList">
+		<property name="list" ref="cartRaoConverter"/>
+		<property name="add" ref="flaPaymentModeRaoPopulator"/>
+	</bean>
+	<bean id="flaPaymentMethodConditionTranslator" class="br.com.flamengo.matchday.promotion.FlaPaymentMethodConditionTranslator"/>
+
 </beans>

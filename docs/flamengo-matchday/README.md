@@ -843,6 +843,18 @@ O painel padrão do Cockpit de administração mostra gráficos do sistema (thre
 - **Desconto.** Soma o desconto do pedido e o dos itens. Pedidos cancelados não contam.
 - **Deploy.** `ant all`, reiniciar e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
 
+### Promoção pela forma de pagamento (05/11)
+
+Condição nova no construtor de promoções: **Forma de pagamento** (`fla_forma_pagamento`, categoria Carrinho). Exemplo: "Forma de pagamento é Pix" + "Desconto percentual no pedido" 5% = 5% no Pix à vista da loja.
+
+| Parte | Como funciona |
+|---|---|
+| Parâmetros | `value`: a forma escolhida no checkout (Cartão mensal, Cartão ano inteiro, Pix, Boleto, Pix Automático). `incluirPlanos` (padrão desmarcado): sem ele, carrinho com plano de sócio não entra. |
+| Motor | `FlaPaymentModeRaoPopulator` (no `cartRaoConverter`) grava a forma no `paymentMode` do CartRAO, com `@PLANO` quando há plano; `FlaPaymentMethodConditionTranslator` compara. |
+| Quando vale | A forma é gravada ao escolher no passo de pagamento, que recalcula o carrinho: o desconto aparece no resumo e o Pix da Adyen sai com o valor descontado. |
+| Chave | `flamengo.promocao.formaPagamento.ativo` (false = o motor não recebe a forma). |
+| Instalação | `ant all` (a extensão passa a depender da `ruleengineservices`) e a ImpEx `essentialdata-flamengomatchday-promocao-pagamento.impex` importada à parte. Reiniciar o Backoffice se a condição não aparecer no construtor de regras. |
+
 ### Imagem dos jogos e das experiências (04/11)
 
 - Campo novo **Imagem** (`image`, mídia) no jogo (`MatchdayGame`) e na experiência (`SocioExperience`):
