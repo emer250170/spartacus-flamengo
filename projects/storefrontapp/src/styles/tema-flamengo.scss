@@ -95,11 +95,14 @@ header .SiteContext select option { color: var(--fla-preto); }
 }
 
 // mini cart: no Spartacus e um bloco da cor primaria — sobre o header vermelho
-// sumiria; fica preto como o botao "Ingressos" do site deles.
-header cx-mini-cart a {
-  background: var(--fla-preto) !important;
-  color: #fff !important;
-  border-radius: 4px !important;
+// sumiria. No celular fica preto; no desktop vira ícone com contador (seção
+// "Visual da loja oficial", no fim do arquivo).
+@media (max-width: 991.98px) {
+  header cx-mini-cart a {
+    background: var(--fla-preto) !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+  }
 }
 
 // selo de sócio-torcedor (fla-socio-badge, outlet do slot SiteLogin):
@@ -109,25 +112,12 @@ header cx-mini-cart a {
 // logo + busca + login + carrinho passava dos 1120px do cabeçalho, jogando
 // o carrinho para baixo do logo (de ~1250px de largura para cima).
 // Em coluna o slot fica com ~185px; a busca também pode encolher.
+// (06/11) No desktop o SiteLogin passou para a faixa de cima, em linha: ver a seção
+// "Visual da loja oficial" no fim do arquivo.
 @media (min-width: 992px) {
-  header cx-page-slot.SiteLogin {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 6px;
-  }
   header cx-page-slot.SiteLogin > * {
     flex: none;
     width: auto !important;
-  }
-  header cx-page-slot.SearchBox {
-    flex: 0 1 auto;
-    min-width: 0;
-  }
-  header cx-page-slot.MiniCart {
-    flex: none;
   }
 }
 @media (max-width: 991.98px) {
@@ -139,15 +129,19 @@ header cx-mini-cart a {
 header cx-searchbox > div, header cx-searchbox label, header cx-searchbox input {
   border-radius: 0 !important;
 }
-header cx-searchbox label { border: none !important; background: #fff !important; }
+// no desktop a busca vira um ícone que abre (seção "Visual da loja oficial")
+@media (max-width: 991.98px) {
+  header cx-searchbox label { border: none !important; background: #fff !important; }
+}
 
 // navegacao: faixa preta, itens em caixa alta, sublinhado vermelho no hover
-html header cx-navigation-ui.flyout { background: var(--fla-preto) !important; }
+// só o menu de categorias: o "Minha conta" fica na faixa vermelha de cima, sem fundo
+html header cx-page-slot.NavigationBar cx-navigation-ui.flyout { background: var(--fla-preto) !important; }
 header cx-navigation-ui.flyout > nav > ul > li > cx-generic-link > a,
 header cx-navigation-ui.flyout > nav > ul > li > span,
 header cx-navigation-ui.flyout > nav > ul > li > button {
   font-family: var(--fla-fonte) !important;
-  font-size: 1.05rem !important; // 1.15rem quebrava o 8o item (Ingressos) em 2 linhas
+  font-size: 15px !important; // visual novo (06/11): o menu cabe numa linha só
   font-weight: 600 !important;
   text-transform: uppercase;
   color: #fff !important;
@@ -185,35 +179,8 @@ header cx-navigation-ui.flyout > nav > ul > li > button {
   header cx-navigation-ui.flyout > nav > ul > li > button + .wrapper { min-width: 200px; }
 }
 
-// Menu em duas linhas (desktop): categorias de produto em cima; Ingressos,
-// Sócio-Torcedor e Experiências na linha de baixo, nessa ordem.
-// MEDIDO: com 10 itens o menu quebrava sozinho e deixava só o Sócio-Torcedor
-// na 2a linha. Os itens da jornada são achados pelo link (nós do CMS
-// FlaIngressosNavNode, FlaSocioNavNode e FlaExperienciasNavNode); o ::after
-// (flex-basis 100%) força a quebra e vira um fio entre as linhas. Os menus
-// suspensos da 1a linha abrem por cima da 2a. No celular (hambúrguer) não muda.
-@media (min-width: 992px) {
-  $fla-nav: 'header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul';
-  #{$fla-nav} { flex-wrap: wrap; align-items: center; }
-  #{$fla-nav} > li { order: 1; }
-  #{$fla-nav}::after {
-    content: '';
-    order: 2;
-    flex-basis: 100%;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.14);
-  }
-  #{$fla-nav} > li:has(> cx-generic-link a[href$='/matchday']) { order: 3; }
-  #{$fla-nav} > li:has(> cx-generic-link a[href$='/socio-torcedor']) { order: 4; }
-  #{$fla-nav} > li:has(> cx-generic-link a[href$='/c/experiencias']) { order: 5; }
-  // 2a linha mais baixa: só links, sem a margem de 10px do Spartacus
-  #{$fla-nav} > li:has(> cx-generic-link a[href$='/matchday']) > cx-generic-link a,
-  #{$fla-nav} > li:has(> cx-generic-link a[href$='/socio-torcedor']) > cx-generic-link a,
-  #{$fla-nav} > li:has(> cx-generic-link a[href$='/c/experiencias']) > cx-generic-link a {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-  }
-}
+// (06/11) O menu em duas linhas (categorias em cima; Ingressos, Sócio-Torcedor e
+// Experiências embaixo) saiu: no visual novo, com 15px, os 10 itens cabem numa linha só.
 
 // hamburguer (mobile) sobre fundo vermelho
 header .hamburger-inner, header .hamburger-inner::before, header .hamburger-inner::after,
@@ -273,14 +240,16 @@ a { color: var(--fla-vermelho); }
   font-weight: 700 !important;
 }
 
-// --- rodape: vermelho com a faixa rubro-negra do site deles -----------------
+// --- rodape: preto, como na loja oficial (06/11) -------------------------------
+// Endereços da Sede e do CT (FlaFooterInfoComponent) em cima, links do CMS no meio e a
+// linha "Flamengo © 2026" (FlaFooterBottomComponent) embaixo. O aviso de copyright da SAP
+// (parágrafo do CMS) sai.
 html cx-page-layout.footer {
-  background-color: var(--fla-vermelho) !important;
+  background-color: #111 !important;
   color: #fff !important;
-  border-top: 32px solid transparent;
-  border-image: linear-gradient(to bottom,
-    #000 0 6px, var(--fla-vermelho) 6px 10px, #000 10px 24px,
-    var(--fla-vermelho) 24px 26px, #000 26px 32px) 32 0 0 0 / 32px 0 0 0;
+}
+html cx-page-layout.footer cx-page-slot.Footer {
+  display: block;
 }
 html cx-page-layout.footer a, html cx-page-layout.footer h5,
 html cx-page-layout.footer span, html cx-page-layout.footer p {
@@ -290,15 +259,68 @@ html cx-page-layout.footer h5 {
   font-family: var(--fla-fonte-titulo) !important;
   text-transform: uppercase;
 }
-// MEDIDO: os links do rodape ficam num bloco com --cx-color-background-dark
-// (preto); no site deles o rodape e todo vermelho.
 html cx-page-layout.footer cx-footer-navigation,
 html cx-page-layout.footer cx-navigation-ui {
   background: transparent !important;
 }
-html cx-page-layout.footer cx-paragraph, html cx-page-layout.footer .notice {
-  background: transparent !important;
-  color: #fff !important;
+html cx-page-layout.footer cx-paragraph {
+  display: none !important;
+}
+.fla-footer-info {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 48px 15px 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+
+  address {
+    margin: 0;
+    font-style: normal;
+    font-size: 15px;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--fla-fonte-titulo);
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  span {
+    display: block;
+    color: #cfcfcf !important;
+  }
+
+  @media (max-width: 767.98px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.fla-footer-bottom {
+  border-top: 1px solid #333;
+
+  > div {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 20px 15px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  span, a {
+    color: #cfcfcf !important;
+  }
+
+  .fla-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
 }
 
 // --- página de produto: abas (Detalhes do produto, Especificações...) ---------
@@ -756,4 +778,406 @@ body.fla-pay-adyen {
   cx-place-order {
     display: none !important;
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Visual da loja oficial (flamengo.com.br/loja; mockup aprovado em 05/11; VisualModule)
+// Header em três faixas no desktop:
+//   1. vermelha fina: links do portal (SiteLinks) · selo + "Olá" + Minha conta (SiteLogin) · idioma
+//   2. vermelha: logo + menu do portal (SiteLogo) · Ingressos + busca em ícone (SearchBox) · carrinho
+//   3. preta: categorias da loja (NavigationBar)
+// A grade é montada no cx-page-layout.header; o celular continua com o menu hambúrguer.
+// ---------------------------------------------------------------------------------------------
+@media (max-width: 991.98px) {
+  fla-portal-links,
+  fla-portal-nav,
+  fla-tickets-button {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  html header cx-page-layout.header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'links login ctx'
+      'logo search cart'
+      'nav nav nav';
+    column-gap: 20px;
+    row-gap: 0;
+    align-items: center;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  // fio entre a faixa de cima e a barra vermelha, de ponta a ponta
+  html header cx-page-layout.header::before {
+    content: '';
+    grid-row: 1;
+    grid-column: 1 / -1;
+    align-self: end;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.25);
+    border-image: conic-gradient(rgba(255, 255, 255, 0.25) 0 0) fill 0 / / 0 100vmax;
+  }
+
+  html header cx-page-layout.header > cx-page-slot {
+    flex-wrap: nowrap !important;
+  }
+
+  header cx-page-slot.PreHeader {
+    display: none !important;
+  }
+
+  // 1a faixa ------------------------------------------------------------------------------
+  header cx-page-slot.SiteLinks,
+  header cx-page-slot.SiteLogin,
+  header cx-page-slot.SiteContext {
+    align-self: stretch;
+    align-items: center !important;
+    min-height: 40px;
+    flex: none !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  header cx-page-slot.SiteLinks {
+    grid-area: links;
+    justify-content: flex-start !important;
+
+    // Pedidos, Encontre uma loja... ficam só no menu do celular
+    > cx-link {
+      display: none !important;
+    }
+  }
+
+  .fla-portal-links {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    a {
+      color: #fff !important;
+      text-decoration: none !important;
+
+      &:hover {
+        text-decoration: underline !important;
+      }
+    }
+  }
+
+  header cx-page-slot.SiteLogin {
+    grid-area: login;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 14px !important;
+
+    cx-login {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cx-login-greet {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .HeaderLinks nav > ul > li > button {
+      padding: 0 !important;
+      background: transparent !important;
+      color: #fff !important;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    // "Entrar / Cadastrar" (sem login)
+    cx-login > a {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+  }
+
+  html header cx-page-slot.SiteLogin cx-navigation-ui.flyout {
+    background: transparent !important;
+  }
+
+  // selo de sócio compacto na faixa fina
+  header .fla-sb {
+    padding: 2px 10px 2px 2px !important;
+    gap: 6px !important;
+    box-shadow: none !important;
+  }
+  header .fla-sb-seal {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  header .fla-sb-kicker {
+    display: none !important;
+  }
+  header .fla-sb-plan {
+    font-size: 12px !important;
+  }
+
+  header cx-page-slot.SiteContext {
+    grid-area: ctx;
+    justify-self: end;
+    justify-content: flex-end !important;
+
+    cx-site-theme-switcher {
+      display: none !important;
+    }
+
+    label > span {
+      display: none !important;
+    }
+
+    select {
+      font-size: 13px !important;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+  }
+
+  // o rótulo "Idioma:" posto no lugar do "Language" também sai
+  html[lang='pt'] header cx-site-context-selector label > span::before {
+    content: none;
+  }
+
+  // 2a faixa ------------------------------------------------------------------------------
+  header cx-page-slot.SiteLogo {
+    grid-area: logo;
+    display: flex !important;
+    align-items: center;
+    gap: 28px;
+    min-height: 72px;
+
+    > cx-banner {
+      flex: none;
+    }
+  }
+
+  .fla-portal-nav {
+    display: flex;
+    gap: 22px;
+    font-size: 17px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    a {
+      color: #fff !important;
+      text-decoration: none !important;
+      padding: 6px 0 4px;
+
+      &:hover,
+      &.fla-ativo {
+        box-shadow: inset 0 -3px 0 #fff;
+      }
+    }
+
+    // telas médias: o menu do portal some antes de apertar o logo e os botões
+    @media (max-width: 1199.98px) {
+      display: none;
+    }
+  }
+
+  header cx-page-slot.SearchBox {
+    grid-area: search;
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    flex: none !important;
+    min-height: 44px;
+    padding-right: 44px; // lugar do ícone da busca (a busca fica por cima, absoluta)
+  }
+
+  .fla-tickets-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 2px;
+    background: #111;
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    white-space: nowrap;
+
+    &:hover {
+      background: #000;
+    }
+  }
+
+  // busca: só o ícone; ao clicar (foco) abre para a esquerda com 520px, por cima do
+  // "Ingressos", e as sugestões abrem embaixo com a mesma largura
+  html header cx-searchbox {
+    position: absolute !important;
+    top: 0;
+    right: 0;
+    z-index: 20;
+    width: 44px;
+    height: 44px;
+    transition: width 0.2s;
+
+    &:focus-within {
+      width: 520px;
+    }
+
+    .cx-searchbox-container {
+      position: static !important;
+      width: 100% !important;
+    }
+
+    .cx-input-label {
+      display: none !important;
+    }
+
+    label.searchbox {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 44px;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    &:focus-within label.searchbox {
+      background: #fff !important;
+    }
+
+    .cx-label-inner-container {
+      position: relative;
+      width: 100% !important;
+      height: 44px !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+
+      input {
+        position: absolute;
+        inset: 0;
+        width: 100% !important;
+        height: 44px !important;
+        padding: 0 40px 0 44px !important;
+        opacity: 0;
+      }
+
+      .search-icon {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+        color: #fff !important;
+
+        cx-icon {
+          color: inherit !important;
+        }
+      }
+
+      .reset {
+        position: absolute;
+        top: 10px;
+        right: 8px;
+      }
+    }
+
+    &:focus-within .cx-label-inner-container {
+      input {
+        opacity: 1;
+      }
+
+      .search-icon {
+        color: var(--fla-preto) !important;
+      }
+    }
+
+    &:not(:focus-within) .reset {
+      display: none !important;
+    }
+
+    .results {
+      left: 0;
+      right: auto;
+      width: 100% !important;
+    }
+  }
+
+  // carrinho: ícone branco com contador preto
+  header cx-page-slot.MiniCart {
+    grid-area: cart;
+    justify-self: end;
+  }
+
+  html header cx-mini-cart a {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #fff !important;
+
+    cx-icon {
+      font-size: 22px;
+      color: #fff;
+    }
+
+    .total {
+      display: none !important;
+    }
+
+    .count {
+      position: absolute;
+      top: 0;
+      right: -4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 10px;
+      background: #111;
+      color: #fff;
+      font-size: 12px !important;
+      font-weight: 700;
+    }
+  }
+
+  // 3a faixa ------------------------------------------------------------------------------
+  header cx-page-slot.NavigationBar {
+    grid-area: nav;
+  }
+}
+
+// rodapé: links do CMS na mesma coluna dos endereços
+html cx-page-layout.footer cx-navigation-ui > nav {
+  max-width: 1140px;
+  margin-inline: auto;
+  justify-content: flex-start;
 }
