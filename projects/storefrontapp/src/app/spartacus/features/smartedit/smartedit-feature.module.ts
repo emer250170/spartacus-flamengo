@@ -7,6 +7,7 @@
 import { NgModule } from '@angular/core';
 import { CmsConfig, provideConfig } from '@spartacus/core';
 import {
+  SmartEditConfig,
   SmartEditRootModule,
   SMART_EDIT_FEATURE,
 } from '@spartacus/smartedit/root';
@@ -20,6 +21,14 @@ import {
           module: () =>
             import('@spartacus/smartedit').then((m) => m.SmartEditModule),
         },
+      },
+    }),
+    // SmartEdit do servidor da demo (06/11): a loja só aceita ser aberta pelo SmartEdit desta
+    // origem (o padrão do Spartacus é localhost:9002)
+    provideConfig(<SmartEditConfig>{
+      smartEdit: {
+        storefrontPreviewRoute: 'cx-preview',
+        allowOrigin: '187.127.62.169:9105',
       },
     }),
   ],

@@ -1,0 +1,46 @@
+# =====================================================================
+#  Destaques da home (06/11; home no visual da loja oficial, mockup "Home")
+#  Carrossel "Destaques da home" (RotatingImagesComponent FlaHomeHeroComponent) com um banner
+#  (BannerComponent) por destaque. O time de negócios cria, edita, reordena ou tira destaques no
+#  Backoffice (WCMS) ou no SmartEdit, no catálogo Staged, e sincroniza para o Online.
+#
+#  Como a loja lê cada banner (FlaHomeHeroComponent, vitrine/fla-home.components.ts):
+#   - Título (headline): a última palavra sai em vermelho ("Manto 3" -> MANTO 3)
+#   - Conteúdo (content): 1º parágrafo = selo; os outros = frase abaixo do título
+#   - Link (urlLink): link de produto (/product/<código>) mostra nome, preço e parcelas do
+#     produto e a foto dele; outro link (categoria, página) mostra a frase do conteúdo
+#   - Imagem (media): opcional; se vazia, usa a foto do produto do link
+#  Sem este componente a home mostra os destaques que estão no código (comportamento anterior).
+#  O carrossel é o 1º componente do slot Section1 da home (desenhado pelo FlaHomeHeroComponent,
+#  no visual do mockup; no SmartEdit, clicar no destaque abre o carrossel e os banners).
+#  Staged e Online.
+# =====================================================================
+
+$contentCatalog=electronics-spaContentCatalog
+$staged=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+$online=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Online])[default=$contentCatalog:Online]
+$foto=media(code,catalogVersion(catalog(id),version))
+
+# ---------- Staged ----------
+INSERT_UPDATE BannerComponent;$staged[unique=true];uid[unique=true];name;headline[lang=pt];headline[lang=en];content[lang=pt];content[lang=en];urlLink;external[default=false];$foto[lang=pt];$foto[lang=en];&bannerRef
+;;FlaHomeHeroManto3;Destaque da home - Promo Manto 3;Manto 3;Jersey 3;<p>Promo Manto 3</p>;<p>Jersey 3 deal</p>;/product/flamengo_5248;;;;FlaHomeHeroManto3Staged
+;;FlaHomeHeroColecao;Destaque da home - Coleção Adidas 2026;Manto Sagrado;Manto Sagrado;<p>Coleção Adidas 2026</p><p>Jogo 1, Jogo 2 e Jogo 3 já estão na loja</p>;<p>Adidas 2026 collection</p><p>Home, away and third kits are in store</p>;/c/flamengo_c115;;flamengo_4899_0_515Wx515H:flamengoProductCatalog:Online;flamengo_4899_0_515Wx515H:flamengoProductCatalog:Online;FlaHomeHeroColecaoStaged
+
+INSERT_UPDATE RotatingImagesComponent;$staged[unique=true];uid[unique=true];name;banners(&bannerRef)
+;;FlaHomeHeroComponent;Destaques da home;FlaHomeHeroManto3Staged,FlaHomeHeroColecaoStaged
+
+# o carrossel em 1º no slot (antes do bloco da home); os outros componentes continuam
+UPDATE ContentSlot;$staged[unique=true];uid[unique=true];cmsComponents(uid,$staged)
+;;Section1Slot-Homepage;FlaHomeHeroComponent,MatchdayHomeBannerComponent,ElectronicsHompageSplashBannerComponent,ElectronicsHompageDiscountBannerComponent
+
+# ---------- Online ----------
+INSERT_UPDATE BannerComponent;$online[unique=true];uid[unique=true];name;headline[lang=pt];headline[lang=en];content[lang=pt];content[lang=en];urlLink;external[default=false];$foto[lang=pt];$foto[lang=en];&bannerRef
+;;FlaHomeHeroManto3;Destaque da home - Promo Manto 3;Manto 3;Jersey 3;<p>Promo Manto 3</p>;<p>Jersey 3 deal</p>;/product/flamengo_5248;;;;FlaHomeHeroManto3Online
+;;FlaHomeHeroColecao;Destaque da home - Coleção Adidas 2026;Manto Sagrado;Manto Sagrado;<p>Coleção Adidas 2026</p><p>Jogo 1, Jogo 2 e Jogo 3 já estão na loja</p>;<p>Adidas 2026 collection</p><p>Home, away and third kits are in store</p>;/c/flamengo_c115;;flamengo_4899_0_515Wx515H:flamengoProductCatalog:Online;flamengo_4899_0_515Wx515H:flamengoProductCatalog:Online;FlaHomeHeroColecaoOnline
+
+INSERT_UPDATE RotatingImagesComponent;$online[unique=true];uid[unique=true];name;banners(&bannerRef)
+;;FlaHomeHeroComponent;Destaques da home;FlaHomeHeroManto3Online,FlaHomeHeroColecaoOnline
+
+# o carrossel em 1º no slot (antes do bloco da home); os outros componentes continuam
+UPDATE ContentSlot;$online[unique=true];uid[unique=true];cmsComponents(uid,$online)
+;;Section1Slot-Homepage;FlaHomeHeroComponent,MatchdayHomeBannerComponent,ElectronicsHompageSplashBannerComponent,ElectronicsHompageDiscountBannerComponent

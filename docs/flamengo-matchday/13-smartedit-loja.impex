@@ -1,0 +1,15 @@
+# =====================================================================
+#  SmartEdit apontando para a loja da demo (06/11)
+#  - lista de lojas que o SmartEdit aceita abrir: inclui a loja publicada (antes só
+#    https://localhost:4200, que continua)
+#  - endereço de pré-visualização do site electronics-spa: a loja publicada (antes
+#    https://localhost:4200/electronics-spa/en/USD)
+#  Do lado da loja (Spartacus), a origem aceita é 187.127.62.169:9105
+#  (smartedit-feature.module.ts). Para voltar: reimportar com os valores antigos acima.
+# =====================================================================
+
+INSERT_UPDATE SmartEditConfiguration;key[unique=true];value
+;whiteListedStorefronts;"[""https://localhost:4200"",""https://spartacus-flamengo.democc.online""]"
+
+UPDATE CMSSite;uid[unique=true];previewURL
+;electronics-spa;https://spartacus-flamengo.democc.online/electronics-spa/pt/BRL
