@@ -22,6 +22,13 @@
     min-height: 32px !important;
   }
 
+  // linha da 1a faixa: só a do mockup (1px branco translúcido, a do cx-page-layout.header::before
+  // do tema). O Spartacus desenha outra, branca sólida, no ::after do SiteContext, 2px acima:
+  // ficavam duas linhas (06/11)
+  header cx-page-slot.SiteContext::after {
+    display: none !important;
+  }
+
   // idioma: o componente próprio no lugar do seletor do CMS (o tema já esconde o de tema/cores)
   header cx-page-slot.SiteContext cx-site-context-selector {
     display: none !important;
