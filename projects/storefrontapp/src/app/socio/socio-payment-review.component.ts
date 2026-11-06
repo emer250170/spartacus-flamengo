@@ -105,7 +105,7 @@ export class SocioPaymentReviewComponent implements OnInit, OnDestroy {
         amount: this.i18n.money(o.total),
       });
     }
-    if (o.method === 'CARTAO_MENSAL') {
+    if (o.method === 'CARTAO_MENSAL' || o.method === 'PIX_AUTOMATICO') {
       return this.i18n.t('spay.r.monthly', {
         name,
         amount: this.i18n.money(o.monthly),
