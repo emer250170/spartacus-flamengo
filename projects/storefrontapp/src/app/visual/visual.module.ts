@@ -36,6 +36,11 @@ import {
 } from './fla-pdp.components';
 import { FlaPdpPersonalizeComponent } from './fla-pdp-personalize.component';
 import { FlaPdpShippingComponent } from './fla-pdp-shipping.component';
+import { FlaCartPageComponent } from './fla-cart-page.component';
+import {
+  FlaCheckoutFooterComponent,
+  FlaCheckoutHeaderComponent,
+} from './fla-checkout-header.component';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -67,6 +72,9 @@ import { FlaPdpShippingComponent } from './fla-pdp-shipping.component';
     FlaSizeChipsComponent,
     FlaPdpPersonalizeComponent,
     FlaPdpShippingComponent,
+    FlaCartPageComponent,
+    FlaCheckoutHeaderComponent,
+    FlaCheckoutFooterComponent,
   ],
   providers: [
     // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
@@ -103,6 +111,8 @@ import { FlaPdpShippingComponent } from './fla-pdp-shipping.component';
     provideConfig(<CmsConfig>{
       cmsComponents: {
         MiniCartComponent: { component: FlaMiniCartComponent },
+        // página do carrinho no formato do mockup (lista + Resumo)
+        CartComponent: { component: FlaCartPageComponent },
       },
     }),
     provideConfig(<LayoutConfig>{
@@ -137,6 +147,17 @@ import { FlaPdpShippingComponent } from './fla-pdp-shipping.component';
       id: 'SearchBox',
       position: OutletPosition.BEFORE,
       component: FlaTicketsButtonComponent,
+    }),
+    // carrinho, checkout e confirmação: cabeçalho com as etapas da compra e rodapé curto
+    provideOutlet({
+      id: 'cx-header',
+      position: OutletPosition.BEFORE,
+      component: FlaCheckoutHeaderComponent,
+    }),
+    provideOutlet({
+      id: 'cx-footer',
+      position: OutletPosition.AFTER,
+      component: FlaCheckoutFooterComponent,
     }),
     // rodapé: endereços antes dos links do CMS e a linha final depois
     provideOutlet({

@@ -1,0 +1,87 @@
+<div class="fla-cp" *ngIf="view$ | async as v">
+  <section class="fla-co-box fla-cp-list" aria-labelledby="fla-cp-title">
+    <h1 id="fla-cp-title" class="fla-co-title">{{ 'cp.title' | flaT }}</h1>
+    <div class="fla-cp-head" aria-hidden="true">
+      <span>{{ 'cp.product' | flaT }}</span>
+      <span class="fla-cp-r">{{ 'cp.value' | flaT }}</span>
+      <span class="fla-cp-c">{{ 'cp.qty' | flaT }}</span>
+      <span></span>
+    </div>
+    <ul class="fla-cp-items" [class.is-busy]="loading$ | async">
+      <li class="fla-cp-item" *ngFor="let e of v.entries; trackBy: trackEntry">
+        <div class="fla-cp-product">
+          <a class="fla-cp-thumb" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl" tabindex="-1" aria-hidden="true">
+            <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="''"></cx-media>
+          </a>
+          <div class="fla-cp-info">
+            <a class="fla-cp-name" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl">{{ e.name }}</a>
+            <span class="fla-cp-details" *ngIf="e.details">{{ e.details }}</span>
+            <span class="fla-cp-pers" *ngIf="e.personalization">{{ 'pz.cartLine' | flaT: { v: e.personalization } }}</span>
+            <span class="fla-cp-warn" *ngIf="e.seat && v.holdLeft">{{ 'cp.hold' | flaT: { t: v.holdLeft } }}</span>
+          </div>
+        </div>
+        <div class="fla-cp-price fla-cp-r">
+          <span class="fla-cp-label">{{ 'cp.value' | flaT }}</span>
+          <s *ngIf="e.fullPrice">{{ e.fullPrice }}</s>
+          <strong>{{ e.price }}</strong>
+        </div>
+        <div class="fla-cp-qty fla-cp-c">
+          <span class="fla-cp-label">{{ 'cp.qty' | flaT }}</span>
+          <ng-container *ngIf="!e.seat && !e.addOn && e.entry.updateable !== false; else fixedQty">
+            <button type="button" [attr.aria-label]="'cd.less' | flaT" (click)="decrease(e)">−</button>
+            <strong aria-live="polite">{{ e.entry.quantity }}</strong>
+            <button type="button" [attr.aria-label]="'cd.more' | flaT" (click)="increase(e)">+</button>
+          </ng-container>
+          <ng-template #fixedQty><strong>{{ e.entry.quantity }}</strong></ng-template>
+        </div>
+        <div class="fla-cp-remove">
+          <button
+            *ngIf="!e.seat"
+            type="button"
+            [attr.aria-label]="'cd.remove' | flaT: { name: e.name }"
+            (click)="remove(e)"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+              <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+            </svg>
+          </button>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <aside class="fla-co-box fla-cp-summary" aria-labelledby="fla-cp-summary-title">
+    <h2 id="fla-cp-summary-title" class="fla-co-title">{{ 'cp.summary' | flaT }}</h2>
+    <div class="fla-cp-coupon">
+      <label for="fla-cp-coupon">{{ 'cp.coupon' | flaT }}</label>
+      <div class="fla-cp-coupon-field">
+        <input #couponInput id="fla-cp-coupon" type="text" [placeholder]="'cp.couponCode' | flaT" (keydown.enter)="applyCoupon(couponInput)" />
+        <button type="button" (click)="applyCoupon(couponInput)">{{ 'cd.apply' | flaT }}</button>
+      </div>
+    </div>
+    <ul class="fla-cp-vouchers" *ngIf="v.vouchers.length">
+      <li *ngFor="let c of v.vouchers">
+        <span>{{ c.name }}</span>
+        <button type="button" [attr.aria-label]="'cp.removeCoupon' | flaT: { c: c.name }" (click)="removeCoupon(c.code)">×</button>
+      </li>
+    </ul>
+    <p class="fla-cp-member" *ngIf="v.memberPlan">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+        <path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" />
+      </svg>
+      {{ 'cp.memberApplied' | flaT: { plan: v.memberPlan } }}
+    </p>
+    <hr />
+    <div class="fla-cp-line"><span>{{ 'cd.subtotal' | flaT }}</span><span>{{ v.subtotal }}</span></div>
+    <div class="fla-cp-line fla-cp-discount" *ngIf="v.discount"><span>{{ v.discountLabel }}</span><span>− {{ v.discount }}</span></div>
+    <div class="fla-cp-line"><span>{{ 'cp.shipping' | flaT }}</span><span>{{ 'cp.shippingLater' | flaT }}</span></div>
+    <div class="fla-cp-line fla-cp-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ v.total }}</span></div>
+    <a class="fla-co-primary" [routerLink]="{ cxRoute: 'checkout' } | cxUrl">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+        <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
+      </svg>
+      {{ 'cd.checkout' | flaT }}
+    </a>
+    <a class="fla-co-secondary" routerLink="/">{{ 'cd.continue' | flaT }}</a>
+  </aside>
+</div>
