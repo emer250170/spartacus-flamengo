@@ -1,0 +1,131 @@
+<section class="fla-pz" *ngIf="view$ | async as v" aria-labelledby="fla-pz-title">
+  <h2 id="fla-pz-title" class="fla-pz-title">{{ 'pz.title' | flaT }}</h2>
+  <p class="fla-pz-intro">{{ 'pz.intro' | flaT }}</p>
+  <ul class="fla-pz-rules">
+    <li>{{ 'pz.rule1' | flaT }}</li>
+    <li>{{ 'pz.rule2' | flaT }}</li>
+    <li>{{ 'pz.rule3' | flaT }}</li>
+  </ul>
+
+  <p class="fla-pz-login" *ngIf="!v.loggedIn">
+    <a routerLink="/login">{{ 'pz.login' | flaT }}</a>
+  </p>
+
+  <ng-container *ngIf="v.loggedIn">
+    <!-- nome e número -->
+    <div class="fla-pz-box" *ngIf="v.options.nameNumber as nn">
+      <button
+        type="button"
+        class="fla-pz-head"
+        [attr.aria-expanded]="open.nameNumber"
+        aria-controls="fla-pz-nn"
+        (click)="toggle('nameNumber')"
+      >
+        {{ 'pz.nameNumber' | flaT }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" aria-hidden="true" focusable="false">
+          <path [attr.d]="open.nameNumber ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'" />
+        </svg>
+      </button>
+      <div class="fla-pz-body" id="fla-pz-nn" *ngIf="open.nameNumber">
+        <div class="fla-pz-fields">
+          <label>
+            {{ 'pz.name' | flaT }}
+            <input
+              #nameInput
+              type="text"
+              maxlength="13"
+              autocomplete="off"
+              autocapitalize="characters"
+              [value]="name"
+              (input)="onName(nameInput.value, nameInput)"
+              aria-describedby="fla-pz-name-hint"
+            />
+          </label>
+          <label>
+            {{ 'pz.number' | flaT }}
+            <input
+              #numberInput
+              type="text"
+              inputmode="numeric"
+              maxlength="2"
+              autocomplete="off"
+              [value]="number"
+              (input)="onNumber(numberInput.value, numberInput)"
+            />
+          </label>
+        </div>
+        <span id="fla-pz-name-hint" class="fla-pz-hint">{{ 'pz.nameHint' | flaT }}</span>
+        <span class="fla-pz-price">{{ 'pz.plus' | flaT: { v: price(nn.price) } }}</span>
+      </div>
+    </div>
+
+    <!-- patrocínio -->
+    <div class="fla-pz-box" *ngIf="v.options.sponsor as sp">
+      <button
+        type="button"
+        class="fla-pz-head"
+        [attr.aria-expanded]="open.sponsor"
+        aria-controls="fla-pz-sp"
+        (click)="toggle('sponsor')"
+      >
+        {{ 'pz.sponsor' | flaT }}
+        <span class="fla-pz-chosen" *ngIf="sponsor">{{ 'pz.chosen' | flaT }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" aria-hidden="true" focusable="false">
+          <path [attr.d]="open.sponsor ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'" />
+        </svg>
+      </button>
+      <div class="fla-pz-body" id="fla-pz-sp" *ngIf="open.sponsor">
+        <label class="fla-pz-check">
+          <input type="checkbox" [checked]="sponsor" (change)="sponsor = $any($event.target).checked" />
+          <span>{{ sp.name }}</span>
+          <span class="fla-pz-price">+ {{ price(sp.price) }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- patch -->
+    <div class="fla-pz-box" *ngIf="v.options.patches?.length">
+      <button
+        type="button"
+        class="fla-pz-head"
+        [attr.aria-expanded]="open.patch"
+        aria-controls="fla-pz-pt"
+        (click)="toggle('patch')"
+      >
+        {{ 'pz.patch' | flaT }}
+        <span class="fla-pz-chosen" *ngIf="patchCode">{{ 'pz.chosen' | flaT }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" aria-hidden="true" focusable="false">
+          <path [attr.d]="open.patch ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'" />
+        </svg>
+      </button>
+      <fieldset class="fla-pz-body" id="fla-pz-pt" *ngIf="open.patch">
+        <legend class="cx-visually-hidden">{{ 'pz.patch' | flaT }}</legend>
+        <label class="fla-pz-check">
+          <input type="radio" name="fla-pz-patch" value="" [checked]="!patchCode" (change)="patchCode = ''" />
+          <span>{{ 'pz.noPatch' | flaT }}</span>
+        </label>
+        <label class="fla-pz-check" *ngFor="let p of v.options.patches">
+          <input
+            type="radio"
+            name="fla-pz-patch"
+            [value]="p.code"
+            [checked]="patchCode === p.code"
+            (change)="patchCode = p.code"
+          />
+          <span>{{ p.name }}</span>
+          <span class="fla-pz-price">+ {{ price(p.price) }}</span>
+        </label>
+      </fieldset>
+    </div>
+
+    <div class="fla-pz-summary" *ngIf="hasChoice" role="status">
+      <span>{{ 'pz.summary' | flaT: { v: price(total(v.options)) } }}</span>
+      <button type="button" class="fla-pz-clear" (click)="clear()">{{ 'pz.clear' | flaT }}</button>
+    </div>
+    <p class="fla-pz-error" *ngIf="error" role="alert">{{ error }}</p>
+    <p class="fla-pz-saving" *ngIf="saving" role="status">{{ 'pz.saving' | flaT }}</p>
+  </ng-container>
+</section>

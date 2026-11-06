@@ -605,4 +605,29 @@
 	</bean>
 	<bean id="flaPaymentMethodConditionTranslator" class="br.com.flamengo.matchday.promotion.FlaPaymentMethodConditionTranslator"/>
 
+	<!--
+		Personalização do manto na página do produto (06/11): nome e número, kit de patrocínio e patch
+		na linha do manto, com linhas de preço (FLA-PERS-*) que acompanham a quantidade do manto.
+		Chave flamengo.personalizacao.ativo.
+	-->
+	<bean id="personalizationService" class="br.com.flamengo.matchday.personalization.impl.DefaultPersonalizationService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="productService" ref="productService"/>
+		<property name="categoryService" ref="categoryService"/>
+		<property name="cartService" ref="cartService"/>
+		<property name="commerceCartCalculationStrategy" ref="commerceCartCalculationStrategy"/>
+		<property name="commercePriceService" ref="commercePriceService"/>
+	</bean>
+	<bean id="personalizationCartHooks" class="br.com.flamengo.matchday.personalization.PersonalizationCartHooks">
+		<property name="personalizationService" ref="personalizationService"/>
+	</bean>
+	<bean id="personalizationAddToCartMethodHookMergeDirective" depends-on="commerceAddToCartMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="personalizationCartHooks"/>
+	</bean>
+	<bean id="personalizationUpdateCartEntryHookMergeDirective" depends-on="commerceUpdateCartEntryMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="personalizationCartHooks"/>
+	</bean>
+
 </beans>

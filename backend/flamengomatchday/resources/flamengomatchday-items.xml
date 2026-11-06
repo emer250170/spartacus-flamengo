@@ -698,6 +698,31 @@
 					<description>E-mail de quem vai usar o ingresso adicional</description>
 					<persistence type="property"/>
 				</attribute>
+				<!--
+					Personalização do manto (06/11, página do produto): nome, número, kit de patrocínio e
+					patch gravados na linha do manto; os preços vêm de linhas próprias (FLA-PERS-*) que
+					apontam para o manto em flaPersOf. Passam para o pedido pelo clone padrão.
+				-->
+				<attribute qualifier="flaPersName" type="java.lang.String">
+					<description>Nome a estampar no manto (até 13 letras)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaPersNumber" type="java.lang.String">
+					<description>Número a estampar no manto (0 a 99)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaPersSponsor" type="java.lang.Boolean">
+					<description>Manto com o kit de patrocínio aplicado</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaPersPatch" type="java.lang.String">
+					<description>Código do patch aplicado no manto (produto FLA-PERS-PATCH-*)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaPersOf" type="java.lang.String">
+					<description>Linha de preço da personalização: código do manto personalizado a que pertence</description>
+					<persistence type="property"/>
+				</attribute>
 			</attributes>
 		</itemtype>
 

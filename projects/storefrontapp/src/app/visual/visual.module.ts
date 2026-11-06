@@ -36,6 +36,8 @@ import {
   FlaPdpHeaderComponent,
   FlaSizeChipsComponent,
 } from './fla-pdp.components';
+import { FlaPdpPersonalizeComponent } from './fla-pdp-personalize.component';
+import { FlaPdpShippingComponent } from './fla-pdp-shipping.component';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -67,6 +69,8 @@ import {
     FlaCartDrawerComponent,
     FlaPdpHeaderComponent,
     FlaSizeChipsComponent,
+    FlaPdpPersonalizeComponent,
+    FlaPdpShippingComponent,
   ],
   providers: [
     // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
@@ -80,6 +84,18 @@ import {
       id: 'ProductMultiDimensionalSelectorComponent',
       position: OutletPosition.AFTER,
       component: FlaSizeChipsComponent,
+    }),
+    // página do produto: "Personalizar" (nome e número, patrocínio, patch) depois dos tamanhos
+    provideOutlet({
+      id: 'ProductMultiDimensionalSelectorComponent',
+      position: OutletPosition.AFTER,
+      component: FlaPdpPersonalizeComponent,
+    }),
+    // página do produto: "Calcule o frete" e trocas e devoluções depois do botão do carrinho
+    provideOutlet({
+      id: 'AddToCartComponent',
+      position: OutletPosition.AFTER,
+      component: FlaPdpShippingComponent,
     }),
     provideConfig(<OccConfig>{
       backend: {

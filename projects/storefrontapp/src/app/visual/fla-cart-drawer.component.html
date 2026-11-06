@@ -49,8 +49,11 @@
             </button>
           </div>
           <span class="fla-cd-details" *ngIf="e.details">{{ e.details }}</span>
+          <span class="fla-cd-pers" *ngIf="e.personalization">
+            {{ 'pz.cartLine' | flaT: { v: e.personalization } }}
+          </span>
           <div class="fla-cd-row fla-cd-bottom">
-            <div class="fla-cd-qty" *ngIf="!e.seat && e.entry.updateable !== false; else fixedQty">
+            <div class="fla-cd-qty" *ngIf="!e.seat && !e.addOn && e.entry.updateable !== false; else fixedQty">
               <button type="button" [attr.aria-label]="'cd.less' | flaT" (click)="decrease(e)">−</button>
               <span aria-live="polite">{{ e.entry.quantity }}</span>
               <button type="button" [attr.aria-label]="'cd.more' | flaT" (click)="increase(e)">+</button>

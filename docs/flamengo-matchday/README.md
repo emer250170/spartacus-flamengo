@@ -914,3 +914,24 @@ Com o idioma em English, todas as telas próprias do Flamengo aparecem em inglê
   - nomes dos filtros (`SolrIndexedProperty.displayName`): Categoria, Marca, Preço, Lojas, Promoção, Cor etc.
 - Carrinho vazio: o parágrafo `EmptyCartParagraphComponent` ganhou o texto em `pt` (Staged e Online).
 - Continua em inglês só o texto de acessibilidade da paginação ("first page", "page 2"), que é fixo no código do Spartacus.
+
+## Personalização do manto e "Calcule o frete" na página do produto (06/11)
+
+- **Onde aparece:** página do produto dos Mantos (categoria `flamengo_c115` e subcategorias; chave
+  `flamengo.personalizacao.categorias`). Seção "Personalizar" com nome e número, kit de patrocínio e
+  patch. Exige estar logado.
+- **Como funciona:** a escolha vale para o próximo "Adicionar ao carrinho". Quando o carrinho confirma, o
+  front grava na linha do manto (`PUT /users/current/carts/{cartId}/flapersonalization`). O servidor cria as
+  linhas de preço `FLA-PERS-*`, com `flaPersOf` = código do manto e a mesma quantidade dele.
+- **Sincronia:** os ganchos de carrinho mantêm as linhas de preço em dia. Mudou a quantidade do manto, as
+  linhas acompanham; o manto saiu, elas saem; tirou uma linha de preço, a opção sai do manto.
+- **Pedido:** tudo passa para o pedido pelo clone padrão. Campos `flaPersName`, `flaPersNumber`,
+  `flaPersSponsor`, `flaPersPatch` e `flaPersOf` em `AbstractOrderEntry`.
+- **Preços e produtos:** `09-personalizacao.impex` (Staged e Online). Nome e número R$ 49,99, kit de
+  patrocínio R$ 59,99, cada patch R$ 29,99.
+- **Chaves:** `flamengo.personalizacao.ativo` (false = não oferece), `.nomeNumero`, `.patrocinio`, `.patches`.
+- **Frete:** `GET /{site}/fladelivery/quote?postalCode=...` devolve as formas de entrega da loja para o
+  Brasil, com o preço cadastrado, e se há retirada na loja. O bairro e a cidade vêm do ViaCEP, pelo
+  navegador. Chaves `flamengo.frete.simulacao.ativo` e `.ignorar`.
+- **Matchday:** a camisa da jornada continua com `FLA-PERSONALIZACAO` (R$ 40,00) e o nome fica só no
+  navegador. Gravar no item é o próximo passo.
