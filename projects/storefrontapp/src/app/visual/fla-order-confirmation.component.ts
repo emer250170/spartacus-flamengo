@@ -382,10 +382,12 @@ export class FlaOcBodyComponent {
       };
     });
 
-    // como no carrinho: subTotal já tem o desconto de cada item; orderDiscounts é o do pedido
+    // subtotal cheio = total − frete + todos os descontos (o subTotal do pedido na API já vem
+    // sem o desconto no pedido, como o do Pix: somar a partir dele contava esse desconto 2 vezes)
     const orderDiscount = o.orderDiscounts?.value ?? 0;
-    const net = (o.subTotal?.value ?? 0) - orderDiscount;
     const discount = o.totalDiscounts?.value ?? 0;
+    const grandTotal = o.totalPriceWithTax?.value ?? o.totalPrice?.value ?? 0;
+    const net = grandTotal - (o.deliveryCost?.value ?? 0);
     // desconto do Pix (promoção "Forma de pagamento = Pix"): é desconto no pedido, em linha própria
     const pixPromo = (o.appliedOrderPromotions ?? []).some((p) =>
       /pix/i.test(`${p.promotion?.code ?? ''} ${p.description ?? ''}`)
