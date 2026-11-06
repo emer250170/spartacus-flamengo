@@ -61,6 +61,9 @@ const NONE: SocioPayment = {
   adyenMethods: [],
 };
 
+/** Chave do CPF do pagador na sessão da aba (por carrinho) */
+const CPF_KEY = 'fla-payer-cpf:';
+
 /** Classe no body enquanto o plano está com Pix/boleto: esconde o cartão do checkout */
 const UPFRONT_CLASS = 'fla-pay-upfront';
 
@@ -75,7 +78,10 @@ const UPFRONT_CLASS = 'fla-pay-upfront';
 export class SocioPaymentService {
   /** Última forma conhecida por carrinho (o guard e o pedido consultam o servidor de novo) */
   protected methods = new Map<string, SocioPaymentMethod | undefined>();
-  /** CPF de quem paga o boleto da Adyen, por carrinho (só na memória da página) */
+  /**
+   * CPF de quem paga o Pix/boleto da Adyen, por carrinho. Fica na memória e na sessão da aba
+   * (06/11: recarregar o pagamento não pede o CPF de novo); some ao fechar a aba e ao fechar o pedido.
+   */
   protected payerCpf = new Map<string, string>();
 
   constructor(
@@ -113,14 +119,14 @@ export class SocioPaymentService {
 
   /** Fecha o pedido com Pix ou boleto (sem cartão); boleto da Adyen leva o CPF do pagador */
   placeOrder(cartId: string): Observable<SocioPayment> {
-    const cpf = this.payerCpf.get(cartId);
+    const cpf = this.payerCpfOf(cartId);
     return this.http
       .post<OccSocioPayment>(`${this.cartUrl(cartId)}/order`, cpf ? { cpf } : {})
       .pipe(
         map(toPayment),
         tap(() => {
           this.methods.delete(cartId);
-          this.payerCpf.delete(cartId);
+          this.setPayerCpf(cartId, '');
         }),
         // guarda o status: recusa 400 o Spartacus já mostra sozinho
         catchError((e) =>
@@ -184,15 +190,38 @@ export class SocioPaymentService {
   }
 
   setPayerCpf(cartId: string, cpf: string): void {
-    if (cpf) {
-      this.payerCpf.set(cartId, cpf.replace(/\D/g, ''));
+    const digits = (cpf ?? '').replace(/\D/g, '');
+    if (digits) {
+      this.payerCpf.set(cartId, digits);
     } else {
       this.payerCpf.delete(cartId);
+    }
+    try {
+      const store = this.winRef.nativeWindow?.sessionStorage;
+      if (digits) {
+        store?.setItem(CPF_KEY + cartId, digits);
+      } else {
+        store?.removeItem(CPF_KEY + cartId);
+      }
+    } catch {
+      // sem sessionStorage (aba privada, bloqueio): fica só na memória
     }
   }
 
   payerCpfOf(cartId: string): string {
-    return this.payerCpf.get(cartId) ?? '';
+    const known = this.payerCpf.get(cartId);
+    if (known) {
+      return known;
+    }
+    try {
+      const saved = this.winRef.nativeWindow?.sessionStorage?.getItem(CPF_KEY + cartId) ?? '';
+      if (saved) {
+        this.payerCpf.set(cartId, saved);
+      }
+      return saved;
+    } catch {
+      return '';
+    }
   }
 
   /** Esconde (ou mostra de volta) o cartão do Spartacus no pagamento e na revisão */

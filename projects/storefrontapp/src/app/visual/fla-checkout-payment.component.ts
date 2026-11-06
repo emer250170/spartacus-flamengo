@@ -236,7 +236,8 @@ export class FlaCheckoutDoneComponent implements OnInit, OnDestroy {
         <li *ngFor="let c of v.cart.vouchers"><span>{{ c.name }}</span></li>
       </ul>
       <div class="fla-cp-line"><span>{{ 'cd.subtotal' | flaT }}</span><span>{{ v.cart.subtotal }}</span></div>
-      <div class="fla-cp-line fla-cp-discount" *ngIf="v.cart.discount"><span>{{ v.cart.discountLabel }}</span><span>− {{ v.cart.discount }}</span></div>
+      <div class="fla-cp-line fla-cp-discount" *ngIf="v.discount"><span>{{ v.cart.discountLabel }}</span><span>− {{ v.discount }}</span></div>
+      <div class="fla-cp-line fla-cp-discount" *ngIf="v.pixOff"><span>{{ 'cs.pixDiscount' | flaT: { p: v.pixPercent } }}</span><span>− {{ v.pixOff }}</span></div>
       <div class="fla-cp-line" *ngIf="v.delivery">
         <span>{{ 'cp.shipping' | flaT }}<ng-container *ngIf="v.mode"> · {{ v.mode }}</ng-container></span>
         <span>{{ v.delivery }}</span>
@@ -258,16 +259,24 @@ export class FlaCheckoutSummaryComponent {
     this.cartView.view$,
     this.activeCart.getActive(),
     this.deliveryModes.getSelectedDeliveryModeState().pipe(map((s) => s.data?.name)),
+    this.pixDiscount$(),
   ]).pipe(
-    map(([page, cart, active, mode]) => {
+    map(([page, cart, active, mode, pix]) => {
       if (!page || !cart) {
         return null;
       }
       const cost = active?.deliveryCost;
       const free = cost?.value === 0 || /^\D*0,00$/.test(cost?.formattedValue ?? '');
+      // desconto do Pix em linha própria (06/11): sai da linha de desconto de sócio/cupom
+      const totalOff = active?.totalDiscounts?.value ?? 0;
+      const pixOff = pix && pix.off > 0.004 && pix.off <= totalOff + 0.004 ? pix.off : 0;
+      const rest = totalOff - pixOff;
       return {
         cart,
         mode,
+        discount: pixOff ? (rest > 0.004 ? this.i18n.money(rest) : undefined) : cart.discount,
+        pixOff: pixOff ? this.i18n.money(pixOff) : undefined,
+        pixPercent: pix?.percent,
         delivery: cost ? (free ? this.i18n.t('cs.free') : cost.formattedValue) : undefined,
         total: active?.totalPriceWithTax?.formattedValue || active?.totalPrice?.formattedValue || cart.total,
       };
@@ -279,6 +288,30 @@ export class FlaCheckoutSummaryComponent {
     protected cartView: FlaCartViewService,
     protected activeCart: ActiveCartFacade,
     protected deliveryModes: CheckoutDeliveryModesFacade,
-    protected i18n: FlaI18nService
+    protected i18n: FlaI18nService,
+    protected payment: SocioPaymentService
   ) {}
+
+  /**
+   * Desconto do Pix já aplicado no carrinho: com o Pix escolhido, o servidor devolve o total sem o
+   * desconto (baseTotal) e com ele (pixTotal). Consulta de novo quando o total do carrinho muda.
+   */
+  protected pixDiscount$(): Observable<{ off: number; percent: number } | null> {
+    return this.activeCart.getActive().pipe(
+      map((c) => (c?.code ? `${c.code}|${c.totalPriceWithTax?.value ?? c.totalPrice?.value ?? ''}` : '')),
+      distinctUntilChanged(),
+      switchMap((key) =>
+        key
+          ? this.payment.options(key.split('|')[0]).pipe(
+              map((p) =>
+                p.method === 'PIX' && p.pixPercent && p.baseTotal && p.pixTotal
+                  ? { off: Math.round((p.baseTotal - p.pixTotal) * 100) / 100, percent: p.pixPercent }
+                  : null
+              )
+            )
+          : of(null)
+      ),
+      startWith(null)
+    );
+  }
 }
