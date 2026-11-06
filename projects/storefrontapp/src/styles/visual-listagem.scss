@@ -1,0 +1,96 @@
+// ---------------------------------------------------------------------------------------------
+// Visual da loja oficial — listagem (06/11; mockup telas 2 e 3). Arquivo separado do
+// tema-flamengo.scss para os PRs do visual não brigarem no fim do mesmo arquivo.
+// - faixa escura da categoria: trilha + nome grande, alinhados à coluna da página
+// - "Filtrar" com ícone e "62 itens" ao lado; "Ordenar por" à direita
+// - grade de 4 colunas (desktop largo), foto em fundo cinza claro, preço de sócio no card
+// ---------------------------------------------------------------------------------------------
+$fla-listagem: 'cx-storefront:is(.ProductListPageTemplate, .ProductGridPageTemplate, .SearchResultsListPageTemplate, .SearchResultsGridPageTemplate)';
+
+#{$fla-listagem} cx-page-slot.BottomHeaderSlot {
+  justify-content: flex-start !important;
+  background: #1b1b1b !important;
+  border-image: conic-gradient(#1b1b1b 0 0) fill 0 / / 0 100vmax;
+
+  cx-breadcrumb {
+    width: 100%;
+    max-width: var(--cx-page-width-max, 1140px);
+    margin-inline: auto;
+    padding: 20px 15px 40px !important;
+    background: transparent !important;
+    text-align: left !important;
+
+    nav {
+      justify-content: flex-start !important;
+    }
+
+    ol {
+      justify-content: flex-start !important;
+      margin-bottom: 40px;
+    }
+
+    li,
+    li a,
+    li::after {
+      color: #fff !important;
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 0 !important;
+      color: #fff !important;
+      font-family: var(--fla-fonte-titulo) !important;
+      font-size: 40px;
+      font-weight: 800 !important;
+      text-transform: uppercase !important;
+      text-align: left !important;
+    }
+  }
+}
+
+cx-product-list .fla-list-bar {
+  .fla-list-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .fla-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .fla-list-count {
+    font-size: 15px;
+    color: #555;
+  }
+
+  // "Ordenar por" num fundo cinza, como na loja oficial
+  .fla-sort .ng-select .ng-select-container {
+    border: 0 !important;
+    background: #f2f2f2 !important;
+  }
+}
+
+// grade: 4 colunas a partir de 1200px (o padrão é 3)
+@media (min-width: 1200px) {
+  cx-product-list cx-product-grid-item.col-md-4,
+  cx-product-scroll cx-product-grid-item.col-md-4 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
+
+// card: foto em área cinza clara, sem borda
+cx-product-grid-item .cx-product-image-container {
+  border: 0 !important;
+  background: #f2f2f2 !important;
+}
+
+cx-product-grid-item .fla-card-member {
+  margin: -6px 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fla-vermelho, #d70000);
+}
