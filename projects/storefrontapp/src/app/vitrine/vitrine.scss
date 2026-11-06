@@ -6,7 +6,10 @@
 }
 
 .vt {
-  max-width: 1200px;
+  // conteúdo na largura do container da loja (1140px + 16px de recuo de cada lado: as mesmas
+  // bordas do header e dos outros blocos da home; antes 1200px, 14px para fora)
+  box-sizing: border-box;
+  max-width: calc(var(--cx-page-width-max, 1140px) + 32px);
   margin: 0 auto;
   padding: 36px 16px 8px;
 }
