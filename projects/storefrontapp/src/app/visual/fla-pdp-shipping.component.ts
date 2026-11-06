@@ -26,7 +26,7 @@ const NO_SHIPPING = /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS)/;
  * "Calcule o frete" na página do produto (mockup tela 4, 06/11): CEP → bairro e cidade (ViaCEP,
  * pelo navegador) e as formas de entrega da loja com o preço do servidor (/fladelivery/quote),
  * mais a retirada grátis na loja quando ligada. Depois, o link de trocas e devoluções.
- * Entra depois do botão "Adicionar ao carrinho" (outlet AddToCartComponent).
+ * Entra depois do botão "Adicionar ao carrinho" (outlet ProductAddToCartComponent, o flexType do CMS).
  */
 @Component({
   selector: 'fla-pdp-shipping',
@@ -54,7 +54,7 @@ const NO_SHIPPING = /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS)/;
         <p class="fla-ship-place" *ngIf="quote.place">{{ quote.place }}</p>
         <ul>
           <li *ngFor="let o of quote.options">
-            <span>{{ o.name }}</span>
+            <span>{{ o.name }}<small *ngIf="o.description"> · {{ o.description }}</small></span>
             <strong>{{ money(o.price) }}</strong>
           </li>
           <li *ngIf="quote.pickup">
