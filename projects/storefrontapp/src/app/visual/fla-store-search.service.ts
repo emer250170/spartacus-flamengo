@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OccEndpointsService } from '@spartacus/core';
 import { Observable, forkJoin, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
 
 export interface StoreHours {
   day: string;
@@ -100,6 +100,24 @@ export class FlaStoreSearchService {
         ),
         catchError(() => of(null))
       );
+  }
+
+  protected names = new Map<string, Observable<string>>();
+
+  /** Nome da loja ("Loja Flamengo Copacabana") pelo código; sem resposta, o próprio código */
+  storeName(name: string): Observable<string> {
+    if (!this.names.has(name)) {
+      const base = this.occEndpoints.getBaseUrl();
+      this.names.set(
+        name,
+        this.http.get<any>(`${base}/stores/${encodeURIComponent(name)}`, { params: { fields: 'BASIC' } }).pipe(
+          map((s) => (s?.displayName as string) || name),
+          catchError(() => of(name)),
+          shareReplay(1)
+        )
+      );
+    }
+    return this.names.get(name) as Observable<string>;
   }
 
   /** Lojas perto do ponto, com o estoque somado de todos os itens (o menor deles) */

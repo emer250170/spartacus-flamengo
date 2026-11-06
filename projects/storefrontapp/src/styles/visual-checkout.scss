@@ -1338,3 +1338,218 @@ fla-checkout-accept {
     padding: 14px;
   }
 }
+
+// ---------------------------------------------------------------------------------------------
+// Pagamento e revisão no visual do mockup (06/11; FlaCheckoutDoneComponent põe fla-co-pay e,
+// na revisão, fla-co-review no <html>):
+//  - coluna principal: etapas feitas (Dados pessoais, Entrega, forma de pagamento) com
+//    "Alterar" e o bloco "Pagamento" (escolha da forma; na revisão, cartão, aceites e finalizar);
+//  - à direita, o resumo com os itens (FlaCheckoutSummaryComponent) no lugar do do Spartacus.
+// Na revisão, os componentes do "Finalizar pedido" (slot SideContent) vão para a coluna
+// principal: o slot vira "display: contents" e a página uma grade de duas colunas.
+// ---------------------------------------------------------------------------------------------
+html.fla-co-pay.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+  cx-page-slot.BodyContent,
+  cx-page-slot.SideContent {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+  }
+
+  cx-checkout-order-summary {
+    display: none !important;
+  }
+
+  // escolha da forma de pagamento: continua o bloco branco do título "Pagamento"
+  fla-socio-payment-choice,
+  cx-payment-method {
+    display: block;
+    padding: 20px 30px 0;
+    background: #fff;
+  }
+
+  cx-payment-method {
+    padding-bottom: 30px;
+    border-radius: 0 0 4px 4px;
+  }
+}
+
+fla-checkout-done {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fla-cdn {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 24px 30px;
+  border-radius: 4px;
+  background: #fff;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 4px;
+    font-family: var(--fla-fonte-titulo) !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+
+    svg {
+      flex: none;
+      color: #1d8b21;
+    }
+  }
+
+  > a {
+    font-size: 15px;
+    color: var(--fla-preto) !important;
+    text-decoration: underline !important;
+  }
+}
+
+.fla-cdn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 16px;
+}
+
+.fla-cdn-muted {
+  font-size: 15px;
+  color: #555;
+}
+
+.fla-cpay-head {
+  padding: 30px 30px 0;
+  border-radius: 4px 4px 0 0;
+  background: #fff;
+
+  .fla-co-title {
+    margin: 0 !important;
+  }
+}
+
+.fla-cs-hold {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+}
+
+// revisão: duas colunas; o "Finalizar pedido" (e o cartão da Adyen) na coluna principal
+html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-rows: repeat(10, auto) 1fr;
+  gap: 0 40px !important; // sem espaço entre linhas: as linhas vazias da grade não somam vão
+  align-items: start;
+
+  cx-page-slot.TopContent,
+  cx-page-slot.BodyContent > section,
+  cx-pick-up-in-store-items-details,
+  cx-export-order-entries {
+    display: none !important;
+  }
+
+  cx-page-slot.BodyContent {
+    grid-column: 1;
+    grid-row: 1;
+    max-width: none !important;
+  }
+
+  cx-page-slot.SideContent {
+    display: contents !important;
+
+    > * {
+      grid-column: 1;
+      padding: 0 30px;
+      background: #fff;
+    }
+
+    > fla-checkout-summary {
+      grid-column: 2;
+      grid-row: 1 / -1;
+      padding: 0;
+      background: transparent;
+    }
+
+    > :empty {
+      display: none !important;
+    }
+
+    > cx-place-order,
+    > fla-adyen-card {
+      padding-bottom: 30px;
+      border-radius: 0 0 4px 4px;
+    }
+  }
+
+  cx-page-slot.BottomContent {
+    grid-column: 1 / -1;
+    grid-row: 12;
+    margin-top: 20px;
+  }
+
+  // os blocos do pagamento ficam no branco do bloco, sem a moldura própria
+  fla-adyen-card .spay,
+  fla-socio-payment-review .spay {
+    margin: 0 0 16px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+
+    cx-page-slot.SideContent > fla-checkout-summary {
+      grid-column: 1;
+      grid-row: auto;
+      order: 99;
+      margin-top: 20px;
+    }
+
+    cx-page-slot.BottomContent {
+      grid-row: auto;
+      order: 100;
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  .fla-cdn {
+    padding: 18px 16px;
+  }
+
+  .fla-cpay-head {
+    padding: 20px 16px 0;
+  }
+
+  html.fla-co-pay.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+    fla-socio-payment-choice,
+    cx-payment-method {
+      padding-inline: 16px;
+    }
+  }
+
+  html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate cx-page-slot.SideContent > :not(fla-checkout-summary) {
+    padding-inline: 16px;
+  }
+}

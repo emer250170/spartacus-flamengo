@@ -1,3 +1,4 @@
+import { FlaCheckoutDoneComponent, FlaCheckoutSummaryComponent } from './fla-checkout-payment.component';
 import { FlaCheckoutAcceptComponent, FlaCheckoutAcceptModule } from './fla-checkout-accept';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
@@ -89,6 +90,8 @@ import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component'
     FlaCheckoutIdentityIntroComponent,
     FlaCheckoutIdentityExtraComponent,
     FlaCheckoutDeliveryComponent,
+    FlaCheckoutDoneComponent,
+    FlaCheckoutSummaryComponent,
   ],
   providers: [
     // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
@@ -202,6 +205,18 @@ import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component'
       id: 'CheckoutDeliveryAddress',
       position: OutletPosition.BEFORE,
       component: FlaCheckoutDeliveryComponent,
+    }),
+    // Pagamento e revisão: etapas feitas e o título "Pagamento" no topo da coluna principal,
+    // e o resumo com os itens no lugar do resumo do Spartacus
+    provideOutlet({
+      id: 'BodyContent',
+      position: OutletPosition.BEFORE,
+      component: FlaCheckoutDoneComponent,
+    }),
+    provideOutlet({
+      id: 'SideContent',
+      position: OutletPosition.BEFORE,
+      component: FlaCheckoutSummaryComponent,
     }),
     // Pagamento: Aceites (Termos e Privacidade) antes do "Finalizar pedido" do Spartacus
     provideOutlet({

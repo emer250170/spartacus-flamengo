@@ -1,0 +1,269 @@
+import { DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  Renderer2,
+} from '@angular/core';
+import { ActiveCartFacade, Cart, OrderEntry } from '@spartacus/cart/base/root';
+import {
+  CheckoutDeliveryAddressFacade,
+  CheckoutDeliveryModesFacade,
+} from '@spartacus/checkout/base/root';
+import { Address, RoutingService } from '@spartacus/core';
+import { UserAccountFacade } from '@spartacus/user/account/root';
+import { Observable, Subscription, combineLatest, of } from 'rxjs';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  startWith,
+  switchMap,
+} from 'rxjs/operators';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { SocioPaymentService } from '../socio/socio-payment.service';
+import { FlaCartViewService } from './fla-cart-view.service';
+import { FlaStoreSearchService } from './fla-store-search.service';
+
+/** Itens sem entrega física (ingresso, experiência, plano, estacionamento, comida, personalização) */
+const DIGITAL = /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS-|FLA-PERSONALIZACAO)/;
+
+/** Uma etapa já feita: título com ✓, duas linhas e "Alterar" */
+interface DoneStep {
+  title: string;
+  l1: string;
+  l2?: string;
+  route: string;
+}
+
+/** Página do pagamento (escolha da forma) ou revisão (cartão, aceites e finalizar) */
+function payPage(url: string): 'payment' | 'review' | null {
+  if (/checkout\/review-order/.test(url)) {
+    return 'review';
+  }
+  if (/checkout\/(payment-details|payment-type)/.test(url)) {
+    return 'payment';
+  }
+  return null;
+}
+
+/**
+ * Pagamento (mockup "Checkout — Pagamento", 06/11), no topo da coluna principal da escolha da
+ * forma e da revisão: as etapas feitas (Dados pessoais, Entrega e, na revisão, a forma de
+ * pagamento), cada uma com "Alterar", e o título "Pagamento" do bloco que segue (a escolha da
+ * forma ou, na revisão, o cartão, os aceites e o finalizar). Põe no <html> as classes que o tema
+ * usa para a disposição: fla-co-pay (as duas páginas) e fla-co-review (revisão).
+ * Entra pelo outlet do slot BodyContent (antes).
+ */
+@Component({
+  selector: 'fla-checkout-done',
+  template: `
+    <ng-container *ngIf="view$ | async as v">
+      <section class="fla-cdn" *ngFor="let s of v.steps">
+        <div class="fla-cdn-text">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10" /></svg>
+            {{ s.title | flaT }}
+          </h2>
+          <span>{{ s.l1 }}</span>
+          <span class="fla-cdn-muted" *ngIf="s.l2">{{ s.l2 }}</span>
+        </div>
+        <a [routerLink]="{ cxRoute: s.route } | cxUrl">{{ 'cpay.change' | flaT }}</a>
+      </section>
+      <div class="fla-cpay-head">
+        <h1 class="fla-co-title">{{ 'cpay.title' | flaT }}</h1>
+      </div>
+    </ng-container>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class FlaCheckoutDoneComponent implements OnInit, OnDestroy {
+  readonly view$: Observable<{ steps: DoneStep[] } | null>;
+
+  protected page$: Observable<'payment' | 'review' | null>;
+  protected subscription = new Subscription();
+
+  constructor(
+    protected routing: RoutingService,
+    protected activeCart: ActiveCartFacade,
+    protected userAccount: UserAccountFacade,
+    protected deliveryAddress: CheckoutDeliveryAddressFacade,
+    protected deliveryModes: CheckoutDeliveryModesFacade,
+    protected socioPayment: SocioPaymentService,
+    protected storeSearch: FlaStoreSearchService,
+    protected i18n: FlaI18nService,
+    protected renderer: Renderer2,
+    @Inject(DOCUMENT) protected document: Document
+  ) {
+    this.page$ = this.routing.getRouterState().pipe(
+      map((s) => payPage(s?.state?.url ?? '')),
+      distinctUntilChanged()
+    );
+
+    const cart$ = this.activeCart.getActive();
+    const store$ = cart$.pipe(
+      map((c) => this.pickupStore(c)),
+      distinctUntilChanged(),
+      switchMap((name) => (name ? this.storeSearch.storeName(name) : of('')))
+    );
+    const payment$ = combineLatest([this.page$, this.activeCart.getActiveCartId()]).pipe(
+      switchMap(([page, id]) =>
+        page === 'review' && id ? this.socioPayment.options(id).pipe(startWith(undefined)) : of(undefined)
+      )
+    );
+
+    this.view$ = this.page$.pipe(
+      switchMap((page) =>
+        !page
+          ? of(null)
+          : combineLatest([
+              this.userAccount.get().pipe(startWith(undefined)),
+              cart$,
+              store$,
+              this.deliveryAddress.getDeliveryAddressState().pipe(map((s) => s.data)),
+              this.deliveryModes.getSelectedDeliveryModeState().pipe(map((s) => s.data)),
+              payment$,
+            ]).pipe(
+              map(([user, cart, storeName, address, mode, pay]) => {
+                const steps: DoneStep[] = [
+                  {
+                    title: 'cpay.personal',
+                    l1: [[user?.firstName, user?.lastName].filter((x) => !!x).join(' ') || user?.name, user?.uid]
+                      .filter((x) => !!x)
+                      .join(' · '),
+                    route: 'updateProfile',
+                  },
+                  this.deliveryStep(cart, storeName, address, mode),
+                ];
+                if (page === 'review' && pay?.method) {
+                  const key = pay.planCode ? 'spay.m.' + pay.method : 'spay.m.store.' + pay.method;
+                  const name = this.i18n.t(key) === key ? this.i18n.t('spay.m.' + pay.method) : this.i18n.t(key);
+                  steps.push({
+                    title: 'cpay.payment',
+                    l1: name,
+                    l2: this.i18n.money(pay.total),
+                    route: 'checkoutPaymentDetails',
+                  });
+                }
+                return { steps };
+              })
+            )
+      )
+    );
+  }
+
+  ngOnInit(): void {
+    this.subscription.add(
+      this.page$.subscribe((page) => {
+        const html = this.document.documentElement;
+        const set = (cls: string, on: boolean) =>
+          on ? this.renderer.addClass(html, cls) : this.renderer.removeClass(html, cls);
+        set('fla-co-pay', !!page);
+        set('fla-co-review', page === 'review');
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+    this.renderer.removeClass(this.document.documentElement, 'fla-co-pay');
+    this.renderer.removeClass(this.document.documentElement, 'fla-co-review');
+  }
+
+  /** Loja de retirada quando todos os itens físicos vão para a mesma loja */
+  protected pickupStore(cart: Cart): string {
+    const physical = this.physical(cart);
+    const stores = [...new Set(physical.map((e) => e.deliveryPointOfService?.name ?? ''))];
+    return physical.length && stores.length === 1 ? stores[0] : '';
+  }
+
+  protected physical(cart: Cart): OrderEntry[] {
+    return (cart?.entries ?? []).filter((e) => !DIGITAL.test(e.product?.code ?? ''));
+  }
+
+  protected deliveryStep(cart: Cart, storeName: string, address?: Address, mode?: any): DoneStep {
+    const physical = this.physical(cart);
+    const hasDigital = (cart?.entries ?? []).some((e) => DIGITAL.test(e.product?.code ?? '') && !/^FLA-PERS-/.test(e.product?.code ?? ''));
+    const digitalNote = hasDigital ? this.i18n.t('cpay.digitalNote') : '';
+    const join = (...xs: (string | undefined)[]) => xs.filter((x) => !!x).join(' · ');
+    const step: DoneStep = { title: 'cpay.delivery', l1: '', route: 'checkoutDeliveryAddress' };
+    if (physical.length && storeName && physical.every((e) => !!e.deliveryPointOfService)) {
+      step.l1 = this.i18n.t('cpay.pickupAt', { store: storeName });
+      step.l2 = join(this.i18n.t('cdl.pickupFree'), digitalNote);
+      return step;
+    }
+    if (physical.length && address) {
+      step.l1 = join(this.i18n.t('cpay.home'), address.line1, address.line2, address.town, address.postalCode);
+      step.l2 = join(mode?.name, mode?.description, digitalNote);
+      return step;
+    }
+    step.l1 = mode?.name || this.i18n.t('cpay.digitalOnly');
+    step.l2 = join(mode?.description, digitalNote);
+    return step;
+  }
+}
+
+/**
+ * Resumo do pedido no pagamento (mockup): itens com miniatura (manto com a personalização),
+ * cupons, subtotal, desconto, frete com o nome da forma de entrega, total e o tempo da poltrona
+ * reservada. No pagamento e na revisão fica no lugar do resumo do Spartacus.
+ * Entra pelo outlet do slot SideContent (antes).
+ */
+@Component({
+  selector: 'fla-checkout-summary',
+  template: `
+    <aside class="fla-co-box fla-ci-summary fla-cs" *ngIf="view$ | async as v" aria-labelledby="fla-cs-title">
+      <div class="fla-ci-summary-head">
+        <h2 id="fla-cs-title" class="fla-co-title">{{ 'cp.summary' | flaT }}</h2>
+        <a [routerLink]="{ cxRoute: 'cart' } | cxUrl">{{ 'ci.changeCart' | flaT }}</a>
+      </div>
+      <ul class="fla-ci-items">
+        <li *ngFor="let e of v.cart.entries">
+          <span class="fla-ci-thumb">
+            <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="''"></cx-media>
+          </span>
+          <span class="fla-ci-item">
+            <strong>{{ e.name }}</strong>
+            <span *ngIf="e.details">{{ e.details }}</span>
+            <span *ngIf="e.personalization" class="fla-cp-pers">{{ 'pz.cartLine' | flaT: { v: e.personalization } }}</span>
+            <span>{{ 'ci.units' | flaT: { n: e.entry.quantity } }}</span>
+          </span>
+          <strong>{{ e.price }}</strong>
+        </li>
+      </ul>
+      <ul class="fla-cp-vouchers" *ngIf="v.cart.vouchers.length">
+        <li *ngFor="let c of v.cart.vouchers"><span>{{ c.name }}</span></li>
+      </ul>
+      <div class="fla-cp-line"><span>{{ 'cd.subtotal' | flaT }}</span><span>{{ v.cart.subtotal }}</span></div>
+      <div class="fla-cp-line fla-cp-discount" *ngIf="v.cart.discount"><span>{{ v.cart.discountLabel }}</span><span>− {{ v.cart.discount }}</span></div>
+      <div class="fla-cp-line" *ngIf="v.cart.delivery">
+        <span>{{ 'cp.shipping' | flaT }}<ng-container *ngIf="v.mode"> · {{ v.mode }}</ng-container></span>
+        <span>{{ v.cart.delivery }}</span>
+      </div>
+      <div class="fla-cp-line fla-cp-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ v.cart.total }}</span></div>
+      <p class="fla-cs-hold" *ngIf="v.cart.holdLeft">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+        {{ 'cp.hold' | flaT: { t: v.cart.holdLeft } }}
+      </p>
+    </aside>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class FlaCheckoutSummaryComponent {
+  readonly view$ = combineLatest([
+    this.routing.getRouterState().pipe(map((s) => payPage(s?.state?.url ?? ''))),
+    this.cartView.view$,
+    this.deliveryModes.getSelectedDeliveryModeState().pipe(map((s) => s.data?.name)),
+  ]).pipe(
+    filter(([page]) => page !== undefined),
+    map(([page, cart, mode]) => (page && cart ? { cart, mode } : null))
+  );
+
+  constructor(
+    protected routing: RoutingService,
+    protected cartView: FlaCartViewService,
+    protected deliveryModes: CheckoutDeliveryModesFacade
+  ) {}
+}
