@@ -1,4 +1,19 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import { Language, LanguageService, RoutingService } from '@spartacus/core';
+import { Observable, Subscription, combineLatest, of } from 'rxjs';
+import { catchError, filter, map } from 'rxjs/operators';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { MatchdayDataService } from '../matchday/matchday-data.service';
+import { MatchdayMatch } from '../matchday/matchday.model';
 
 /** Portal do clube: os links que não são da loja abrem o flamengo.com.br em nova aba */
 const PORTAL = 'https://www.flamengo.com.br';
@@ -70,33 +85,199 @@ export class FlaPortalNavComponent {
 }
 
 /**
- * Botão preto "Ingressos" na barra vermelha, antes da busca (leva aos jogos em casa).
- * Entra pelo outlet do slot SearchBox.
+ * Botão preto "Ingressos ▾" na barra vermelha, antes da busca (mockup do header, 06/11): abre
+ * a lista dos próximos jogos em casa (data, competição, preço inicial), cada um levando à
+ * jornada de matchday já com o jogo escolhido, e "Ver todos os jogos". Os jogos só são
+ * buscados quando a lista abre. Fecha no Esc (foco volta ao botão), no clique fora e ao
+ * trocar de página. Entra pelo outlet do slot SearchBox.
  */
 @Component({
   selector: 'fla-tickets-button',
   template: `
-    <a class="fla-tickets-btn" routerLink="/matchday">
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        aria-hidden="true"
-        focusable="false"
+    <div class="fla-tk">
+      <button
+        type="button"
+        class="fla-tickets-btn"
+        #trigger
+        [attr.aria-expanded]="open"
+        aria-controls="fla-tk-panel"
+        (click)="toggle()"
       >
-        <path
-          d="M3 8V6h18v2a2 2 0 0 0 0 4v2a2 2 0 0 0 0 4H3a2 2 0 0 0 0-4v-2a2 2 0 0 0 0-4z"
-        />
-      </svg>
-      {{ 'hd.tickets' | flaT }}
-    </a>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" aria-hidden="true" focusable="false">
+          <path d="M3 8V6h18v2a2 2 0 0 0 0 4v2a2 2 0 0 0 0 4H3a2 2 0 0 0 0-4v-2a2 2 0 0 0 0-4z" />
+        </svg>
+        {{ 'hd.tickets' | flaT }}
+        <svg class="fla-tk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      <div class="fla-tk-panel" id="fla-tk-panel" *ngIf="open">
+        <p class="fla-tk-title">{{ 'hd.ticketsNext' | flaT }}</p>
+        <ng-container *ngIf="matches$ | async as matches; else loading">
+          <ul *ngIf="matches.length; else empty">
+            <li *ngFor="let m of matches">
+              <a routerLink="/matchday" [queryParams]="{ jogo: m.code }" (click)="close()">
+                <span class="fla-tk-name">{{ m.title }}</span>
+                <span class="fla-tk-meta"
+                  >{{ weekday(m) }} {{ m.dateLabel }} · {{ m.timeLabel }} · {{ m.competition }}</span
+                >
+                <span class="fla-tk-price">{{ 'hd.ticketsFrom' | flaT: { v: price(m.minPrice) } }}</span>
+              </a>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #loading>
+          <p class="fla-tk-note" role="status">{{ 'hd.ticketsLoading' | flaT }}</p>
+        </ng-template>
+        <ng-template #empty>
+          <p class="fla-tk-note">{{ 'hd.ticketsEmpty' | flaT }}</p>
+        </ng-template>
+        <a class="fla-tk-all" routerLink="/matchday" (click)="close()">{{
+          'hd.ticketsAll' | flaT
+        }}</a>
+      </div>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlaTicketsButtonComponent {}
+export class FlaTicketsButtonComponent implements OnInit, OnDestroy {
+  open = false;
+  matches$?: Observable<MatchdayMatch[]>;
+  @ViewChild('trigger') trigger?: ElementRef<HTMLButtonElement>;
+  protected subscription = new Subscription();
+
+  constructor(
+    protected data: MatchdayDataService,
+    protected i18n: FlaI18nService,
+    protected routing: RoutingService,
+    protected el: ElementRef<HTMLElement>,
+    protected cd: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.subscription.add(
+      this.routing
+        .getRouterState()
+        .pipe(filter((state) => !!state.nextState))
+        .subscribe(() => this.close())
+    );
+  }
+
+  toggle(): void {
+    if (this.open) {
+      this.close();
+      return;
+    }
+    this.matches$ ??= this.data.getMatches().pipe(
+      map((list) => list.slice(0, 4)),
+      catchError(() => of([] as MatchdayMatch[]))
+    );
+    this.open = true;
+  }
+
+  close(focusTrigger = false): void {
+    if (this.open) {
+      this.open = false;
+      this.cd.markForCheck();
+      if (focusTrigger) {
+        this.trigger?.nativeElement.focus();
+      }
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.el.nativeElement.contains(event.target as Node)) {
+      this.close();
+    }
+  }
+
+  @HostListener('keydown.escape')
+  onEscape(): void {
+    this.close(true);
+  }
+
+  weekday(m: MatchdayMatch): string {
+    return m.weekdayIndex < 0 ? m.weekday : this.i18n.weekday(m.weekdayIndex);
+  }
+
+  price(value: number): string {
+    return this.i18n.money(value);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+}
+
+/**
+ * Idioma compacto na faixa de cima (mockup do header: globo + "PT"). Mostra a sigla de cada
+ * idioma do site; o nome completo vai para o leitor de tela. No desktop fica no lugar do
+ * seletor do CMS (o tema esconde o do Spartacus); no celular o seletor do CMS continua no menu.
+ * Entra pelo outlet do slot SiteContext.
+ */
+@Component({
+  selector: 'fla-language',
+  template: `
+    <label class="fla-lang" *ngIf="view$ | async as v">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
+      </svg>
+      <span class="cx-visually-hidden">{{ 'hd.language' | flaT }}</span>
+      <select (change)="select($any($event.target).value)">
+        <option
+          *ngFor="let l of v.languages"
+          [value]="l.isocode"
+          [selected]="l.isocode === v.active"
+          [attr.aria-label]="l.nativeName"
+        >
+          {{ short(l.isocode) }}
+        </option>
+      </select>
+    </label>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class FlaLanguageComponent {
+  readonly view$: Observable<{ languages: Language[]; active: string }> =
+    combineLatest([this.languages.getAll(), this.languages.getActive()]).pipe(
+      map(([languages, active]) => ({ languages, active }))
+    );
+
+  constructor(protected languages: LanguageService) {}
+
+  short(isocode: string): string {
+    return (isocode ?? '').split(/[_-]/)[0].toUpperCase();
+  }
+
+  select(isocode: string): void {
+    this.languages.setActive(isocode);
+  }
+}
+
+/**
+ * "Loja Oficial" no começo da faixa preta de categorias (mockup do header), sublinhado na
+ * página inicial da loja. Entra pelo outlet do slot NavigationBar (antes das categorias).
+ */
+@Component({
+  selector: 'fla-store-home-link',
+  template: `
+    <a
+      class="fla-store-home"
+      routerLink="/"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page"
+      >{{ 'hd.storeHome' | flaT }}</a
+    >
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class FlaStoreHomeLinkComponent {}
 
 /**
  * Rodapé (visual da loja oficial, como no mockup aprovado): quatro colunas — Sede Gávea,

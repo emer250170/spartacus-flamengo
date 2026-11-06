@@ -21,8 +21,10 @@ import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import {
   FlaFooterBottomComponent,
   FlaFooterInfoComponent,
+  FlaLanguageComponent,
   FlaPortalLinksComponent,
   FlaPortalNavComponent,
+  FlaStoreHomeLinkComponent,
   FlaTicketsButtonComponent,
 } from './fla-header.components';
 import { FlaCartDrawerComponent } from './fla-cart-drawer.component';
@@ -56,6 +58,8 @@ import {
     FlaPortalLinksComponent,
     FlaPortalNavComponent,
     FlaTicketsButtonComponent,
+    FlaLanguageComponent,
+    FlaStoreHomeLinkComponent,
     FlaFooterInfoComponent,
     FlaFooterBottomComponent,
     FlaLogoLabelComponent,
@@ -116,11 +120,23 @@ import {
       position: OutletPosition.AFTER,
       component: FlaLogoLabelComponent,
     }),
-    // barra vermelha: "Ingressos" antes da busca
+    // barra vermelha: "Ingressos ▾" (lista dos próximos jogos) antes da busca
     provideOutlet({
       id: 'SearchBox',
       position: OutletPosition.BEFORE,
       component: FlaTicketsButtonComponent,
+    }),
+    // faixa de cima: idioma compacto (globo + sigla) no lugar do seletor do CMS, no desktop
+    provideOutlet({
+      id: 'SiteContext',
+      position: OutletPosition.BEFORE,
+      component: FlaLanguageComponent,
+    }),
+    // faixa preta: "Loja Oficial" antes das categorias
+    provideOutlet({
+      id: 'NavigationBar',
+      position: OutletPosition.BEFORE,
+      component: FlaStoreHomeLinkComponent,
     }),
     // rodapé: endereços antes dos links do CMS e a linha final depois
     provideOutlet({
