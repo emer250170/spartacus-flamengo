@@ -810,7 +810,10 @@ body.fla-pay-adyen {
 //   1. vermelha fina: links do portal (SiteLinks) · selo + "Olá" + Minha conta (SiteLogin) · idioma
 //   2. vermelha: logo + menu do portal (SiteLogo) · Ingressos + busca em ícone (SearchBox) · carrinho
 //   3. preta: categorias da loja (NavigationBar)
-// A grade é montada no cx-page-layout.header; o celular continua com o menu hambúrguer.
+// As faixas são linhas de um flex com quebra (ordem por slot), cada uma com as próprias larguras
+// (06/11: numa grade única as colunas eram compartilhadas e o logo + menu do portal não cabiam
+// na coluna da faixa de cima — o logo saía 80px para a esquerda do conteúdo).
+// O celular continua com o menu hambúrguer.
 // ---------------------------------------------------------------------------------------------
 // componente sem nada na tela que tira o tooltip "SAP Commerce" do logo (não ocupa espaço)
 fla-logo-label {
@@ -827,25 +830,22 @@ fla-logo-label {
 
 @media (min-width: 992px) {
   html header cx-page-layout.header {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      'links login ctx'
-      'logo search cart'
-      'nav nav nav';
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center;
     column-gap: 20px;
     row-gap: 0;
-    align-items: center;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+    // mesmo recuo do conteúdo (container de 1140 com 15px): logo e "Filtrar" na mesma linha
+    padding-inline: 15px !important;
   }
 
-  // fio entre a faixa de cima e a barra vermelha, de ponta a ponta
+  // fio entre a faixa de cima e a barra vermelha, de ponta a ponta (e quebra de linha)
   html header cx-page-layout.header::before {
     content: '';
-    grid-row: 1;
-    grid-column: 1 / -1;
-    align-self: end;
+    order: 4;
+    flex: 0 0 100%;
     height: 1px;
     background: rgba(255, 255, 255, 0.25);
     border-image: conic-gradient(rgba(255, 255, 255, 0.25) 0 0) fill 0 / / 0 100vmax;
@@ -872,7 +872,8 @@ fla-logo-label {
   }
 
   header cx-page-slot.SiteLinks {
-    grid-area: links;
+    order: 1;
+    flex: 1 1 auto !important;
     justify-content: flex-start !important;
 
     // Pedidos, Encontre uma loja... ficam só no menu do celular
@@ -900,7 +901,7 @@ fla-logo-label {
   }
 
   header cx-page-slot.SiteLogin {
-    grid-area: login;
+    order: 2;
     display: flex !important;
     flex-direction: row !important;
     gap: 14px !important;
@@ -959,8 +960,7 @@ fla-logo-label {
   }
 
   header cx-page-slot.SiteContext {
-    grid-area: ctx;
-    justify-self: end;
+    order: 3;
     justify-content: flex-end !important;
 
     cx-site-theme-switcher {
@@ -985,7 +985,10 @@ fla-logo-label {
 
   // 2a faixa ------------------------------------------------------------------------------
   header cx-page-slot.SiteLogo {
-    grid-area: logo;
+    order: 5;
+    flex: 1 1 auto !important;
+    min-width: 0;
+    justify-content: flex-start !important;
     display: flex !important;
     align-items: center;
     gap: 28px;
@@ -1022,7 +1025,7 @@ fla-logo-label {
   }
 
   header cx-page-slot.SearchBox {
-    grid-area: search;
+    order: 6;
     position: relative;
     display: flex !important;
     align-items: center;
@@ -1155,8 +1158,7 @@ fla-logo-label {
 
   // carrinho: ícone branco com contador preto
   header cx-page-slot.MiniCart {
-    grid-area: cart;
-    justify-self: end;
+    order: 7;
   }
 
   html header cx-mini-cart a {
@@ -1200,7 +1202,8 @@ fla-logo-label {
 
   // 3a faixa ------------------------------------------------------------------------------
   header cx-page-slot.NavigationBar {
-    grid-area: nav;
+    order: 9;
+    flex: 0 0 100% !important;
   }
 }
 
