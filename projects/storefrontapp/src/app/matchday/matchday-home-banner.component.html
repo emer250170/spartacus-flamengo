@@ -1,3 +1,7 @@
+<!-- home no visual da loja oficial (mockup "Home", 06/11): destaques, próximo jogo, compre por
+     categoria, próximos jogos, personalize, linhas, experiências e acessórios -->
+<fla-home-hero></fla-home-hero>
+
 <section *ngIf="next$ | async as m" class="mdb" aria-labelledby="mdb-title">
   <div class="mdb-inner">
     <div class="mdb-text">
@@ -19,6 +23,11 @@
   </div>
 </section>
 
+<fla-home-categories></fla-home-categories>
+
 <!-- vitrines com as imagens dos jogos e das experiências (04/11) -->
 <fla-match-cards></fla-match-cards>
+<fla-home-personalize></fla-home-personalize>
+<fla-home-lines></fla-home-lines>
 <fla-experience-showcase [dark]="true"></fla-experience-showcase>
+<fla-home-accessories></fla-home-accessories>
