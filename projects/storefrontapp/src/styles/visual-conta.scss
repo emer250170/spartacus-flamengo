@@ -1609,6 +1609,11 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
     }
   }
 
+  // Carrinhos salvos: sem "Importar produtos" (decisão do Emerson, 07/11)
+  > cx-import-order-entries {
+    display: none !important;
+  }
+
   // ---------- Lista de desejos: uma linha por produto ----------
   cx-wish-list {
     table,
