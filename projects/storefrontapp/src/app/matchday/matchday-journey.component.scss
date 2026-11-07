@@ -35,10 +35,17 @@
   padding-bottom: 64px;
 }
 
+// conteúdo nas bordas do container de 1140px, as mesmas do logo e do carrinho (07/11: com 16px
+// de recuo os painéis ficavam 16px para dentro); 16px da tela só abaixo de 1172px
 .md-wrap {
-  max-width: 1200px;
+  box-sizing: border-box;
+  max-width: var(--cx-page-width-max, 1140px);
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0;
+
+  @media (max-width: 1171.98px) {
+    padding: 0 16px;
+  }
 }
 
 // frase de apoio abaixo do cabeçalho padrão da loja (o título vem do breadcrumb)
