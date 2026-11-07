@@ -1025,6 +1025,9 @@ python3 docs/flamengo-matchday/emails/gerar.py --modo restaurar --saida /tmp/res
 
   A prévia roda numa thread com o usuário do pedido, o site e o idioma do pedido (fora disso o contexto do e-mail
   não encontra os beans e o produto fica ambíguo) e renderiza com o `VelocityEngine` direto.
-- Envio de verdade depende do SMTP (`mail.smtp.server`, `mail.smtp.port`, `mail.use.tls`, `mail.from`,
-  `mail.smtp.user`, `mail.smtp.password`). Para Gmail: `smtp.gmail.com`, porta 587, TLS e **senha de app**;
-  usuário e senha ficam só no `local.properties` do servidor, nunca no repositório.
+- Envio (07/11): pela caixa da Hostinger `emerson.oliveira@emersondigital.com.br` — `mail.smtp.server=smtp.hostinger.com`,
+  `mail.smtp.port=587`, `mail.use.tls=true`, `mail.smtp.user`/`mail.from`/`mail.replyto` = esse endereço. A senha fica só no
+  `local.properties` do servidor, nunca no repositório. Gmail exige senha de app e o Outlook.com pessoal recusa SMTP com
+  senha ("535 5.7.139 SmtpClientAuthentication is disabled"), por isso não usamos.
+- O remetente das 16 páginas de e-mail (`EmailPage`, Staged e Online, pt e en) passou de `customerservices@hybris.com`
+  para o endereço da Hostinger, com nome "Loja Flamengo": o provedor recusa remetente de outro domínio.
