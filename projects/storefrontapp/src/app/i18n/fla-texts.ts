@@ -301,7 +301,24 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'oc.back': 'Voltar para a loja',
 
     // sócio-torcedor
-    'st.eyebrow': 'Sócio-Torcedor',
+    'st.eyebrow': 'Nação Sócio-Torcedor',
+    // mockup "Sócio" (07/11): "Seja Nação Maraca", caixa "Seu plano", vantagens
+    'st.join': 'Seja',
+    'st.box.title': 'Seu plano',
+    'st.box.active': 'Ativo',
+    'st.box.points': '{n} pontos Nação',
+    'st.box.account': 'Meu sócio-torcedor',
+    'st.choose': 'Escolha o seu plano',
+    'st.note':
+      'O plano vale assim que entra no carrinho, e o desconto já aparece na mesma compra. Cancelamento pela área Meu sócio-torcedor.',
+    'st.adv.priority.t': 'Prioridade',
+    'st.adv.priority.x': 'Ondas de venda antes da venda geral.',
+    'st.adv.discount.t': 'Desconto',
+    'st.adv.discount.x': 'No ingresso e nos produtos da loja.',
+    'st.adv.points.t': 'Pontos',
+    'st.adv.points.x': 'Troque por experiências no Maracanã e no Ninho.',
+    'st.adv.badge.t': 'Selo de sócio',
+    'st.adv.badge.x': 'No header e na área Minha conta.',
     'st.lead':
       'Prioridade na compra, até {d}% de desconto no ingresso e compra garantida no Maracanã. Escolha o seu plano.',
     'st.leadNoOff':
@@ -1261,7 +1278,23 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'oc.pointsSub': 'Redeem for experiences in My membership.',
     'oc.back': 'Back to the store',
 
-    'st.eyebrow': 'Membership',
+    'st.eyebrow': 'Nação Membership',
+    'st.join': 'Join',
+    'st.box.title': 'Your plan',
+    'st.box.active': 'Active',
+    'st.box.points': '{n} Nação points',
+    'st.box.account': 'My membership',
+    'st.choose': 'Choose your plan',
+    'st.note':
+      'The plan counts as soon as it is in the cart, and the discount already applies to the same purchase. Cancel it in My membership.',
+    'st.adv.priority.t': 'Priority',
+    'st.adv.priority.x': 'Sale waves before general sale.',
+    'st.adv.discount.t': 'Discount',
+    'st.adv.discount.x': 'On tickets and store products.',
+    'st.adv.points.t': 'Points',
+    'st.adv.points.x': 'Redeem for experiences at Maracanã and Ninho.',
+    'st.adv.badge.t': 'Member badge',
+    'st.adv.badge.x': 'In the header and in My account.',
     'st.lead':
       'Buying priority, up to {d}% off tickets and guaranteed tickets at Maracanã. Choose your plan.',
     'st.leadNoOff':
