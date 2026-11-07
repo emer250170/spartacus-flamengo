@@ -829,6 +829,11 @@ html.fla-register main cx-page-layout.AccountPageTemplate {
         grid-column: 1;
       }
 
+      // telefone ao lado do CPF (07/11)
+      > .form-group.fla-phone {
+        grid-column: 2;
+      }
+
       .fla-cpf-error {
         margin: 6px 0 0;
         color: $fla-acc-red;

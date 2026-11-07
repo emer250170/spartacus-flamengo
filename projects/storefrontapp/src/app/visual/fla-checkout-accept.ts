@@ -12,6 +12,8 @@ import {
 import { RouterModule } from '@angular/router';
 import { UrlModule, WindowRef } from '@spartacus/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
+import { FlaCustomerDataService } from '../clearsale/clearsale.service';
+import { FlaClearSaleModule } from '../clearsale/clearsale.module';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 
 export interface FlaAcceptState {
@@ -33,16 +35,27 @@ export const PRIVACY_PAGE = '/politica-de-privacidade';
  */
 @Injectable({ providedIn: 'root' })
 export class FlaCheckoutAcceptService {
-  readonly state$ = new BehaviorSubject<FlaAcceptState>({ terms: false, privacy: false, touched: false });
+  readonly state$ = new BehaviorSubject<FlaAcceptState>({
+    terms: false,
+    privacy: false,
+    touched: false,
+  });
 
-  constructor(protected winRef: WindowRef) {}
+  constructor(
+    protected winRef: WindowRef,
+    protected customerData: FlaCustomerDataService
+  ) {
+    // CPF e telefone gravados (contas antigas, ClearSale): reavalia a caixa do "Finalizar pedido"
+    this.customerData.state$.subscribe(() => this.syncSpartacus());
+  }
 
   get state(): FlaAcceptState {
     return this.state$.value;
   }
 
+  /** Termos e Privacidade marcados e, nas contas antigas, CPF e telefone gravados (07/11, ClearSale) */
   ok(): boolean {
-    return this.state.terms && this.state.privacy;
+    return this.state.terms && this.state.privacy && this.customerData.complete;
   }
 
   set(key: 'terms' | 'privacy', value: boolean): void {
@@ -55,8 +68,9 @@ export class FlaCheckoutAcceptService {
     this.state$.next({ ...this.state, touched: true });
   }
 
-  /** Nova visita à revisão: começa sem aceites */
+  /** Nova visita à revisão: começa sem aceites (e confere de novo CPF e telefone do cadastro) */
   reset(): void {
+    this.customerData.load();
     this.state$.next({ terms: false, privacy: false, touched: false });
     this.syncSpartacus();
   }
@@ -65,7 +79,9 @@ export class FlaCheckoutAcceptService {
   protected syncSpartacus(): void {
     const want = this.ok();
     this.winRef.document
-      ?.querySelectorAll<HTMLInputElement>('cx-place-order input[formcontrolname="termsAndConditions"]')
+      ?.querySelectorAll<HTMLInputElement>(
+        'cx-place-order input[formcontrolname="termsAndConditions"]'
+      )
       .forEach((input) => {
         if (input.checked !== want) {
           input.click();
@@ -82,28 +98,54 @@ export class FlaCheckoutAcceptService {
 @Component({
   selector: 'fla-checkout-accept',
   template: `
-    <fieldset class="fla-acc" *ngIf="state$ | async as s" [class.is-error]="s.touched && !(s.terms && s.privacy)">
+    <fla-checkout-dados></fla-checkout-dados>
+    <fieldset
+      class="fla-acc"
+      *ngIf="state$ | async as s"
+      [class.is-error]="s.touched && !(s.terms && s.privacy)"
+    >
       <legend>{{ 'acc.title' | flaT }}</legend>
       <label>
-        <input type="checkbox" [checked]="s.terms" (change)="set('terms', $event)" />
+        <input
+          type="checkbox"
+          [checked]="s.terms"
+          (change)="set('terms', $event)"
+        />
         <span>
           {{ 'acc.terms1' | flaT }}
-          <a [routerLink]="{ cxRoute: 'termsAndConditions' } | cxUrl" target="_blank" rel="noopener">{{ 'acc.termsLink' | flaT }}</a>{{ 'acc.terms2' | flaT }}
-          <a routerLink="/faq" target="_blank" rel="noopener">{{ 'acc.returnsLink' | flaT }}</a>
+          <a
+            [routerLink]="{ cxRoute: 'termsAndConditions' } | cxUrl"
+            target="_blank"
+            rel="noopener"
+            >{{ 'acc.termsLink' | flaT }}</a
+          >{{ 'acc.terms2' | flaT }}
+          <a routerLink="/faq" target="_blank" rel="noopener">{{
+            'acc.returnsLink' | flaT
+          }}</a>
           {{ 'acc.terms3' | flaT }}
           <strong>{{ 'acc.required' | flaT }}</strong>
         </span>
       </label>
       <label>
-        <input type="checkbox" [checked]="s.privacy" (change)="set('privacy', $event)" />
+        <input
+          type="checkbox"
+          [checked]="s.privacy"
+          (change)="set('privacy', $event)"
+        />
         <span>
           {{ 'acc.privacy1' | flaT }}
-          <a [routerLink]="privacyPage" target="_blank" rel="noopener">{{ 'acc.privacyLink' | flaT }}</a>
+          <a [routerLink]="privacyPage" target="_blank" rel="noopener">{{
+            'acc.privacyLink' | flaT
+          }}</a>
           {{ 'acc.privacy2' | flaT }}
           <strong>{{ 'acc.required' | flaT }}</strong>
         </span>
       </label>
-      <p class="fla-acc-hint" *ngIf="!(s.terms && s.privacy)" [attr.role]="s.touched ? 'alert' : 'status'">
+      <p
+        class="fla-acc-hint"
+        *ngIf="!(s.terms && s.privacy)"
+        [attr.role]="s.touched ? 'alert' : 'status'"
+      >
         {{ 'acc.missing' | flaT }}
       </p>
     </fieldset>
@@ -131,7 +173,9 @@ export class FlaCheckoutAcceptComponent implements OnInit, OnDestroy {
       // a instância do outlet nasce com a revisão: cada visita começa sem aceites
       this.accept.reset();
     }
-    this.subscription.add(this.accept.state$.subscribe(() => this.cd.markForCheck()));
+    this.subscription.add(
+      this.accept.state$.subscribe(() => this.cd.markForCheck())
+    );
   }
 
   set(key: 'terms' | 'privacy', event: Event): void {
@@ -144,7 +188,13 @@ export class FlaCheckoutAcceptComponent implements OnInit, OnDestroy {
 }
 
 @NgModule({
-  imports: [CommonModule, RouterModule, UrlModule, FlaI18nModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    UrlModule,
+    FlaI18nModule,
+    FlaClearSaleModule,
+  ],
   declarations: [FlaCheckoutAcceptComponent],
   exports: [FlaCheckoutAcceptComponent],
 })

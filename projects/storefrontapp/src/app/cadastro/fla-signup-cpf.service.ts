@@ -7,6 +7,7 @@ import { Injectable } from '@angular/core';
 @Injectable({ providedIn: 'root' })
 export class FlaSignupCpfService {
   protected pending?: string;
+  protected pendingPhone?: string;
 
   set(cpf: string): void {
     this.pending = (cpf ?? '').replace(/\D/g, '') || undefined;
@@ -17,5 +18,16 @@ export class FlaSignupCpfService {
     const cpf = this.pending;
     this.pending = undefined;
     return cpf;
+  }
+
+  /** Telefone do cadastro (07/11), só números */
+  setPhone(phone: string): void {
+    this.pendingPhone = (phone ?? '').replace(/\D/g, '') || undefined;
+  }
+
+  takePhone(): string | undefined {
+    const phone = this.pendingPhone;
+    this.pendingPhone = undefined;
+    return phone;
   }
 }
