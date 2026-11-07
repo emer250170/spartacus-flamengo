@@ -1513,6 +1513,14 @@ const ORDER_STATUS = {
 };
 const RULE_STATUS = { PUBLISHED: 'publicada (vale na loja)', UNPUBLISHED: 'não publicada', MODIFIED: 'alterada, falta publicar', INACTIVE: 'inativa', ARCHIVED: 'arquivada' };
 
+/** Códigos de cupom do pedido: coleção de texto na OData ({ results: [{ value }] }), texto solto ou lista */
+function couponCodes(v) {
+  if (v == null) return [];
+  if (typeof v === 'string') return v.split(/[,;\s]+/).filter(Boolean);
+  const list = Array.isArray(v) ? v : Array.isArray(v.results) ? v.results : [];
+  return list.map((x) => (typeof x === 'string' ? x : x?.value ?? x?.string ?? null)).filter(Boolean);
+}
+
 function lojaTools(cfg, http) {
   const odata = odataClient(cfg, http);
   const q = (s) => String(s ?? '').trim().replace(/'/g, "''");
@@ -1544,7 +1552,7 @@ function lojaTools(cfg, http) {
     return results(await odata('GET', '/FlamengoEstoque/StockLevels', { query: { $filter: `productCode eq '${q(code)}'`, $expand: 'warehouse,inStockStatus' } }));
   }
   const showStock = (s) => ({
-    deposito: s.warehouse?.code, nome: s.warehouse?.name ?? null, disponivel: num(s.available), reservado: num(s.reserved),
+    deposito: s.warehouse?.code, nome: s.warehouse?.name ?? (s.warehouse?.code === MAIN_WAREHOUSE ? 'Loja online' : null), disponivel: num(s.available), reservado: num(s.reserved),
     livreParaVenda: (num(s.available) ?? 0) - (num(s.reserved) ?? 0), ...(num(s.overSelling) ? { vendaAlemDoEstoque: num(s.overSelling) } : {}),
     ...(s.inStockStatus?.code && s.inStockStatus.code !== 'notSpecified' ? { regra: s.inStockStatus.code === 'forceInStock' ? 'sempre em estoque' : s.inStockStatus.code === 'forceOutOfStock' ? 'sempre esgotado' : s.inStockStatus.code } : {}),
   });
@@ -1558,7 +1566,7 @@ function lojaTools(cfg, http) {
 
   // ---- pedidos
   async function orders() {
-    const os = await all('/FlamengoPedido/Orders', { $expand: 'status,user,entries/product' });
+    const os = await all('/FlamengoPedido/Orders', { $expand: 'status,user,entries/product,appliedCouponCodes' });
     return os.filter((o) => o.versionID == null).map((o) => {
       const itens = results(o.entries).sort((a, b) => num(a.entryNumber) - num(b.entryNumber)).map((e) => ({
         codigo: e.product?.code, produto: e.product?.name ?? e.product?.code, quantidade: num(e.quantity) ?? 0,
@@ -1570,7 +1578,7 @@ function lojaTools(cfg, http) {
       return {
         pedido: o.code, data: toDate(o.date), torcedor: o.user?.name, email: o.user?.uid, situacaoCodigo: o.status?.code,
         situacao: ORDER_STATUS[o.status?.code] ?? o.status?.code, total, frete, descontos: Math.max(0, Math.round((linhas + frete - total) * 100) / 100),
-        cupons: String(o.appliedCouponCodes ?? '').split(/[,;\s]+/).filter(Boolean), itens,
+        cupons: couponCodes(o.appliedCouponCodes), itens,
       };
     }).sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
   }
@@ -1595,19 +1603,20 @@ function lojaTools(cfg, http) {
         voucher: r.voucher, experiencia: r.experience?.code, nomeExperiencia: r.experience?.name, torcedor: r.customer?.name, email: r.customer?.uid,
         plano: r.plan?.name ?? r.plan?.code ?? null, pontos: num(r.points), data: toDate(r.date), origem: r.origin ?? null,
         ...(r.orderCode ? { pedido: r.orderCode, valor: brl(num(r.amount)) } : {}),
+        forma: r.orderCode ? 'compra na loja' : 'resgate com pontos',
         situacao: r.cancelledAt ? `cancelado em ${fmtDate(r.cancelledAt)}${r.cancelReason ? ` (${r.cancelReason})` : ''}` : r.usedAt ? `utilizado em ${fmtDate(r.usedAt)}` : 'válido',
-        _ativo: !r.cancelledAt,
+        _ativo: !r.cancelledAt, _pontos: !r.orderCode,
       }))
       .sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
   }
   function showExperience(x, rs, os) {
-    const mine = rs.filter((r) => r.experiencia === x.code && r._ativo);
+    const mine = rs.filter((r) => r.experiencia === x.code && r._ativo && r._pontos);
     const sold = os.filter((o) => !EXCLUDED_STATUS.has(o.situacaoCodigo)).flatMap((o) => o.itens).filter((i) => i.codigo === `EXP-${x.code}`);
     const stock = num(x.stock);
     return {
       code: x.code, nome: x.name, descricao: clean(x.description) || null, ativa: x.active !== false,
       pontos: num(x.points), preco: x.price != null ? brl(num(x.price)) : 'só por pontos', planoMinimo: x.minPlan?.name ?? x.minPlan?.code ?? 'qualquer plano',
-      vagas: stock == null ? 'sem limite' : stock, resgates: mine.length, vendidasNaLoja: sold.reduce((s, i) => s + i.quantidade, 0),
+      vagas: stock == null ? 'sem limite' : stock, resgatesComPontos: mine.length, pontosResgatados: mine.reduce((s, r) => s + (r.pontos ?? 0), 0), vendidasNaLoja: sold.reduce((s, i) => s + i.quantidade, 0),
       receitaNaLoja: brl(sold.reduce((s, i) => s + i.total, 0)), ordem: num(x.sortOrder), produtoNaLoja: `EXP-${x.code}`,
       ...(x.statusMessage ? { avisoPublicacao: x.statusMessage } : {}),
     };
@@ -1670,7 +1679,7 @@ function lojaTools(cfg, http) {
     },
     {
       name: 'alterar_preco',
-      description: 'Muda o preço (R$) de um produto da loja. A linha de preço vale para Staged e Online ao mesmo tempo, sem sincronizar; a loja mostra o preço novo em instantes. Ingressos, planos de sócio e experiências têm ferramenta própria.',
+      description: 'Muda o preço (R$) de um produto da loja. A linha de preço vale para Staged e Online ao mesmo tempo, sem sincronizar; página do produto e carrinho mudam na hora, busca e listagem na próxima indexação. Ingressos, planos de sócio e experiências têm ferramenta própria.',
       inputSchema: obj({ codigo: S.str('Código do produto (ou da opção/tamanho, se o preço for dela)'), preco: S.num('Preço novo em R$'), confirmar: S.confirm }, ['codigo', 'preco']),
       handler: async (a) => {
         managedElsewhere(a.codigo);
@@ -1684,7 +1693,7 @@ function lojaTools(cfg, http) {
         if (c) return c;
         await odata('POST', '/FlamengoPreco/PriceRows', { body: { productId: a.codigo, currency: { isocode: 'BRL' }, price: String(a.preco) } });
         const after = brlPrice(await prices(a.codigo));
-        return { executado: true, produto: a.codigo, antes: brl(old), agora: brl(num(after?.price)), link: `${cfg.storeUrl}/p/${a.codigo}` };
+        return { executado: true, produto: a.codigo, antes: brl(old), agora: brl(num(after?.price)), link: `${cfg.storeUrl}/p/${a.codigo}`, observacao: 'A página do produto e o carrinho já usam o preço novo. A busca e a listagem de categorias mostram o preço do índice de busca até a próxima indexação.' };
       },
     },
     {
@@ -1812,11 +1821,11 @@ function lojaTools(cfg, http) {
     },
     {
       name: 'resgates_experiencias',
-      description: 'Resgates de experiências com pontos (voucher, torcedor, plano, pontos, data, situação), mais novos primeiro. Filtros opcionais por experiência e por e-mail.',
+      description: 'Vouchers de experiências, mais novos primeiro: resgates com pontos e compras na loja (produto EXP-), com torcedor, plano, pontos ou pedido, data e situação. Filtros opcionais por experiência e por e-mail.',
       inputSchema: obj({ experiencia: S.str('Código da experiência (opcional)'), email: S.str('E-mail do torcedor (opcional)'), soValidos: S.bool('Só os não cancelados') }),
       handler: async (a) => {
         const list = (await redemptions()).filter((r) => (!a.experiencia || r.experiencia === a.experiencia) && (!a.email || r.email === String(a.email).toLowerCase()) && (!a.soValidos || r._ativo));
-        return { total: list.length, resgates: list.slice(0, 100).map(({ _ativo, ...r }) => ({ ...r, data: fmtDate(r.data) })) };
+        return { total: list.length, comPontos: list.filter((r) => r._pontos).length, compradosNaLoja: list.filter((r) => !r._pontos).length, resgates: list.slice(0, 100).map(({ _ativo, _pontos, ...r }) => ({ ...r, ...(_pontos ? {} : { pontos: undefined }), data: fmtDate(r.data) })) };
       },
     },
     {
@@ -1860,4 +1869,4 @@ function lojaTools(cfg, http) {
   ];
 }
 
-export const _test = { saleCategory, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };
+export const _test = { saleCategory, couponCodes, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };
