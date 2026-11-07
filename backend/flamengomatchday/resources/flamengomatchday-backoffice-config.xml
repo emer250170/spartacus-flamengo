@@ -340,12 +340,9 @@
 					<editorArea:attribute qualifier="adyenHmacKey"/>
 				</editorArea:section>
 			</editorArea:tab>
-		</editorArea:editorArea>
-	</context>
-	<!-- ============================ ClearSale (07/11) ============================ -->
-	<!-- Aba "ClearSale" na loja base: liga/desliga a análise de fraude e as credenciais -->
-	<context merge-by="type" type="BaseStore" component="editor-area">
-		<editorArea:editorArea>
+			<!-- ClearSale (07/11): liga/desliga a análise de fraude e as credenciais. Fica no MESMO context da
+			     Adyen: dois contexts iguais (BaseStore/editor-area) no mesmo módulo viram um só na junção e o
+			     segundo some do Backoffice. -->
 			<editorArea:tab name="clearsale.editor.tab">
 				<editorArea:section name="clearsale.editor.ligar">
 					<editorArea:attribute qualifier="clearSaleAtivo"/>
