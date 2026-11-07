@@ -113,4 +113,9 @@
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 	</bean>
 
+	<!-- Mengo Estúdio (07/11): /mengo-estudio/catalogo e /mengo-estudio/estampas/{code} (leitura pública) -->
+	<bean id="flamengoMengoEstudioController" class="br.com.flamengo.matchday.occ.MengoEstudioController">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+	</bean>
+
 </beans>
