@@ -238,10 +238,11 @@ export const ptCarrinhoCheckout: TranslationResources = {
         changePayment: 'Trocar forma de pagamento',
       },
       paymentMethods: {
-        paymentMethods: 'Formas de pagamento',
+        // Minha conta › Formas de pagamento (mockup, 07/11)
+        paymentMethods: 'Cartões salvos',
         paymentMethodSelected: 'Forma de pagamento escolhida',
         newPaymentMethodsAreAddedDuringCheckout:
-          'Novas formas de pagamento são adicionadas na finalização da compra.',
+          'Novos cartões são salvos na finalização da compra.',
       },
       paymentCard: {
         deleteConfirmation: 'Quer mesmo excluir esta forma de pagamento?',

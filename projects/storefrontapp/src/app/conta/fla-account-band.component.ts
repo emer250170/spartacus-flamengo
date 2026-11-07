@@ -19,6 +19,7 @@ import {
 } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { FlaCheckoutStepService } from '../visual/fla-checkout-header.component';
+import { FlaDomLabelsService } from './fla-dom-labels.service';
 import {
   ACCOUNT_LEADS,
   ACCOUNT_SHORT_CRUMB,
@@ -65,7 +66,10 @@ interface Band {
           {{ b.title }}
           <span *ngIf="b.titleRed">{{ b.titleRed }}</span>
         </h1>
-        <p class="fab-lead" *ngIf="b.lead">{{ b.lead }}</p>
+        <!-- sempre presente: a faixa tem a mesma altura com ou sem frase -->
+        <p class="fab-lead" [attr.aria-hidden]="b.lead ? null : 'true'">
+          {{ b.lead || ' ' }}
+        </p>
       </div>
     </div>
   `,
@@ -144,10 +148,13 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     protected steps: FlaCheckoutStepService,
     protected i18n: FlaI18nService,
     protected renderer: Renderer2,
+    protected domLabels: FlaDomLabelsService,
     @Inject(DOCUMENT) protected document: Document
   ) {}
 
   ngOnInit(): void {
+    // paginação em português e cor do selo nas listas do Spartacus (todas as páginas)
+    this.domLabels.start(this.document);
     this.subscription.add(
       this.mode$.subscribe((mode) => {
         const html = this.document?.documentElement;

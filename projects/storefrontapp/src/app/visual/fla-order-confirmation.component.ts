@@ -22,7 +22,10 @@ import {
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { Membership } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
-import { SocioPayment, SocioPaymentService } from '../socio/socio-payment.service';
+import {
+  SocioPayment,
+  SocioPaymentService,
+} from '../socio/socio-payment.service';
 import { SocioPointsService } from '../socio/socio-points.service';
 import { SocioTicketHolderService } from '../socio/socio-ticket-holder.service';
 import {
@@ -34,7 +37,8 @@ import {
 import { FlaStoreSearchService } from './fla-store-search.service';
 
 /** Itens sem entrega física (ingresso, experiência, plano, estacionamento, comida, personalização) */
-const DIGITAL = /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS-|FLA-PERSONALIZACAO)/;
+export const DIGITAL =
+  /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS-|FLA-PERSONALIZACAO)/;
 /** Ingresso de jogo (poltrona ou setor) */
 const TICKET = /^JOGO-/;
 
@@ -47,7 +51,10 @@ function onConfirmation(routing: RoutingService): Observable<boolean> {
 }
 
 /** Pedido da confirmação; nas outras páginas, nada */
-function confirmedOrder(routing: RoutingService, orders: OrderFacade): Observable<Order | undefined> {
+function confirmedOrder(
+  routing: RoutingService,
+  orders: OrderFacade
+): Observable<Order | undefined> {
   return onConfirmation(routing).pipe(
     switchMap((on) => (on ? orders.getOrderDetails() : of(undefined))),
     map((o) => (o?.code ? o : undefined)),
@@ -56,7 +63,10 @@ function confirmedOrder(routing: RoutingService, orders: OrderFacade): Observabl
 }
 
 /** Pix ou boleto do pedido (aguardando ou confirmado); cartão: undefined */
-function paymentOf(order$: Observable<Order | undefined>, socioPayment: SocioPaymentService): Observable<SocioPayment | undefined> {
+function paymentOf(
+  order$: Observable<Order | undefined>,
+  socioPayment: SocioPaymentService
+): Observable<SocioPayment | undefined> {
   return order$.pipe(
     map((o) => o?.code),
     distinctUntilChanged(),
@@ -90,21 +100,76 @@ interface HeroView {
 @Component({
   selector: 'fla-oc-hero',
   template: `
-    <section class="fla-oc-box fla-oc-hero" *ngIf="view$ | async as v" aria-labelledby="fla-oc-title">
-      <span class="fla-oc-check" [class.is-wait]="v.awaiting" aria-hidden="true">
-        <svg *ngIf="!v.awaiting" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" focusable="false"><path d="M5 12l5 5 9-10" /></svg>
-        <svg *ngIf="v.awaiting" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+    <section
+      class="fla-oc-box fla-oc-hero"
+      *ngIf="view$ | async as v"
+      aria-labelledby="fla-oc-title"
+    >
+      <span
+        class="fla-oc-check"
+        [class.is-wait]="v.awaiting"
+        aria-hidden="true"
+      >
+        <svg
+          *ngIf="!v.awaiting"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          focusable="false"
+        >
+          <path d="M5 12l5 5 9-10" />
+        </svg>
+        <svg
+          *ngIf="v.awaiting"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          focusable="false"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </svg>
       </span>
-      <h1 id="fla-oc-title">{{ (v.awaiting ? 'oc.titleWait' : 'oc.title') | flaT }}</h1>
-      <p class="fla-oc-number" [innerHTML]="'oc.number' | flaT: { code: '<strong>' + v.code + '</strong>', date: v.date }"></p>
+      <h1 id="fla-oc-title">
+        {{ (v.awaiting ? 'oc.titleWait' : 'oc.title') | flaT }}
+      </h1>
+      <p
+        class="fla-oc-number"
+        [innerHTML]="
+          'oc.number'
+            | flaT: { code: '<strong>' + v.code + '</strong>', date: v.date }
+        "
+      ></p>
       <p class="fla-oc-muted">
-        <ng-container *ngIf="v.email">{{ 'oc.sent' | flaT: { email: v.email } }}</ng-container>
-        <ng-container *ngIf="v.awaiting"> {{ 'oc.waitSub' | flaT }}</ng-container>
-        <ng-container *ngIf="!v.awaiting && v.tickets"> {{ 'oc.inAccount' | flaT }}</ng-container>
+        <ng-container *ngIf="v.email">{{
+          'oc.sent' | flaT: { email: v.email }
+        }}</ng-container>
+        <ng-container *ngIf="v.awaiting">
+          {{ 'oc.waitSub' | flaT }}</ng-container
+        >
+        <ng-container *ngIf="!v.awaiting && v.tickets">
+          {{ 'oc.inAccount' | flaT }}</ng-container
+        >
       </p>
       <div class="fla-oc-actions">
-        <a class="fla-oc-btn" [routerLink]="{ cxRoute: 'orderDetails', params: { code: v.code } } | cxUrl">{{ (v.tickets ? 'oc.tickets' : 'oc.track') | flaT }}</a>
-        <a class="fla-oc-btn is-outline" [routerLink]="{ cxRoute: 'orders' } | cxUrl">{{ 'oc.orders' | flaT }}</a>
+        <a
+          class="fla-oc-btn"
+          [routerLink]="
+            { cxRoute: 'orderDetails', params: { code: v.code } } | cxUrl
+          "
+          >{{ (v.tickets ? 'oc.tickets' : 'oc.track') | flaT }}</a
+        >
+        <a
+          class="fla-oc-btn is-outline"
+          [routerLink]="{ cxRoute: 'orders' } | cxUrl"
+          >{{ 'oc.orders' | flaT }}</a
+        >
       </div>
     </section>
   `,
@@ -125,7 +190,9 @@ export class FlaOcHeroComponent implements OnInit, OnDestroy {
             date: this.when(o.created, lang === 'pt'),
             email: (o as any).user?.uid,
             awaiting: !!pay?.awaiting,
-            tickets: (o.entries ?? []).some((e) => TICKET.test(e.product?.code ?? '')),
+            tickets: (o.entries ?? []).some((e) =>
+              TICKET.test(e.product?.code ?? '')
+            ),
           }
         : null
     )
@@ -178,20 +245,20 @@ export class FlaOcHeroComponent implements OnInit, OnDestroy {
   }
 }
 
-interface OcItem {
+export interface OcItem {
   entry: OrderEntry;
   name: string;
   details: string[];
   price: string;
 }
 
-interface OcCard {
+export interface OcCard {
   l1: string;
   l2?: string;
   l3?: string;
 }
 
-interface BodyView {
+export interface BodyView {
   items: OcItem[];
   subtotal: string;
   discount?: string;
@@ -214,12 +281,21 @@ interface BodyView {
   template: `
     <ng-container *ngIf="view$ | async as v">
       <div class="fla-oc-cols">
-        <section class="fla-oc-box fla-oc-items" aria-labelledby="fla-oc-items-title">
-          <h2 id="fla-oc-items-title" class="fla-oc-h2">{{ 'oc.items' | flaT }}</h2>
+        <section
+          class="fla-oc-box fla-oc-items"
+          aria-labelledby="fla-oc-items-title"
+        >
+          <h2 id="fla-oc-items-title" class="fla-oc-h2">
+            {{ 'oc.items' | flaT }}
+          </h2>
           <ul class="fla-ci-items">
             <li *ngFor="let i of v.items">
               <span class="fla-ci-thumb">
-                <cx-media [container]="i.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="''"></cx-media>
+                <cx-media
+                  [container]="i.entry.product?.images?.PRIMARY"
+                  format="thumbnail"
+                  [alt]="''"
+                ></cx-media>
               </span>
               <span class="fla-ci-item">
                 <strong>{{ i.name }}</strong>
@@ -229,28 +305,66 @@ interface BodyView {
             </li>
           </ul>
           <div class="fla-oc-totals">
-            <div class="fla-cp-line"><span>{{ 'cd.subtotal' | flaT }}</span><span>{{ v.subtotal }}</span></div>
-            <div class="fla-cp-line fla-cp-discount" *ngIf="v.discount"><span>{{ v.discountLabel }}</span><span>− {{ v.discount }}</span></div>
-            <div class="fla-cp-line fla-cp-discount" *ngIf="v.pixOff"><span>{{ 'oc.pixDiscount' | flaT }}</span><span>− {{ v.pixOff }}</span></div>
-            <div class="fla-cp-line" *ngIf="v.delivery"><span>{{ 'cp.shipping' | flaT }}</span><span>{{ v.delivery }}</span></div>
-            <div class="fla-cp-line fla-cp-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ v.total }}</span></div>
+            <div class="fla-cp-line">
+              <span>{{ 'cd.subtotal' | flaT }}</span
+              ><span>{{ v.subtotal }}</span>
+            </div>
+            <div class="fla-cp-line fla-cp-discount" *ngIf="v.discount">
+              <span>{{ v.discountLabel }}</span
+              ><span>− {{ v.discount }}</span>
+            </div>
+            <div class="fla-cp-line fla-cp-discount" *ngIf="v.pixOff">
+              <span>{{ 'oc.pixDiscount' | flaT }}</span
+              ><span>− {{ v.pixOff }}</span>
+            </div>
+            <div class="fla-cp-line" *ngIf="v.delivery">
+              <span>{{ 'cp.shipping' | flaT }}</span
+              ><span>{{ v.delivery }}</span>
+            </div>
+            <div class="fla-cp-line fla-cp-total">
+              <span>{{ 'cd.total' | flaT }}</span
+              ><span>{{ v.total }}</span>
+            </div>
           </div>
         </section>
         <div class="fla-oc-side">
-          <section class="fla-oc-box fla-oc-card" *ngIf="v.shipping" aria-labelledby="fla-oc-ship-title">
-            <h2 id="fla-oc-ship-title" class="fla-oc-h3">{{ 'oc.delivery' | flaT }}</h2>
+          <section
+            class="fla-oc-box fla-oc-card"
+            *ngIf="v.shipping"
+            aria-labelledby="fla-oc-ship-title"
+          >
+            <h2 id="fla-oc-ship-title" class="fla-oc-h3">
+              {{ 'oc.delivery' | flaT }}
+            </h2>
             <span>{{ v.shipping.l1 }}</span>
-            <span class="fla-oc-muted" *ngIf="v.shipping.l2">{{ v.shipping.l2 }}</span>
-            <span class="fla-oc-muted" *ngIf="v.shipping.l3">{{ v.shipping.l3 }}</span>
+            <span class="fla-oc-muted" *ngIf="v.shipping.l2">{{
+              v.shipping.l2
+            }}</span>
+            <span class="fla-oc-muted" *ngIf="v.shipping.l3">{{
+              v.shipping.l3
+            }}</span>
           </section>
-          <section class="fla-oc-box fla-oc-card" aria-labelledby="fla-oc-pay-title">
-            <h2 id="fla-oc-pay-title" class="fla-oc-h3">{{ 'oc.payment' | flaT }}</h2>
+          <section
+            class="fla-oc-box fla-oc-card"
+            aria-labelledby="fla-oc-pay-title"
+          >
+            <h2 id="fla-oc-pay-title" class="fla-oc-h3">
+              {{ 'oc.payment' | flaT }}
+            </h2>
             <span>{{ v.payment.l1 }}</span>
-            <span class="fla-oc-muted" *ngIf="v.payment.l2">{{ v.payment.l2 }}</span>
+            <span class="fla-oc-muted" *ngIf="v.payment.l2">{{
+              v.payment.l2
+            }}</span>
           </section>
-          <section class="fla-oc-box fla-oc-card fla-oc-points" *ngIf="v.points">
+          <section
+            class="fla-oc-box fla-oc-card fla-oc-points"
+            *ngIf="v.points"
+          >
             <strong>{{ 'oc.points' | flaT: { n: v.points.n } }}</strong>
-            <span>{{ (v.points.plan ? 'oc.pointsPlan' : 'oc.pointsSub') | flaT: { plan: v.points.plan } }}</span>
+            <span>{{
+              (v.points.plan ? 'oc.pointsPlan' : 'oc.pointsSub')
+                | flaT: { plan: v.points.plan }
+            }}</span>
           </section>
         </div>
       </div>
@@ -260,7 +374,8 @@ interface BodyView {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlaOcBodyComponent {
-  protected order$ = confirmedOrder(this.routing, this.orders);
+  /** Pedido mostrado (confirmação; o detalhe do pedido em Minha conta troca a fonte) */
+  protected order$: Observable<Order | undefined>;
 
   readonly view$: Observable<BodyView | null>;
 
@@ -275,25 +390,37 @@ export class FlaOcBodyComponent {
     protected storeSearch: FlaStoreSearchService,
     protected i18n: FlaI18nService
   ) {
+    this.order$ = this.orderSource();
     const code$ = this.order$.pipe(
       map((o) => o?.code),
       distinctUntilChanged()
     );
     const pers$ = this.order$.pipe(
       map((o) =>
-        o?.code && (o.entries ?? []).some((e) => PERSONALIZATION_ADDON.test(e.product?.code ?? '')) ? o.code : ''
+        o?.code &&
+        (o.entries ?? []).some((e) =>
+          PERSONALIZATION_ADDON.test(e.product?.code ?? '')
+        )
+          ? o.code
+          : ''
       ),
       distinctUntilChanged(),
       switchMap((code) =>
         code
-          ? this.personalization.forOrder('current', code).pipe(catchError(() => of([] as PersonalizationInfo[])))
+          ? this.personalization
+              .forOrder('current', code)
+              .pipe(catchError(() => of([] as PersonalizationInfo[])))
           : of([] as PersonalizationInfo[])
       ),
       startWith([] as PersonalizationInfo[])
     );
     // "Ingresso de: Maria" nas poltronas de convidados
     const holders$ = this.order$.pipe(
-      map((o) => (o?.entries ?? []).map((e) => e.product?.code ?? '').filter((c) => TICKET.test(c))),
+      map((o) =>
+        (o?.entries ?? [])
+          .map((e) => e.product?.code ?? '')
+          .filter((c) => TICKET.test(c))
+      ),
       distinctUntilChanged((a, b) => a.join() === b.join()),
       switchMap((codes) =>
         codes.length
@@ -318,7 +445,11 @@ export class FlaOcBodyComponent {
       switchMap((code) =>
         code
           ? this.points.load().pipe(
-              map((p) => (p.enabled ? p.earnings.find((e) => e.orderCode === code)?.points ?? 0 : 0)),
+              map((p) =>
+                p.enabled
+                  ? (p.earnings.find((e) => e.orderCode === code)?.points ?? 0)
+                  : 0
+              ),
               startWith(0)
             )
           : of(0)
@@ -346,6 +477,11 @@ export class FlaOcBodyComponent {
     );
   }
 
+  /** Fonte do pedido (chamada no construtor: subclasses usam inject() aqui) */
+  protected orderSource(): Observable<Order | undefined> {
+    return confirmedOrder(this.routing, this.orders);
+  }
+
   protected toView(
     o: Order,
     pay: SocioPayment | undefined,
@@ -358,7 +494,9 @@ export class FlaOcBodyComponent {
     const money = (v: number) => this.i18n.money(v);
     const items: OcItem[] = (o.entries ?? []).map((entry) => {
       const code = entry.product?.code ?? '';
-      const qualifiers = entry.product?.baseOptions?.[0]?.selected?.variantOptionQualifiers ?? [];
+      const qualifiers =
+        entry.product?.baseOptions?.[0]?.selected?.variantOptionQualifiers ??
+        [];
       const details = [
         qualifiers
           .filter((q) => q.name && q.value)
@@ -367,7 +505,11 @@ export class FlaOcBodyComponent {
       ];
       const p = pers.find((x) => x.entryNumber === entry.entryNumber);
       if (p) {
-        details.push(this.i18n.t('pz.cartLine', { v: personalizationSummary(p, this.i18n.t('pz.sponsorShort')) }));
+        details.push(
+          this.i18n.t('pz.cartLine', {
+            v: personalizationSummary(p, this.i18n.t('pz.sponsorShort')),
+          })
+        );
       }
       const holder = holders.get(code);
       if (holder) {
@@ -378,7 +520,9 @@ export class FlaOcBodyComponent {
         entry,
         name: entry.product?.name ?? code,
         details: details.filter((d) => !!d),
-        price: entry.totalPrice?.formattedValue ?? money(entry.totalPrice?.value ?? 0),
+        price:
+          entry.totalPrice?.formattedValue ??
+          money(entry.totalPrice?.value ?? 0),
       };
     });
 
@@ -392,7 +536,10 @@ export class FlaOcBodyComponent {
     const pixPromo = (o.appliedOrderPromotions ?? []).some((p) =>
       /pix/i.test(`${p.promotion?.code ?? ''} ${p.description ?? ''}`)
     );
-    const pixOff = pay?.method === 'PIX' && pixPromo && orderDiscount > 0.004 ? orderDiscount : 0;
+    const pixOff =
+      pay?.method === 'PIX' && pixPromo && orderDiscount > 0.004
+        ? orderDiscount
+        : 0;
     const rest = discount - pixOff;
     const cost = o.deliveryCost;
     const free = cost?.value === 0;
@@ -403,8 +550,15 @@ export class FlaOcBodyComponent {
       discount: rest > 0.004 ? money(rest) : undefined,
       discountLabel: this.i18n.t(plan ? 'cd.memberDiscount' : 'cd.discount'),
       pixOff: pixOff ? money(pixOff) : undefined,
-      delivery: cost ? (free ? this.i18n.t('cs.free') : cost.formattedValue ?? money(cost.value ?? 0)) : undefined,
-      total: o.totalPriceWithTax?.formattedValue ?? o.totalPrice?.formattedValue ?? '',
+      delivery: cost
+        ? free
+          ? this.i18n.t('cs.free')
+          : (cost.formattedValue ?? money(cost.value ?? 0))
+        : undefined,
+      total:
+        o.totalPriceWithTax?.formattedValue ??
+        o.totalPrice?.formattedValue ??
+        '',
       shipping: this.shipping(o, store),
       payment: this.payment(o, pay),
       points: earned > 0 ? { n: earned, plan } : undefined,
@@ -413,7 +567,9 @@ export class FlaOcBodyComponent {
 
   /** Retirada na loja ou endereço de casa com a forma de entrega; só itens digitais: sem cartão */
   protected shipping(o: Order, store: string): OcCard | undefined {
-    const physical = (o.entries ?? []).filter((e) => !DIGITAL.test(e.product?.code ?? ''));
+    const physical = (o.entries ?? []).filter(
+      (e) => !DIGITAL.test(e.product?.code ?? '')
+    );
     if (!physical.length) {
       return undefined;
     }
@@ -424,10 +580,15 @@ export class FlaOcBodyComponent {
       };
     }
     const a = o.deliveryAddress;
-    const join = (...xs: (string | undefined)[]) => xs.filter((x) => !!x).join(' · ');
+    const join = (...xs: (string | undefined)[]) =>
+      xs.filter((x) => !!x).join(' · ');
     return {
       l1: join(a?.line1, a?.line2),
-      l2: join(a?.town, a?.region?.isocodeShort ?? a?.region?.isocode, a?.postalCode),
+      l2: join(
+        a?.town,
+        a?.region?.isocodeShort ?? a?.region?.isocode,
+        a?.postalCode
+      ),
       l3: join(o.deliveryMode?.name, o.deliveryMode?.description),
     };
   }
@@ -435,9 +596,18 @@ export class FlaOcBodyComponent {
   /** Pix ou boleto (e se já foi pago) ou o cartão com o final */
   protected payment(o: Order, pay: SocioPayment | undefined): OcCard {
     const total = o.totalPriceWithTax?.formattedValue ?? '';
-    if (pay?.method && pay.method !== 'CARTAO_MENSAL' && pay.method !== 'CARTAO_ANUAL') {
-      const key = pay.planCode ? 'spay.m.' + pay.method : 'spay.m.store.' + pay.method;
-      const name = this.i18n.t(key) === key ? this.i18n.t('spay.m.' + pay.method) : this.i18n.t(key);
+    if (
+      pay?.method &&
+      pay.method !== 'CARTAO_MENSAL' &&
+      pay.method !== 'CARTAO_ANUAL'
+    ) {
+      const key = pay.planCode
+        ? 'spay.m.' + pay.method
+        : 'spay.m.store.' + pay.method;
+      const name =
+        this.i18n.t(key) === key
+          ? this.i18n.t('spay.m.' + pay.method)
+          : this.i18n.t(key);
       return {
         l1: name,
         l2: `${total} · ${this.i18n.t(pay.awaiting ? 'oc.payWait' : 'oc.payDone')}`,
@@ -445,15 +615,22 @@ export class FlaOcBodyComponent {
     }
     const digits = (o.paymentInfo?.cardNumber ?? '').replace(/\D/g, '');
     return {
-      l1: digits.length >= 4 ? this.i18n.t('oc.cardEnding', { n: digits.slice(-4) }) : this.i18n.t('spay.m.store.CARTAO_MENSAL'),
+      l1:
+        digits.length >= 4
+          ? this.i18n.t('oc.cardEnding', { n: digits.slice(-4) })
+          : this.i18n.t('spay.m.store.CARTAO_MENSAL'),
       l2: total,
     };
   }
 
   /** Loja de retirada quando todos os itens físicos vão para a mesma loja */
   protected pickupStore(o: Order | undefined): string {
-    const physical = (o?.entries ?? []).filter((e) => !DIGITAL.test(e.product?.code ?? ''));
-    const stores = [...new Set(physical.map((e) => e.deliveryPointOfService?.name ?? ''))];
+    const physical = (o?.entries ?? []).filter(
+      (e) => !DIGITAL.test(e.product?.code ?? '')
+    );
+    const stores = [
+      ...new Set(physical.map((e) => e.deliveryPointOfService?.name ?? '')),
+    ];
     return physical.length && stores.length === 1 ? stores[0] : '';
   }
 }

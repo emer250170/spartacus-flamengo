@@ -1,0 +1,105 @@
+<!-- Detalhe do pedido em Minha conta (mockup ContaPedido, 07/11) -->
+<ng-container *ngIf="account$ | async as v">
+  <section class="fao fao-head" [attr.aria-label]="'acc.od.summary' | flaT">
+    <div class="fao-kv">
+      <span>{{ 'acc.od.number' | flaT }}</span>
+      <strong>{{ v.order.code }}</strong>
+    </div>
+    <div class="fao-kv">
+      <span>{{ 'acc.od.placed' | flaT }}</span>
+      <strong>{{ v.order.created | cxDate: 'd MMM y, HH:mm' }}</strong>
+    </div>
+    <div class="fao-kv">
+      <span>{{ 'acc.od.status' | flaT }}</span>
+      <span class="fla-badge" [attr.data-tone]="v.tone">{{
+        'orderDetails.statusDisplay_' + v.order.statusDisplay | cxTranslate
+      }}</span>
+    </div>
+  </section>
+
+  <section
+    *ngFor="let g of v.groups"
+    class="fao fao-group"
+    [attr.aria-labelledby]="'fao-g-' + g.key"
+  >
+    <h2 [id]="'fao-g-' + g.key" class="fao-h2">
+      {{ 'acc.od.' + g.key | flaT }}
+    </h2>
+    <p class="fao-sub" *ngIf="g.sub">{{ g.sub }}</p>
+    <ul class="fao-lines">
+      <li *ngFor="let l of g.lines" class="fao-line">
+        <span class="fao-thumb">
+          <cx-media
+            [container]="l.entry.product?.images?.PRIMARY"
+            format="thumbnail"
+            [alt]="''"
+          ></cx-media>
+        </span>
+        <span class="fao-info">
+          <strong>{{ l.name }}</strong>
+          <span class="fao-code">{{
+            'acc.od.code' | flaT: { code: l.code }
+          }}</span>
+          <span class="fao-details" *ngIf="l.details">{{ l.details }}</span>
+        </span>
+        <span class="fao-qty">{{ 'cd.qty' | flaT: { n: l.qty } }}</span>
+        <span class="fao-price">
+          <s *ngIf="l.was">{{ l.was }}</s>
+          <strong>{{ l.price }}</strong>
+        </span>
+        <span class="fao-again">
+          <a
+            *ngIf="l.again"
+            [routerLink]="
+              { cxRoute: 'product', params: l.entry.product } | cxUrl
+            "
+            >{{ 'acc.od.again' | flaT }}</a
+          >
+        </span>
+      </li>
+    </ul>
+  </section>
+
+  <div class="fao-cols">
+    <section class="fao fao-card" aria-labelledby="fao-ship">
+      <h2 id="fao-ship" class="fao-h3">{{ 'acc.od.shipPay' | flaT }}</h2>
+      <ng-container *ngIf="v.body.shipping as s">
+        <span>{{ s.l1 }}</span>
+        <span class="fao-muted" *ngIf="s.l2">{{ s.l2 }}</span>
+        <span class="fao-muted" *ngIf="s.l3">{{ s.l3 }}</span>
+      </ng-container>
+      <span class="fao-muted"
+        >{{ v.body.payment.l1
+        }}<ng-container *ngIf="v.body.payment.l2">
+          · {{ v.body.payment.l2 }}</ng-container
+        ></span
+      >
+    </section>
+    <section class="fao fao-card" aria-labelledby="fao-sum">
+      <h2 id="fao-sum" class="fao-h3">{{ 'acc.od.totals' | flaT }}</h2>
+      <div class="fao-row">
+        <span>{{ 'cd.subtotal' | flaT }}</span
+        ><span>{{ v.body.subtotal }}</span>
+      </div>
+      <div class="fao-row fao-off" *ngIf="v.body.discount">
+        <span>{{ v.body.discountLabel }}</span
+        ><span>− {{ v.body.discount }}</span>
+      </div>
+      <div class="fao-row fao-off" *ngIf="v.body.pixOff">
+        <span>{{ 'oc.pixDiscount' | flaT }}</span
+        ><span>− {{ v.body.pixOff }}</span>
+      </div>
+      <div class="fao-row" *ngIf="v.body.delivery">
+        <span>{{ 'cp.shipping' | flaT }}</span
+        ><span>{{ v.body.delivery }}</span>
+      </div>
+      <div class="fao-row fao-total">
+        <span>{{ 'cd.total' | flaT }}</span
+        ><span>{{ v.body.total }}</span>
+      </div>
+      <span class="fao-saved" *ngIf="v.saved">{{
+        'acc.od.saved' | flaT: { v: v.saved }
+      }}</span>
+    </section>
+  </div>
+</ng-container>

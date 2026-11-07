@@ -80,12 +80,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Seu plano está com os benefícios suspensos por mensalidade em atraso: você compra na venda geral, a partir de {date}.',
     'md.elig.title': 'Sua elegibilidade para este jogo',
     'md.elig.yes': 'Tudo certo: você pode comprar ingresso para este jogo.',
-    'md.elig.no': 'Você ainda não pode comprar ingresso para este jogo. Veja o motivo abaixo.',
+    'md.elig.no':
+      'Você ainda não pode comprar ingresso para este jogo. Veja o motivo abaixo.',
     'md.elig.state.ok': 'Atendido:',
     'md.elig.state.warn': 'Aviso:',
     'md.elig.state.no': 'Não atendido:',
     'md.elig.plan.wave': 'Sócio {plan}: compra na {wave}.',
-    'md.elig.plan.noPriority': 'Sócio {plan}: plano sem prioridade, compra na venda geral.',
+    'md.elig.plan.noPriority':
+      'Sócio {plan}: plano sem prioridade, compra na venda geral.',
     'md.elig.plan.member': 'Sócio {plan}.',
     'md.elig.plan.inCart': '(plano no carrinho: já vale para este ingresso)',
     'md.elig.plan.none': 'Você não é sócio: compra na venda geral.',
@@ -247,7 +249,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'vit.exp.cta': 'Quero viver',
     'vit.exp.soldOut': 'Esgotada',
     'vit.exp.socioTitle': 'Experiências que o sócio vive',
-    'vit.exp.socioSub': 'Além do ingresso: tour, treino aberto, entrada em campo e mais. Compre ou resgate com os pontos do seu plano.',
+    'vit.exp.socioSub':
+      'Além do ingresso: tour, treino aberto, entrada em campo e mais. Compre ou resgate com os pontos do seu plano.',
 
     // detalhe do pedido: linha abaixo do título
     'od.number': 'Número: {code}',
@@ -296,7 +299,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'oc.payWait': 'aguardando pagamento',
     'oc.payDone': 'pago',
     'oc.points': '+{n} pontos Nação',
-    'oc.pointsPlan': 'Sócio {plan} · troque por experiências em Meu sócio-torcedor.',
+    'oc.pointsPlan':
+      'Sócio {plan} · troque por experiências em Meu sócio-torcedor.',
     'oc.pointsSub': 'Troque por experiências em Meu sócio-torcedor.',
     'oc.back': 'Voltar para a loja',
 
@@ -358,8 +362,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'hd.newTab': '(abre em nova aba)',
     // personalização do manto e "Calcule o frete" na página do produto (06/11)
     'pz.title': 'Personalizar',
-    'pz.intro': 'Adicione nome ou número para personalizar o seu manto e crie o presente perfeito. A personalização é opcional.',
-    'pz.rule1': 'Produtos personalizados não podem ser trocados, devolvidos ou cancelados.',
+    'pz.intro':
+      'Adicione nome ou número para personalizar o seu manto e crie o presente perfeito. A personalização é opcional.',
+    'pz.rule1':
+      'Produtos personalizados não podem ser trocados, devolvidos ou cancelados.',
     'pz.rule2': 'Até 13 caracteres, sem caracteres especiais.',
     'pz.rule3': 'A fonte é a mesma da linha oficial de jogo.',
     'pz.login': 'Entre na sua conta para personalizar',
@@ -373,7 +379,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'pz.patch': 'Patch',
     'pz.noPatch': 'Sem patch',
     'pz.chosen': 'escolhido',
-    'pz.summary': 'Personalização: + {v} por unidade, aplicada ao adicionar ao carrinho',
+    'pz.summary':
+      'Personalização: + {v} por unidade, aplicada ao adicionar ao carrinho',
     'pz.clear': 'Limpar',
     'pz.saving': 'Aplicando a personalização…',
     'pz.error': 'Não foi possível aplicar a personalização.',
@@ -414,8 +421,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'ci.units': '{n} unidade(s)',
     'cdl.person': 'Dados pessoais',
     'cdl.change': 'Alterar',
-    'cdl.digitalMixed': 'Ingresso, estacionamento e comida são digitais: ficam em Minha conta e não têm frete. A entrega abaixo vale para os outros produtos.',
-    'cdl.digitalOnly': 'Ingresso, estacionamento e comida são digitais: ficam em Minha conta e não têm frete.',
+    'cdl.digitalMixed':
+      'Ingresso, estacionamento e comida são digitais: ficam em Minha conta e não têm frete. A entrega abaixo vale para os outros produtos.',
+    'cdl.digitalOnly':
+      'Ingresso, estacionamento e comida são digitais: ficam em Minha conta e não têm frete.',
     'cdl.how': 'Como receber',
     'cdl.home': 'Receber em casa',
     'cdl.homeFrom': 'A partir de R$ 19,90',
@@ -427,8 +436,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'cdl.search': 'Buscar',
     'cdl.useLocation': 'Usar minha localização',
     'cdl.myLocation': 'você',
-    'cdl.notFound': 'Não encontramos esse lugar. Tente o CEP ou o nome da cidade.',
-    'cdl.noGeo': 'Não foi possível usar a sua localização. Busque pelo CEP ou pela cidade.',
+    'cdl.notFound':
+      'Não encontramos esse lugar. Tente o CEP ou o nome da cidade.',
+    'cdl.noGeo':
+      'Não foi possível usar a sua localização. Busque pelo CEP ou pela cidade.',
     'cdl.found': '{n} loja(s) perto de {place}',
     'cdl.hideOut': 'Ocultar lojas sem estoque',
     'cdl.myStore': 'Minha loja',
@@ -606,7 +617,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.pay.renewalTo': 'Renovação com mudança para o {plan}',
     'sa.rn.title': 'Renovação do contrato',
     'sa.rn.on': 'Seu plano renova sozinho em {date}, por mais 12 meses.',
-    'sa.rn.change': 'Em {date} seu plano muda para o {plan}, por mais 12 meses.',
+    'sa.rn.change':
+      'Em {date} seu plano muda para o {plan}, por mais 12 meses.',
     'sa.rn.off': 'Renovação desligada: seu plano termina em {date}, sem multa.',
     'sa.rn.until': 'Você pode mudar a renovação até {date}.',
     'sa.rn.locked':
@@ -684,34 +696,47 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.exit.noFine': 'Sem multa (contrato no último mês)',
     'sa.exit.endOfTerm': 'fim da vigência sem renovação, sem multa.',
     'spay.title': 'Como você quer pagar o {plan}?',
-    'spay.sub': 'O plano é um contrato de 12 meses. Os outros itens do carrinho entram no mesmo pagamento.',
+    'spay.sub':
+      'O plano é um contrato de 12 meses. Os outros itens do carrinho entram no mesmo pagamento.',
     'spay.m.CARTAO_MENSAL': 'Cartão, por mês',
     'spay.m.CARTAO_ANUAL': 'Cartão, ano inteiro',
     'spay.m.PIX': 'Pix à vista',
     'spay.m.PIX_AUTOMATICO': 'Pix Automático (mensal)',
     'spay.m.BOLETO': 'Boleto à vista',
     'spay.a.CARTAO_MENSAL': '{amount} hoje e depois todo mês',
-    'spay.a.PIX_AUTOMATICO': '{amount} hoje e depois todo mês, no débito automático',
+    'spay.a.PIX_AUTOMATICO':
+      '{amount} hoje e depois todo mês, no débito automático',
     'spay.a.CARTAO_ANUAL': '{amount} em até {n}x',
     'spay.a.UPFRONT': '{amount} (12 mensalidades)',
-    'spay.h.CARTAO_MENSAL': 'Como hoje: a 1ª mensalidade agora e as outras 11 no cartão.',
+    'spay.h.CARTAO_MENSAL':
+      'Como hoje: a 1ª mensalidade agora e as outras 11 no cartão.',
     'spay.h.CARTAO_ANUAL': 'O ano inteiro, parcelado pela operadora do cartão.',
-    'spay.h.PIX': 'QR Code e copia e cola na confirmação. O plano ativa quando o Pix for confirmado.',
-    'spay.h.PIX_AUTOMATICO': 'A 1ª mensalidade é paga agora pelo QR Code e as próximas são debitadas sozinhas todo mês, sem precisar pagar de novo. O plano ativa quando o Pix for confirmado.',
-    'spay.h.BOLETO': 'Linha digitável na confirmação. O plano ativa quando o boleto for pago.',
+    'spay.h.PIX':
+      'QR Code e copia e cola na confirmação. O plano ativa quando o Pix for confirmado.',
+    'spay.h.PIX_AUTOMATICO':
+      'A 1ª mensalidade é paga agora pelo QR Code e as próximas são debitadas sozinhas todo mês, sem precisar pagar de novo. O plano ativa quando o Pix for confirmado.',
+    'spay.h.BOLETO':
+      'Linha digitável na confirmação. O plano ativa quando o boleto for pago.',
     'spay.installments': 'Parcelas no cartão',
     'spay.parcel1': '1x de {amount} (à vista)',
     'spay.parcelN': '{n}x de {amount}',
     'spay.cardBelow': 'Escolha ou cadastre o cartão abaixo.',
-    'spay.pixNext': 'Sem cartão: o QR Code do Pix aparece depois de finalizar o pedido.',
-    'spay.boletoNext': 'Sem cartão: a linha digitável do boleto aparece depois de finalizar o pedido.',
-    'spay.pixNext.adyen': 'Sem cartão: o Pix é gerado pela Adyen quando você finaliza o pedido (QR Code e copia e cola). Informe o CPF de quem vai pagar.',
-    'spay.pixAutoNext': 'Sem cartão: a Adyen gera o Pix da 1ª mensalidade quando você finaliza o pedido (QR Code e copia e cola); ao pagar, você autoriza o Pix Automático das próximas. Informe o CPF de quem vai pagar.',
-    'spay.boletoNext.adyen': 'Sem cartão: o boleto é gerado pela Adyen quando você finaliza o pedido (linha digitável e PDF). Informe o CPF de quem vai pagar.',
+    'spay.pixNext':
+      'Sem cartão: o QR Code do Pix aparece depois de finalizar o pedido.',
+    'spay.boletoNext':
+      'Sem cartão: a linha digitável do boleto aparece depois de finalizar o pedido.',
+    'spay.pixNext.adyen':
+      'Sem cartão: o Pix é gerado pela Adyen quando você finaliza o pedido (QR Code e copia e cola). Informe o CPF de quem vai pagar.',
+    'spay.pixAutoNext':
+      'Sem cartão: a Adyen gera o Pix da 1ª mensalidade quando você finaliza o pedido (QR Code e copia e cola); ao pagar, você autoriza o Pix Automático das próximas. Informe o CPF de quem vai pagar.',
+    'spay.boletoNext.adyen':
+      'Sem cartão: o boleto é gerado pela Adyen quando você finaliza o pedido (linha digitável e PDF). Informe o CPF de quem vai pagar.',
     'spay.cpf': 'CPF de quem vai pagar o boleto',
-    'spay.cardNext.adyen': 'O cartão é informado na revisão do pedido, no formulário seguro da Adyen.',
+    'spay.cardNext.adyen':
+      'O cartão é informado na revisão do pedido, no formulário seguro da Adyen.',
     'acard.title': 'Pagamento com cartão',
-    'acard.sub': 'Informe o cartão no formulário seguro da Adyen. A cobrança acontece quando você clicar em Pagar e finalizar.',
+    'acard.sub':
+      'Informe o cartão no formulário seguro da Adyen. A cobrança acontece quando você clicar em Pagar e finalizar.',
     'acard.loading': 'Carregando o formulário seguro da Adyen…',
     'cpay.title': 'Pagamento',
     'cs.free': 'Grátis',
@@ -732,7 +757,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'acc.terms3': 'e as regras de venda de ingressos.',
     'acc.privacy1': 'Li a',
     'acc.privacyLink': 'Política de Privacidade',
-    'acc.privacy2': 'e concordo com o uso dos meus dados para processar o pedido e emitir o ingresso nominal.',
+    'acc.privacy2':
+      'e concordo com o uso dos meus dados para processar o pedido e emitir o ingresso nominal.',
     'acc.required': 'Obrigatório',
     'acc.missing': 'Marque os aceites obrigatórios para finalizar o pedido.',
     'co.privacy': 'Política de Privacidade',
@@ -741,13 +767,18 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'acard.termsRequired': 'Aceite os Termos e Condições para finalizar.',
     'acard.pay': 'Pagar {amount} e finalizar',
     'acard.paying': 'Processando o pagamento…',
-    'acard.secure': 'Os dados do cartão vão direto para a Adyen (ambiente de teste); a loja não vê o número do cartão.',
-    'acard.refused': 'O pagamento não foi aprovado pela Adyen ({code}). Confira os dados ou use outro cartão.',
-    'acard.error': 'Não foi possível concluir o pagamento com a Adyen. Tente de novo.',
-    'acard.orderError': 'O cartão foi aprovado, mas o pedido não fechou: {message} Fale com o atendimento para o estorno.',
+    'acard.secure':
+      'Os dados do cartão vão direto para a Adyen (ambiente de teste); a loja não vê o número do cartão.',
+    'acard.refused':
+      'O pagamento não foi aprovado pela Adyen ({code}). Confira os dados ou use outro cartão.',
+    'acard.error':
+      'Não foi possível concluir o pagamento com a Adyen. Tente de novo.',
+    'acard.orderError':
+      'O cartão foi aprovado, mas o pedido não fechou: {message} Fale com o atendimento para o estorno.',
     'spay.cpfHint': 'Obrigatório no boleto. Usamos só para gerar o boleto.',
     'spay.cpf.pix': 'CPF de quem vai pagar o Pix',
-    'spay.cpfHint.pix': 'Obrigatório no Pix pela Adyen. Usamos só para gerar o Pix.',
+    'spay.cpfHint.pix':
+      'Obrigatório no Pix pela Adyen. Usamos só para gerar o Pix.',
     'spay.cpfInvalid': 'CPF inválido. Confira os 11 números.',
     'spay.back': 'Voltar',
     'spay.next': 'Continuar',
@@ -757,12 +788,16 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.r.annual1': '{name}: {amount} à vista',
     'spay.r.annualN': '{name}: {n}x de {amount} ({total})',
     'spay.r.upfront': '{name}: {amount} (12 mensalidades)',
-    'spay.r.pixNote': 'Depois de finalizar, você recebe o QR Code. O plano e os preços de sócio deste pedido valem quando o Pix for confirmado.',
-    'spay.r.pixAutoNote': 'Depois de finalizar, você recebe o QR Code da 1ª mensalidade. Ao pagar, você autoriza o Pix Automático das próximas no app do banco. O plano e os preços de sócio deste pedido valem quando o Pix for confirmado.',
-    'spay.r.boletoNote': 'Depois de finalizar, você recebe a linha digitável. O plano e os preços de sócio deste pedido valem quando o boleto for pago.',
+    'spay.r.pixNote':
+      'Depois de finalizar, você recebe o QR Code. O plano e os preços de sócio deste pedido valem quando o Pix for confirmado.',
+    'spay.r.pixAutoNote':
+      'Depois de finalizar, você recebe o QR Code da 1ª mensalidade. Ao pagar, você autoriza o Pix Automático das próximas no app do banco. O plano e os preços de sócio deste pedido valem quando o Pix for confirmado.',
+    'spay.r.boletoNote':
+      'Depois de finalizar, você recebe a linha digitável. O plano e os preços de sócio deste pedido valem quando o boleto for pago.',
     'spay.s.awaiting': 'Aguardando pagamento',
     'spay.s.pixTitle': 'Pague o Pix para ativar o {plan}',
-    'spay.s.pixAutoTitle': 'Pague a 1ª mensalidade e autorize o Pix Automático do {plan}',
+    'spay.s.pixAutoTitle':
+      'Pague a 1ª mensalidade e autorize o Pix Automático do {plan}',
     'spay.s.boletoTitle': 'Pague o boleto para ativar o {plan}',
     'spay.s.amount': '{amount} · pedido {order} · vence {due}',
     'spay.s.qr': 'QR Code do Pix (ilustrativo)',
@@ -774,28 +809,37 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.s.adyen': 'Gerado pela Adyen (ambiente de teste) · referência {psp}.',
     'spay.s.qrAdyen': 'QR Code do Pix',
     'spay.s.pdf': 'Baixar boleto (PDF)',
-    'spay.s.activates': 'Seu {plan} ativa quando o clube confirmar o pagamento. Os ingressos deste pedido ficam reservados.',
+    'spay.s.activates':
+      'Seu {plan} ativa quando o clube confirmar o pagamento. Os ingressos deste pedido ficam reservados.',
     'spay.s.paid': 'Pagamento confirmado',
     'spay.s.paidLine': '{name} de {amount} pago em {date}',
     // Item 14: pagamento de carrinho sem plano (loja)
     'spay.title.store': 'Como você quer pagar?',
-    'spay.sub.store': 'Cartão, Pix ou boleto. Com Pix ou boleto, o pedido segue para a separação quando o pagamento for confirmado.',
+    'spay.sub.store':
+      'Cartão, Pix ou boleto. Com Pix ou boleto, o pedido segue para a separação quando o pagamento for confirmado.',
     'spay.m.store.CARTAO_MENSAL': 'Cartão de crédito',
     'spay.a.store.CARD': '{amount}',
     'spay.a.store.UPFRONT': '{amount} à vista',
     'spay.pixOff': '{p}% off',
     'spay.h.store.CARTAO_MENSAL': 'Escolha ou cadastre o cartão abaixo.',
-    'spay.h.store.adyenCard': 'Você informa o cartão na revisão do pedido, no formulário seguro da Adyen.',
-    'spay.cardReview': 'O cartão é informado na revisão do pedido, no formulário seguro da Adyen.',
-    'spay.h.store.PIX': 'QR Code e copia e cola na confirmação. O pedido segue quando o Pix for confirmado.',
-    'spay.h.store.BOLETO': 'Linha digitável na confirmação. O pedido segue quando o boleto for pago.',
+    'spay.h.store.adyenCard':
+      'Você informa o cartão na revisão do pedido, no formulário seguro da Adyen.',
+    'spay.cardReview':
+      'O cartão é informado na revisão do pedido, no formulário seguro da Adyen.',
+    'spay.h.store.PIX':
+      'QR Code e copia e cola na confirmação. O pedido segue quando o Pix for confirmado.',
+    'spay.h.store.BOLETO':
+      'Linha digitável na confirmação. O pedido segue quando o boleto for pago.',
     'spay.r.title.store': 'Pagamento',
     'spay.r.store': '{name}: {amount} à vista',
-    'spay.r.pixNote.store': 'Depois de finalizar, você recebe o QR Code. O pedido segue para a separação quando o Pix for confirmado.',
-    'spay.r.boletoNote.store': 'Depois de finalizar, você recebe a linha digitável. O pedido segue para a separação quando o boleto for pago.',
+    'spay.r.pixNote.store':
+      'Depois de finalizar, você recebe o QR Code. O pedido segue para a separação quando o Pix for confirmado.',
+    'spay.r.boletoNote.store':
+      'Depois de finalizar, você recebe a linha digitável. O pedido segue para a separação quando o boleto for pago.',
     'spay.s.pixTitle.store': 'Pague o Pix para liberar o pedido',
     'spay.s.boletoTitle.store': 'Pague o boleto para liberar o pedido',
-    'spay.s.activates.store': 'O pedido segue para a separação e a entrega quando o clube confirmar o pagamento. Ingressos e vouchers deste pedido ficam reservados.',
+    'spay.s.activates.store':
+      'O pedido segue para a separação e a entrega quando o clube confirmar o pagamento. Ingressos e vouchers deste pedido ficam reservados.',
     'sa.exit.ruleIn':
       'Você está no prazo de arrependimento de {days} dias depois da adesão: o valor pago na adesão é devolvido.',
     'sa.exit.ruleOut':
@@ -835,19 +879,25 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.line.guestTicket': 'Ingresso de {name}',
     'md.line.extraTicket': 'Ingresso adicional',
     'md.who.title': 'Quem vai usar os ingressos adicionais',
-    'md.who.lead': 'O primeiro ingresso fica no seu nome. Para cada poltrona a mais, informe nome, CPF, data de nascimento e e-mail de quem vai usar: o nome sai no ingresso e o CPF é conferido na entrada do estádio.',
+    'md.who.lead':
+      'O primeiro ingresso fica no seu nome. Para cada poltrona a mais, informe nome, CPF, data de nascimento e e-mail de quem vai usar: o nome sai no ingresso e o CPF é conferido na entrada do estádio.',
     'md.who.missing': 'Falta informar quem vai usar',
     'md.who.fill': 'Informar',
     'md.who.edit': 'Alterar',
     'md.who.formTitle': 'Quem vai usar a poltrona {seat}',
-    'md.who.privacy': 'Os dados são usados só para emitir o ingresso no nome dessa pessoa e validar a entrada no estádio.',
+    'md.who.privacy':
+      'Os dados são usados só para emitir o ingresso no nome dessa pessoa e validar a entrada no estádio.',
     'md.who.save': 'Salvar',
     'md.who.saving': 'Salvando…',
-    'md.who.pending': 'Informe quem vai usar cada ingresso adicional para continuar.',
-    'md.multi.hint': 'Poltronas escolhidas: {seats} ({count} de até {n} por jogo). Clique em outra poltrona livre para levar mais um ingresso (com os dados de quem vai usar); para liberar, clique de novo na poltrona vermelha.',
-    'md.multi.full': 'Limite de {n} ingressos por jogo atingido. Para trocar, clique numa poltrona vermelha para liberá-la.',
+    'md.who.pending':
+      'Informe quem vai usar cada ingresso adicional para continuar.',
+    'md.multi.hint':
+      'Poltronas escolhidas: {seats} ({count} de até {n} por jogo). Clique em outra poltrona livre para levar mais um ingresso (com os dados de quem vai usar); para liberar, clique de novo na poltrona vermelha.',
+    'md.multi.full':
+      'Limite de {n} ingressos por jogo atingido. Para trocar, clique numa poltrona vermelha para liberá-la.',
     'md.comp.title': 'Quem vai com você',
-    'md.comp.lead': 'Você pode levar até {n} convidado(s) neste jogo, na mesma onda e com o mesmo desconto. O nome do convidado vai no ingresso.',
+    'md.comp.lead':
+      'Você pode levar até {n} convidado(s) neste jogo, na mesma onda e com o mesmo desconto. O nome do convidado vai no ingresso.',
     'md.comp.you': 'Você',
     'md.comp.choose': 'Escolher poltrona',
     'md.comp.cancelChoose': 'Cancelar escolha',
@@ -857,19 +907,23 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.comp.none': 'Você ainda não cadastrou convidados.',
     'md.comp.register': 'Cadastrar em Meu sócio-torcedor',
     'md.comp.error': 'Não foi possível marcar a poltrona para o convidado.',
-    'md.comp.lost': 'A reserva de {seat} venceu e a poltrona voltou à venda. Escolha de novo.',
+    'md.comp.lost':
+      'A reserva de {seat} venceu e a poltrona voltou à venda. Escolha de novo.',
     'md.comp.add': '+ Incluir convidado',
     'md.comp.formTitle': 'Dados do convidado (o nome vai no ingresso)',
     'md.comp.saveAndPick': 'Incluir e escolher a poltrona',
-    'md.comp.inCartNote': 'Seu plano ainda está no carrinho: os convidados incluídos aqui ficam ligados a esta compra. Se o plano sair do carrinho, eles são excluídos e as poltronas voltam para você. Com Pix ou boleto, plano e ingressos são liberados quando o pagamento for confirmado.',
+    'md.comp.inCartNote':
+      'Seu plano ainda está no carrinho: os convidados incluídos aqui ficam ligados a esta compra. Se o plano sair do carrinho, eles são excluídos e as poltronas voltam para você. Com Pix ou boleto, plano e ingressos são liberados quando o pagamento for confirmado.',
 
     // sócio: Meus convidados
     // Termo do Nação (item 4)
     'st.read': 'Ler o Termo',
     'st.error': 'Não foi possível registrar o aceite. Tente de novo.',
     'st.checkout.accept': 'Li e aceito o Termo do Nação {version}',
-    'st.checkout.hint': 'Obrigatório para a adesão ao {plan}. O aceite fica registrado com a data e o pedido.',
-    'st.checkout.required': 'Para concluir a adesão, leia e aceite o Termo do Nação {version}.',
+    'st.checkout.hint':
+      'Obrigatório para a adesão ao {plan}. O aceite fica registrado com a data e o pedido.',
+    'st.checkout.required':
+      'Para concluir a adesão, leia e aceite o Termo do Nação {version}.',
     'st.notice.title': 'Nova versão do Termo do Nação: {version}',
     'st.notice.text': 'Leia o Termo atualizado e registre o seu aceite.',
     'st.notice.accept': 'Li e aceito',
@@ -877,7 +931,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.page.kicker': 'Sócio-torcedor Nação',
     'st.page.meta': 'Versão {version} · publicada em {date}',
     'st.page.changed': 'O que mudou:',
-    'st.page.nonMember': 'Você aceita o Termo ao aderir a um plano, na revisão do pedido.',
+    'st.page.nonMember':
+      'Você aceita o Termo ao aderir a um plano, na revisão do pedido.',
     'st.page.none': 'Não há Termo do Nação publicado no momento.',
     'st.page.login': 'Entre na sua conta para ler o Termo do Nação.',
     'st.page.loginLink': 'Entrar',
@@ -899,8 +954,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sg.removeConfirm': 'Tirar {name}? A vaga fica livre para outro convidado.',
     'sg.removeLocked': 'Tem ingresso: pode sair depois do jogo de {date}',
     'sg.removeYes': 'Sim, tirar',
-    'sg.empty': 'Você ainda não cadastrou convidados. Dê nome às vagas contratadas para comprar ingresso para eles na mesma onda que você.',
-    'sg.emptyNoSlots': 'Os convidados são contratados na compra do plano e entram na mensalidade.',
+    'sg.empty':
+      'Você ainda não cadastrou convidados. Dê nome às vagas contratadas para comprar ingresso para eles na mesma onda que você.',
+    'sg.emptyNoSlots':
+      'Os convidados são contratados na compra do plano e entram na mensalidade.',
     'sg.addCta': 'Incluir convidado ({n} vaga(s) livre(s))',
     'sg.formTitle': 'Novo convidado',
     'sg.f.name': 'Nome completo',
@@ -908,7 +965,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sg.f.birth': 'Data de nascimento',
     'sg.f.email': 'E-mail',
     'sg.f.phone': 'Celular (opcional)',
-    'sg.privacy': 'Os dados do convidado são usados só para emitir o ingresso no nome dele e validar a entrada no estádio.',
+    'sg.privacy':
+      'Os dados do convidado são usados só para emitir o ingresso no nome dele e validar a entrada no estádio.',
     'sg.save': 'Incluir convidado',
     'sg.saving': 'Incluindo…',
     'sg.added': '{name} agora é seu convidado.',
@@ -918,24 +976,30 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sg.endedLine': 'de {from} a {to} · {reason}',
     'sg.reason.owner': 'retirado por você',
     'sg.reason.cancel': 'cancelamento do plano',
-    'sg.block.suspended': 'Seus benefícios estão suspensos por mensalidade em atraso. Regularize para incluir convidados; os que você já tem continuam aqui.',
-    'sg.block.noSlots': 'Seu plano permite até {max} convidado(s), mas nenhuma vaga foi contratada na adesão. A vaga de convidado é escolhida na compra do plano.',
+    'sg.block.suspended':
+      'Seus benefícios estão suspensos por mensalidade em atraso. Regularize para incluir convidados; os que você já tem continuam aqui.',
+    'sg.block.noSlots':
+      'Seu plano permite até {max} convidado(s), mas nenhuma vaga foi contratada na adesão. A vaga de convidado é escolhida na compra do plano.',
     'sg.block.planNoGuests': 'O plano {plan} não tem convidados.',
-    'sg.block.full': 'Todas as {n} vaga(s) contratadas estão ocupadas. Tire um convidado para incluir outro.',
+    'sg.block.full':
+      'Todas as {n} vaga(s) contratadas estão ocupadas. Tire um convidado para incluir outro.',
     'sg.err.name': 'Informe o nome completo do convidado.',
     'sg.err.cpf': 'CPF inválido: confira os números.',
     'sg.err.birth': 'Informe uma data de nascimento válida.',
     'sg.err.email': 'Informe um e-mail válido do convidado.',
     'sg.err.phone': 'Celular inválido: use DDD e número, com 10 ou 11 dígitos.',
-    'sg.err.generic': 'Não foi possível salvar agora. Tente de novo em instantes.',
+    'sg.err.generic':
+      'Não foi possível salvar agora. Tente de novo em instantes.',
     'sg.err.load': 'Não foi possível carregar seus convidados agora.',
     // pontos e experiências (item 8)
     'sp.title': 'Pontos e experiências',
     'sp.points': 'pontos',
     'sp.pts': 'pts',
     'sp.summary': 'Ganhos {earned} · resgatados {redeemed}',
-    'sp.rule': '{ticket} pontos por ingresso e {real} por real em produtos da loja, nas compras desde a adesão.',
-    'sp.ruleBonus': '{ticket} pontos por ingresso e {real} por real em produtos da loja, nas compras desde a adesão, mais {bonus} de bônus de adesão.',
+    'sp.rule':
+      '{ticket} pontos por ingresso e {real} por real em produtos da loja, nas compras desde a adesão.',
+    'sp.ruleBonus':
+      '{ticket} pontos por ingresso e {real} por real em produtos da loja, nas compras desde a adesão, mais {bonus} de bônus de adesão.',
     'sp.earningsShow': 'Ver de onde vieram os pontos',
     'sp.earningsHide': 'Esconder de onde vieram os pontos',
     'sp.col.date': 'Data',
@@ -961,16 +1025,19 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.cancel': 'Voltar',
     'sp.done': 'Resgate feito: {name}',
     'sp.voucher': 'Voucher',
-    'sp.doneHint': 'Apresente este código para usar a experiência. Ele fica em Meus resgates, logo abaixo.',
+    'sp.doneHint':
+      'Apresente este código para usar a experiência. Ele fica em Meus resgates, logo abaixo.',
     'sp.mine': 'Meus resgates',
     'sp.valid': 'Válido',
     'sp.cancelled': 'Cancelado em {date}',
-    'sp.err.generic': 'Não foi possível resgatar agora. Tente de novo em instantes.',
+    'sp.err.generic':
+      'Não foi possível resgatar agora. Tente de novo em instantes.',
     // experiências à venda na loja (item 9)
     'sp.buy': 'Comprar por {price}',
     'sp.buying': 'Adicionando…',
     'sp.buyAdded': '{name} foi para o carrinho.',
-    'sp.saleHint': 'Algumas experiências também estão à venda na loja, para você ou para presentear. O voucher da compra aparece em Meus resgates.',
+    'sp.saleHint':
+      'Algumas experiências também estão à venda na loja, para você ou para presentear. O voucher da compra aparece em Meus resgates.',
     'sp.purchase': 'Compra · {price}',
     'sp.used': 'Utilizado em {date}',
     'sp.col.paid': 'Pontos ou valor',
@@ -985,12 +1052,16 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sc.timer': 'Novo código em {s}s',
     'sc.suspended': 'Benefícios suspensos',
     'sc.aria': 'Carteirinha do sócio {plan}, {name}',
-    'sc.text': 'Mostre na entrada do Maracanã, nas lojas oficiais e nos parceiros. O QR Code muda a cada 30 segundos, então um print não serve.',
-    'sc.suspendedText': 'Com a mensalidade em atraso, a carteirinha não dá acesso aos benefícios de sócio. Regularize para liberar.',
+    'sc.text':
+      'Mostre na entrada do Maracanã, nas lojas oficiais e nos parceiros. O QR Code muda a cada 30 segundos, então um print não serve.',
+    'sc.suspendedText':
+      'Com a mensalidade em atraso, a carteirinha não dá acesso aos benefícios de sócio. Regularize para liberar.',
     'sc.open': 'Abrir em tela cheia',
     'sc.pageHint': 'Aumente o brilho da tela para a leitura do QR Code.',
-    'sc.awaiting': 'Sua carteirinha aparece aqui assim que o pagamento do plano for confirmado.',
-    'sc.none': 'A carteirinha digital é dos sócios do Nação. Escolha um plano para ter a sua.',
+    'sc.awaiting':
+      'Sua carteirinha aparece aqui assim que o pagamento do plano for confirmado.',
+    'sc.none':
+      'A carteirinha digital é dos sócios do Nação. Escolha um plano para ter a sua.',
     'sc.join': 'Conhecer os planos',
     'sc.back': 'Voltar para Meu sócio-torcedor',
 
@@ -1028,7 +1099,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'acc.t.close': 'Encerrar conta',
     'acc.t.tickets': 'Atendimento',
     'acc.t.ticket': 'Solicitação {code}',
-    'acc.l.socio': 'Plano, carteirinha, convidados, pontos e pagamentos do Nação Maraca.',
+    'acc.l.socio':
+      'Plano, carteirinha, convidados, pontos e pagamentos do Nação Maraca.',
     'acc.l.orders': 'Pedidos da loja, ingressos, planos e devoluções.',
     'acc.l.email': 'O e-mail é o seu login na loja e no Nação.',
     'acc.l.addresses': 'Endereços para entrega e a sua loja de retirada.',
@@ -1040,10 +1112,28 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'lg.crumb': 'Entrar',
     'lg.lead': 'Pedidos, ingressos e o seu plano Nação Maraca num só lugar.',
     'lg.have': 'Já tenho conta',
-    'lg.newText': 'Crie a sua em um minuto e compre ingresso, estacionamento, comida e manto num só pagamento.',
+    'lg.newText':
+      'Crie a sua em um minuto e compre ingresso, estacionamento, comida e manto num só pagamento.',
     'lg.perk1': 'Acompanhe pedidos e ingressos em Minha conta',
     'lg.perk2': 'Vire sócio Nação Maraca e compre antes, com desconto',
     'lg.perk3': 'Endereços e cartões salvos para a próxima compra',
+    'acc.oh.items': 'Itens',
+    'acc.oh.actions': 'Ações',
+    'acc.oh.view': 'Ver pedido',
+    'acc.oh.viewOf': 'Ver o pedido {code}',
+    'acc.od.summary': 'Resumo do pedido',
+    'acc.od.number': 'Número do pedido',
+    'acc.od.placed': 'Feito em',
+    'acc.od.status': 'Situação',
+    'acc.od.ship': 'Itens a entregar',
+    'acc.od.pickup': 'Itens para retirar',
+    'acc.od.code': 'Código {code}',
+    'acc.od.again': 'Comprar de novo',
+    'acc.od.shipPay': 'Entrega e pagamento',
+    'acc.od.totals': 'Resumo',
+    'acc.od.saved': 'Você economizou {v}',
+    'acc.em.now': 'E-mail atual:',
+    'acc.em.note': 'O novo e-mail passa a ser o seu login.',
   },
 
   en: {
@@ -1275,12 +1365,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'vit.games.sub': 'Pick the match and your seat and build your matchday.',
     'vit.games.cta': 'Choose your seat',
     'vit.exp.title': 'Nação experiences',
-    'vit.exp.sub': 'Live Flamengo up close. Members can also redeem with points.',
+    'vit.exp.sub':
+      'Live Flamengo up close. Members can also redeem with points.',
     'vit.exp.all': 'See all experiences',
     'vit.exp.cta': 'I want it',
     'vit.exp.soldOut': 'Sold out',
     'vit.exp.socioTitle': 'Experiences members live',
-    'vit.exp.socioSub': 'Beyond the ticket: stadium tour, open training, walking onto the pitch and more. Buy them or redeem with your plan points.',
+    'vit.exp.socioSub':
+      'Beyond the ticket: stadium tour, open training, walking onto the pitch and more. Buy them or redeem with your plan points.',
 
     'od.number': 'Number: {code}',
     'rr.order': 'Order no. {code}',
@@ -1384,8 +1476,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'hd.newTab': '(opens in a new tab)',
     // jersey personalization and shipping estimate on the product page (06/11)
     'pz.title': 'Personalize',
-    'pz.intro': 'Add a name or number to personalize your jersey and create the perfect gift. Personalization is optional.',
-    'pz.rule1': 'Personalized products cannot be exchanged, returned or cancelled.',
+    'pz.intro':
+      'Add a name or number to personalize your jersey and create the perfect gift. Personalization is optional.',
+    'pz.rule1':
+      'Personalized products cannot be exchanged, returned or cancelled.',
     'pz.rule2': 'Up to 13 characters, no special characters.',
     'pz.rule3': 'Same font as the official match kit.',
     'pz.login': 'Sign in to personalize',
@@ -1399,7 +1493,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'pz.patch': 'Patch',
     'pz.noPatch': 'No patch',
     'pz.chosen': 'selected',
-    'pz.summary': 'Personalization: + {v} per item, applied when you add to cart',
+    'pz.summary':
+      'Personalization: + {v} per item, applied when you add to cart',
     'pz.clear': 'Clear',
     'pz.saving': 'Applying personalization…',
     'pz.error': 'Could not apply the personalization.',
@@ -1440,8 +1535,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'ci.units': '{n} item(s)',
     'cdl.person': 'Personal details',
     'cdl.change': 'Change',
-    'cdl.digitalMixed': 'Tickets, parking and food are digital: they stay in My account with no shipping. The delivery below applies to the other products.',
-    'cdl.digitalOnly': 'Tickets, parking and food are digital: they stay in My account with no shipping.',
+    'cdl.digitalMixed':
+      'Tickets, parking and food are digital: they stay in My account with no shipping. The delivery below applies to the other products.',
+    'cdl.digitalOnly':
+      'Tickets, parking and food are digital: they stay in My account with no shipping.',
     'cdl.how': 'How to receive',
     'cdl.home': 'Home delivery',
     'cdl.homeFrom': 'From R$ 19.90',
@@ -1453,7 +1550,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'cdl.search': 'Search',
     'cdl.useLocation': 'Use my location',
     'cdl.myLocation': 'you',
-    'cdl.notFound': 'We could not find that place. Try the postal code or the city.',
+    'cdl.notFound':
+      'We could not find that place. Try the postal code or the city.',
     'cdl.noGeo': 'Could not use your location. Search by postal code or city.',
     'cdl.found': '{n} store(s) near {place}',
     'cdl.hideOut': 'Hide stores out of stock',
@@ -1630,7 +1728,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.pay.renewalTo': 'Renewal with change to {plan}',
     'sa.rn.title': 'Contract renewal',
     'sa.rn.on': 'Your plan renews automatically on {date}, for 12 more months.',
-    'sa.rn.change': 'On {date} your plan changes to {plan}, for 12 more months.',
+    'sa.rn.change':
+      'On {date} your plan changes to {plan}, for 12 more months.',
     'sa.rn.off': 'Auto-renewal off: your plan ends on {date}, without a fee.',
     'sa.rn.until': 'You can change the renewal until {date}.',
     'sa.rn.locked':
@@ -1710,34 +1809,47 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sa.exit.noFine': 'No fee (last month of the contract)',
     'sa.exit.endOfTerm': 'end of term without renewal, no fee.',
     'spay.title': 'How do you want to pay for {plan}?',
-    'spay.sub': 'The plan is a 12-month contract. The other items in the cart go in the same payment.',
+    'spay.sub':
+      'The plan is a 12-month contract. The other items in the cart go in the same payment.',
     'spay.m.CARTAO_MENSAL': 'Card, monthly',
     'spay.m.CARTAO_ANUAL': 'Card, full year',
     'spay.m.PIX': 'Pix upfront',
     'spay.m.PIX_AUTOMATICO': 'Automatic Pix (monthly)',
     'spay.m.BOLETO': 'Boleto upfront',
     'spay.a.CARTAO_MENSAL': '{amount} today and then every month',
-    'spay.a.PIX_AUTOMATICO': '{amount} today and then every month, by automatic debit',
+    'spay.a.PIX_AUTOMATICO':
+      '{amount} today and then every month, by automatic debit',
     'spay.a.CARTAO_ANUAL': '{amount} in up to {n} installments',
     'spay.a.UPFRONT': '{amount} (12 monthly fees)',
-    'spay.h.CARTAO_MENSAL': 'As today: the 1st monthly fee now and the other 11 on the card.',
+    'spay.h.CARTAO_MENSAL':
+      'As today: the 1st monthly fee now and the other 11 on the card.',
     'spay.h.CARTAO_ANUAL': 'The full year, split by the card issuer.',
-    'spay.h.PIX': 'QR code and copy-and-paste code on the confirmation. The plan starts when the Pix is confirmed.',
-    'spay.h.PIX_AUTOMATICO': 'The 1st monthly fee is paid now with the QR code and the next ones are debited automatically every month, with nothing else to pay. The plan starts when the Pix is confirmed.',
-    'spay.h.BOLETO': 'Boleto line on the confirmation. The plan starts when the boleto is paid.',
+    'spay.h.PIX':
+      'QR code and copy-and-paste code on the confirmation. The plan starts when the Pix is confirmed.',
+    'spay.h.PIX_AUTOMATICO':
+      'The 1st monthly fee is paid now with the QR code and the next ones are debited automatically every month, with nothing else to pay. The plan starts when the Pix is confirmed.',
+    'spay.h.BOLETO':
+      'Boleto line on the confirmation. The plan starts when the boleto is paid.',
     'spay.installments': 'Card installments',
     'spay.parcel1': '1x {amount} (upfront)',
     'spay.parcelN': '{n}x {amount}',
     'spay.cardBelow': 'Choose or add the card below.',
-    'spay.pixNext': 'No card: the Pix QR code appears after you place the order.',
-    'spay.boletoNext': 'No card: the boleto line appears after you place the order.',
-    'spay.pixNext.adyen': 'No card: Adyen generates the Pix when you place the order (QR code and copy and paste). Enter the CPF of who will pay.',
-    'spay.pixAutoNext': 'No card: Adyen generates the Pix for the 1st monthly fee when you place the order (QR code and copy and paste); when you pay, you authorize the Automatic Pix for the next ones. Enter the CPF of who will pay.',
-    'spay.boletoNext.adyen': 'No card: Adyen generates the boleto when you place the order (line and PDF). Enter the CPF of who will pay.',
+    'spay.pixNext':
+      'No card: the Pix QR code appears after you place the order.',
+    'spay.boletoNext':
+      'No card: the boleto line appears after you place the order.',
+    'spay.pixNext.adyen':
+      'No card: Adyen generates the Pix when you place the order (QR code and copy and paste). Enter the CPF of who will pay.',
+    'spay.pixAutoNext':
+      'No card: Adyen generates the Pix for the 1st monthly fee when you place the order (QR code and copy and paste); when you pay, you authorize the Automatic Pix for the next ones. Enter the CPF of who will pay.',
+    'spay.boletoNext.adyen':
+      'No card: Adyen generates the boleto when you place the order (line and PDF). Enter the CPF of who will pay.',
     'spay.cpf': 'CPF of who will pay the boleto',
-    'spay.cardNext.adyen': 'You enter the card on the order review, in the secure Adyen form.',
+    'spay.cardNext.adyen':
+      'You enter the card on the order review, in the secure Adyen form.',
     'acard.title': 'Card payment',
-    'acard.sub': 'Enter your card in the secure Adyen form. You are charged when you click Pay and place order.',
+    'acard.sub':
+      'Enter your card in the secure Adyen form. You are charged when you click Pay and place order.',
     'acard.loading': 'Loading the secure Adyen form…',
     'cpay.title': 'Payment',
     'cs.free': 'Free',
@@ -1758,22 +1870,28 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'acc.terms3': 'and the ticket sale rules.',
     'acc.privacy1': 'I have read the',
     'acc.privacyLink': 'Privacy Policy',
-    'acc.privacy2': 'and agree to the use of my data to process the order and issue the named ticket.',
+    'acc.privacy2':
+      'and agree to the use of my data to process the order and issue the named ticket.',
     'acc.required': 'Required',
     'acc.missing': 'Tick the required consents to place the order.',
     'co.privacy': 'Privacy Policy',
     'acard.terms': 'I have read and accept the',
     'acard.termsLink': 'Terms and Conditions',
-    'acard.termsRequired': 'Accept the Terms and Conditions to place the order.',
+    'acard.termsRequired':
+      'Accept the Terms and Conditions to place the order.',
     'acard.pay': 'Pay {amount} and place order',
     'acard.paying': 'Processing the payment…',
-    'acard.secure': 'Card data goes straight to Adyen (test environment); the store never sees the card number.',
-    'acard.refused': 'Adyen did not approve the payment ({code}). Check the details or use another card.',
+    'acard.secure':
+      'Card data goes straight to Adyen (test environment); the store never sees the card number.',
+    'acard.refused':
+      'Adyen did not approve the payment ({code}). Check the details or use another card.',
     'acard.error': 'The payment with Adyen could not be completed. Try again.',
-    'acard.orderError': 'The card was approved but the order was not placed: {message} Contact support for the refund.',
+    'acard.orderError':
+      'The card was approved but the order was not placed: {message} Contact support for the refund.',
     'spay.cpfHint': 'Required for the boleto. Used only to generate it.',
     'spay.cpf.pix': 'CPF of who will pay the Pix',
-    'spay.cpfHint.pix': 'Required for Pix through Adyen. Used only to generate it.',
+    'spay.cpfHint.pix':
+      'Required for Pix through Adyen. Used only to generate it.',
     'spay.cpfInvalid': 'Invalid CPF. Check the 11 digits.',
     'spay.back': 'Back',
     'spay.next': 'Continue',
@@ -1783,12 +1901,16 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.r.annual1': '{name}: {amount} upfront',
     'spay.r.annualN': '{name}: {n}x {amount} ({total})',
     'spay.r.upfront': '{name}: {amount} (12 monthly fees)',
-    'spay.r.pixNote': 'After placing the order you get the QR code. The plan and the member prices in this order apply when the Pix is confirmed.',
-    'spay.r.pixAutoNote': 'After placing the order you get the QR code for the 1st monthly fee. When you pay, you authorize the Automatic Pix for the next ones in your bank app. The plan and the member prices in this order apply when the Pix is confirmed.',
-    'spay.r.boletoNote': 'After placing the order you get the boleto line. The plan and the member prices in this order apply when the boleto is paid.',
+    'spay.r.pixNote':
+      'After placing the order you get the QR code. The plan and the member prices in this order apply when the Pix is confirmed.',
+    'spay.r.pixAutoNote':
+      'After placing the order you get the QR code for the 1st monthly fee. When you pay, you authorize the Automatic Pix for the next ones in your bank app. The plan and the member prices in this order apply when the Pix is confirmed.',
+    'spay.r.boletoNote':
+      'After placing the order you get the boleto line. The plan and the member prices in this order apply when the boleto is paid.',
     'spay.s.awaiting': 'Awaiting payment',
     'spay.s.pixTitle': 'Pay the Pix to start {plan}',
-    'spay.s.pixAutoTitle': 'Pay the 1st monthly fee and authorize the Automatic Pix for {plan}',
+    'spay.s.pixAutoTitle':
+      'Pay the 1st monthly fee and authorize the Automatic Pix for {plan}',
     'spay.s.boletoTitle': 'Pay the boleto to start {plan}',
     'spay.s.amount': '{amount} · order {order} · due {due}',
     'spay.s.qr': 'Pix QR code (illustrative)',
@@ -1800,28 +1922,37 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.s.adyen': 'Generated by Adyen (test environment) · reference {psp}.',
     'spay.s.qrAdyen': 'Pix QR code',
     'spay.s.pdf': 'Download boleto (PDF)',
-    'spay.s.activates': 'Your {plan} starts when the club confirms the payment. The tickets in this order are reserved.',
+    'spay.s.activates':
+      'Your {plan} starts when the club confirms the payment. The tickets in this order are reserved.',
     'spay.s.paid': 'Payment confirmed',
     'spay.s.paidLine': '{name} of {amount} paid on {date}',
     // Item 14: payment for a cart without a plan (store)
     'spay.title.store': 'How do you want to pay?',
-    'spay.sub.store': 'Card, Pix or boleto. With Pix or boleto, the order moves on to picking once the payment is confirmed.',
+    'spay.sub.store':
+      'Card, Pix or boleto. With Pix or boleto, the order moves on to picking once the payment is confirmed.',
     'spay.m.store.CARTAO_MENSAL': 'Credit card',
     'spay.a.store.CARD': '{amount}',
     'spay.a.store.UPFRONT': '{amount} upfront',
     'spay.pixOff': '{p}% off',
     'spay.h.store.CARTAO_MENSAL': 'Choose or add the card below.',
-    'spay.h.store.adyenCard': 'You enter the card on the order review, in the secure Adyen form.',
-    'spay.cardReview': 'You enter the card on the order review, in the secure Adyen form.',
-    'spay.h.store.PIX': 'QR code and copy-and-paste code on the confirmation. The order moves on when the Pix is confirmed.',
-    'spay.h.store.BOLETO': 'Boleto line on the confirmation. The order moves on when the boleto is paid.',
+    'spay.h.store.adyenCard':
+      'You enter the card on the order review, in the secure Adyen form.',
+    'spay.cardReview':
+      'You enter the card on the order review, in the secure Adyen form.',
+    'spay.h.store.PIX':
+      'QR code and copy-and-paste code on the confirmation. The order moves on when the Pix is confirmed.',
+    'spay.h.store.BOLETO':
+      'Boleto line on the confirmation. The order moves on when the boleto is paid.',
     'spay.r.title.store': 'Payment',
     'spay.r.store': '{name}: {amount} upfront',
-    'spay.r.pixNote.store': 'After placing the order you get the QR code. The order moves on to picking when the Pix is confirmed.',
-    'spay.r.boletoNote.store': 'After placing the order you get the boleto line. The order moves on to picking when the boleto is paid.',
+    'spay.r.pixNote.store':
+      'After placing the order you get the QR code. The order moves on to picking when the Pix is confirmed.',
+    'spay.r.boletoNote.store':
+      'After placing the order you get the boleto line. The order moves on to picking when the boleto is paid.',
     'spay.s.pixTitle.store': 'Pay the Pix to release your order',
     'spay.s.boletoTitle.store': 'Pay the boleto to release your order',
-    'spay.s.activates.store': 'The order moves on to picking and delivery when the club confirms the payment. Tickets and vouchers in this order stay reserved.',
+    'spay.s.activates.store':
+      'The order moves on to picking and delivery when the club confirms the payment. Tickets and vouchers in this order stay reserved.',
     'sa.exit.ruleIn':
       'You are within the {days}-day cooling-off period after joining: the amount paid at sign-up is refunded.',
     'sa.exit.ruleOut':
@@ -1861,19 +1992,24 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.line.guestTicket': 'Ticket for {name}',
     'md.line.extraTicket': 'Additional ticket',
     'md.who.title': 'Who will use the additional tickets',
-    'md.who.lead': 'The first ticket is in your name. For each extra seat, enter the name, CPF, birth date and e-mail of who will use it: the name goes on the ticket and the CPF is checked at the stadium entrance.',
+    'md.who.lead':
+      'The first ticket is in your name. For each extra seat, enter the name, CPF, birth date and e-mail of who will use it: the name goes on the ticket and the CPF is checked at the stadium entrance.',
     'md.who.missing': 'Holder details missing',
     'md.who.fill': 'Enter details',
     'md.who.edit': 'Change',
     'md.who.formTitle': 'Who will use seat {seat}',
-    'md.who.privacy': "The details are only used to issue the ticket in this person's name and validate stadium entry.",
+    'md.who.privacy':
+      "The details are only used to issue the ticket in this person's name and validate stadium entry.",
     'md.who.save': 'Save',
     'md.who.saving': 'Saving…',
     'md.who.pending': 'Enter who will use each additional ticket to continue.',
-    'md.multi.hint': "Seats chosen: {seats} ({count} of up to {n} per match). Click another free seat to add a ticket (with the holder's details); to release one, click the red seat again.",
-    'md.multi.full': 'Limit of {n} tickets per match reached. To change, click a red seat to release it.',
+    'md.multi.hint':
+      "Seats chosen: {seats} ({count} of up to {n} per match). Click another free seat to add a ticket (with the holder's details); to release one, click the red seat again.",
+    'md.multi.full':
+      'Limit of {n} tickets per match reached. To change, click a red seat to release it.',
     'md.comp.title': 'Who is coming with you',
-    'md.comp.lead': 'You can bring up to {n} guest(s) to this match, in the same wave and with the same discount. The guest name goes on the ticket.',
+    'md.comp.lead':
+      'You can bring up to {n} guest(s) to this match, in the same wave and with the same discount. The guest name goes on the ticket.',
     'md.comp.you': 'You',
     'md.comp.choose': 'Choose seat',
     'md.comp.cancelChoose': 'Cancel',
@@ -1883,19 +2019,23 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.comp.none': 'You have not registered any guests yet.',
     'md.comp.register': 'Register them in My membership',
     'md.comp.error': 'The seat could not be assigned to the guest.',
-    'md.comp.lost': 'The hold on {seat} expired and the seat is back on sale. Choose again.',
+    'md.comp.lost':
+      'The hold on {seat} expired and the seat is back on sale. Choose again.',
     'md.comp.add': '+ Add guest',
     'md.comp.formTitle': 'Guest details (the name goes on the ticket)',
     'md.comp.saveAndPick': 'Add and choose the seat',
-    'md.comp.inCartNote': 'Your plan is still in the cart: guests added here are tied to this purchase. If the plan leaves the cart, they are removed and the seats go back to you. With Pix or boleto, the plan and tickets are released once the payment is confirmed.',
+    'md.comp.inCartNote':
+      'Your plan is still in the cart: guests added here are tied to this purchase. If the plan leaves the cart, they are removed and the seats go back to you. With Pix or boleto, the plan and tickets are released once the payment is confirmed.',
 
     // sócio: Meus convidados
     // Nação terms (item 4)
     'st.read': 'Read the terms',
     'st.error': 'We could not record your acceptance. Please try again.',
     'st.checkout.accept': 'I have read and accept the Nação terms {version}',
-    'st.checkout.hint': 'Required to join {plan}. Your acceptance is recorded with the date and the order.',
-    'st.checkout.required': 'To complete your membership, read and accept the Nação terms {version}.',
+    'st.checkout.hint':
+      'Required to join {plan}. Your acceptance is recorded with the date and the order.',
+    'st.checkout.required':
+      'To complete your membership, read and accept the Nação terms {version}.',
     'st.notice.title': 'New version of the Nação terms: {version}',
     'st.notice.text': 'Read the updated terms and record your acceptance.',
     'st.notice.accept': 'I accept',
@@ -1903,7 +2043,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.page.kicker': 'Nação membership',
     'st.page.meta': 'Version {version} · published on {date}',
     'st.page.changed': 'What changed:',
-    'st.page.nonMember': 'You accept the terms when you join a plan, in the order review.',
+    'st.page.nonMember':
+      'You accept the terms when you join a plan, in the order review.',
     'st.page.none': 'No Nação terms are published at the moment.',
     'st.page.login': 'Sign in to read the Nação terms.',
     'st.page.loginLink': 'Sign in',
@@ -1914,7 +2055,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sg.slots': '{used} of {n} guest slot(s) in use',
     'sg.slotsAria': '{used} of {n} guest slots in use',
     'sg.noSlotsShort': 'No guest slots contracted',
-    'sg.price': 'Each slot costs {price}/month and is already in your monthly fee.',
+    'sg.price':
+      'Each slot costs {price}/month and is already in your monthly fee.',
     'sg.col.name': 'Guest',
     'sg.col.cpf': 'CPF',
     'sg.col.birth': 'Birth date',
@@ -1922,11 +2064,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sg.col.actions': 'Actions',
     'sg.since': 'since {date}',
     'sg.remove': 'Remove guest',
-    'sg.removeConfirm': 'Remove {name}? The slot becomes free for another guest.',
+    'sg.removeConfirm':
+      'Remove {name}? The slot becomes free for another guest.',
     'sg.removeLocked': 'Has a ticket: can be removed after the match on {date}',
     'sg.removeYes': 'Yes, remove',
-    'sg.empty': 'You have not registered any guests yet. Name your contracted slots to buy tickets for them in the same wave as you.',
-    'sg.emptyNoSlots': 'Guests are contracted when you buy the plan and are added to the monthly fee.',
+    'sg.empty':
+      'You have not registered any guests yet. Name your contracted slots to buy tickets for them in the same wave as you.',
+    'sg.emptyNoSlots':
+      'Guests are contracted when you buy the plan and are added to the monthly fee.',
     'sg.addCta': 'Add guest ({n} free slot(s))',
     'sg.formTitle': 'New guest',
     'sg.f.name': 'Full name',
@@ -1934,7 +2079,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sg.f.birth': 'Birth date',
     'sg.f.email': 'E-mail',
     'sg.f.phone': 'Mobile (optional)',
-    'sg.privacy': 'Guest data is only used to issue the ticket in their name and validate stadium entry.',
+    'sg.privacy':
+      'Guest data is only used to issue the ticket in their name and validate stadium entry.',
     'sg.save': 'Add guest',
     'sg.saving': 'Adding…',
     'sg.added': '{name} is now your guest.',
@@ -1944,15 +2090,19 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sg.endedLine': 'from {from} to {to} · {reason}',
     'sg.reason.owner': 'removed by you',
     'sg.reason.cancel': 'plan cancellation',
-    'sg.block.suspended': 'Your benefits are suspended due to an overdue payment. Settle it to add guests; your current guests stay here.',
-    'sg.block.noSlots': 'Your plan allows up to {max} guest(s), but no slot was contracted when you joined. Guest slots are chosen when buying the plan.',
+    'sg.block.suspended':
+      'Your benefits are suspended due to an overdue payment. Settle it to add guests; your current guests stay here.',
+    'sg.block.noSlots':
+      'Your plan allows up to {max} guest(s), but no slot was contracted when you joined. Guest slots are chosen when buying the plan.',
     'sg.block.planNoGuests': 'The {plan} plan has no guests.',
-    'sg.block.full': 'All {n} contracted slot(s) are taken. Remove a guest to add another.',
+    'sg.block.full':
+      'All {n} contracted slot(s) are taken. Remove a guest to add another.',
     'sg.err.name': "Enter the guest's full name.",
     'sg.err.cpf': 'Invalid CPF: check the numbers.',
     'sg.err.birth': 'Enter a valid birth date.',
     'sg.err.email': "Enter the guest's valid e-mail.",
-    'sg.err.phone': 'Invalid mobile: use area code and number, 10 or 11 digits.',
+    'sg.err.phone':
+      'Invalid mobile: use area code and number, 10 or 11 digits.',
     'sg.err.generic': 'Could not save right now. Please try again shortly.',
     'sg.err.load': 'Could not load your guests right now.',
     // points and experiences (item 8)
@@ -1960,8 +2110,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.points': 'points',
     'sp.pts': 'pts',
     'sp.summary': 'Earned {earned} · redeemed {redeemed}',
-    'sp.rule': '{ticket} points per ticket and {real} per real in store products, on purchases since you joined.',
-    'sp.ruleBonus': '{ticket} points per ticket and {real} per real in store products, on purchases since you joined, plus a {bonus} joining bonus.',
+    'sp.rule':
+      '{ticket} points per ticket and {real} per real in store products, on purchases since you joined.',
+    'sp.ruleBonus':
+      '{ticket} points per ticket and {real} per real in store products, on purchases since you joined, plus a {bonus} joining bonus.',
     'sp.earningsShow': 'See where the points came from',
     'sp.earningsHide': 'Hide where the points came from',
     'sp.col.date': 'Date',
@@ -1987,7 +2139,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.cancel': 'Back',
     'sp.done': 'Redeemed: {name}',
     'sp.voucher': 'Voucher',
-    'sp.doneHint': 'Show this code to use the experience. It stays in My redemptions, below.',
+    'sp.doneHint':
+      'Show this code to use the experience. It stays in My redemptions, below.',
     'sp.mine': 'My redemptions',
     'sp.valid': 'Valid',
     'sp.cancelled': 'Cancelled on {date}',
@@ -1996,7 +2149,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.buy': 'Buy for {price}',
     'sp.buying': 'Adding…',
     'sp.buyAdded': '{name} was added to the cart.',
-    'sp.saleHint': 'Some experiences are also sold in the store, for you or as a gift. The purchase voucher shows up in My redemptions.',
+    'sp.saleHint':
+      'Some experiences are also sold in the store, for you or as a gift. The purchase voucher shows up in My redemptions.',
     'sp.purchase': 'Purchase · {price}',
     'sp.used': 'Used on {date}',
     'sp.col.paid': 'Points or amount',
@@ -2011,15 +2165,19 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sc.timer': 'New code in {s}s',
     'sc.suspended': 'Benefits suspended',
     'sc.aria': '{plan} membership card, {name}',
-    'sc.text': 'Show it at the Maracanã gates, the official stores and partners. The QR code changes every 30 seconds, so a screenshot will not work.',
-    'sc.suspendedText': 'With an overdue payment, the card does not unlock member benefits. Settle it to restore them.',
+    'sc.text':
+      'Show it at the Maracanã gates, the official stores and partners. The QR code changes every 30 seconds, so a screenshot will not work.',
+    'sc.suspendedText':
+      'With an overdue payment, the card does not unlock member benefits. Settle it to restore them.',
     'sc.open': 'Open full screen',
     'sc.pageHint': 'Turn up your screen brightness so the QR code can be read.',
-    'sc.awaiting': 'Your card shows up here as soon as the plan payment is confirmed.',
-    'sc.none': 'The digital card is for Nação members. Choose a plan to get yours.',
+    'sc.awaiting':
+      'Your card shows up here as soon as the plan payment is confirmed.',
+    'sc.none':
+      'The digital card is for Nação members. Choose a plan to get yours.',
     'sc.join': 'See the plans',
     'sc.back': 'Back to My membership',
- 
+
     // My account and sign-in (07/11)
     'acc.crumbs': 'You are here',
     'acc.home': 'Home',
@@ -2054,7 +2212,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'acc.t.close': 'Close account',
     'acc.t.tickets': 'Customer service',
     'acc.t.ticket': 'Request {code}',
-    'acc.l.socio': 'Plan, member card, guests, points and payments of Nação Maraca.',
+    'acc.l.socio':
+      'Plan, member card, guests, points and payments of Nação Maraca.',
     'acc.l.orders': 'Store orders, tickets, plans and returns.',
     'acc.l.email': 'Your email is your sign-in for the store and Nação.',
     'acc.l.addresses': 'Delivery addresses and your pickup store.',
@@ -2066,9 +2225,27 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'lg.crumb': 'Sign in',
     'lg.lead': 'Orders, tickets and your Nação Maraca plan in one place.',
     'lg.have': 'I have an account',
-    'lg.newText': 'Create yours in a minute and buy ticket, parking, food and jersey in a single payment.',
+    'lg.newText':
+      'Create yours in a minute and buy ticket, parking, food and jersey in a single payment.',
     'lg.perk1': 'Track orders and tickets in My account',
     'lg.perk2': 'Join Nação Maraca and buy earlier, with a discount',
     'lg.perk3': 'Saved addresses and cards for your next purchase',
+    'acc.oh.items': 'Items',
+    'acc.oh.actions': 'Actions',
+    'acc.oh.view': 'View order',
+    'acc.oh.viewOf': 'View order {code}',
+    'acc.od.summary': 'Order summary',
+    'acc.od.number': 'Order number',
+    'acc.od.placed': 'Placed on',
+    'acc.od.status': 'Status',
+    'acc.od.ship': 'Items to deliver',
+    'acc.od.pickup': 'Items to pick up',
+    'acc.od.code': 'Code {code}',
+    'acc.od.again': 'Buy again',
+    'acc.od.shipPay': 'Delivery and payment',
+    'acc.od.totals': 'Summary',
+    'acc.od.saved': 'You saved {v}',
+    'acc.em.now': 'Current email:',
+    'acc.em.note': 'The new email becomes your sign-in.',
   },
 };

@@ -129,3 +129,24 @@ export function accountPageOf(url: string): AccountPage | null {
 export function isLoginUrl(url: string): boolean {
   return LOGIN_URL.test(url ?? '');
 }
+
+/**
+ * Cor do selo de situação (mockup): âmbar aguardando, azul em andamento, verde concluído,
+ * cinza cancelado/fechado. Aceita o código (PENDING, statusDisplay "pending") ou o texto
+ * em português ("Em andamento").
+ */
+export function statusTone(status: string): string {
+  const s = (status ?? '').toLowerCase();
+  if (/cancel|fechad|closed|rejeit|recusad/.test(s)) {
+    return 'grey';
+  }
+  if (/complet|conclu|entregu|deliver|shipped|enviad|pago|paid/.test(s)) {
+    return 'green';
+  }
+  if (
+    /pend|aguard|wait|created|criad|payment_not|check_on_hold|on_hold/.test(s)
+  ) {
+    return 'amber';
+  }
+  return 'blue';
+}
