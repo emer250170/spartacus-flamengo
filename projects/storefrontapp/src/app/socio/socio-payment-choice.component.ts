@@ -80,7 +80,11 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
 
   hint(m: SocioPaymentMethod): string {
     // cartão da loja pela Adyen (05/11): não há cartão salvo para escolher abaixo
-    if (this.store && m === 'CARTAO_MENSAL' && this.payment.isAdyenCard(this.opts, m)) {
+    if (
+      this.store &&
+      m === 'CARTAO_MENSAL' &&
+      this.payment.isAdyenCard(this.opts, m)
+    ) {
       return this.t('spay.h.store.adyenCard');
     }
     return this.t(this.store ? 'spay.h.store.' + m : 'spay.h.' + m);
@@ -113,6 +117,14 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
   /** Boleto pela Adyen: pede o CPF de quem paga */
   get needsCpf(): boolean {
     return this.upfront && this.payment.needsCpf(this.opts, this.selected);
+  }
+
+  /** Pix/boleto pela Adyen com o CPF do cadastro (07/11): mostra o CPF mascarado, sem campo */
+  get registeredCpf(): string | null {
+    return this.upfront &&
+      this.payment.usesRegisteredCpf(this.opts, this.selected)
+      ? (this.opts?.payerCpf ?? null)
+      : null;
   }
 
   get cpfOk(): boolean {
@@ -185,7 +197,9 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     if (!this.store || m !== 'PIX' || !pct) {
       return '';
     }
-    return this.t('spay.pixOff', { p: String(Math.round(pct * 100) / 100).replace('.', ',') });
+    return this.t('spay.pixOff', {
+      p: String(Math.round(pct * 100) / 100).replace('.', ','),
+    });
   }
 
   amount(m: SocioPaymentMethod): string {
@@ -197,8 +211,8 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
       // com desconto no Pix (06/11): o Pix com o desconto e as outras formas sem ele
       const total = o.pixPercent
         ? m === 'PIX'
-          ? o.pixTotal ?? o.total
-          : o.baseTotal ?? o.total
+          ? (o.pixTotal ?? o.total)
+          : (o.baseTotal ?? o.total)
         : o.total;
       return this.t(
         m === 'CARTAO_MENSAL' ? 'spay.a.store.CARD' : 'spay.a.store.UPFRONT',

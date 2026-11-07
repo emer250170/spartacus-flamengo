@@ -5,6 +5,7 @@ import br.com.flamengo.matchday.payment.adyen.AdyenException;
 import br.com.flamengo.matchday.payment.adyen.AdyenPaymentService;
 import br.com.flamengo.matchday.socio.SocioPayment;
 import br.com.flamengo.matchday.socio.SocioPaymentException;
+import br.com.flamengo.matchday.socio.SocioGuestService;
 import br.com.flamengo.matchday.socio.SocioPaymentService;
 import br.com.flamengo.matchday.socio.SocioPayments;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
@@ -13,6 +14,7 @@ import de.hybris.platform.core.model.order.OrderModel;
 import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.core.model.user.UserModel;
 import de.hybris.platform.order.CartService;
+import de.hybris.platform.servicelayer.model.ModelService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
 import de.hybris.platform.servicelayer.search.FlexibleSearchService;
 import de.hybris.platform.servicelayer.user.UserService;
@@ -62,6 +64,8 @@ public class SocioPaymentController
 	private FlexibleSearchService flexibleSearchService;
 	/** Pix e boleto pela Adyen (05/11); sem o bean, o código fictício de sempre */
 	private AdyenPaymentService adyenPaymentService;
+	/** CPF do cadastro (Customer.cpf, 07/11): lido sem dependência do modelo gerado */
+	private ModelService modelService;
 
 	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
 	@RequestMapping(value = "/carts/{cartId}/sociopayment", method = RequestMethod.GET)
@@ -119,8 +123,10 @@ public class SocioPaymentController
 			final SocioPaymentMethod method = socioPaymentService.validateUpfront(cart);
 			if (adyenHandles(method))
 			{
-				final Object cpf = body == null ? null : body.get("cpf");
-				adyenPaymentService.prepareUpfront(cart, SocioPayments.pix(method), cpf == null ? null : cpf.toString());
+				// CPF de quem paga: o digitado no checkout ou, sem ele, o do cadastro (07/11)
+				final Object typed = body == null ? null : body.get("cpf");
+				final String cpf = typed == null || typed.toString().isBlank() ? registeredCpf() : typed.toString();
+				adyenPaymentService.prepareUpfront(cart, SocioPayments.pix(method), cpf);
 			}
 			final OrderModel order = socioPaymentService.placeOrder(cart);
 			return ResponseEntity.status(HttpStatus.CREATED).body(withAdyen(toMap(socioPaymentService.status(order)), order));
@@ -228,6 +234,12 @@ public class SocioPaymentController
 					methods.add("CARTAO_ANUAL");
 				}
 				m.put("adyenMethods", methods);
+				// CPF do cadastro (07/11): o checkout não pede de novo; mostra só o começo e o fim
+				final String cpf = registeredCpf();
+				if (cpf != null)
+				{
+					m.put("payerCpf", SocioGuestService.maskCpf(cpf));
+				}
 				return m;
 			}
 			final Map<String, Object> p = adyenPaymentService.orderPayment(order);
@@ -267,6 +279,26 @@ public class SocioPaymentController
 		q.addQueryParameter("u", customer);
 		final List<CartModel> carts = flexibleSearchService.<CartModel> search(q).getResult();
 		return carts.isEmpty() ? null : carts.get(0);
+	}
+
+	/** CPF do cadastro do torcedor logado (só números) ou null se não tem / não é válido */
+	protected String registeredCpf()
+	{
+		final CustomerModel customer = currentCustomer();
+		if (customer == null || modelService == null)
+		{
+			return null;
+		}
+		try
+		{
+			final Object value = modelService.getAttributeValue(customer, "cpf");
+			final String digits = value == null ? "" : SocioGuestService.digits(value.toString());
+			return SocioGuestService.isValidCpf(digits) ? digits : null;
+		}
+		catch (final RuntimeException e)
+		{
+			return null;
+		}
 	}
 
 	protected CustomerModel currentCustomer()
@@ -345,6 +377,11 @@ public class SocioPaymentController
 	public void setFlexibleSearchService(final FlexibleSearchService flexibleSearchService)
 	{
 		this.flexibleSearchService = flexibleSearchService;
+	}
+
+	public void setModelService(final ModelService modelService)
+	{
+		this.modelService = modelService;
 	}
 
 	public void setAdyenPaymentService(final AdyenPaymentService adyenPaymentService)

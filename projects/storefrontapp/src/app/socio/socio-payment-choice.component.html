@@ -52,6 +52,12 @@
     <p>
       {{ nextText() }}
     </p>
+    <p *ngIf="registeredCpf as cpfMask" class="spay-cpf-on-file">
+      {{
+        (isPix ? 'spay.cpfOnFile.pix' : 'spay.cpfOnFile')
+          | flaT: { cpf: cpfMask }
+      }}
+    </p>
     <div *ngIf="needsCpf" class="spay-cpf">
       <label for="spay-cpf">{{
         (isPix ? 'spay.cpf.pix' : 'spay.cpf') | flaT

@@ -800,6 +800,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.cpfHint.pix':
       'Obrigatório no Pix pela Adyen. Usamos só para gerar o Pix.',
     'spay.cpfInvalid': 'CPF inválido. Confira os 11 números.',
+    'spay.cpfOnFile': 'O boleto sai no CPF do seu cadastro ({cpf}).',
+    'spay.cpfOnFile.pix': 'O Pix sai no CPF do seu cadastro ({cpf}).',
     'spay.back': 'Voltar',
     'spay.next': 'Continuar',
     'spay.error': 'Não foi possível mudar a forma de pagamento.',
@@ -2047,6 +2049,10 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.cpfHint.pix':
       'Required for Pix through Adyen. Used only to generate it.',
     'spay.cpfInvalid': 'Invalid CPF. Check the 11 digits.',
+    'spay.cpfOnFile':
+      'The boleto is issued to the CPF in your account ({cpf}).',
+    'spay.cpfOnFile.pix':
+      'The Pix is issued to the CPF in your account ({cpf}).',
     'spay.back': 'Back',
     'spay.next': 'Continue',
     'spay.error': 'Could not change the payment method.',

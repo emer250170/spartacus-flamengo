@@ -57,6 +57,8 @@
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 		<!-- Pix e boleto pela Adyen (05/11), conforme flamengo.pagamento.adyen.meios -->
 		<property name="adyenPaymentService" ref="adyenPaymentService"/>
+		<!-- CPF do cadastro no Pix/boleto (07/11) -->
+		<property name="modelService" ref="modelService"/>
 	</bean>
 
 	<!-- Pontos e experiências (item 8): /users/current/sociopoints (+ /redemptions) -->
