@@ -1,0 +1,163 @@
+# MCP "Loja Flamengo", persona Gestor da loja (07/11): acesso do gestor.loja pela Integration API (OData).
+# Rodar à mão no HAC (base64 + ImportConfig, por causa do $START_USERRIGHTS), depois de integracao-gestores.impex.
+#  - 6 objetos de integração novos: produtos (leitura), preços, estoque, experiências, resgates e promoções (leitura)
+#  - reaproveita FlamengoPedido, FlamengoCupom e FlamengoCupomUso (já existem, de integracao-gestores.impex)
+#  - canal de entrada BASIC para cada objeto novo (sem ele a OData responde 403)
+#  - grupo lojaapigroup com permissão por tipo (o lojamanagerrole é BackofficeRole e só vale no Backoffice) e o
+#    gestor.loja dentro dele. Os grupos de integração não leem catálogos, então a lista de produtos do Backoffice
+#    do gestor continua só com o Flamengo.
+# Preço e estoque não têm versão de catálogo: a linha de preço (productId + moeda) e o estoque (código + depósito)
+# valem para o Staged e o Online ao mesmo tempo. Promoções ficam só para leitura: ativar ou desativar uma regra
+# exige republicar o motor de regras, o que a OData não faz.
+
+INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
+; FlamengoProduto ; INBOUND
+; FlamengoPreco ; INBOUND
+; FlamengoEstoque ; INBOUND
+; FlamengoExperiencia ; INBOUND
+; FlamengoResgate ; INBOUND
+; FlamengoPromocao ; INBOUND
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
+; FlamengoProduto ; Product ; Product ; true
+; FlamengoProduto ; CatalogVersion ; CatalogVersion ; false
+; FlamengoProduto ; Catalog ; Catalog ; false
+; FlamengoProduto ; ArticleApprovalStatus ; ArticleApprovalStatus ; false
+; FlamengoProduto ; Category ; Category ; false
+; FlamengoPreco ; PriceRow ; PriceRow ; true
+; FlamengoPreco ; Currency ; Currency ; false
+; FlamengoPreco ; Unit ; Unit ; false
+; FlamengoEstoque ; StockLevel ; StockLevel ; true
+; FlamengoEstoque ; Warehouse ; Warehouse ; false
+; FlamengoEstoque ; InStockStatus ; InStockStatus ; false
+; FlamengoExperiencia ; SocioExperience ; SocioExperience ; true
+; FlamengoExperiencia ; SocioPlan ; SocioPlan ; false
+; FlamengoResgate ; SocioRedemption ; SocioRedemption ; true
+; FlamengoResgate ; Customer ; Customer ; false
+; FlamengoResgate ; SocioExperience ; SocioExperience ; false
+; FlamengoResgate ; SocioPlan ; SocioPlan ; false
+; FlamengoPromocao ; PromotionSourceRule ; PromotionSourceRule ; true
+; FlamengoPromocao ; RuleStatus ; RuleStatus ; false
+; FlamengoPromocao ; PromotionGroup ; PromotionGroup ; false
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
+; FlamengoProduto:Product ; code ; Product:code ;  ; true
+; FlamengoProduto:Product ; catalogVersion ; Product:catalogVersion ; FlamengoProduto:CatalogVersion ; true
+; FlamengoProduto:Product ; name ; Product:name ;  ; false
+; FlamengoProduto:Product ; description ; Product:description ;  ; false
+; FlamengoProduto:Product ; approvalStatus ; Product:approvalStatus ; FlamengoProduto:ArticleApprovalStatus ; false
+; FlamengoProduto:Product ; supercategories ; Product:supercategories ; FlamengoProduto:Category ; false
+; FlamengoProduto:CatalogVersion ; version ; CatalogVersion:version ;  ; true
+; FlamengoProduto:CatalogVersion ; catalog ; CatalogVersion:catalog ; FlamengoProduto:Catalog ; true
+; FlamengoProduto:Catalog ; id ; Catalog:id ;  ; true
+; FlamengoProduto:ArticleApprovalStatus ; code ; ArticleApprovalStatus:code ;  ; true
+; FlamengoProduto:Category ; code ; Category:code ;  ; true
+; FlamengoProduto:Category ; catalogVersion ; Category:catalogVersion ; FlamengoProduto:CatalogVersion ; true
+; FlamengoProduto:Category ; name ; Category:name ;  ; false
+; FlamengoPreco:PriceRow ; productId ; PriceRow:productId ;  ; true
+; FlamengoPreco:PriceRow ; currency ; PriceRow:currency ; FlamengoPreco:Currency ; true
+; FlamengoPreco:PriceRow ; price ; PriceRow:price ;  ; false
+; FlamengoPreco:PriceRow ; unit ; PriceRow:unit ; FlamengoPreco:Unit ; false
+; FlamengoPreco:PriceRow ; minqtd ; PriceRow:minqtd ;  ; false
+; FlamengoPreco:PriceRow ; net ; PriceRow:net ;  ; false
+; FlamengoPreco:Currency ; isocode ; Currency:isocode ;  ; true
+; FlamengoPreco:Unit ; code ; Unit:code ;  ; true
+; FlamengoEstoque:StockLevel ; productCode ; StockLevel:productCode ;  ; true
+; FlamengoEstoque:StockLevel ; warehouse ; StockLevel:warehouse ; FlamengoEstoque:Warehouse ; true
+; FlamengoEstoque:StockLevel ; available ; StockLevel:available ;  ; false
+; FlamengoEstoque:StockLevel ; reserved ; StockLevel:reserved ;  ; false
+; FlamengoEstoque:StockLevel ; overSelling ; StockLevel:overSelling ;  ; false
+; FlamengoEstoque:StockLevel ; inStockStatus ; StockLevel:inStockStatus ; FlamengoEstoque:InStockStatus ; false
+; FlamengoEstoque:Warehouse ; code ; Warehouse:code ;  ; true
+; FlamengoEstoque:Warehouse ; name ; Warehouse:name ;  ; false
+; FlamengoEstoque:InStockStatus ; code ; InStockStatus:code ;  ; true
+; FlamengoExperiencia:SocioExperience ; code ; SocioExperience:code ;  ; true
+; FlamengoExperiencia:SocioExperience ; name ; SocioExperience:name ;  ; false
+; FlamengoExperiencia:SocioExperience ; description ; SocioExperience:description ;  ; false
+; FlamengoExperiencia:SocioExperience ; points ; SocioExperience:points ;  ; false
+; FlamengoExperiencia:SocioExperience ; stock ; SocioExperience:stock ;  ; false
+; FlamengoExperiencia:SocioExperience ; active ; SocioExperience:active ;  ; false
+; FlamengoExperiencia:SocioExperience ; sortOrder ; SocioExperience:sortOrder ;  ; false
+; FlamengoExperiencia:SocioExperience ; price ; SocioExperience:price ;  ; false
+; FlamengoExperiencia:SocioExperience ; statusMessage ; SocioExperience:statusMessage ;  ; false
+; FlamengoExperiencia:SocioExperience ; minPlan ; SocioExperience:minPlan ; FlamengoExperiencia:SocioPlan ; false
+; FlamengoExperiencia:SocioPlan ; code ; SocioPlan:code ;  ; true
+; FlamengoExperiencia:SocioPlan ; name ; SocioPlan:name ;  ; false
+; FlamengoResgate:SocioRedemption ; voucher ; SocioRedemption:voucher ;  ; true
+; FlamengoResgate:SocioRedemption ; customer ; SocioRedemption:customer ; FlamengoResgate:Customer ; false
+; FlamengoResgate:SocioRedemption ; experience ; SocioRedemption:experience ; FlamengoResgate:SocioExperience ; false
+; FlamengoResgate:SocioRedemption ; points ; SocioRedemption:points ;  ; false
+; FlamengoResgate:SocioRedemption ; date ; SocioRedemption:date ;  ; false
+; FlamengoResgate:SocioRedemption ; plan ; SocioRedemption:plan ; FlamengoResgate:SocioPlan ; false
+; FlamengoResgate:SocioRedemption ; origin ; SocioRedemption:origin ;  ; false
+; FlamengoResgate:SocioRedemption ; orderCode ; SocioRedemption:orderCode ;  ; false
+; FlamengoResgate:SocioRedemption ; amount ; SocioRedemption:amount ;  ; false
+; FlamengoResgate:SocioRedemption ; usedAt ; SocioRedemption:usedAt ;  ; false
+; FlamengoResgate:SocioRedemption ; cancelledAt ; SocioRedemption:cancelledAt ;  ; false
+; FlamengoResgate:SocioRedemption ; cancelReason ; SocioRedemption:cancelReason ;  ; false
+; FlamengoResgate:Customer ; uid ; Customer:uid ;  ; true
+; FlamengoResgate:Customer ; name ; Customer:name ;  ; false
+; FlamengoResgate:SocioExperience ; code ; SocioExperience:code ;  ; true
+; FlamengoResgate:SocioExperience ; name ; SocioExperience:name ;  ; false
+; FlamengoResgate:SocioPlan ; code ; SocioPlan:code ;  ; true
+; FlamengoResgate:SocioPlan ; name ; SocioPlan:name ;  ; false
+; FlamengoPromocao:PromotionSourceRule ; code ; PromotionSourceRule:code ;  ; true
+; FlamengoPromocao:PromotionSourceRule ; name ; PromotionSourceRule:name ;  ; false
+; FlamengoPromocao:PromotionSourceRule ; description ; PromotionSourceRule:description ;  ; false
+; FlamengoPromocao:PromotionSourceRule ; priority ; PromotionSourceRule:priority ;  ; false
+; FlamengoPromocao:PromotionSourceRule ; startDate ; PromotionSourceRule:startDate ;  ; false
+; FlamengoPromocao:PromotionSourceRule ; endDate ; PromotionSourceRule:endDate ;  ; false
+; FlamengoPromocao:PromotionSourceRule ; version ; PromotionSourceRule:version ;  ; false
+; FlamengoPromocao:PromotionSourceRule ; status ; PromotionSourceRule:status ; FlamengoPromocao:RuleStatus ; false
+; FlamengoPromocao:PromotionSourceRule ; website ; PromotionSourceRule:website ; FlamengoPromocao:PromotionGroup ; false
+; FlamengoPromocao:RuleStatus ; code ; RuleStatus:code ;  ; true
+; FlamengoPromocao:PromotionGroup ; Identifier ; PromotionGroup:Identifier ;  ; true
+
+# Frete no pedido (para o resumo de vendas separar frete e descontos, como o painel do Backoffice)
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
+; FlamengoPedido:Order ; deliveryCost ; Order:deliveryCost ;  ; false
+
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+; FlamengoProduto ; BASIC
+; FlamengoPreco ; BASIC
+; FlamengoEstoque ; BASIC
+; FlamengoExperiencia ; BASIC
+; FlamengoResgate ; BASIC
+; FlamengoPromocao ; BASIC
+
+INSERT_UPDATE UserGroup; uid[unique = true]; name; groups(uid)
+; lojaapigroup ; Gestor da loja - API (MCP) ; integrationviewgroup,integrationcreategroup
+
+UPDATE Employee; uid[unique = true]; groups(uid)[mode = append]
+; gestor.loja ; lojaapigroup
+
+$START_USERRIGHTS
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+UserGroup;lojaapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;Product;+;-;-;-;-
+;;;;CatalogVersion;+;-;-;-;-
+;;;;Catalog;+;-;-;-;-
+;;;;Category;+;-;-;-;-
+;;;;ArticleApprovalStatus;+;-;-;-;-
+;;;;PriceRow;+;+;+;-;-
+;;;;Currency;+;-;-;-;-
+;;;;Unit;+;-;-;-;-
+;;;;StockLevel;+;+;+;-;-
+;;;;Warehouse;+;-;-;-;-
+;;;;InStockStatus;+;-;-;-;-
+;;;;SocioExperience;+;+;+;-;-
+;;;;SocioPlan;+;-;-;-;-
+;;;;SocioRedemption;+;-;-;-;-
+;;;;PromotionSourceRule;+;-;-;-;-
+;;;;RuleStatus;+;-;-;-;-
+;;;;PromotionGroup;+;-;-;-;-
+;;;;Order;+;-;-;-;-
+;;;;AbstractOrder;+;-;-;-;-
+;;;;OrderEntry;+;-;-;-;-
+;;;;OrderStatus;+;-;-;-;-
+;;;;User;+;-;-;-;-
+;;;;Customer;+;-;-;-;-
+;;;;Principal;+;-;-;-;-
+;;;;SingleCodeCoupon;+;+;-;-;-
+;;;;CouponRedemption;+;-;-;-;-
+$END_USERRIGHTS

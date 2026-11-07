@@ -30,8 +30,13 @@ UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
 # Só no papel, sem o employeegroup (como gestor.jogos, gestor.socio...): o employeegroup lê todos os
 # catálogos de produtos do servidor e a lista de produtos do Backoffice (Solr) mostrava todos eles.
 # O que o employeegroup trazia (esconder admin, filtros por catálogo) está nas restrições do fim do arquivo.
-INSERT_UPDATE Employee;uid[unique=true];groups(uid);sessionLanguage(isocode);backOfficeLoginDisabled;loginDisabled
+# Grupos em modo append (07/11): o gestor.loja também está no lojaapigroup (MCP, docs/flamengo-matchday/mcp/
+# integracao-loja.impex) e reimportar este arquivo não pode tirá-lo de lá.
+INSERT_UPDATE Employee;uid[unique=true];groups(uid)[mode=append];sessionLanguage(isocode);backOfficeLoginDisabled;loginDisabled
 ;gestor.loja;lojamanagerrole;pt;false;false
+
+UPDATE Employee;uid[unique=true];groups(uid)[mode=remove]
+;gestor.loja;employeegroup
 
 # Produtos, preços e estoque são gravados direto no catálogo (Staged e Online), como no resto da demo.
 # Sem direito de sincronizar: o Online tem itens que o Staged não tem (jogos e poltronas) e a
