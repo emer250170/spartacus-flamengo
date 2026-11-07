@@ -40,6 +40,10 @@ export const TERM_CLASS = 'fla-term';
 export const STORES_CLASS = 'fla-stores';
 export const MATCHDAY_CLASS = 'fla-matchday';
 export const FAQ_CLASS = 'fla-faq';
+export const REGISTER_CLASS = 'fla-register';
+
+/** Criar conta (/login/register) */
+const REGISTER_URL = /\/login\/register\/?(?:[?#]|$)/;
 
 /** Página do Termo do Nação (/socio-torcedor/termo) */
 const TERM_URL = /\/socio-torcedor\/termo\/?(?:[?#]|$)/;
@@ -58,7 +62,15 @@ const STORE_URL =
 const MATCHDAY_URL = /\/matchday\/?(?:[?#]|$)/;
 const TICKET_MODE_URL = /[?&]modo=ingresso(?:&|#|$)/;
 
-type Mode = 'account' | 'login' | 'term' | 'stores' | 'matchday' | 'faq' | null;
+type Mode =
+  | 'account'
+  | 'login'
+  | 'register'
+  | 'term'
+  | 'stores'
+  | 'matchday'
+  | 'faq'
+  | null;
 
 interface Band {
   login: boolean;
@@ -127,9 +139,11 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
                 ? 'matchday'
                 : FAQ_URL.test(url ?? '')
                   ? 'faq'
-                  : isLoginUrl(url) && !step
-                    ? 'login'
-                    : null
+                  : REGISTER_URL.test(url ?? '')
+                    ? 'register'
+                    : isLoginUrl(url) && !step
+                      ? 'login'
+                      : null
     ),
     distinctUntilChanged(),
     shareReplay({ bufferSize: 1, refCount: true })
@@ -225,6 +239,16 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
           lead: this.i18n.t('st.band.lead'),
         };
       }
+      if (mode === 'register') {
+        return {
+          login: true,
+          parent: { label: this.i18n.t('lg.crumb'), url: '/login' },
+          crumb: this.i18n.t('rg.crumb'),
+          title: this.i18n.t('rg.title'),
+          titleRed: this.i18n.t('rg.titleRed'),
+          lead: this.i18n.t('rg.lead'),
+        };
+      }
       if (mode === 'login') {
         return {
           login: true,
@@ -308,6 +332,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
         this.toggle(html, STORES_CLASS, mode === 'stores');
         this.toggle(html, MATCHDAY_CLASS, mode === 'matchday');
         this.toggle(html, FAQ_CLASS, mode === 'faq');
+        this.toggle(html, REGISTER_CLASS, mode === 'register');
       })
     );
   }
@@ -322,6 +347,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
       this.renderer.removeClass(html, STORES_CLASS);
       this.renderer.removeClass(html, MATCHDAY_CLASS);
       this.renderer.removeClass(html, FAQ_CLASS);
+      this.renderer.removeClass(html, REGISTER_CLASS);
     }
   }
 

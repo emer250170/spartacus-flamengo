@@ -855,6 +855,18 @@ Condição nova no construtor de promoções: **Forma de pagamento** (`fla_forma
 | Chave | `flamengo.promocao.formaPagamento.ativo` (false = o motor não recebe a forma). |
 | Instalação | `ant all` (a extensão passa a depender da `ruleengineservices`) e a ImpEx `essentialdata-flamengomatchday-promocao-pagamento.impex` importada à parte. Reiniciar o Backoffice se a condição não aparecer no construtor de regras. |
 
+### Criar conta com CPF (07/11)
+
+- Loja (`src/app/cadastro/`): `FlaRegisterComponent` no lugar do `RegisterCustomerComponent` (mesmo formulário do
+  Spartacus, sem o Tratamento e com o CPF obrigatório, máscara 000.000.000-00 e conferência dos dígitos). O CPF vai
+  no cadastro como parâmetro: `POST /users?cpf=...` (`FlaSignupCpfInterceptor`).
+- Servidor: `SignupCpfInterceptor` (OCC, `MappedInterceptor` no `flamengomatchday-web-spring.xml`) confere o CPF e
+  recusa CPF de outra conta (400, `ValidationError`, subject `cpf`, reason `invalid` ou `duplicate`; a loja mostra
+  a mensagem em pt/en). `CustomerCpfPrepareInterceptor` grava no torcedor novo (`Customer.cpf`, atributo novo,
+  só números).
+- Sem o parâmetro `cpf`, o cadastro segue como antes (outros clientes da API). Chave `flamengo.cadastro.cpf.ativo`.
+- Instalação: `ant all` + Update (Update running system + Localize types) e reiniciar antes de olhar o Backoffice.
+
 ### Imagem dos jogos e das experiências (04/11)
 
 - Campo novo **Imagem** (`image`, mídia) no jogo (`MatchdayGame`) e na experiência (`SocioExperience`):

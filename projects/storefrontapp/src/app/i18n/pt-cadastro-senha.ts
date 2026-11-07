@@ -92,6 +92,15 @@ export const ptCadastroSenha: TranslationResources = {
       },
     },
     common: {
+      // erros do servidor no cadastro com CPF (07/11): ValidationError, subject cpf
+      httpHandlers: {
+        validationErrors: {
+          invalid: { cpf: 'CPF inválido: confira os 11 números.' },
+          duplicate: {
+            cpf: 'Já existe uma conta com este CPF. Entre com ela ou fale com o atendimento.',
+          },
+        },
+      },
       passwordVisibility: {
         showPassword: 'Mostrar senha',
         hidePassword: 'Ocultar senha',
@@ -119,6 +128,18 @@ export const ptCadastroSenha: TranslationResources = {
         cxPasswordsMustMatch: 'As senhas precisam ser iguais',
         cxPasswordsCannotMatch: 'A nova senha precisa ser diferente da atual',
         cxEmailsMustMatch: 'Os e-mails precisam ser iguais',
+      },
+    },
+  },
+  en: {
+    common: {
+      httpHandlers: {
+        validationErrors: {
+          invalid: { cpf: 'Invalid CPF: check the 11 digits.' },
+          duplicate: {
+            cpf: 'There is already an account with this CPF. Sign in with it or contact support.',
+          },
+        },
       },
     },
   },

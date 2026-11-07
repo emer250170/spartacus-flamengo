@@ -17,6 +17,7 @@ fla-account-band {
 
 html.fla-account,
 html.fla-login,
+html.fla-register,
 html.fla-term,
 html.fla-stores,
 html.fla-matchday,
@@ -719,6 +720,312 @@ html.fla-login main cx-page-layout.LoginPageTemplate {
   svg {
     flex: 0 0 18px;
     margin-top: 2px;
+  }
+}
+
+// ---------- criar conta (/login/register): "Seus dados" (branco) e o cartão vermelho ----------
+fla-register-head,
+fla-register-aside {
+  display: none;
+}
+
+html.fla-register main cx-page-layout.AccountPageTemplate {
+  display: block !important;
+  box-sizing: border-box;
+  max-width: var(--cx-page-width-max, 1140px) !important;
+  margin: 0 auto !important;
+  padding: 48px 0 72px !important;
+
+  > fla-account-menu {
+    display: none !important;
+  }
+
+  > cx-page-slot.BodyContent {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-rows: auto 1fr;
+    align-items: stretch !important;
+    column-gap: 24px;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    // fundo do cartão branco (atrás do título e do formulário)
+    &::before {
+      content: '';
+      grid-area: 1 / 1 / 3 / 2;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    // componentes de outras páginas no mesmo slot (não aparecem aqui)
+    > :not(fla-register-head):not(cx-register):not(fla-register-aside) {
+      display: none !important;
+    }
+
+    > fla-register-head {
+      display: block;
+      position: relative;
+      grid-area: 1 / 1;
+      padding: 36px 36px 0;
+    }
+
+    > cx-register {
+      position: relative;
+      grid-area: 2 / 1;
+      min-width: 0;
+      padding: 14px 36px 36px;
+    }
+
+    > fla-register-aside {
+      display: flex;
+      grid-area: 1 / 2 / 3 / 3;
+    }
+  }
+
+  cx-register {
+    .cx-page-section,
+    .container,
+    .row,
+    .col-md-6 {
+      display: block;
+      flex: none;
+      width: auto;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .form-legend {
+      margin: 0 0 18px;
+      color: $fla-acc-muted;
+      font-size: 14px;
+      font-style: normal;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 16px;
+      align-items: start;
+
+      > * {
+        grid-column: 1 / -1;
+        margin: 0 !important;
+      }
+
+      // nome e sobrenome, senha e confirmação lado a lado
+      > .form-group:has([formcontrolname='firstName']),
+      > .form-group:has([formcontrolname='lastName']),
+      > .form-group:has([formcontrolname='password']),
+      > .form-group:has([formcontrolname='passwordconf']) {
+        grid-column: auto;
+      }
+
+      // CPF (só a primeira coluna)
+      > .form-group.fla-cpf {
+        grid-column: 1;
+      }
+
+      .fla-cpf-error {
+        margin: 6px 0 0;
+        color: $fla-acc-red;
+        font-size: 14px;
+      }
+
+      // consentimentos vazios e captcha sem conteúdo não abrem espaço
+      > .form-group:empty,
+      > cx-captcha:has(> div:empty) {
+        display: none;
+      }
+
+      // linha fina antes das escolhas (novidades por e-mail, termos)
+      > .form-group:has([formcontrolname='newsletter']) {
+        padding-top: 18px;
+        border-top: 1px solid #eee;
+      }
+
+      .label-content {
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .input-hint {
+        margin: 8px 0 0;
+        color: $fla-acc-muted;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .form-check {
+        padding: 0;
+      }
+
+      .form-check label {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 0;
+      }
+
+      .form-check input[type='checkbox'] {
+        position: static;
+        flex: 0 0 20px;
+        width: 20px;
+        height: 20px;
+        margin: 2px 0 0;
+        appearance: auto;
+        accent-color: $fla-acc-red;
+      }
+
+      .form-check-label {
+        padding: 0;
+        font-size: 15px;
+        line-height: 1.45;
+
+        a {
+          color: $fla-acc-red;
+          font-weight: 700;
+        }
+      }
+
+      > button[type='submit'] {
+        height: 48px;
+        margin-top: 4px !important;
+        text-transform: uppercase;
+      }
+
+      // "Já tenho conta. Entrar" vai para o cartão vermelho (FlaRegisterAsideComponent)
+      > .cx-login-link {
+        display: none;
+      }
+    }
+  }
+}
+
+.frg-head,
+.frg-title {
+  margin: 0;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 24px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.frg-aside {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  padding: 36px;
+  border-radius: 4px;
+  background: $fla-acc-red;
+  color: #fff;
+
+  .frg-title {
+    color: #fff;
+  }
+
+  p {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    gap: 10px;
+  }
+
+  svg {
+    flex: 0 0 18px;
+    margin-top: 2px;
+  }
+}
+
+.frg-have {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+
+  span {
+    font-size: 17px;
+    font-weight: 700;
+  }
+}
+
+.frg-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 4px;
+  background: #fff;
+  color: $fla-acc-red !important;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none !important;
+  text-transform: uppercase;
+
+  &:hover,
+  &:focus-visible {
+    background: #f3f2f2;
+  }
+}
+
+@media (max-width: 1171.98px) {
+  html.fla-register main cx-page-layout.AccountPageTemplate {
+    padding-inline: 16px !important;
+  }
+}
+
+// celular e tablet: um cartão embaixo do outro, nome/sobrenome e senhas em uma coluna
+@media (max-width: 991.98px) {
+  html.fla-register main cx-page-layout.AccountPageTemplate {
+    padding-top: 24px !important;
+
+    > cx-page-slot.BodyContent {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto auto;
+      row-gap: 0;
+
+      > fla-register-head {
+        padding: 24px 20px 0;
+      }
+
+      > cx-register {
+        padding: 12px 20px 24px;
+      }
+
+      > fla-register-aside {
+        grid-area: 3 / 1;
+        margin-top: 24px;
+      }
+    }
+
+    cx-register form > .form-group:has([formcontrolname]) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .frg-aside {
+    padding: 24px 20px;
   }
 }
 
