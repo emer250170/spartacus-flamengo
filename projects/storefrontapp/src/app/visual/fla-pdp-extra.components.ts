@@ -21,8 +21,8 @@ interface Gallery {
   all: ImageGroup[];
 }
 
-/** Aba de especificações (uid do componente no CMS) */
-const SPECS_TAB = 'ProductSpecsTabComponent';
+/** Abas que saem da sanfona (uid do componente no CMS): Especificações e Avaliações (07/11) */
+const HIDDEN_TABS = ['ProductSpecsTabComponent', 'ProductReviewsTabComponent'];
 
 /**
  * Fotos do produto (07/11, mockup tela 4 e pedido do Emerson): a foto grande e, embaixo, as
@@ -248,12 +248,15 @@ export class FlaPdpTabsComponent
     mode: TAB_MODE.ACCORDIAN,
   });
 
-  /** "Especificações" sai da sanfona (Emerson, 07/11): ficam Sobre o produto, Avaliações e Entrega */
+  /** Especificações e Avaliações saem da sanfona (Emerson, 07/11): ficam Sobre o produto e Entrega */
   override ngAfterViewInit(): void {
     super.ngAfterViewInit();
     this.tabs$ = this.tabs$.pipe(
       map((tabs) =>
-        tabs.filter((t) => !String(t.headerKey ?? '').includes(SPECS_TAB))
+        tabs.filter(
+          (t) =>
+            !HIDDEN_TABS.some((uid) => String(t.headerKey ?? '').includes(uid))
+        )
       )
     );
   }
