@@ -31,11 +31,17 @@ import {
 /** Classes no <html> para o tema (fundo cinza, faixa escura, menu lateral, cartões) */
 export const ACCOUNT_CLASS = 'fla-account';
 export const LOGIN_CLASS = 'fla-login';
+export const TERM_CLASS = 'fla-term';
 
-type Mode = 'account' | 'login' | null;
+/** Página do Termo do Nação (/socio-torcedor/termo) */
+const TERM_URL = /\/socio-torcedor\/termo\/?(?:[?#]|$)/;
+
+type Mode = 'account' | 'login' | 'term' | null;
 
 interface Band {
   login: boolean;
+  /** Item do meio da trilha (Minha conta, Sócio-torcedor) */
+  parent?: { label: string; url: string };
   crumb: string;
   title: string;
   titleRed?: string;
@@ -56,8 +62,8 @@ interface Band {
         <nav class="fab-crumbs" [attr.aria-label]="'acc.crumbs' | flaT">
           <a routerLink="/">{{ 'acc.home' | flaT }}</a>
           <span aria-hidden="true">›</span>
-          <ng-container *ngIf="!b.login">
-            <a routerLink="/my-account/orders">{{ 'acc.account' | flaT }}</a>
+          <ng-container *ngIf="b.parent as parent">
+            <a [routerLink]="parent.url">{{ parent.label }}</a>
             <span aria-hidden="true">›</span>
           </ng-container>
           <span class="fab-here" aria-current="page">{{ b.crumb }}</span>
@@ -91,9 +97,11 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
       ([url, step]): Mode =>
         accountPageOf(url)
           ? 'account'
-          : isLoginUrl(url) && !step
-            ? 'login'
-            : null
+          : TERM_URL.test(url ?? '')
+            ? 'term'
+            : isLoginUrl(url) && !step
+              ? 'login'
+              : null
     ),
     distinctUntilChanged(),
     shareReplay({ bufferSize: 1, refCount: true })
@@ -106,6 +114,19 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     this.i18n.lang$,
   ]).pipe(
     map(([mode, url, page]) => {
+      if (mode === 'term') {
+        return {
+          login: false,
+          parent: {
+            label: this.i18n.t('st.band.crumbParent'),
+            url: '/socio-torcedor',
+          },
+          crumb: this.i18n.t('st.band.crumb'),
+          title: this.i18n.t('st.band.title'),
+          titleRed: this.i18n.t('st.band.titleRed'),
+          lead: this.i18n.t('st.band.lead'),
+        };
+      }
       if (mode === 'login') {
         return {
           login: true,
@@ -131,6 +152,10 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
           : title;
       return {
         login: false,
+        parent: {
+          label: this.i18n.t('acc.account'),
+          url: '/my-account/orders',
+        },
         crumb,
         title,
         lead: ACCOUNT_LEADS.includes(acc.key)
@@ -163,6 +188,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
         }
         this.toggle(html, ACCOUNT_CLASS, mode === 'account');
         this.toggle(html, LOGIN_CLASS, mode === 'login');
+        this.toggle(html, TERM_CLASS, mode === 'term');
       })
     );
   }
@@ -173,6 +199,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     if (html) {
       this.renderer.removeClass(html, ACCOUNT_CLASS);
       this.renderer.removeClass(html, LOGIN_CLASS);
+      this.renderer.removeClass(html, TERM_CLASS);
     }
   }
 

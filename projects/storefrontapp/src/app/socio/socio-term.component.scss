@@ -141,10 +141,221 @@
 }
 
 // ---------- página do Termo ----------
+// Mockup SocioTermo (07/11): fundo cinza da página, texto em cartão branco, situação à direita;
+// conteúdo nas bordas do container de 1140px (16px abaixo de 1172px)
 .st-page {
-  max-width: 820px;
-  margin: 32px auto;
-  padding: 0 16px;
+  box-sizing: border-box;
+  max-width: var(--cx-page-width-max, 1140px);
+  margin: 0 auto;
+  padding: 40px 0 64px;
+}
+
+@media (max-width: 1171.98px) {
+  .st-page {
+    padding-inline: 16px;
+  }
+}
+
+.stp-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.stp-card {
+  display: flex;
+  flex: 999 1 560px;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 36px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.stp-meta {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.stp-title {
+  margin: 0;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 26px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.stp-changed {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--st-red);
+  border-radius: 0 4px 4px 0;
+  background: #f3f2f2;
+  font-size: 16px;
+}
+
+.stp-intro {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.stp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 18px;
+  border-top: 1px solid #eee;
+
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+
+.stp-side {
+  display: flex;
+  flex: 1 1 300px;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 340px;
+  min-width: 0;
+}
+
+.stp-status,
+.stp-pending {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.stp-label {
+  color: #555;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stp-ok {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  strong {
+    font-size: 17px;
+  }
+
+  span {
+    color: #555;
+    font-size: 14px;
+  }
+}
+
+.stp-check {
+  display: flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1d8b21;
+}
+
+.stp-pending {
+  background: #111;
+  color: #fff;
+
+  strong {
+    font-family: var(--fla-fonte-titulo, inherit);
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  > span:not(.stp-kicker) {
+    color: #d6d6d6;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+}
+
+.stp-kicker {
+  color: #ff5a5a;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid #111;
+  border-radius: 4px;
+  background: #fff;
+  color: #111 !important;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none !important;
+  cursor: pointer;
+
+  &--red {
+    border-color: var(--st-red);
+    background: var(--st-red);
+    color: #fff !important;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.stp-link {
+  align-self: center;
+  color: var(--st-red) !important;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 767.98px) {
+  .stp-card {
+    padding: 20px;
+  }
+
+  .stp-side {
+    max-width: none;
+  }
 }
 
 .st-kicker {

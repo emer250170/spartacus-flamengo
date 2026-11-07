@@ -1,4 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+} from '@angular/core';
 import { AuthService } from '@spartacus/core';
 import { Observable } from 'rxjs';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
@@ -31,6 +35,22 @@ export class SocioTermPageComponent {
 
   paragraphs(term: SocioTerm): string[] {
     return this.terms.paragraphs(term);
+  }
+
+  /**
+   * Parágrafos em seções (mockup): "Mensalidade: o plano é..." vira o título "Mensalidade" e o
+   * texto; parágrafo sem rótulo curto antes dos dois-pontos fica como texto corrido.
+   */
+  sections(term: SocioTerm): { title?: string; text: string }[] {
+    return this.paragraphs(term).map((p) => {
+      const m = /^([^:.]{2,40}):\s+(.+)$/s.exec(p.trim());
+      return m
+        ? {
+            title: m[1].trim(),
+            text: m[2].charAt(0).toUpperCase() + m[2].slice(1),
+          }
+        : { text: p };
+    });
   }
 
   day(iso?: string): string {

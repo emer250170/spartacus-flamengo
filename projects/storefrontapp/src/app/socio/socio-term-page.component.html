@@ -1,44 +1,88 @@
+<!-- Termo do Nação no visual do mockup (SocioTermo / SocioTermoPendente, 07/11): texto num
+     cartão branco à esquerda, situação do aceite à direita. A faixa escura com o título vem do
+     FlaAccountBandComponent. -->
 <section class="st-page">
   <ng-container *ngIf="loggedIn$ | async; else login">
     <ng-container *ngIf="term$ | async as t">
       <ng-container *ngIf="t.enabled && t.version; else none">
-        <p class="st-kicker">{{ 'st.page.kicker' | flaT }}</p>
-        <h1 class="st-title">{{ t.title }}</h1>
-        <p class="st-meta">
-          {{
-            'st.page.meta'
-              | flaT: { version: t.version, date: day(t.publishedAt) }
-          }}
-        </p>
-        <p class="st-summary" *ngIf="t.summary">
-          <b>{{ 'st.page.changed' | flaT }}</b> {{ t.summary }}
-        </p>
-        <div class="st-text">
-          <p *ngFor="let p of paragraphs(t)">{{ p }}</p>
-        </div>
-
-        <div class="st-notice st-notice--ok" *ngIf="t.accepted">
-          <p>
-            {{
-              'st.notice.ok'
-                | flaT: { version: t.version, date: day(t.acceptedAt) }
-            }}
-          </p>
-        </div>
-        <div class="st-notice" *ngIf="t.member && !t.accepted">
-          <div>
-            <p class="st-notice-title">
-              {{ 'st.notice.title' | flaT: { version: t.version } }}
+        <div class="stp-grid">
+          <article class="stp-card" aria-labelledby="stp-title">
+            <p class="stp-meta">
+              {{
+                'st.page.meta'
+                  | flaT: { version: t.version, date: day(t.publishedAt) }
+              }}
             </p>
-            <p class="st-error" *ngIf="error" role="alert">{{ error }}</p>
-          </div>
-          <button type="button" class="st-btn" [disabled]="saving" (click)="accept()">
-            {{ 'st.notice.accept' | flaT }}
-          </button>
+            <h2 id="stp-title" class="stp-title">{{ t.title }}</h2>
+            <p class="stp-changed" *ngIf="t.summary">
+              <b>{{ 'st.page.changed' | flaT }}</b> {{ t.summary }}
+            </p>
+            <ng-container *ngFor="let s of sections(t); let first = first">
+              <p class="stp-intro" *ngIf="!s.title">{{ s.text }}</p>
+              <section class="stp-section" *ngIf="s.title">
+                <h3>{{ s.title }}</h3>
+                <p>{{ s.text }}</p>
+              </section>
+            </ng-container>
+          </article>
+
+          <aside class="stp-side">
+            <!-- aceito -->
+            <section class="stp-status" *ngIf="t.accepted">
+              <span class="stp-label">{{ 'st.page.status' | flaT }}</span>
+              <div class="stp-ok">
+                <span class="stp-check" aria-hidden="true">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="3"
+                    focusable="false"
+                  >
+                    <path d="M5 12l5 5 9-10" />
+                  </svg>
+                </span>
+                <div>
+                  <strong>{{ 'st.page.accepted' | flaT }}</strong>
+                  <span>{{
+                    'st.page.acceptedOn'
+                      | flaT: { version: t.version, date: day(t.acceptedAt) }
+                  }}</span>
+                </div>
+              </div>
+            </section>
+            <!-- versão nova a aceitar -->
+            <section class="stp-pending" *ngIf="t.member && !t.accepted">
+              <span class="stp-kicker">{{ 'st.page.newVersion' | flaT }}</span>
+              <strong>{{
+                'st.page.termOf' | flaT: { version: t.version }
+              }}</strong>
+              <span>{{ 'st.notice.text' | flaT }}</span>
+              <p class="st-error" *ngIf="error" role="alert">{{ error }}</p>
+              <button
+                type="button"
+                class="stp-btn stp-btn--red"
+                [disabled]="saving"
+                (click)="accept()"
+              >
+                {{ 'st.notice.accept' | flaT }}
+              </button>
+            </section>
+            <!-- não é sócio -->
+            <section class="stp-status" *ngIf="!t.member && !t.accepted">
+              <span class="stp-label">{{ 'st.page.status' | flaT }}</span>
+              <span>{{ 'st.page.nonMember' | flaT }}</span>
+            </section>
+            <a class="stp-btn" routerLink="/my-account/socio-torcedor">{{
+              'acc.t.socio' | flaT
+            }}</a>
+            <a class="stp-link" routerLink="/socio-torcedor">{{
+              'sc.join' | flaT
+            }}</a>
+          </aside>
         </div>
-        <p class="st-meta" *ngIf="!t.member && !t.accepted">
-          {{ 'st.page.nonMember' | flaT }}
-        </p>
       </ng-container>
     </ng-container>
   </ng-container>
