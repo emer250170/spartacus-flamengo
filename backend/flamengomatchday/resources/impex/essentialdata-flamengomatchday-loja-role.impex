@@ -12,10 +12,10 @@
 # Por que um papel só, com as permissões copiadas, e não os grupos padrão: o Backoffice lista como papel
 # todo BackofficeRole alcançável pelos grupos do usuário e mostra só os cockpits do papel ATIVO. Com o
 # gestor em customersupportmanagergroup e warehousemanagergroup ele teria 4 papéis e precisaria trocar
-# de papel para cada cockpit. As telas dos cockpits padrão (contextos com principal="customersupport...",
-# "warehousemanagerrole") valem para este papel porque o Backoffice compara o principal com as
-# AUTORIDADES do papel ativo, na ordem da lista: lojamanagerrole vem primeiro, então os contextos
-# próprios dele (menu, painel) têm prioridade.
+# de papel para cada cockpit. As autoridades do papel liberam o ACESSO aos cockpits padrão, mas as
+# telas deles (contextos com principal="customersupport..." ou "warehouse...") são comparadas com o
+# papel ativo: por isso esses contextos estão copiados com principal="lojamanagerrole" no
+# flamengomatchday-backoffice-config.xml (sem eles o menu do Suporte ao cliente fica vazio).
 #
 # Usuário: Employee gestor.loja (criado pelo Emerson no Backoffice, com senha; a senha não fica aqui).
 # Importar à parte (base64 + ImportConfig), por causa do $START_USERRIGHTS.
