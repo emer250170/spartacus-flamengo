@@ -70,7 +70,8 @@ if (MODO == 'previa') {
       // remessa: a do pedido, ou a mais recente que tiver
       def cons = pedido.consignments ? pedido.consignments.iterator().next() : fs.search("SELECT {pk} FROM {Consignment} ORDER BY {creationtime} DESC").result[0]
       def consData = spring.getBean('consignmentConverter').convert(cons)
-      def prodCodigo = orderData.entries.find { !it.product.code.startsWith('JOGO-') }?.product?.code ?: orderData.entries[0].product.code
+      // produto de exemplo: o primeiro da loja com foto (camisa), não ingresso nem serviço
+      def prodCodigo = orderData.entries.find { !it.product.code.startsWith('JOGO-') && !it.product.code.startsWith('FLA-') && it.product.images }?.product?.code ?: orderData.entries[0].product.code
       def opcoes = [de.hybris.platform.commercefacades.product.ProductOption.BASIC, de.hybris.platform.commercefacades.product.ProductOption.PRICE, de.hybris.platform.commercefacades.product.ProductOption.IMAGES]
       def prodData = spring.getBean('productFacade').getProductForCodeAndOptions(prodCodigo, opcoes)
       def exemplo = [displayName: pedido.user.name, email: pedido.user.uid, title: null, guest: false,
@@ -90,9 +91,10 @@ if (MODO == 'previa') {
           if (procQuery) {
             def pr = fs.search(procQuery).result
             if (pr) {
-              def tplOnline = modeloPagina(uid, cvs[1])
-              ctx = spring.getBean('emailContextFactory').create(pr[0], paginaDe(tplOnline), rt(corpoOrig))
-              fonte = 'processo ' + pr[0].code
+              try {
+                ctx = spring.getBean('emailContextFactory').create(pr[0], paginaDe(modeloPagina(uid, cvs[1])), rt(corpoOrig))
+                fonte = 'processo ' + pr[0].code
+              } catch (Throwable semContexto) { fonte = 'exemplo (processo sem contexto: ' + semContexto.message?.take(120) + ')' }
             }
           }
           def vc = new org.apache.velocity.VelocityContext(); vc.put('ctx', ctx)

@@ -108,7 +108,7 @@
     "original": "electronics_Email_Customer_Customer_Coupon",
     "codigo": "fla_Email_Customer_Coupon",
     "arquivo": "cupom",
-    "assunto": "#if(\"$!ctx.couponNotificationType\".toUpperCase().contains(\"EXPIRE\"))Seu cupom vence em breve#{else}Você ganhou um cupom#end · Loja Flamengo",
+    "assunto": "#set($tipoCupom = \"$!ctx.couponNotificationType\")#if($tipoCupom.toUpperCase().contains(\"EXPIRE\"))Seu cupom vence em breve#{else}Você ganhou um cupom#end · Loja Flamengo",
     "processo": ""
   },
   {
