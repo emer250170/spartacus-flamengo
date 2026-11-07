@@ -1,0 +1,179 @@
+import { DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  Renderer2,
+} from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { CmsService } from '@spartacus/core';
+import { Observable, Subscription, combineLatest } from 'rxjs';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  shareReplay,
+  startWith,
+} from 'rxjs/operators';
+import { FlaI18nService } from '../i18n/fla-i18n.service';
+import { FlaCheckoutStepService } from '../visual/fla-checkout-header.component';
+import {
+  ACCOUNT_LEADS,
+  ACCOUNT_SHORT_CRUMB,
+  ACCOUNT_WITH_CODE,
+  accountPageOf,
+  isLoginUrl,
+} from './conta-pages';
+
+/** Classes no <html> para o tema (fundo cinza, faixa escura, menu lateral, cartões) */
+export const ACCOUNT_CLASS = 'fla-account';
+export const LOGIN_CLASS = 'fla-login';
+
+type Mode = 'account' | 'login' | null;
+
+interface Band {
+  login: boolean;
+  crumb: string;
+  title: string;
+  titleRed?: string;
+  lead?: string;
+}
+
+/**
+ * Faixa escura do topo de Minha conta e do login (mockup, 07/11): trilha "Início › Minha conta ›
+ * página", título e a frase da página. Fica no lugar do breadcrumb cinza (o tema esconde o
+ * breadcrumb com as classes fla-account / fla-login no <html>). Login a caminho do checkout
+ * (cabeçalho da compra) fica como está. Entra pelo outlet do slot BottomHeaderSlot.
+ */
+@Component({
+  selector: 'fla-account-band',
+  template: `
+    <div class="fab" *ngIf="band$ | async as b">
+      <div class="fab-in">
+        <nav class="fab-crumbs" [attr.aria-label]="'acc.crumbs' | flaT">
+          <a routerLink="/">{{ 'acc.home' | flaT }}</a>
+          <span aria-hidden="true">›</span>
+          <ng-container *ngIf="!b.login">
+            <a routerLink="/my-account/orders">{{ 'acc.account' | flaT }}</a>
+            <span aria-hidden="true">›</span>
+          </ng-container>
+          <span class="fab-here" aria-current="page">{{ b.crumb }}</span>
+        </nav>
+        <h1 class="fab-title">
+          {{ b.title }}
+          <span *ngIf="b.titleRed">{{ b.titleRed }}</span>
+        </h1>
+        <p class="fab-lead" *ngIf="b.lead">{{ b.lead }}</p>
+      </div>
+    </div>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class FlaAccountBandComponent implements OnInit, OnDestroy {
+  protected readonly url$: Observable<string> = this.router.events.pipe(
+    filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+    map((e) => e.urlAfterRedirects),
+    startWith(this.router.url),
+    distinctUntilChanged()
+  );
+
+  protected readonly mode$: Observable<Mode> = combineLatest([
+    this.url$,
+    this.steps.step$.pipe(startWith(0)),
+  ]).pipe(
+    map(
+      ([url, step]): Mode =>
+        accountPageOf(url)
+          ? 'account'
+          : isLoginUrl(url) && !step
+            ? 'login'
+            : null
+    ),
+    distinctUntilChanged(),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  readonly band$: Observable<Band | null> = combineLatest([
+    this.mode$,
+    this.url$,
+    this.cms.getCurrentPage().pipe(startWith(undefined)),
+    this.i18n.lang$,
+  ]).pipe(
+    map(([mode, url, page]) => {
+      if (mode === 'login') {
+        return {
+          login: true,
+          crumb: this.i18n.t('lg.crumb'),
+          title: this.i18n.t('lg.title'),
+          titleRed: this.i18n.t('lg.titleRed'),
+          lead: this.i18n.t('lg.lead'),
+        };
+      }
+      const acc = mode === 'account' ? accountPageOf(url) : null;
+      if (!acc) {
+        return null;
+      }
+      const params = { code: acc.code ?? '' };
+      const title = acc.key
+        ? ACCOUNT_WITH_CODE.includes(acc.key) && !acc.code
+          ? (page?.title ?? '')
+          : this.i18n.t('acc.t.' + acc.key, params)
+        : (page?.title ?? '');
+      const crumb =
+        acc.key && ACCOUNT_SHORT_CRUMB.includes(acc.key)
+          ? this.i18n.t('acc.c.' + acc.key, params)
+          : title;
+      return {
+        login: false,
+        crumb,
+        title,
+        lead: ACCOUNT_LEADS.includes(acc.key)
+          ? this.i18n.t('acc.l.' + acc.key)
+          : undefined,
+      };
+    })
+  );
+
+  protected subscription = new Subscription();
+
+  constructor(
+    protected router: Router,
+    protected cms: CmsService,
+    protected steps: FlaCheckoutStepService,
+    protected i18n: FlaI18nService,
+    protected renderer: Renderer2,
+    @Inject(DOCUMENT) protected document: Document
+  ) {}
+
+  ngOnInit(): void {
+    this.subscription.add(
+      this.mode$.subscribe((mode) => {
+        const html = this.document?.documentElement;
+        if (!html) {
+          return;
+        }
+        this.toggle(html, ACCOUNT_CLASS, mode === 'account');
+        this.toggle(html, LOGIN_CLASS, mode === 'login');
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+    const html = this.document?.documentElement;
+    if (html) {
+      this.renderer.removeClass(html, ACCOUNT_CLASS);
+      this.renderer.removeClass(html, LOGIN_CLASS);
+    }
+  }
+
+  protected toggle(html: HTMLElement, name: string, on: boolean): void {
+    if (on) {
+      this.renderer.addClass(html, name);
+    } else {
+      this.renderer.removeClass(html, name);
+    }
+  }
+}
