@@ -23,6 +23,7 @@ import {
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { FlaCheckoutStepService } from '../visual/fla-checkout-header.component';
 import { FlaDomLabelsService } from './fla-dom-labels.service';
+import { FAQ_URL } from './fla-faq.component';
 import {
   ACCOUNT_LEADS,
   ACCOUNT_SHORT_CRUMB,
@@ -37,6 +38,7 @@ export const LOGIN_CLASS = 'fla-login';
 export const TERM_CLASS = 'fla-term';
 export const STORES_CLASS = 'fla-stores';
 export const MATCHDAY_CLASS = 'fla-matchday';
+export const FAQ_CLASS = 'fla-faq';
 
 /** Página do Termo do Nação (/socio-torcedor/termo) */
 const TERM_URL = /\/socio-torcedor\/termo\/?(?:[?#]|$)/;
@@ -55,7 +57,7 @@ const STORE_URL =
 const MATCHDAY_URL = /\/matchday\/?(?:[?#]|$)/;
 const TICKET_MODE_URL = /[?&]modo=ingresso(?:&|#|$)/;
 
-type Mode = 'account' | 'login' | 'term' | 'stores' | 'matchday' | null;
+type Mode = 'account' | 'login' | 'term' | 'stores' | 'matchday' | 'faq' | null;
 
 interface Band {
   login: boolean;
@@ -122,9 +124,11 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
               ? 'stores'
               : MATCHDAY_URL.test(url ?? '')
                 ? 'matchday'
-                : isLoginUrl(url) && !step
-                  ? 'login'
-                  : null
+                : FAQ_URL.test(url ?? '')
+                  ? 'faq'
+                  : isLoginUrl(url) && !step
+                    ? 'login'
+                    : null
     ),
     distinctUntilChanged(),
     shareReplay({ bufferSize: 1, refCount: true })
@@ -166,6 +170,15 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     this.storeName$.pipe(startWith('')),
   ]).pipe(
     map(([mode, url, page, , storeName]) => {
+      if (mode === 'faq') {
+        return {
+          login: false,
+          crumb: this.i18n.t('faq.band.crumb'),
+          title: this.i18n.t('faq.band.title'),
+          titleRed: this.i18n.t('faq.band.titleRed'),
+          lead: this.i18n.t('faq.band.lead'),
+        };
+      }
       if (mode === 'matchday') {
         // compra só de ingresso (lista "Jogos em casa") ou o dia de jogo completo
         const ticket = TICKET_MODE_URL.test(url ?? '');
@@ -291,6 +304,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
         this.toggle(html, TERM_CLASS, mode === 'term');
         this.toggle(html, STORES_CLASS, mode === 'stores');
         this.toggle(html, MATCHDAY_CLASS, mode === 'matchday');
+        this.toggle(html, FAQ_CLASS, mode === 'faq');
       })
     );
   }
@@ -304,6 +318,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
       this.renderer.removeClass(html, TERM_CLASS);
       this.renderer.removeClass(html, STORES_CLASS);
       this.renderer.removeClass(html, MATCHDAY_CLASS);
+      this.renderer.removeClass(html, FAQ_CLASS);
     }
   }
 
