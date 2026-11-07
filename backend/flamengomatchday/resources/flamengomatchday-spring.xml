@@ -328,6 +328,10 @@
 		<property name="socioPaymentService" ref="socioPaymentService"/>
 	</bean>
 	<alias name="flamengoOrderStatusDisplayHandler" alias="dynamicAttributesOrderStatusDisplay"/>
+	<!-- 07/11: e-mails com as imagens embutidas (o Outlook bloqueia imagem por link de remetente desconhecido).
+	     Chave flamengo.email.imagensEmbutidas (false = envio padrão). -->
+	<bean id="flaEmailService" class="br.com.flamengo.matchday.email.FlaEmailService" parent="defaultEmailService"/>
+	<alias name="flaEmailService" alias="emailService"/>
 	<!-- Ano inteiro: preço do plano e dos convidados x12 no calculationService (só com a forma gravada) -->
 	<bean id="socioAnnualPricing" class="br.com.flamengo.matchday.socio.SocioAnnualPricing">
 		<property name="calculationService" ref="calculationService"/>
