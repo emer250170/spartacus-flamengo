@@ -848,6 +848,16 @@ html.fla-co-pickup cx-page-slot.BodyContent cx-delivery-address {
   display: none !important;
 }
 
+// "Adicionar novo endereço" à esquerda, alinhado ao cartão do endereço (07/11)
+cx-delivery-address .cx-checkout-btns-top {
+  justify-content: flex-start !important;
+  padding-inline: 0 !important;
+
+  .btn {
+    width: calc(50% - 15px);
+  }
+}
+
 button.fla-co-primary-btn {
   display: flex;
   align-items: center;
