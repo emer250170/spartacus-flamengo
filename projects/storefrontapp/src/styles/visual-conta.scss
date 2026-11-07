@@ -1338,6 +1338,20 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
     }
   }
 
+  // adicionando ou editando um endereço: sem o título "Endereços de entrega" (o formulário já
+  // tem o seu) e o formulário na largura do cartão
+  cx-address-book .cx-section:has(cx-address-form) {
+    grid-template-columns: minmax(0, 1fr);
+
+    &::before {
+      display: none;
+    }
+
+    > * {
+      grid-column: 1 / -1 !important;
+    }
+  }
+
   // Loja de retirada
   cx-my-preferred-store {
     .row {
