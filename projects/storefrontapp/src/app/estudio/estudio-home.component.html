@@ -1,0 +1,123 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <ng-container *ngIf="vm.ativo">
+    <fla-me-subnav ativo="estampas"></fla-me-subnav>
+
+    <section class="hero" aria-labelledby="me-hero-t">
+      <div class="me-wrap hero-in">
+        <div class="hero-txt">
+          <nav class="crumb" [attr.aria-label]="'me.crumbs' | flaT">
+            <a routerLink="/">{{ 'me.lojaOficial' | flaT }}</a><span aria-hidden="true">—</span><span aria-current="page">{{ 'me.nome' | flaT }}</span>
+          </nav>
+          <span class="kicker">{{ 'me.hero.kicker' | flaT }}</span>
+          <h1 id="me-hero-t" class="me-t">{{ 'me.hero.t1' | flaT }} <span>{{ 'me.hero.t2' | flaT }}</span></h1>
+          <p>{{ 'me.hero.txt' | flaT }}</p>
+          <div class="acoes">
+            <a *ngIf="vm.drop" class="me-btn" [routerLink]="['/mengo-estudio/drop', vm.drop.code]">{{ 'me.verEstampas' | flaT }}</a>
+            <a class="me-btn claro" routerLink="/mengo-estudio/acervo">{{ 'me.nav.acervo' | flaT }}</a>
+          </div>
+        </div>
+        <div class="hero-cards">
+          <a *ngFor="let d of vm.destaques" class="hero-card" [routerLink]="['/mengo-estudio/drop', d.e.drop]">
+            <div class="q"><fla-me-arte [estampa]="d.e"></fla-me-arte></div>
+            <strong class="me-t">{{ d.e.nome }}</strong>
+            <span>{{ d.prazo }}</span>
+          </a>
+        </div>
+      </div>
+      <div class="faixa" aria-hidden="true"></div>
+    </section>
+
+    <section class="como" aria-labelledby="me-como-t">
+      <div class="me-wrap">
+        <h2 id="me-como-t" class="me-t">{{ 'me.como.t' | flaT }}</h2>
+        <ol>
+          <li *ngFor="let n of [1, 2, 3, 4]">
+            <span class="num" aria-hidden="true">0{{ n }}</span>
+            <strong class="me-t">{{ 'me.como.' + n + '.t' | flaT }}</strong>
+            <span>{{ 'me.como.' + n + '.d' | flaT }}</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="me-wrap bloco" aria-labelledby="me-drops-t">
+      <h2 id="me-drops-t" class="me-t">{{ 'me.drops.t' | flaT }}</h2>
+      <a *ngIf="vm.temDrop; else semDrop" class="drop" [routerLink]="['/mengo-estudio/drop', vm.drop.code]">
+        <div class="drop-txt">
+          <span class="kick">{{ 'me.drop.n' | flaT: { n: (vm.drop.numero || 1) } }}</span>
+          <strong class="me-t">{{ vm.drop.nome }}</strong>
+          <span>{{ vm.dropResumo }}</span>
+        </div>
+        <div *ngIf="vm.primeira" class="encerra">
+          <span>{{ 'me.encerraPrimeiro' | flaT: { n: vm.primeira.nome, d: vm.primeira.fim } }}</span>
+          <strong class="me-t me-num">{{ vm.primeira.cont }}</strong>
+        </div>
+        <span class="me-btn branco">{{ 'me.verDrop' | flaT }}</span>
+      </a>
+      <ng-template #semDrop>
+        <div class="me-vazio" role="status">
+          <strong>{{ 'me.semDrop.t' | flaT }}</strong>
+          <span>{{ 'me.semDrop.d' | flaT }}</span>
+          <a class="me-btn sec" routerLink="/mengo-estudio/acervo">{{ 'me.verAcervo' | flaT }}</a>
+        </div>
+      </ng-template>
+    </section>
+
+    <section class="me-wrap bloco" aria-labelledby="me-linhas-t" *ngIf="vm.temDrop">
+      <h2 id="me-linhas-t" class="me-t">{{ 'me.linhas.t' | flaT }}</h2>
+      <div class="linhas">
+        <a *ngFor="let l of vm.linhas" class="linha" [routerLink]="['/mengo-estudio/drop', vm.drop.code]" [queryParams]="{ linha: l.code }">
+          <span class="qtd">{{ 'me.nAVenda' | flaT: { n: l.qtd } }}</span>
+          <span class="dados">
+            <span class="kick">{{ 'me.linha' | flaT }}</span>
+            <strong class="me-t">{{ l.nome }}</strong>
+            <span>{{ l.descricao }}</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <section class="me-wrap bloco todas" aria-labelledby="me-todas-t" *ngIf="vm.temDrop">
+      <div class="todas-top">
+        <div>
+          <h2 id="me-todas-t" class="me-t">{{ 'me.todas.t' | flaT }}</h2>
+          <p role="status">{{ vm.contagem }}</p>
+        </div>
+        <div role="group" class="chips" [attr.aria-label]="'me.filtrarLinha' | flaT">
+          <button *ngFor="let ch of vm.chips" type="button" class="me-chip" [attr.aria-pressed]="(linha$ | async) === ch.code" (click)="filtrar(ch.code)">{{ ch.nome }}</button>
+        </div>
+      </div>
+      <div class="me-grade">
+        <a *ngFor="let x of vm.lista" class="me-card" [routerLink]="['/mengo-estudio/drop', x.e.drop]" [queryParams]="{ estampa: x.e.code }">
+          <div class="me-quadro">
+            <fla-me-arte [estampa]="x.e"></fla-me-arte>
+            <span *ngIf="x.sit !== 'A_VENDA'" class="me-badge" [ngClass]="x.sit">{{ 'me.sit.' + x.sit | flaT }}</span>
+          </div>
+          <span class="nome">{{ x.e.nome }}</span>
+          <span class="linha">{{ 'me.linhaDe' | flaT: { l: x.e.linha | meLinha: vm.c.linhas } }}</span>
+          <span class="preco">{{ 'me.aPartir' | flaT: { v: vm.aPartir } }}</span>
+          <span class="me-prazo" [class.urgente]="x.urgente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ x.prazo }}
+          </span>
+        </a>
+      </div>
+      <button *ngIf="vm.temMais" type="button" class="me-btn sec mais" (click)="mais()">{{ 'me.carregarMais' | flaT }}</button>
+    </section>
+
+    <section class="acervo" aria-labelledby="me-acervo-t">
+      <div class="me-wrap acervo-in">
+        <div class="acervo-txt">
+          <h2 id="me-acervo-t" class="me-t">{{ 'me.nav.acervo' | flaT }}</h2>
+          <p>{{ 'me.acervo.d' | flaT }}</p>
+          <a class="me-btn" routerLink="/mengo-estudio/acervo">{{ 'me.verAcervo' | flaT }}</a>
+        </div>
+        <div class="acervo-grid">
+          <a *ngFor="let a of vm.acervo" routerLink="/mengo-estudio/acervo">
+            <div class="q cinza"><fla-me-arte [estampa]="a"></fla-me-arte></div>
+            <span>{{ a.nome }}</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</ng-container>

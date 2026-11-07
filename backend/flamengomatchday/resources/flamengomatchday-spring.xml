@@ -683,5 +683,9 @@
 		<property name="catalogVersionService" ref="catalogVersionService"/>
 		<property name="commercePriceService" ref="commercePriceService"/>
 	</bean>
+	<!-- MengoEstampa.situacao no Backoffice (07/11, PR 2) -->
+	<bean id="mengoEstampaSituacaoHandler" class="br.com.flamengo.matchday.estudio.MengoEstampaSituacaoHandler">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+	</bean>
 
 </beans>

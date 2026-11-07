@@ -48,6 +48,7 @@ import { VisualModule } from './visual/visual.module';
 import { ContaModule } from './conta/conta.module';
 import { CadastroModule } from './cadastro/cadastro.module';
 import { EmarsysModule } from './emarsys/emarsys.module';
+import { EstudioModule } from './estudio/estudio.module';
 
 registerLocaleData(localeDe);
 registerLocaleData(localeJa);
@@ -74,6 +75,7 @@ if (!environment.production) {
     VisualModule, // header em três faixas e rodapé escuro da loja oficial
     ContaModule, // Minha conta e login no visual do mockup: faixa escura, menu em grupos, cartões
     CadastroModule, // criar conta com CPF e sem Tratamento
+    EstudioModule, // Mengo Estúdio: camisetas sob demanda (sub-home, drop, acervo)
     EmarsysModule, // rastreamento do Emarsys (tag no index.html): navegação, carrinho e compra
     TestOutletModule, // custom usages of cxOutletRef only for e2e testing
     TestConfigModule.forRoot({ cookie: 'cxConfigE2E' }), // Injects config dynamically from e2e tests. Should be imported after other config modules.

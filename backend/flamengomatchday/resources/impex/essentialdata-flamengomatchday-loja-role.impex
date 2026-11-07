@@ -21,7 +21,7 @@
 # Importar à parte (base64 + ImportConfig), por causa do $START_USERRIGHTS.
 
 INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];description;authorities;backOfficeLoginDisabled[default=false]
-;lojamanagerrole;Gestor da loja;Store manager;Mantém a loja virtual: produtos, preços, estoque, pedidos, clientes, atendimento, expedição, promoções, cupons e experiências;lojamanagerrole,lojaperspective,customersupportmanagerrole,customersupportagentrole,warehousemanagerrole,backofficeworkflowuser;
+;lojamanagerrole;Gestor da loja;Store manager;Mantém a loja virtual: produtos, preços, estoque, pedidos, clientes, atendimento, expedição, promoções, cupons, experiências e o Mengo Estúdio;lojamanagerrole,lojaperspective,customersupportmanagerrole,customersupportagentrole,warehousemanagerrole,backofficeworkflowuser;
 
 # A perspectiva também para o administrador
 UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
@@ -217,6 +217,15 @@ BackofficeRole;lojamanagerrole;;;;;;;;
 ;;;;AbstractComment;+;-;-;-;
 ;;;;SocioGuest;+;-;-;-;
 ;;;;PaymentMode;+;-;-;-;
+# --- 7. Mengo Estúdio (07/11): drops, linhas, estampas, avisos e simulações da demo ---
+;;;;MengoDrop;+;+;+;-;
+;;;;MengoLinha;+;+;+;-;
+;;;;MengoEstampa;+;+;+;-;
+;;;;MengoAvisoRetorno;+;+;-;-;
+;;;;MengoDemoConfig;+;+;-;-;
+;;;;MengoPedidoEvento;+;-;-;-;
+;;;;MengoPedidoSituacao;+;-;-;-;
+;;;;CatalogUnawareMedia;+;+;+;-;
 $END_USERRIGHTS;;;;;;;;;
 
 # Só o catálogo do Flamengo (07/11). A lista de produtos do Backoffice (Solr) segue os catálogos que o

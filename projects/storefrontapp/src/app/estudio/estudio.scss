@@ -1,0 +1,255 @@
+// Mengo Estúdio (07/11): visual da loja oficial (mockup E1–E13). Container de 1140px, bordas do conteúdo.
+:host {
+  display: block;
+  font-family: var(--fla-fonte);
+  color: #111;
+}
+.me-wrap {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+@media (min-width: 1172px) {
+  .me-wrap {
+    padding: 0;
+  }
+}
+.me-t {
+  font-family: var(--fla-fonte-titulo);
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+}
+.me-num {
+  text-transform: none;
+}
+// barra branca do Estúdio
+.me-subnav {
+  background: #fff;
+  border-bottom: 1px solid #e2e2e2;
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 0 28px;
+    min-height: 64px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .me-marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 28px 12px 0;
+    border-right: 1px solid #e2e2e2;
+    color: #111;
+    text-decoration: none;
+    strong {
+      font-family: var(--fla-fonte-titulo);
+      font-size: 17px;
+      text-transform: uppercase;
+    }
+  }
+  a.me-aba {
+    font-size: 17px;
+    color: #555;
+    text-decoration: none;
+    padding: 20px 0 17px;
+    border-bottom: 3px solid transparent;
+    &.ativo {
+      color: #111;
+      font-weight: 700;
+      border-bottom-color: #d70000;
+    }
+  }
+  .me-sp {
+    flex: 1 1 auto;
+  }
+}
+.me-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 16px;
+  margin: 24px 0 0;
+  a {
+    color: #111;
+    text-decoration: none;
+  }
+  span.sep {
+    color: #8a8a8a;
+  }
+  span.atual {
+    color: #6a6a6a;
+  }
+}
+.me-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  background: #d70000;
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  &:hover {
+    color: #fff;
+    background: #b00000;
+    text-decoration: none;
+  }
+  &.sec {
+    background: #fff;
+    color: #111;
+    border: 1px solid #111;
+    &:hover {
+      background: #f3f3f3;
+      color: #111;
+    }
+  }
+  &.cinza {
+    background: #e6e6e6;
+    color: #111;
+  }
+  &.claro {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #fff;
+  }
+}
+.me-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  &.ULTIMAS_48H {
+    background: #d70000;
+    color: #fff;
+  }
+  &.ULTIMOS_DIAS {
+    background: #111;
+    color: #fff;
+    border-color: #fff;
+  }
+  &.NOVA {
+    background: #fff;
+    color: #111;
+    border-color: #111;
+  }
+  &.ENCERRADA {
+    background: #f2f2f2;
+    color: #111;
+  }
+}
+.me-prazo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  &.urgente {
+    color: #b00000;
+  }
+}
+.me-chip {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid #cfcfcf;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  &[aria-pressed='true'] {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+}
+.me-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 32px 18px;
+}
+@media (max-width: 600px) {
+  .me-grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 12px;
+  }
+}
+.me-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #111;
+  text-decoration: none;
+  min-width: 0;
+  &:hover {
+    color: #111;
+    text-decoration: none;
+  }
+  .me-quadro {
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+  }
+  .nome {
+    font-size: 17px;
+    margin-top: 4px;
+  }
+  .linha {
+    font-size: 14px;
+    color: #555;
+  }
+  .preco {
+    font-size: 17px;
+    font-weight: 700;
+  }
+}
+:focus-visible {
+  outline: 3px solid #d70000;
+  outline-offset: 2px;
+}
+.me-vazio {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+  strong {
+    font-size: 22px;
+  }
+  span {
+    color: #555;
+    font-size: 16px;
+    max-width: 520px;
+  }
+}
+.me-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

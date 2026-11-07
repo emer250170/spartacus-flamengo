@@ -1,0 +1,132 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <ng-container *ngIf="vm.ativo">
+    <fla-me-subnav ativo="estampas"></fla-me-subnav>
+    <main class="me-wrap pg">
+      <nav class="me-crumb" [attr.aria-label]="'me.crumbs' | flaT">
+        <a routerLink="/">{{ 'me.lojaOficial' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+        <a routerLink="/mengo-estudio">{{ 'me.nome' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+        <span class="atual" aria-current="page">{{ 'me.drop.n' | flaT: { n: (vm.drop?.numero || 1) } }} · {{ vm.drop?.nome }}</span>
+      </nav>
+
+      <div class="topo">
+        <div class="titulo">
+          <h1><span class="fino">{{ 'me.drop.n' | flaT: { n: (vm.drop?.numero || 1) } | uppercase }} </span><span class="me-t">{{ vm.drop?.nome }}</span></h1>
+          <p>{{ vm.drop?.descricao }} {{ 'me.horarioBrasilia' | flaT }}</p>
+        </div>
+        <div *ngIf="vm.primeira" class="encerra">
+          <span>{{ 'me.encerraPrimeiro' | flaT: { n: vm.primeira.nome, d: vm.primeira.fim } }}</span>
+          <strong class="me-t me-num"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ vm.primeira.cont }}</strong>
+        </div>
+      </div>
+
+      <div class="barra">
+        <p role="status" class="total">{{ (vm.total === 1 ? 'me.total1' : 'me.totalN') | flaT: { n: vm.total } }}</p>
+        <div class="ctrl">
+          <label>{{ 'me.ordenar' | flaT }}
+            <select [value]="vm.ordem" (change)="ordenar($any($event.target).value)">
+              <option value="fim">{{ 'me.ord.fim' | flaT }}</option>
+              <option value="menor">{{ 'me.ord.menor' | flaT }}</option>
+              <option value="maior">{{ 'me.ord.maior' | flaT }}</option>
+              <option value="nome">{{ 'me.ord.nome' | flaT }}</option>
+            </select>
+          </label>
+          <button type="button" class="me-btn" (click)="abrir($event)" [attr.aria-expanded]="vm.painel" aria-controls="me-painel">
+            {{ 'me.filtrar' | flaT }}<span *ngIf="vm.chips.length" class="n">{{ vm.chips.length }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="vm.chips.length" class="aplicados" role="group" [attr.aria-label]="'me.filtrosAplicados' | flaT">
+        <span>{{ 'me.filtrosAplicados' | flaT }}:</span>
+        <button *ngFor="let ch of vm.chips" type="button" class="chip-x" (click)="remover(ch.mud)" [attr.aria-label]="'me.removerFiltro' | flaT: { f: ch.txt }">
+          {{ ch.txt }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+        <button type="button" class="limpar" (click)="limpar()">{{ 'me.limparFiltros' | flaT }}</button>
+      </div>
+
+      <div *ngIf="vm.vazio" class="me-vazio" role="status">
+        <strong>{{ 'me.semResultado.t' | flaT }}</strong>
+        <span>{{ 'me.semResultado.d' | flaT }}</span>
+        <div class="acoes">
+          <button type="button" class="me-btn" (click)="abrir($event)">{{ 'me.ajustarFiltros' | flaT }}</button>
+          <button type="button" class="me-btn sec" (click)="limpar()">{{ 'me.limparFiltros' | flaT }}</button>
+        </div>
+      </div>
+
+      <section *ngFor="let g of vm.grupos" class="grupo" [attr.aria-label]="('me.linha' | flaT) + ' ' + g.nome">
+        <div class="g-top">
+          <div>
+            <h2><span class="fino">{{ 'me.linha' | flaT | uppercase }} </span><span class="me-t">{{ g.nome }}</span></h2>
+            <span class="desc">{{ g.descricao }}</span>
+          </div>
+          <div class="setas">
+            <span aria-live="polite">{{ 'me.estampaIdeN' | flaT: { i: g.i + 1, n: g.n } }}</span>
+            <button type="button" class="seta" [disabled]="g.i === 0" (click)="ir(g.code, g.i - 1)" [attr.aria-label]="'me.anterior' | flaT: { l: g.nome }">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+            </button>
+            <button type="button" class="seta" [disabled]="g.i === g.n - 1" (click)="ir(g.code, g.i + 1)" [attr.aria-label]="'me.proxima' | flaT: { l: g.nome }">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="abas" role="tablist" [attr.aria-label]="'me.estampasDaLinha' | flaT: { l: g.nome }">
+          <button *ngFor="let t of g.tabs; let j = index" type="button" role="tab" [attr.aria-selected]="j === g.i" (click)="ir(g.code, j)">{{ t.nome }}</button>
+        </div>
+        <div class="linha-cards" role="tabpanel">
+          <div class="destaque">
+            <fla-me-arte [estampa]="g.e"></fla-me-arte>
+            <span *ngIf="g.sit !== 'A_VENDA'" class="me-badge" [ngClass]="g.sit">{{ 'me.sit.' + g.sit | flaT }}</span>
+            <div class="legenda">
+              <strong class="me-t">{{ g.e.nome }}</strong>
+              <span class="me-prazo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ g.prazo }}</span>
+            </div>
+          </div>
+          <div *ngFor="let v of g.versoes" class="versao">
+            <div class="foto"><fla-me-camiseta [estampa]="g.e" [cor]="g.cor"></fla-me-camiseta></div>
+            <span class="modelo">{{ 'me.modelo.' + v.modelo | flaT }}</span>
+            <span class="nome">{{ 'me.camisetaDe' | flaT: { n: g.e.nome } }}</span>
+            <strong>{{ 'me.aPartir' | flaT: { v: v.precoTxt } }}</strong>
+            <span class="parc">{{ v.parc }}</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div *ngIf="vm.painel && vm.ra as ra" class="fundo">
+      <button type="button" class="fundo-x" (click)="fechar()" [attr.aria-label]="'me.fecharSemAplicar' | flaT"></button>
+      <aside #painelRef id="me-painel" role="dialog" aria-modal="true" aria-labelledby="me-painel-t" class="painel">
+        <div class="p-top">
+          <h2 id="me-painel-t"><span class="fino">{{ 'me.filtrarPor' | flaT }}</span><br /><span class="me-t">{{ 'me.nav.estampas' | flaT }}</span></h2>
+          <button type="button" class="p-fechar" (click)="fechar()" [attr.aria-label]="'me.fecharSemAplicar' | flaT">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </div>
+        <div class="p-corpo">
+          <fieldset>
+            <legend>{{ 'me.linha' | flaT }}</legend>
+            <label *ngFor="let o of vm.fLinhas"><input type="radio" name="me-f-linha" [checked]="ra.linha === o.code" (change)="mudar({ linha: o.code })" /> {{ o.nome }} ({{ o.n }})</label>
+          </fieldset>
+          <fieldset>
+            <legend>{{ 'me.disponibilidade' | flaT }}</legend>
+            <label *ngFor="let o of vm.fDisp"><input type="checkbox" [checked]="$any(ra)[o.k]" (change)="alternar(o.k)" /> {{ 'me.f.' + o.k | flaT }} ({{ o.n }})</label>
+          </fieldset>
+          <fieldset>
+            <legend>{{ 'me.faixaPreco' | flaT }}</legend>
+            <div class="precos">
+              <label>{{ 'me.minimo' | flaT }}<input type="number" inputmode="decimal" min="0" [value]="ra.pmin" (input)="mudar({ pmin: $any($event.target).value })" /></label>
+              <label>{{ 'me.maximo' | flaT }}<input type="number" inputmode="decimal" min="0" [value]="ra.pmax" (input)="mudar({ pmax: $any($event.target).value })" /></label>
+            </div>
+            <span class="dica">{{ 'me.precoDica' | flaT }}</span>
+          </fieldset>
+        </div>
+        <div class="p-pe">
+          <span role="status">{{ (vm.raTotal === 1 ? 'me.encontrada1' : 'me.encontradasN') | flaT: { n: vm.raTotal } }}</span>
+          <div class="p-acoes">
+            <button type="button" class="me-btn cinza" (click)="limparRascunho()">{{ 'me.limparFiltros' | flaT }}</button>
+            <button type="button" class="me-btn" (click)="aplicar()">{{ 'me.aplicar' | flaT }}</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </ng-container>
+</ng-container>

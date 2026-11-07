@@ -225,9 +225,13 @@ public class DefaultMengoEstudioService implements MengoEstudioService
 	public Map<String, int[]> medidas(final String modelo, final String tecido)
 	{
 		// flamengo.estudio.medidas.MAS.ALG=P:50:70,M:53:72 (largura:comprimento em cm)
+		return parseMedidas(configurationService.getConfiguration()
+				.getString("flamengo.estudio.medidas." + modelo + "." + tecido, ""));
+	}
+
+	protected Map<String, int[]> parseMedidas(final String value)
+	{
 		final Map<String, int[]> map = new LinkedHashMap<>();
-		final String value = configurationService.getConfiguration()
-				.getString("flamengo.estudio.medidas." + modelo + "." + tecido, "");
 		for (final String part : value.split(","))
 		{
 			final String[] f = part.trim().split(":");
@@ -239,11 +243,73 @@ public class DefaultMengoEstudioService implements MengoEstudioService
 				}
 				catch (final NumberFormatException e)
 				{
-					LOG.warn("Medida inválida em {}.{}: {}", modelo, tecido, part);
+					LOG.warn("Medida inválida: {}", part);
 				}
 			}
 		}
 		return map;
+	}
+
+	@Override
+	public List<String> tamanhos(final ProductModel camiseta)
+	{
+		final String own = str(camiseta, "mengoTamanhos");
+		if (own == null)
+		{
+			return tamanhos(str(camiseta, "mengoModelo"), str(camiseta, "mengoTecido"));
+		}
+		final List<String> list = new ArrayList<>();
+		for (final String t : own.split(","))
+		{
+			if (StringUtils.isNotBlank(t))
+			{
+				list.add(t.trim());
+			}
+		}
+		return list;
+	}
+
+	@Override
+	public Map<String, int[]> medidas(final ProductModel camiseta)
+	{
+		final String own = str(camiseta, "mengoMedidas");
+		return own == null ? medidas(str(camiseta, "mengoModelo"), str(camiseta, "mengoTecido")) : parseMedidas(own);
+	}
+
+	@Override
+	public void avisar(final String estampaCode, final String email, final boolean consentimento, final ItemModel customer)
+	{
+		final ItemModel estampa = estampa(estampaCode);
+		if (estampa == null || !isVisible(estampa))
+		{
+			throw new IllegalArgumentException("Estampa não encontrada.");
+		}
+		final String mail = StringUtils.trimToEmpty(email).toLowerCase();
+		if (!mail.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"))
+		{
+			throw new IllegalArgumentException("E-mail inválido: confira o endereço (ex.: nome@email.com).");
+		}
+		if (!consentimento)
+		{
+			throw new IllegalArgumentException("Marque a autorização para receber este aviso.");
+		}
+		final Map<String, Object> p = new LinkedHashMap<>();
+		p.put("e", estampa);
+		p.put("m", mail);
+		if (!search("SELECT {pk} FROM {MengoAvisoRetorno} WHERE {estampa} = ?e AND {email} = ?m", p).isEmpty())
+		{
+			return;
+		}
+		final ItemModel aviso = modelService.create("MengoAvisoRetorno");
+		modelService.setAttributeValue(aviso, "estampa", estampa);
+		modelService.setAttributeValue(aviso, "email", mail);
+		modelService.setAttributeValue(aviso, "customer", customer);
+		modelService.setAttributeValue(aviso, "consentText", configurationService.getConfiguration().getString(
+				"flamengo.estudio.aviso.consentimento",
+				"Quero receber um e-mail se esta estampa voltar em um novo drop. O e-mail é usado só para este aviso."));
+		modelService.setAttributeValue(aviso, "consentDate", new Date());
+		modelService.save(aviso);
+		LOG.info("Mengo Estúdio: aviso de retorno da estampa {} para {}", estampaCode, mail);
 	}
 
 	@Override
@@ -311,7 +377,7 @@ public class DefaultMengoEstudioService implements MengoEstudioService
 		{
 			final String modelo = str(p, "mengoModelo");
 			final String tecido = str(p, "mengoTecido");
-			final List<String> tams = tamanhos(modelo, tecido);
+			final List<String> tams = tamanhos(p);
 			if (tams.isEmpty())
 			{
 				continue;
@@ -323,7 +389,7 @@ public class DefaultMengoEstudioService implements MengoEstudioService
 			m.put("preco", price(p));
 			m.put("tamanhos", tams);
 			final List<Map<String, Object>> med = new ArrayList<>();
-			for (final Map.Entry<String, int[]> x : medidas(modelo, tecido).entrySet())
+			for (final Map.Entry<String, int[]> x : medidas(p).entrySet())
 			{
 				final Map<String, Object> r = new LinkedHashMap<>();
 				r.put("tamanho", x.getKey());

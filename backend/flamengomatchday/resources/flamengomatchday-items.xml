@@ -1511,6 +1511,11 @@
 					<defaultvalue>Boolean.TRUE</defaultvalue>
 					<persistence type="property"/>
 				</attribute>
+				<attribute qualifier="situacao" type="java.lang.String">
+					<description>Situação agora, pela regra da loja (Nova, Últimos dias, Últimas 48 h, Encerrada, À venda)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoEstampaSituacaoHandler"/>
+				</attribute>
 			</attributes>
 			<indexes>
 				<index name="mengoEstampaCode" unique="true">
@@ -1639,6 +1644,19 @@
 				<attribute qualifier="mengoTecido" type="java.lang.String">
 					<description>Mengo Estúdio: tecido e corte (ALG, POL, OVS)</description>
 					<persistence type="property"/>
+				</attribute>
+				<!-- PR 2 (07/11): manutenção pelo Backoffice; vazio = propriedade flamengo.estudio.tamanhos/medidas -->
+				<attribute qualifier="mengoTamanhos" type="java.lang.String">
+					<description>Mengo Estúdio: tamanhos vendidos, separados por vírgula (ex.: P,M,G,GG)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="mengoMedidas" type="java.lang.String">
+					<description>Mengo Estúdio: medidas em cm, tamanho:largura:comprimento separados por vírgula (ex.: P:50:70,M:53:72)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
 				</attribute>
 			</attributes>
 		</itemtype>
