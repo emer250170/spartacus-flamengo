@@ -1017,3 +1017,36 @@ cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
 cx-storefront.ProductDetailsPageTemplate cx-pickup-options cx-tab-panel {
   display: none !important;
 }
+
+// sem sanfona (Emerson, 07/11): só "Sobre este produto", como título de seção sempre aberto
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
+  cx-tab .accordian {
+    border-top: 0;
+  }
+
+  .tab-btn {
+    min-height: 0;
+    padding: 18px 0 8px !important;
+    border-top: 1px solid #e2e2e2 !important;
+    border-bottom: 0 !important;
+    pointer-events: none;
+    cursor: default;
+
+    .tab-icon {
+      display: none;
+    }
+  }
+
+  cx-tab-panel > div {
+    padding-top: 0 !important;
+    border-bottom: 0 !important;
+  }
+}
+
+// igual ao mockup (Emerson, 07/11): sem o seletor de quantidade (o botão põe 1 no carrinho)
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
+  cx-page-slot.Summary
+  cx-add-to-cart
+  .quantity {
+  display: none !important;
+}

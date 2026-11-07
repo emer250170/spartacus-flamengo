@@ -21,8 +21,8 @@ interface Gallery {
   all: ImageGroup[];
 }
 
-/** Abas que saem da sanfona (uid do componente no CMS): Especificações e Avaliações (07/11) */
-const HIDDEN_TABS = ['ProductSpecsTabComponent', 'ProductReviewsTabComponent'];
+/** Única aba que fica (uid do componente no CMS): a descrição, "Sobre o produto" (07/11) */
+const DETAILS_TAB = 'ProductDetailsTabComponent';
 
 /**
  * Fotos do produto (07/11, mockup tela 4 e pedido do Emerson): a foto grande e, embaixo, as
@@ -248,15 +248,12 @@ export class FlaPdpTabsComponent
     mode: TAB_MODE.ACCORDIAN,
   });
 
-  /** Especificações e Avaliações saem da sanfona (Emerson, 07/11): ficam Sobre o produto e Entrega */
+  /** Sem sanfona (Emerson, 07/11): só a descrição, como seção "Sobre o produto" (o tema tira o +/–) */
   override ngAfterViewInit(): void {
     super.ngAfterViewInit();
     this.tabs$ = this.tabs$.pipe(
       map((tabs) =>
-        tabs.filter(
-          (t) =>
-            !HIDDEN_TABS.some((uid) => String(t.headerKey ?? '').includes(uid))
-        )
+        tabs.filter((t) => String(t.headerKey ?? '').includes(DETAILS_TAB))
       )
     );
   }
