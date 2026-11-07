@@ -60,6 +60,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.step.3': 'Comidas e bebidas',
     'md.step.4': 'Camisa',
     'md.step.5': 'Revisão',
+    'md.step.6': 'Experiência',
     'md.s1.title': 'Escolha o jogo',
     'md.s1.lead': 'Próximos jogos em casa com ingressos disponíveis.',
     'md.fromPrice': 'a partir de {price}',
@@ -168,6 +169,11 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.shirtRemove': 'Remover a camisa do pedido',
     'md.shirtAdd': 'Adicionar a camisa ao pedido',
     'md.noShirt': 'A camisa nova não está disponível agora.',
+    'md.s7.title': 'Viva o jogo de perto',
+    'md.s7.lead':
+      'Escolha uma experiência, as duas ou nenhuma. Elas entram no mesmo pedido.',
+    'md.noExperience': 'Nenhuma experiência disponível para este jogo agora.',
+    'md.line.experience': 'Experiência no dia do jogo',
     'md.s6.title': 'Um pedido, um pagamento',
     'md.s6.lead':
       'Confira o seu dia de jogo. Ao seguir, tudo entra no mesmo carrinho e você paga uma vez só no checkout.',
@@ -1203,6 +1209,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.step.3': 'Food and drinks',
     'md.step.4': 'Jersey',
     'md.step.5': 'Review',
+    'md.step.6': 'Experience',
     'md.s1.title': 'Choose the match',
     'md.s1.lead': 'Upcoming home matches with tickets available.',
     'md.fromPrice': 'from {price}',
@@ -1309,6 +1316,11 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'md.shirtRemove': 'Remove the jersey from the order',
     'md.shirtAdd': 'Add the jersey to the order',
     'md.noShirt': 'The new jersey is not available right now.',
+    'md.s7.title': 'Live the match up close',
+    'md.s7.lead':
+      'Choose one experience, both or none. They go in the same order.',
+    'md.noExperience': 'No experience available for this match right now.',
+    'md.line.experience': 'Matchday experience',
     'md.s6.title': 'One order, one payment',
     'md.s6.lead':
       'Check your matchday. Next, everything goes into the same cart and you pay only once at checkout.',

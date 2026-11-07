@@ -30,6 +30,14 @@ const SERVICES_CATEGORY = 'flamengo_matchday';
 const SHIRT_CODE = 'FLA-CAMISA-J2-2026';
 const PERSONALIZATION_CODE = 'FLA-PERSONALIZACAO';
 const RECOMMENDED_FOOD = 'FLA-FOOD-COMBO';
+/** Etapa Experiência (07/11): produtos da categoria experiencias oferecidos no dia de jogo */
+export const MATCHDAY_EXPERIENCE_CODES = [
+  'EXP-ENTRADA-EM-CAMPO',
+  'EXP-MANTO-AUTOGRAFADO',
+];
+const EXPERIENCE_FIELDS =
+  'code,name,summary,price(value),stock(stockLevelStatus),purchasable,' +
+  'images(format,imageType,url)';
 
 /**
  * Campos pedidos à API: só o que a jornada usa. MEDIDO (30/10, jogo com 384
@@ -64,6 +72,7 @@ interface OccProduct {
   stock?: OccStock;
   variantMatrix?: OccVariantMatrixElement[];
   images?: { format?: string; imageType?: string; url?: string }[];
+  purchasable?: boolean;
 }
 interface OccVariantMatrixElement {
   variantValueCategory?: { name?: string; sequence?: number };
@@ -118,9 +127,14 @@ export class MatchdayDataService {
         matches: this.loadMatchList(),
         services: this.search(SERVICES_CATEGORY),
         shirt: this.loadProduct(SHIRT_CODE, SHIRT_FIELDS),
+        experiences: forkJoin(
+          MATCHDAY_EXPERIENCE_CODES.map((code) =>
+            this.loadProduct(code, EXPERIENCE_FIELDS)
+          )
+        ),
       }).pipe(
-        map(({ matches, services, shirt }) =>
-          this.buildCatalog(matches, services, shirt)
+        map(({ matches, services, shirt, experiences }) =>
+          this.buildCatalog(matches, services, shirt, experiences)
         ),
         shareReplay({ bufferSize: 1, refCount: false })
       );
@@ -438,7 +452,8 @@ export class MatchdayDataService {
   protected buildCatalog(
     matches: MatchdayMatch[],
     services: OccProduct[],
-    shirt: OccProduct | undefined
+    shirt: OccProduct | undefined,
+    experiences: (OccProduct | undefined)[] = []
   ): MatchdayCatalog {
     const toProduct = (p: OccProduct): MatchdayProduct => ({
       code: p.code,
@@ -489,7 +504,27 @@ export class MatchdayDataService {
       };
     }
 
-    return { matches, parking, food, shirt: shirtModel };
+    // experiências: só as que estão à venda (sem estoque ou não compráveis ficam fora)
+    const experienceModels = experiences
+      .filter(
+        (p): p is OccProduct =>
+          !!p &&
+          p.purchasable !== false &&
+          p.stock?.stockLevelStatus !== 'outOfStock'
+      )
+      .map((p) => ({
+        ...toProduct(p),
+        recommended: false,
+        imageUrl: this.media.url(bestImageUrl(p.images)),
+      }));
+
+    return {
+      matches,
+      parking,
+      food,
+      shirt: shirtModel,
+      experiences: experienceModels,
+    };
   }
 
   /**
