@@ -2002,3 +2002,60 @@ html.fla-account[lang='en'] main cx-consent-management::after {
     }
   }
 }
+
+// ---------- Meu sócio-torcedor: Termo do Nação numa linha dentro do cabeçalho preto ----------
+.sa-hero fla-socio-term-notice {
+  display: block;
+  margin-top: 10px;
+
+  .st-notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0;
+    background: none !important;
+    color: #cfcfcf !important;
+    font-size: 15px;
+
+    p {
+      margin: 0;
+      color: inherit !important;
+    }
+
+    .st-notice-title {
+      color: #fff !important;
+      font-weight: 700;
+    }
+
+    .st-actions {
+      display: inline-flex;
+      gap: 12px;
+      margin: 0;
+    }
+
+    a {
+      color: #fff !important;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    .st-btn {
+      border-color: #fff;
+      background: #fff;
+      color: #111;
+    }
+  }
+
+  .st-notice--ok > p::after {
+    content: ' ·';
+  }
+}
+
+// ---------- mensagens em faixa verde/vermelha do Spartacus: fora da loja (decisão do Emerson, 07/11) ----------
+cx-global-message {
+  display: none !important;
+}

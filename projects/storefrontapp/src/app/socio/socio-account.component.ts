@@ -31,7 +31,11 @@ import {
   SocioPlanOrder,
 } from './socio-account.service';
 import { SocioContract, SocioContractService } from './socio-contract.service';
-import { SocioExit, SocioExitInfo, SocioExitService } from './socio-exit.service';
+import {
+  SocioExit,
+  SocioExitInfo,
+  SocioExitService,
+} from './socio-exit.service';
 import { SocioPayment, SocioPaymentService } from './socio-payment.service';
 import { Membership, SocioPlan } from './socio.model';
 import { SocioService } from './socio.service';
@@ -255,9 +259,7 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
   /** Sócio com os benefícios suspensos por mensalidade em atraso */
   get suspended(): boolean {
     return (
-      !this.ended &&
-      !!this.membership?.suspended &&
-      !!this.membership?.member
+      !this.ended && !!this.membership?.suspended && !!this.membership?.member
     );
   }
 
@@ -316,6 +318,23 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     const length = 251.3; // meia-volta de raio 80
     const value = Math.max(0, Math.min(1, (this.rating?.score ?? 0) / 1000));
     return `${(length * value).toFixed(1)} ${length}`;
+  }
+
+  /** Anel do rating (mockup, 07/11): volta inteira de raio 52 = 1000 pontos */
+  get ringDash(): string {
+    const length = 326.7;
+    const value = Math.max(0, Math.min(1, (this.rating?.score ?? 0) / 1000));
+    return `${(length * value).toFixed(1)} ${length}`;
+  }
+
+  /** "Nação Maraca 3" → "Nação" (o resto do nome vai em vermelho no cabeçalho) */
+  planHead(name?: string): string {
+    return (name ?? '').trim().split(/\s+/)[0] ?? '';
+  }
+
+  /** "Nação Maraca 3" → "Maraca 3" */
+  planTail(name?: string): string {
+    return (name ?? '').trim().split(/\s+/).slice(1).join(' ');
   }
 
   // ---------- cartão das mensalidades ----------
@@ -665,7 +684,11 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
     const term = !this.ended && !!c?.member && !!c.start;
     const renewed = term && !!c?.renewed;
     this.start = term ? c?.start : this.currentOrder?.created;
-    this.endDate = term ? c?.end : this.start ? addMonths(this.start, TERM) : undefined;
+    this.endDate = term
+      ? c?.end
+      : this.start
+        ? addMonths(this.start, TERM)
+        : undefined;
     this.guests = this.currentOrder?.guests ?? 0;
     this.monthly = plan.price + this.guests * (plan.guest?.price ?? 0);
 
@@ -686,20 +709,21 @@ export class SocioAccountComponent implements OnInit, OnDestroy {
                 card: this.defaultCard,
               }
             : i === 0 && this.currentOrder
-            ? {
-                date: this.start,
-                label: this.t('sa.pay.first', { plan: plan.name }),
-                amount:
-                  this.currentOrder.planAmount + this.currentOrder.guestAmount,
-                card: this.currentOrder.card,
-                order: this.currentOrder.code,
-              }
-            : {
-                date: addMonths(this.start, i),
-                label: this.t('sa.pay.month', { n: i + 1, total: TERM }),
-                amount: this.monthly,
-                card: this.defaultCard,
-              }
+              ? {
+                  date: this.start,
+                  label: this.t('sa.pay.first', { plan: plan.name }),
+                  amount:
+                    this.currentOrder.planAmount +
+                    this.currentOrder.guestAmount,
+                  card: this.currentOrder.card,
+                  order: this.currentOrder.code,
+                }
+              : {
+                  date: addMonths(this.start, i),
+                  label: this.t('sa.pay.month', { n: i + 1, total: TERM }),
+                  amount: this.monthly,
+                  card: this.defaultCard,
+                }
         );
       }
       this.nextCharge = this.ended

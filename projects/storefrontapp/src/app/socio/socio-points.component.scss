@@ -250,3 +250,163 @@
 .sp-showcase-hint {
   margin: -4px 0 12px;
 }
+
+// ---------- visual do mockup (07/11) ----------
+.sp-rule {
+  margin: -8px 0 12px;
+}
+
+.sp-top {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sp-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+}
+
+.sp-balance-value {
+  color: var(--sa-red);
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sp-balance-label {
+  color: #555;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.sp-toggle {
+  color: var(--sa-black);
+  font-size: 16px;
+}
+
+.sp-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sp-exp {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #cfcfcf;
+  border-radius: 4px;
+  background: #fff;
+
+  &--ok {
+    border-color: #cfcfcf;
+    background: #fff;
+  }
+
+  > :not(.sp-exp-media) {
+    margin-inline: 14px;
+  }
+
+  .sp-exp-actions,
+  .sp-exp-reason,
+  .sp-confirm {
+    margin-bottom: 14px;
+  }
+}
+
+// foto com o selo de pontos e o plano mínimo por cima
+.sp-exp-media {
+  position: relative;
+  aspect-ratio: 16 / 7;
+  margin-bottom: 12px;
+  background: #2a2a2a;
+}
+
+.sp-exp-img {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+.sp-exp-head {
+  position: absolute;
+  inset: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.sp-exp-points {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--sa-red);
+  color: #fff;
+  font-size: 13px;
+
+  small {
+    font-size: 13px;
+    text-transform: none;
+  }
+}
+
+.sp-exp-chip {
+  padding: 0;
+  background: none;
+  color: #ffc94d;
+  font-size: 13px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.sp-exp-name {
+  font-size: 17px;
+}
+
+.sp-exp-desc {
+  font-size: 15px;
+}
+
+.sp-exp-stock {
+  font-size: 13px;
+}
+
+// o mockup mostra só as vagas (sem a barra de progresso)
+.sp-bar {
+  display: none;
+}
+
+.sp-exp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sp-exp-buy {
+  border-color: var(--sa-black);
+  color: var(--sa-black);
+}
+
+@media (max-width: 991px) {
+  .sp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575px) {
+  .sp-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

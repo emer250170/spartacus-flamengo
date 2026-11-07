@@ -32,7 +32,12 @@
   overflow: hidden;
   color: #fff;
   text-align: left;
-  background: radial-gradient(circle at 85% 0%, #3a0000 0%, #1b1b1b 55%, #0b0b0c 100%);
+  background: radial-gradient(
+    circle at 85% 0%,
+    #3a0000 0%,
+    #1b1b1b 55%,
+    #0b0b0c 100%
+  );
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
@@ -228,4 +233,115 @@
 
 .sc-page-back {
   margin: 28px 0 0;
+}
+
+// ---------- Meu sócio-torcedor: carteirinha no cartão vermelho (mockup, 07/11) ----------
+:host-context(.sa-card--idcard) {
+  .sc-wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .sc {
+    flex: none;
+    max-width: none;
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    aspect-ratio: auto;
+  }
+
+  .sc-stripes,
+  .sc-seal,
+  .sc-plan {
+    display: none;
+  }
+
+  // "Nação Rubro-Negra" à direita, na linha do título do cartão
+  .sc-top {
+    position: absolute;
+    top: -38px;
+    right: 0;
+  }
+
+  .sc-kicker {
+    color: #fff;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+
+  .sc-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 0;
+  }
+
+  .sc-qr-box {
+    order: -1;
+    align-items: flex-start;
+  }
+
+  .sc-qr {
+    width: 148px;
+    height: 148px;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  .sc-timer {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+  }
+
+  .sc-label {
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .sc-name {
+    font-size: 18px;
+    white-space: normal;
+  }
+
+  .sc-number {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .sc-valid {
+    font-size: 15px;
+  }
+
+  .sc-side {
+    flex: none;
+    color: #fff;
+    font-size: 15px;
+  }
+
+  .sc-side-warn {
+    color: #ffe0b2;
+  }
+
+  .sa-btn--primary {
+    border-color: #fff;
+    background: #fff;
+    color: var(--fla-vermelho, #d70000);
+    text-transform: uppercase;
+
+    &:hover {
+      background: #f3f2f2;
+      color: var(--fla-vermelho, #d70000);
+    }
+  }
 }
