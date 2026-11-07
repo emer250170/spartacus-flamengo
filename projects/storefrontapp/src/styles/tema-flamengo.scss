@@ -1541,6 +1541,12 @@ html.fla-wide cx-page-layout.LandingPage2Template {
   }
 }
 
+// Sem a faixa cinza da trilha e do título ("Início / Sócio-Torcedor Nação Maraca") embaixo do
+// header: no mockup a página começa na faixa escura, que já tem o título (07/11, Emerson)
+html.fla-wide cx-page-slot.BottomHeaderSlot {
+  display: none !important;
+}
+
 // Celular (07/11): nas outras páginas do mesmo layout (jornada de matchday, planos do sócio) o
 // slot e o componente dentro dele ficavam com a largura mínima do conteúdo (870px e 811px numa
 // tela de 390px, com rolagem lateral). Encolhem até a tela; as faixas que rolam de lado (passos
