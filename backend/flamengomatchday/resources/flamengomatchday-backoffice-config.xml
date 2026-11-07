@@ -14,6 +14,20 @@
 		xmlns:explorer-tree="http://www.hybris.com/cockpitng/config/explorertree"
 		xmlns:y="http://www.hybris.com/cockpit/config/hybris">
 
+	<!--
+	  Cliente (07/11, pedido do Emerson): CPF na aba General, no bloco Essencial, logo depois do
+	  nome e do e-mail (ID). O CPF vem do cadastro da loja (só números, Customer.cpf).
+	-->
+	<context merge-by="type" parent="User" type="Customer" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="hmc.essential">
+					<editorArea:attribute qualifier="cpf" position="3"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+		</editorArea:editorArea>
+	</context>
+
 	<!-- Menu lateral -->
 	<context merge-by="module" parent="auto" component="explorer-tree">
 		<explorer-tree:explorer-tree>
