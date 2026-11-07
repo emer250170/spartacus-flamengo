@@ -122,7 +122,8 @@ cx-page-slot.Summary {
 
 // tamanhos em botões: o seletor padrão some quando os botões aparecem
 cx-product-multi-dimensional-selector:has(+ fla-size-chips .fla-sizes),
-cx-page-slot.Summary:has(fla-size-chips .fla-sizes) cx-product-multi-dimensional-selector {
+cx-page-slot.Summary:has(fla-size-chips .fla-sizes)
+  cx-product-multi-dimensional-selector {
   display: none !important;
 }
 
@@ -168,7 +169,10 @@ cx-page-slot.Summary:has(fla-size-chips .fla-sizes) cx-product-multi-dimensional
 }
 
 // "Adicionar ao carrinho" mais alto, como no mockup
-cx-storefront.ProductDetailsPageTemplate cx-page-slot.Summary cx-add-to-cart .btn-primary {
+cx-storefront.ProductDetailsPageTemplate
+  cx-page-slot.Summary
+  cx-add-to-cart
+  .btn-primary {
   height: 52px;
   font-size: 16px;
 }
@@ -443,4 +447,378 @@ cx-storefront.ProductDetailsPageTemplate cx-page-slot.Summary cx-add-to-cart .bt
   font-size: 13px;
   font-weight: 700;
   color: var(--fla-vermelho);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Página do produto como no mockup (07/11, tela 4; decisões do Emerson): fotos em grade à
+// esquerda (FlaPdpGalleryComponent, ampliar no clique), tudo o mais numa coluna à direita,
+// inclusive as abas como sanfonas embaixo do "Adicionar ao carrinho" (FlaPdpTabsComponent).
+// No desktop o slot Summary vira "display: contents" e a página uma grade de duas colunas:
+// a galeria ocupa as linhas da coluna da direita (a última linha é 1fr e absorve a altura).
+// ---------------------------------------------------------------------------------------------
+@media (min-width: 992px) {
+  cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
+    cx-page-layout.ProductDetailsPageTemplate {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-rows: repeat(18, auto) 1fr;
+    column-gap: 40px;
+    align-items: start;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--cx-page-width-max, 1140px) !important;
+    margin: 0 auto !important;
+    padding: 0 0 64px !important;
+
+    > cx-page-slot.Summary {
+      display: contents !important;
+
+      > * {
+        grid-column: 2 !important;
+        grid-row: auto !important;
+        min-width: 0;
+        padding-inline: 0 !important;
+      }
+
+      > fla-pdp-gallery {
+        grid-column: 1 !important;
+        grid-row: 1 / span 19 !important;
+        padding-top: 32px !important;
+      }
+
+      > fla-pdp-header {
+        padding-top: 32px !important;
+      }
+    }
+
+    > cx-page-slot.Tabs {
+      grid-column: 2;
+      order: 1;
+      width: auto !important;
+      max-width: none !important;
+      margin: 8px 0 0 !important;
+      padding: 0 !important;
+      background: none !important;
+    }
+
+    > cx-page-slot:not(.Summary):not(.Tabs) {
+      grid-column: 1 / -1;
+      order: 2;
+      min-width: 0;
+    }
+  }
+}
+
+// some a faixa cinza das abas (fundo de ponta a ponta)
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
+  border-image: none !important;
+  background: none !important;
+}
+
+// o coração no topo substitui o link "Entre na sua conta para salvar na lista de desejos"
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp-actions)
+  cx-add-to-wishlist {
+  display: none !important;
+}
+
+// fotos: a primeira grande, as outras em duas colunas
+fla-pdp-gallery {
+  display: block;
+  margin-bottom: 24px;
+}
+
+.fla-gal {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.fla-gal-item {
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: #f2f2f2;
+  cursor: zoom-in;
+
+  &.is-main {
+    grid-column: 1 / -1;
+    aspect-ratio: 1 / 1.1;
+  }
+
+  cx-media,
+  cx-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.fla-gal-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 72px;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.fla-gal-big {
+  max-width: min(1000px, 100%);
+  max-height: 100%;
+  background: #fff;
+
+  cx-media,
+  cx-media img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 48px);
+    object-fit: contain;
+  }
+}
+
+.fla-gal-close,
+.fla-gal-nav {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fla-gal-close {
+  top: 16px;
+  right: 16px;
+}
+
+.fla-gal-nav {
+  top: 50%;
+  transform: translateY(-50%);
+
+  &.is-prev {
+    left: 12px;
+  }
+
+  &.is-next {
+    right: 12px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .fla-gal-zoom {
+    padding: 72px 8px;
+  }
+
+  .fla-gal-nav {
+    top: auto;
+    bottom: 16px;
+    transform: none;
+
+    &.is-prev {
+      left: calc(50% - 56px);
+    }
+
+    &.is-next {
+      right: calc(50% - 56px);
+    }
+  }
+}
+
+// selo, título com coração e compartilhar
+.fla-pdp-pill {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fla-pdp-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fla-pdp-actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fla-pdp-round {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #e2e2e2;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+
+  svg path {
+    fill: none;
+    stroke: currentColor;
+  }
+
+  &:hover {
+    border-color: #111;
+  }
+
+  &.is-on {
+    border-color: var(--fla-vermelho, #d70000);
+    color: var(--fla-vermelho, #d70000);
+
+    svg path {
+      fill: currentColor;
+    }
+  }
+}
+
+// "Forma de entrega" (retirada na loja): duas opções lado a lado, a escolhida com borda preta
+cx-storefront.ProductDetailsPageTemplate cx-pickup-options {
+  display: block;
+  margin: 4px 0 18px;
+
+  .cx-pickup-options,
+  .cx-pickup-options-container {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none !important;
+  }
+
+  .cx-pickup-options-legend {
+    margin: 0 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  cx-tab .tab {
+    display: flex !important;
+    gap: 8px;
+    border: 0;
+  }
+
+  .tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 48px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 4px;
+    background: #fff !important;
+    color: #111 !important;
+    font-size: 15px;
+    font-weight: 700;
+
+    &::after,
+    &::before {
+      display: none !important;
+    }
+
+    &.active {
+      border-color: #111 !important;
+      box-shadow: inset 0 0 0 1px #111;
+    }
+  }
+
+  cx-tab-panel > div {
+    padding: 8px 0 0 !important;
+    border: 0 !important;
+    background: none !important;
+    color: #555;
+    font-size: 14px;
+  }
+}
+
+// abas como sanfonas: "Sobre o produto" aberta; título na fonte da loja, + / –
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
+  cx-tab-paragraph-container {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  cx-tab .accordian {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid #e2e2e2;
+  }
+
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 56px;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    border-bottom: 1px solid #e2e2e2 !important;
+    background: none !important;
+    color: #111 !important;
+    font-family: var(--fla-fonte-titulo) !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    text-align: left;
+    text-transform: uppercase !important;
+
+    &::after,
+    &::before {
+      display: none !important;
+    }
+
+    .tab-icon {
+      color: var(--fla-vermelho, #d70000);
+      font-family: var(--fla-fonte, inherit);
+      font-size: 24px;
+    }
+  }
+
+  cx-tab-panel > div {
+    padding: 14px 0 18px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #e2e2e2 !important;
+    background: none !important;
+    color: #333;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  // o título de dentro repete o da sanfona
+  cx-tab-panel :is(h2, h3).cx-product-attributes-title,
+  cx-product-attributes > h2,
+  cx-product-details-tab > h2 {
+    display: none;
+  }
+
+  .container {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
 }

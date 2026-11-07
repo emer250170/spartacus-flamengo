@@ -1,5 +1,11 @@
-import { FlaCheckoutDoneComponent, FlaCheckoutSummaryComponent } from './fla-checkout-payment.component';
-import { FlaCheckoutAcceptComponent, FlaCheckoutAcceptModule } from './fla-checkout-accept';
+import {
+  FlaCheckoutDoneComponent,
+  FlaCheckoutSummaryComponent,
+} from './fla-checkout-payment.component';
+import {
+  FlaCheckoutAcceptComponent,
+  FlaCheckoutAcceptModule,
+} from './fla-checkout-accept';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
@@ -16,9 +22,16 @@ import {
   KeyboardFocusModule,
   LayoutConfig,
   MediaModule,
+  OutletModule,
   OutletPosition,
+  PageComponentModule,
+  TabModule,
   provideOutlet,
 } from '@spartacus/storefront';
+import {
+  FlaPdpGalleryComponent,
+  FlaPdpTabsComponent,
+} from './fla-pdp-extra.components';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import {
   FlaFooterBottomComponent,
@@ -50,7 +63,10 @@ import {
   FlaCheckoutIdentityIntroComponent,
 } from './fla-checkout-identity.component';
 import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component';
-import { FlaOcBodyComponent, FlaOcHeroComponent } from './fla-order-confirmation.component';
+import {
+  FlaOcBodyComponent,
+  FlaOcHeroComponent,
+} from './fla-order-confirmation.component';
 import { FlaItemPersonalizationComponent } from './fla-item-personalization.component';
 import { CartOutlets } from '@spartacus/cart/base/root';
 
@@ -71,6 +87,9 @@ import { CartOutlets } from '@spartacus/cart/base/root';
     KeyboardFocusModule,
     FlaI18nModule,
     FlaCheckoutAcceptModule,
+    OutletModule,
+    PageComponentModule,
+    TabModule,
   ],
   declarations: [
     FlaPortalLinksComponent,
@@ -85,6 +104,8 @@ import { CartOutlets } from '@spartacus/cart/base/root';
     FlaCartDrawerComponent,
     FlaPdpHeaderComponent,
     FlaSizeChipsComponent,
+    FlaPdpGalleryComponent,
+    FlaPdpTabsComponent,
     FlaPdpPersonalizeComponent,
     FlaPdpShippingComponent,
     FlaCartPageComponent,
@@ -133,7 +154,9 @@ import { CartOutlets } from '@spartacus/cart/base/root';
     }),
     provideConfig(<OccConfig>{
       backend: {
-        occ: { endpoints: { product: { [FLA_SIZES_SCOPE]: FLA_SIZES_ENDPOINT } } },
+        occ: {
+          endpoints: { product: { [FLA_SIZES_SCOPE]: FLA_SIZES_ENDPOINT } },
+        },
       },
     }),
     // carrinho em box lateral à direita: ao clicar no carrinho do header e ao adicionar
@@ -143,6 +166,10 @@ import { CartOutlets } from '@spartacus/cart/base/root';
         MiniCartComponent: { component: FlaMiniCartComponent },
         // página do carrinho no formato do mockup (lista + Resumo)
         CartComponent: { component: FlaCartPageComponent },
+        // página do produto (07/11, mockup tela 4): fotos em grade com ampliar no clique e
+        // abas como sanfonas ("Sobre o produto" aberta) na coluna da direita
+        ProductImagesComponent: { component: FlaPdpGalleryComponent },
+        CMSTabParagraphContainer: { component: FlaPdpTabsComponent },
       },
     }),
     provideConfig(<LayoutConfig>{

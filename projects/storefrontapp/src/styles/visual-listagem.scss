@@ -10,7 +10,7 @@ $fla-listagem: 'cx-storefront:is(.ProductListPageTemplate, .ProductGridPageTempl
 #{$fla-listagem} cx-page-slot.BottomHeaderSlot {
   justify-content: flex-start !important;
   background: #1b1b1b !important;
-  border-image: conic-gradient(#1b1b1b 0 0) fill 0 / / 0 100vmax;
+  border-image: conic-gradient(#1b1b1b 0 0) fill 0 / /0 100vmax;
 
   cx-breadcrumb {
     width: 100%;
@@ -93,4 +93,75 @@ cx-product-grid-item .fla-card-member {
   font-size: 13px;
   font-weight: 700;
   color: var(--fla-vermelho, #d70000);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Ajustes do mockup (07/11, tela 2): trilha com "—", sem a linha embaixo de Filtrar/Ordenar,
+// foto em pé (3:4) cobrindo a área cinza, e o "Adicionar ao carrinho" discreto (contorno),
+// que aparece ao passar o mouse no card (decisão do Emerson; em tela de toque fica sempre).
+// ---------------------------------------------------------------------------------------------
+#{$fla-listagem} cx-page-slot.BottomHeaderSlot cx-breadcrumb {
+  li:not(:last-child)::after {
+    content: '—' !important;
+    padding: 0 8px !important;
+  }
+}
+
+cx-product-list .fla-list-bar {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+cx-product-list hr {
+  display: none;
+}
+
+cx-product-grid-item {
+  .cx-product-image-container {
+    aspect-ratio: 3 / 4 !important;
+    border: 0 !important;
+    background: #f2f2f2 !important;
+
+    cx-media,
+    cx-media img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+  }
+
+  .cx-product-name {
+    font-size: 16px !important;
+    font-weight: 500 !important;
+  }
+
+  cx-add-to-cart .btn {
+    min-height: 40px !important;
+    height: 40px;
+    padding: 0 14px !important;
+    border: 1px solid #111 !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    color: #111 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+
+    &:hover {
+      background: #111 !important;
+      color: #fff !important;
+    }
+  }
+}
+
+@media (hover: hover) {
+  cx-product-grid-item cx-add-to-cart {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  cx-product-grid-item:hover cx-add-to-cart,
+  cx-product-grid-item:focus-within cx-add-to-cart {
+    opacity: 1;
+  }
 }
