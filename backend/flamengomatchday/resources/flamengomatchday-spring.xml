@@ -675,4 +675,13 @@
 		<property name="socioPlanService" ref="socioPlanService"/>
 	</bean>
 
+	<!-- Mengo Estúdio (07/11): regras (prazo das estampas, camisetas, tamanhos, relógio da demo). Chave flamengo.estudio.ativo -->
+	<bean id="mengoEstudioService" class="br.com.flamengo.matchday.estudio.impl.DefaultMengoEstudioService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
+		<property name="commercePriceService" ref="commercePriceService"/>
+	</bean>
+
 </beans>

@@ -62,6 +62,17 @@
 			<value code="UTILIZACAO"/>
 			<value code="OBSERVACAO"/>
 		</enumtype>
+		<!-- Mengo Estúdio (07/11): situação da parte sob demanda do pedido -->
+		<enumtype code="MengoPedidoSituacao" autocreate="true" generate="true" dynamic="false">
+			<description>Situação da parte Mengo Estúdio do pedido</description>
+			<value code="RECEBIDO"/>
+			<value code="EM_PRODUCAO"/>
+			<value code="ENVIADO"/>
+			<value code="ENTREGUE"/>
+			<value code="CANCELADO"/>
+			<value code="EM_DEVOLUCAO"/>
+			<value code="REEMBOLSADO"/>
+		</enumtype>
 	</enumtypes>
 
 	<itemtypes>
@@ -1345,6 +1356,326 @@
 				</attribute>
 				<attribute qualifier="clearSaleMessage" type="java.lang.String">
 					<description>Resumo da análise (decisão, o que foi feito ou o erro)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+			</attributes>
+		</itemtype>
+
+		<!--
+			Mengo Estúdio (07/11): camisetas sob demanda com estampas que saem de linha.
+			Drop reúne estampas; linha é a classificação temática; a estampa tem prazo de venda
+			(encerramento) e fica consultável no acervo depois dele. A camiseta é um produto por
+			modelo e tecido (ME-CAM-MAS-ALG...), com preço; estampa, cor e tamanho ficam na linha
+			do carrinho (mengoEstampa, mengoCor, mengoTamanho). Chave flamengo.estudio.ativo.
+		-->
+		<itemtype code="MengoDrop" extends="GenericItem" autocreate="true" generate="true">
+			<description>Drop do Mengo Estúdio: coleção de estampas</description>
+			<deployment table="mengodrops" typecode="25915"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código (ex.: HIS)</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="number" type="java.lang.Integer">
+					<description>Número do drop (01, 02...)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="name" type="localized:java.lang.String">
+					<description>Nome (ex.: História)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="description" type="localized:java.lang.String">
+					<description>Texto de apresentação</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="active" type="java.lang.Boolean">
+					<description>No ar na loja</description>
+					<defaultvalue>Boolean.TRUE</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="mengoDropCode" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<itemtype code="MengoLinha" extends="GenericItem" autocreate="true" generate="true">
+			<description>Linha temática do Mengo Estúdio (História, Urubu, Jogadores)</description>
+			<deployment table="mengolinhas" typecode="25916"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código (ex.: historia)</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="name" type="localized:java.lang.String">
+					<description>Nome</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="description" type="localized:java.lang.String">
+					<description>Descrição curta</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="position" type="java.lang.Integer">
+					<description>Ordem na loja</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="mengoLinhaCode" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<itemtype code="MengoEstampa" extends="GenericItem" autocreate="true" generate="true">
+			<description>Estampa do Mengo Estúdio: arte com prazo de venda</description>
+			<deployment table="mengoestampas" typecode="25917"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código (vai na URL da loja, ex.: urubu-coroado)</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="name" type="localized:java.lang.String">
+					<description>Nome da estampa</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="drop" type="MengoDrop">
+					<description>Drop</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="linha" type="MengoLinha">
+					<description>Linha</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="number" type="java.lang.Integer">
+					<description>Número dentro do drop</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="launchDate" type="java.util.Date">
+					<description>Lançamento (fica "Nova" por 7 dias)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="endDate" type="java.util.Date">
+					<description>Encerramento da venda (depois vai para o acervo)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="position" type="java.lang.String">
+					<description>Posição da arte: FRENTE_INTEIRA, CENTRO_PEITO ou PEITO_ESQUERDO</description>
+					<defaultvalue>"FRENTE_INTEIRA"</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="art" type="Media">
+					<description>Arte da estampa (PNG ou WebP, de preferência com fundo transparente)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="wideArt" type="java.lang.Boolean">
+					<description>Arte mais larga que alta (enquadramento na vitrine)</description>
+					<defaultvalue>Boolean.FALSE</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="background" type="java.lang.String">
+					<description>Cor de fundo da arte na vitrine (hex, ex.: #111111)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="blockedColors" type="java.lang.String">
+					<description>Cores indisponíveis com o motivo, uma por linha: PRT=motivo (PRT, BRA, CIN)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="description" type="localized:java.lang.String">
+					<description>Sobre a arte (texto da página do produto)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="active" type="java.lang.Boolean">
+					<description>Visível na loja (desligar esconde até do acervo)</description>
+					<defaultvalue>Boolean.TRUE</defaultvalue>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="mengoEstampaCode" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<itemtype code="MengoPedidoEvento" extends="GenericItem" autocreate="true" generate="true">
+			<description>Linha do tempo da parte Mengo Estúdio do pedido</description>
+			<deployment table="mengopedidoeventos" typecode="25918"/>
+			<attributes>
+				<attribute qualifier="order" type="AbstractOrder">
+					<description>Pedido</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="situacao" type="MengoPedidoSituacao">
+					<description>Situação a partir deste evento</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="date" type="java.util.Date">
+					<description>Quando</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="note" type="java.lang.String">
+					<description>Detalhe mostrado ao torcedor</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="author" type="java.lang.String">
+					<description>Quem fez (torcedor, estamparia, demo, gestor)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="mengoPedidoEventoOrder">
+					<key attribute="order"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<itemtype code="MengoAvisoRetorno" extends="GenericItem" autocreate="true" generate="true">
+			<description>Inscrição "Avise-me se voltar" de uma estampa do acervo</description>
+			<deployment table="mengoavisos" typecode="25919"/>
+			<attributes>
+				<attribute qualifier="estampa" type="MengoEstampa">
+					<description>Estampa</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="email" type="java.lang.String">
+					<description>E-mail para o aviso</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="customer" type="Customer">
+					<description>Torcedor logado que se inscreveu (vazio = anônimo)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="consentText" type="java.lang.String">
+					<description>Texto do consentimento aceito</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="consentDate" type="java.util.Date">
+					<description>Quando aceitou</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="notifiedDate" type="java.util.Date">
+					<description>Quando o aviso foi enviado (relançamento)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="mengoAvisoEstampa">
+					<key attribute="estampa"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<itemtype code="MengoDemoConfig" extends="GenericItem" autocreate="true" generate="true">
+			<description>Simulações do painel da demonstração do Mengo Estúdio (vazio = sem simulação)</description>
+			<deployment table="mengodemoconfig" typecode="25920"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Sempre "default"</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clockOffsetMinutes" type="java.lang.Long">
+					<description>Deslocamento do relógio das regras do Estúdio, em minutos (pode ser negativo)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="forcedEnds" type="java.lang.String">
+					<description>Encerramentos simulados por estampa, um por linha: codigo=epoch em ms</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="nextPayment" type="java.lang.String">
+					<description>Próximo pagamento com cartão: APROVAR, RECUSAR_UMA_VEZ ou RECUSAR</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="cancelResponse" type="java.lang.String">
+					<description>Resposta da estamparia ao cancelamento: ACEITO, RECUSADO ou FALHA</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+		</itemtype>
+
+		<itemtype code="Product" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="mengoModelo" type="java.lang.String">
+					<description>Mengo Estúdio: modelo da camiseta (MAS, FEM, INF); vazio = não é camiseta do Estúdio</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="mengoTecido" type="java.lang.String">
+					<description>Mengo Estúdio: tecido e corte (ALG, POL, OVS)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+		</itemtype>
+
+		<itemtype code="AbstractOrderEntry" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="mengoEstampa" type="MengoEstampa">
+					<description>Mengo Estúdio: estampa aplicada nesta camiseta</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="mengoCor" type="java.lang.String">
+					<description>Mengo Estúdio: cor da camiseta (PRT, BRA, CIN)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="mengoTamanho" type="java.lang.String">
+					<description>Mengo Estúdio: tamanho</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="mengoNumeroSerie" type="java.lang.String">
+					<description>Mengo Estúdio: número de série da etiqueta (selo de autenticidade)</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+		</itemtype>
+
+		<itemtype code="AbstractOrder" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="mengoSituacao" type="MengoPedidoSituacao">
+					<description>Mengo Estúdio: situação da parte sob demanda (vazio = pedido sem camiseta do Estúdio)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="mengoRastreio" type="java.lang.String">
+					<description>Mengo Estúdio: código de rastreio do envio</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="mengoDevolucao" type="java.lang.String">
+					<description>Mengo Estúdio: devolução em JSON (motivo, solução, etapa, datas, código de postagem)</description>
 					<persistence type="property">
 						<columntype>
 							<value>HYBRIS.LONG_STRING</value>

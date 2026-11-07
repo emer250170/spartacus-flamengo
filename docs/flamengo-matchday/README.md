@@ -1153,3 +1153,28 @@ O ClearSale exige os dois em todo pedido.
   de negócio › Definições de processo dinâmicas. O backup do XML fica em
   `/backup/order-process-v<N>-antes-clearsale.xml`.
 
+
+## Mengo Estúdio — base (07/11, PR estudio-base)
+
+Camisetas sob demanda com estampas que saem de linha. Plano e mockup: Claude Doc "Mengo Estúdio — plano de
+implementação" e telas E1 a E25 do canvas "Demo Flamengo — novo visual". Esta primeira etapa traz o modelo de
+dados, as regras e a leitura pela API; as telas da loja vêm nos PRs seguintes.
+
+- **Tipos novos** (`flamengomatchday-items.xml`): `MengoDrop`, `MengoLinha`, `MengoEstampa` (prazo de venda,
+  posição e arte), `MengoPedidoEvento`, `MengoAvisoRetorno`, `MengoDemoConfig`; atributos `mengoModelo`/`mengoTecido`
+  no produto, `mengoEstampa`/`mengoCor`/`mengoTamanho`/`mengoNumeroSerie` na linha do carrinho e
+  `mengoSituacao`/`mengoRastreio`/`mengoDevolucao` no pedido.
+- **Camisetas:** um produto por modelo e tecido (`ME-CAM-MAS-ALG`...), com preço; estampa, cor e tamanho vão na
+  linha do carrinho. Tamanhos e medidas em `flamengo.estudio.tamanhos.*` e `flamengo.estudio.medidas.*`.
+- **Regras** (`MengoEstudioService`): situação da estampa (Encerrada, Últimas 48 h, Últimos dias, Nova, À venda)
+  pelo encerramento, no fuso America/Sao_Paulo; o "agora" soma o deslocamento do relógio da demo.
+- **API:** `GET /{site}/mengo-estudio/catalogo` (drops, linhas, estampas, camisetas, regras) e
+  `GET /{site}/mengo-estudio/estampas/{code}`. Chave `flamengo.estudio.ativo`.
+
+Instalação (depois do `ant all`): HAC › Update (Update running system + Localize types) e reinício (tipo novo);
+importar `15-mengo-estudio.impex`; rodar `scripts/estudio-artes.groovy` (gerado por
+`python3 scripts/estudio-artes.py --aplicar --saida ...`) e `scripts/estudio-busca.groovy` (tira as camisetas da busca).
+
+Artes: 27 estampas têm arte (linhas História e Urubu, em `estudio/artes/`, WebP). As 29 com fotos ou retratos de
+jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória até a arte ser enviada pelo Backoffice
+(mídia em `MengoEstampa.art`).
