@@ -1,8 +1,10 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   HostListener,
+  inject,
 } from '@angular/core';
 import { ImageGroup, Product, ProductScope } from '@spartacus/core';
 import {
@@ -11,16 +13,22 @@ import {
   TabConfig,
   TabParagraphContainerComponent,
 } from '@spartacus/storefront';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
+import { filter, map, startWith } from 'rxjs/operators';
 
 interface Gallery {
   name: string;
+  /** Fotos na página: a grande e um número par embaixo (as duas colunas sem buraco) */
   images: ImageGroup[];
+  /** Todas as fotos, para o ampliar (anterior/próxima) */
+  all: ImageGroup[];
 }
 
-/** Até 5 fotos: a grande e mais 4 em duas colunas (mockup tela 4) */
+/** Na página, até 5 fotos: a grande e mais 4 em duas colunas (mockup tela 4) */
 const MAX_PHOTOS = 5;
+
+/** Aba de especificações (uid do componente no CMS) */
+const SPECS_TAB = 'ProductSpecsTabComponent';
 
 /**
  * Fotos do produto no visual do mockup (07/11, tela 4): a primeira grande e as outras em grade
@@ -38,7 +46,7 @@ const MAX_PHOTOS = 5;
           class="fla-gal-item"
           [class.is-main]="i === 0"
           [attr.aria-label]="'pdp.zoomPhoto' | flaT: { n: i + 1 }"
-          (click)="open(i, g.images.length)"
+          (click)="open(i, g.all.length)"
         >
           <cx-media [container]="img" format="zoom" [alt]="g.name"></cx-media>
         </button>
@@ -61,7 +69,7 @@ const MAX_PHOTOS = 5;
           ×
         </button>
         <button
-          *ngIf="g.images.length > 1"
+          *ngIf="g.all.length > 1"
           type="button"
           class="fla-gal-nav is-prev"
           [attr.aria-label]="'pdp.zoomPrev' | flaT"
@@ -71,13 +79,13 @@ const MAX_PHOTOS = 5;
         </button>
         <div class="fla-gal-big" (click)="$event.stopPropagation()">
           <cx-media
-            [container]="g.images[zoom]"
+            [container]="g.all[zoom]"
             format="zoom"
             [alt]="g.name"
           ></cx-media>
         </div>
         <button
-          *ngIf="g.images.length > 1"
+          *ngIf="g.all.length > 1"
           type="button"
           class="fla-gal-nav is-next"
           [attr.aria-label]="'pdp.zoomNext' | flaT"
@@ -119,9 +127,17 @@ export class FlaPdpGalleryComponent {
     if (!list.length && primary && !Array.isArray(primary)) {
       list.push(primary);
     }
-    return list.length
-      ? { name: product.name ?? '', images: list.slice(0, MAX_PHOTOS) }
-      : null;
+    if (!list.length) {
+      return null;
+    }
+    // a grande + um número par de fotos menores (4 fotos: a grande e 2; 5 ou mais: a grande e 4)
+    const small = Math.min(list.length - 1, MAX_PHOTOS - 1);
+    const shown = 1 + small - (small % 2);
+    return {
+      name: product.name ?? '',
+      images: list.slice(0, shown),
+      all: list,
+    };
   }
 
   open(index: number, count: number): void {
@@ -190,9 +206,36 @@ class AccordionConfig$ extends BehaviorSubject<TabConfig> {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlaPdpTabsComponent extends TabParagraphContainerComponent {
+export class FlaPdpTabsComponent
+  extends TabParagraphContainerComponent
+  implements AfterViewInit
+{
   override tabConfig$: BehaviorSubject<TabConfig> = new AccordionConfig$({
     openTabs: [0],
     mode: TAB_MODE.ACCORDIAN,
   });
+
+  protected currentProduct = inject(CurrentProductService);
+
+  /** Produto sem especificações (classificações): a sanfona "Especificações" não aparece */
+  protected readonly hasSpecs$: Observable<boolean> = this.currentProduct
+    .getProduct(ProductScope.ATTRIBUTES)
+    .pipe(
+      map((p) =>
+        (p?.classifications ?? []).some((c) => (c.features ?? []).length > 0)
+      ),
+      startWith(true)
+    );
+
+  override ngAfterViewInit(): void {
+    super.ngAfterViewInit();
+    const tabs$ = this.tabs$;
+    this.tabs$ = combineLatest([tabs$, this.hasSpecs$]).pipe(
+      map(([tabs, specs]) =>
+        specs
+          ? tabs
+          : tabs.filter((t) => !String(t.headerKey ?? '').includes(SPECS_TAB))
+      )
+    );
+  }
 }

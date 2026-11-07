@@ -822,3 +822,116 @@ cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
     padding: 0;
   }
 }
+
+// ---------------------------------------------------------------------------------------------
+// Revisão da página do produto (07/11)
+// ---------------------------------------------------------------------------------------------
+// o resumo padrão (preço repetido, escondido, e a frase curta vazia) deixava um vão de 64px
+// entre a faixa do sócio e os tamanhos
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-product-summary {
+  display: none !important;
+}
+
+// caixas de marcar da personalização dentro do quadro (o Spartacus puxa radio/checkbox para fora)
+.fla-pz-check input[type='checkbox'],
+.fla-pz-check input[type='radio'] {
+  position: static !important;
+  inset: auto !important;
+  flex: none;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.fla-pz-check {
+  padding: 0 16px;
+}
+
+// sanfonas sem o fundo cinza; títulos de dentro repetidos saem; avaliações no tamanho do texto
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
+  cx-tab,
+  cx-tab-panel,
+  cx-tab-panel > div,
+  .tab-btn {
+    background: none !important;
+  }
+
+  cx-product-attributes .container > h2,
+  cx-product-reviews .container > h2 {
+    display: none !important;
+  }
+
+  cx-product-attributes .container,
+  cx-product-reviews .container,
+  cx-product-details-tab .container,
+  cx-paragraph > div {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  cx-product-reviews {
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 16px;
+      margin: 0;
+      padding: 0;
+
+      h3 {
+        margin: 0;
+        font-family: var(--fla-fonte, inherit) !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        text-transform: none !important;
+      }
+
+      .rating {
+        flex: 1 1 100%;
+        order: 3;
+        margin: 0;
+        color: #555;
+        font-size: 15px;
+      }
+    }
+
+    .btn {
+      min-height: 40px;
+      height: 40px;
+      margin: 0;
+      padding: 0 16px;
+      border: 1px solid #111 !important;
+      border-radius: 4px;
+      background: #fff !important;
+      color: #111 !important;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: none !important;
+
+      &:hover {
+        background: #111 !important;
+        color: #fff !important;
+      }
+    }
+  }
+
+  cx-paragraph {
+    p,
+    ul {
+      margin: 0 0 10px;
+    }
+
+    ul {
+      padding-left: 18px;
+    }
+  }
+}
+
+// sem o recuo de 20px do Spartacus em cima da quantidade (vão grande depois do Personalizar)
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
+  cx-page-slot.Summary
+  cx-add-to-cart {
+  padding-top: 0 !important;
+}
