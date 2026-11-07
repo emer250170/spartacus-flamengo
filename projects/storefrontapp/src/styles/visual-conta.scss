@@ -2055,7 +2055,138 @@ html.fla-account[lang='en'] main cx-consent-management::after {
   }
 }
 
-// ---------- mensagens em faixa verde/vermelha do Spartacus: fora da loja (decisão do Emerson, 07/11) ----------
+// ---------- mensagens do Spartacus em aviso flutuante (07/11) ----------
+// No lugar da faixa verde/vermelha de largura toda: cartão branco no canto superior direito,
+// com a barra e o ícone na cor do tipo (erro vermelho, sucesso verde, aviso âmbar); branco
+// porque o header e a faixa do título são escuros (um cartão preto sumia neles). Fecha no X ou
+// sozinho (tempo no ContaModule). No login, o erro aparece dentro do cartão "Já tenho conta".
 cx-global-message {
+  position: fixed;
+  z-index: 1100;
+  top: 112px !important;
+  right: 24px !important;
+  bottom: auto !important;
+  left: auto !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .alert {
+    position: relative;
+    display: flex !important;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    margin: 0 !important;
+    padding: 14px 44px 14px 16px !important;
+    border: 0 !important;
+    border-left: 4px solid #0b4f8a !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    color: #111 !important;
+    font-size: 15px;
+    line-height: 1.4;
+    text-align: left;
+    pointer-events: auto;
+
+    > span:not(.alert-icon) {
+      flex: 1 1 auto;
+      color: #111 !important;
+      font-weight: 700;
+    }
+
+    .alert-icon {
+      flex: 0 0 auto;
+      margin-top: 1px;
+      color: #0b4f8a;
+    }
+
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      margin: 0;
+      padding: 4px;
+      border: 0;
+      background: none;
+      color: #111 !important;
+      opacity: 0.6;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .alert-danger {
+    border-left-color: var(--fla-vermelho, #d70000) !important;
+
+    .alert-icon {
+      color: var(--fla-vermelho, #d70000);
+    }
+  }
+
+  .alert-success {
+    border-left-color: #1d8b21 !important;
+
+    .alert-icon {
+      color: #1d8b21;
+    }
+  }
+
+  .alert-warning {
+    border-left-color: #c77700 !important;
+
+    .alert-icon {
+      color: #c77700;
+    }
+  }
+}
+
+// no login (fora do checkout) o erro já aparece no cartão "Já tenho conta"
+html.fla-login cx-global-message .alert-danger {
   display: none !important;
+}
+
+.flg-error {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 4px solid var(--fla-vermelho, #d70000);
+  border-radius: 0 4px 4px 0;
+  background: #fff4f4;
+  color: #111;
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .flg-error-hint {
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  cx-global-message {
+    top: 72px !important;
+    right: 16px !important;
+  }
 }
