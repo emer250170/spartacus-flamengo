@@ -5,9 +5,12 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { ActiveCartFacade } from '@spartacus/cart/base/root';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { isValidTelefone, maskTelefone } from '../cadastro/telefone';
 import { isValidCpf, maskCpf } from '../socio/socio-guests.service';
+import { SocioPaymentService } from '../socio/socio-payment.service';
 import { FlaCustomerData, FlaCustomerDataService } from './clearsale.service';
 
 /**
@@ -75,16 +78,35 @@ export class FlaCheckoutDadosComponent implements OnInit, OnDestroy {
 
   constructor(
     protected data: FlaCustomerDataService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected activeCart: ActiveCartFacade,
+    protected payment: SocioPaymentService
   ) {}
 
   ngOnInit(): void {
     this.subscription.add(
       this.data.state$.subscribe((s) => {
         this.state = s;
+        if (s.loaded && s.faltando.includes('cpf') && !this.cpf) {
+          this.prefillCpf();
+        }
         this.cd.markForCheck();
       })
     );
+  }
+
+  /** CPF já digitado no Pix ou boleto deste carrinho: vem preenchido, o torcedor só confere */
+  protected prefillCpf(): void {
+    this.activeCart
+      .getActiveCartId()
+      .pipe(take(1))
+      .subscribe((id) => {
+        const typed = id ? this.payment.payerCpfOf(id) : '';
+        if (typed && isValidCpf(typed) && !this.cpf) {
+          this.cpf = maskCpf(typed);
+          this.cd.markForCheck();
+        }
+      });
   }
 
   falta(campo: string): boolean {
