@@ -136,13 +136,16 @@ export class SocioPaymentChoiceComponent implements OnInit, OnDestroy {
     if (this.adyenCard) {
       return this.t('spay.cardNext.adyen');
     }
+    // 07/11: com o CPF do cadastro, o texto não pede para informar o CPF
+    const onFile = this.registeredCpf ? '.cpfOnFile' : '';
     if (this.selected === 'PIX_AUTOMATICO') {
-      return this.t('spay.pixAutoNext');
+      return this.t('spay.pixAutoNext' + onFile);
     }
     const pix = this.selected === 'PIX';
     const adyen = !!this.opts?.adyenMethods.includes(this.selected);
     return this.t(
-      (pix ? 'spay.pixNext' : 'spay.boletoNext') + (adyen ? '.adyen' : '')
+      (pix ? 'spay.pixNext' : 'spay.boletoNext') +
+        (adyen ? '.adyen' + onFile : '')
     );
   }
 
