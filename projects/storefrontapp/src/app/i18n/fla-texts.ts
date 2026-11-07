@@ -751,6 +751,12 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'Sem cartão: a Adyen gera o Pix da 1ª mensalidade quando você finaliza o pedido (QR Code e copia e cola); ao pagar, você autoriza o Pix Automático das próximas. Informe o CPF de quem vai pagar.',
     'spay.boletoNext.adyen':
       'Sem cartão: o boleto é gerado pela Adyen quando você finaliza o pedido (linha digitável e PDF). Informe o CPF de quem vai pagar.',
+    'spay.boletoNext.adyen.cpfOnFile':
+      'Sem cartão: o boleto é gerado pela Adyen quando você finaliza o pedido (linha digitável e PDF).',
+    'spay.pixNext.adyen.cpfOnFile':
+      'Sem cartão: o Pix é gerado pela Adyen quando você finaliza o pedido (QR Code e copia e cola).',
+    'spay.pixAutoNext.cpfOnFile':
+      'Sem cartão: a Adyen gera o Pix da 1ª mensalidade quando você finaliza o pedido (QR Code e copia e cola); ao pagar, você autoriza o Pix Automático das próximas.',
     'spay.cpf': 'CPF de quem vai pagar o boleto',
     'spay.cardNext.adyen':
       'O cartão é informado na revisão do pedido, no formulário seguro da Adyen.',
@@ -2000,6 +2006,12 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
       'No card: Adyen generates the Pix for the 1st monthly fee when you place the order (QR code and copy and paste); when you pay, you authorize the Automatic Pix for the next ones. Enter the CPF of who will pay.',
     'spay.boletoNext.adyen':
       'No card: Adyen generates the boleto when you place the order (line and PDF). Enter the CPF of who will pay.',
+    'spay.boletoNext.adyen.cpfOnFile':
+      'No card: Adyen generates the boleto when you place the order (line and PDF).',
+    'spay.pixNext.adyen.cpfOnFile':
+      'No card: Adyen generates the Pix when you place the order (QR code and copy and paste).',
+    'spay.pixAutoNext.cpfOnFile':
+      'No card: Adyen generates the Pix for the 1st monthly fee when you place the order (QR code and copy and paste); when you pay, you authorize the Automatic Pix for the next ones.',
     'spay.cpf': 'CPF of who will pay the boleto',
     'spay.cardNext.adyen':
       'You enter the card on the order review, in the secure Adyen form.',
