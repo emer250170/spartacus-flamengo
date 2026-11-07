@@ -527,24 +527,57 @@ fla-pdp-gallery {
   margin-bottom: 24px;
 }
 
-.fla-gal {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.fla-gal-item {
+// foto grande e, embaixo, as fotos de detalhe num carrossel (07/11)
+.fla-gal-main {
   display: block;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  aspect-ratio: 1 / 1.1;
   overflow: hidden;
   padding: 0;
   border: 0;
   background: #f2f2f2;
   cursor: zoom-in;
 
-  &.is-main {
-    grid-column: 1 / -1;
-    aspect-ratio: 1 / 1.1;
+  cx-media,
+  cx-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.fla-gal-strip {
+  position: relative;
+  margin-top: 8px;
+}
+
+.fla-gal-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 3 * 8px) / 4);
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.fla-gal-thumb {
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid transparent;
+  background: #f2f2f2;
+  cursor: pointer;
+  scroll-snap-align: start;
+
+  &.is-active {
+    border-color: #111;
   }
 
   cx-media,
@@ -553,6 +586,50 @@ fla-pdp-gallery {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+}
+
+.fla-gal-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #e2e2e2;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font-size: 24px;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+
+  &.is-prev {
+    left: -12px;
+  }
+
+  &.is-next {
+    right: -12px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .fla-gal-track {
+    grid-auto-columns: calc((100% - 2 * 8px) / 3);
+  }
+
+  .fla-gal-arrow {
+    &.is-prev {
+      left: 4px;
+    }
+
+    &.is-next {
+      right: 4px;
+    }
   }
 }
 
@@ -821,4 +898,155 @@ cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
     margin: 0;
     padding: 0;
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Revisão da página do produto (07/11)
+// ---------------------------------------------------------------------------------------------
+// o resumo padrão (preço repetido, escondido, e a frase curta vazia) deixava um vão de 64px
+// entre a faixa do sócio e os tamanhos
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-product-summary {
+  display: none !important;
+}
+
+// caixas de marcar da personalização dentro do quadro (o Spartacus puxa radio/checkbox para fora)
+.fla-pz-check input[type='checkbox'],
+.fla-pz-check input[type='radio'] {
+  position: static !important;
+  inset: auto !important;
+  flex: none;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.fla-pz-check {
+  padding: 0 16px;
+}
+
+// sanfonas sem o fundo cinza; títulos de dentro repetidos saem; avaliações no tamanho do texto
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
+  cx-tab,
+  cx-tab-panel,
+  cx-tab-panel > div,
+  .tab-btn {
+    background: none !important;
+  }
+
+  cx-product-attributes .container > h2,
+  cx-product-reviews .container > h2 {
+    display: none !important;
+  }
+
+  cx-product-attributes .container,
+  cx-product-reviews .container,
+  cx-product-details-tab .container,
+  cx-paragraph > div {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  cx-product-reviews {
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 16px;
+      margin: 0;
+      padding: 0;
+
+      h3 {
+        margin: 0;
+        font-family: var(--fla-fonte, inherit) !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        text-transform: none !important;
+      }
+
+      .rating {
+        flex: 1 1 100%;
+        order: 3;
+        margin: 0;
+        color: #555;
+        font-size: 15px;
+      }
+    }
+
+    .btn {
+      min-height: 40px;
+      height: 40px;
+      margin: 0;
+      padding: 0 16px;
+      border: 1px solid #111 !important;
+      border-radius: 4px;
+      background: #fff !important;
+      color: #111 !important;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: none !important;
+
+      &:hover {
+        background: #111 !important;
+        color: #fff !important;
+      }
+    }
+  }
+
+  cx-paragraph {
+    p,
+    ul {
+      margin: 0 0 10px;
+    }
+
+    ul {
+      padding-left: 18px;
+    }
+  }
+}
+
+// sem o recuo de 20px do Spartacus em cima da quantidade (vão grande depois do Personalizar)
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
+  cx-page-slot.Summary
+  cx-add-to-cart {
+  padding-top: 0 !important;
+}
+
+// "Troca grátis" embaixo de Receber em casa / Retirar na loja sai (Emerson, 07/11)
+cx-storefront.ProductDetailsPageTemplate cx-pickup-options cx-tab-panel {
+  display: none !important;
+}
+
+// sem sanfona (Emerson, 07/11): só "Sobre este produto", como título de seção sempre aberto
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp) cx-page-slot.Tabs {
+  cx-tab .accordian {
+    border-top: 0;
+  }
+
+  .tab-btn {
+    min-height: 0;
+    padding: 18px 0 8px !important;
+    border-top: 1px solid #e2e2e2 !important;
+    border-bottom: 0 !important;
+    pointer-events: none;
+    cursor: default;
+
+    .tab-icon {
+      display: none;
+    }
+  }
+
+  cx-tab-panel > div {
+    padding-top: 0 !important;
+    border-bottom: 0 !important;
+  }
+}
+
+// igual ao mockup (Emerson, 07/11): sem o seletor de quantidade (o botão põe 1 no carrinho)
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
+  cx-page-slot.Summary
+  cx-add-to-cart
+  .quantity {
+  display: none !important;
 }

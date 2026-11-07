@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -16,31 +17,67 @@ import { filter, map } from 'rxjs/operators';
 
 interface Gallery {
   name: string;
-  images: ImageGroup[];
+  /** Todas as fotos: a grande mostra a escolhida; o carrossel embaixo, todas */
+  all: ImageGroup[];
 }
 
-/** Até 5 fotos: a grande e mais 4 em duas colunas (mockup tela 4) */
-const MAX_PHOTOS = 5;
+/** Única aba que fica (uid do componente no CMS): a descrição, "Sobre o produto" (07/11) */
+const DETAILS_TAB = 'ProductDetailsTabComponent';
 
 /**
- * Fotos do produto no visual do mockup (07/11, tela 4): a primeira grande e as outras em grade
- * de duas colunas embaixo, sem carrossel de miniaturas. Clicar numa foto abre ela ampliada
- * (com anterior/próxima, Esc fecha). No lugar do ProductImagesComponent do Spartacus.
+ * Fotos do produto (07/11, mockup tela 4 e pedido do Emerson): a foto grande e, embaixo, as
+ * fotos de detalhe num carrossel (rola de lado, setas quando não cabem). Clicar numa foto do
+ * carrossel troca a grande; clicar na grande abre ela ampliada (anterior/próxima, Esc fecha).
+ * No lugar do ProductImagesComponent do Spartacus.
  */
 @Component({
   selector: 'fla-pdp-gallery',
   template: `
     <ng-container *ngIf="gallery$ | async as g">
-      <div class="fla-gal">
+      <button
+        type="button"
+        class="fla-gal-main"
+        [attr.aria-label]="'pdp.zoomPhoto' | flaT: { n: current + 1 }"
+        (click)="open(current, g.all.length)"
+      >
+        <cx-media
+          [container]="g.all[current]"
+          format="zoom"
+          [alt]="g.name"
+        ></cx-media>
+      </button>
+
+      <div class="fla-gal-strip" *ngIf="g.all.length > 1">
         <button
+          *ngIf="g.all.length > visibleThumbs"
           type="button"
-          *ngFor="let img of g.images; let i = index"
-          class="fla-gal-item"
-          [class.is-main]="i === 0"
-          [attr.aria-label]="'pdp.zoomPhoto' | flaT: { n: i + 1 }"
-          (click)="open(i, g.images.length)"
+          class="fla-gal-arrow is-prev"
+          [attr.aria-label]="'pdp.zoomPrev' | flaT"
+          (click)="scrollThumbs(track, -1)"
         >
-          <cx-media [container]="img" format="zoom" [alt]="g.name"></cx-media>
+          ‹
+        </button>
+        <div class="fla-gal-track" #track>
+          <button
+            type="button"
+            *ngFor="let img of g.all; let i = index"
+            class="fla-gal-thumb"
+            [class.is-active]="i === current"
+            [attr.aria-pressed]="i === current"
+            [attr.aria-label]="'pdp.showPhoto' | flaT: { n: i + 1 }"
+            (click)="current = i"
+          >
+            <cx-media [container]="img" format="product" [alt]="''"></cx-media>
+          </button>
+        </div>
+        <button
+          *ngIf="g.all.length > visibleThumbs"
+          type="button"
+          class="fla-gal-arrow is-next"
+          [attr.aria-label]="'pdp.zoomNext' | flaT"
+          (click)="scrollThumbs(track, 1)"
+        >
+          ›
         </button>
       </div>
 
@@ -61,7 +98,7 @@ const MAX_PHOTOS = 5;
           ×
         </button>
         <button
-          *ngIf="g.images.length > 1"
+          *ngIf="g.all.length > 1"
           type="button"
           class="fla-gal-nav is-prev"
           [attr.aria-label]="'pdp.zoomPrev' | flaT"
@@ -71,13 +108,13 @@ const MAX_PHOTOS = 5;
         </button>
         <div class="fla-gal-big" (click)="$event.stopPropagation()">
           <cx-media
-            [container]="g.images[zoom]"
+            [container]="g.all[zoom]"
             format="zoom"
             [alt]="g.name"
           ></cx-media>
         </div>
         <button
-          *ngIf="g.images.length > 1"
+          *ngIf="g.all.length > 1"
           type="button"
           class="fla-gal-nav is-next"
           [attr.aria-label]="'pdp.zoomNext' | flaT"
@@ -91,9 +128,14 @@ const MAX_PHOTOS = 5;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlaPdpGalleryComponent {
+  /** Foto mostrada grande */
+  current = 0;
+  /** Fotos que cabem no carrossel sem rolar (setas a partir daí) */
+  readonly visibleThumbs = 4;
   /** Foto ampliada (índice) ou null */
   zoom: number | null = null;
   protected count = 0;
+  protected lastCode?: string;
 
   readonly gallery$: Observable<Gallery | null> = this.currentProduct
     .getProduct(ProductScope.DETAILS)
@@ -119,9 +161,16 @@ export class FlaPdpGalleryComponent {
     if (!list.length && primary && !Array.isArray(primary)) {
       list.push(primary);
     }
-    return list.length
-      ? { name: product.name ?? '', images: list.slice(0, MAX_PHOTOS) }
-      : null;
+    if (product.code !== this.lastCode) {
+      this.lastCode = product.code;
+      this.current = 0;
+    }
+    return list.length ? { name: product.name ?? '', all: list } : null;
+  }
+
+  /** Setas do carrossel: rola uma "página" de fotos */
+  scrollThumbs(track: HTMLElement, direction: number): void {
+    track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
   }
 
   open(index: number, count: number): void {
@@ -190,9 +239,22 @@ class AccordionConfig$ extends BehaviorSubject<TabConfig> {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlaPdpTabsComponent extends TabParagraphContainerComponent {
+export class FlaPdpTabsComponent
+  extends TabParagraphContainerComponent
+  implements AfterViewInit
+{
   override tabConfig$: BehaviorSubject<TabConfig> = new AccordionConfig$({
     openTabs: [0],
     mode: TAB_MODE.ACCORDIAN,
   });
+
+  /** Sem sanfona (Emerson, 07/11): só a descrição, como seção "Sobre o produto" (o tema tira o +/–) */
+  override ngAfterViewInit(): void {
+    super.ngAfterViewInit();
+    this.tabs$ = this.tabs$.pipe(
+      map((tabs) =>
+        tabs.filter((t) => String(t.headerKey ?? '').includes(DETAILS_TAB))
+      )
+    );
+  }
 }
