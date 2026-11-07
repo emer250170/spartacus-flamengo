@@ -19,6 +19,10 @@ import {
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { FlaAccountBandComponent } from './fla-account-band.component';
 import { FlaFaqComponent } from './fla-faq.component';
+import {
+  FlaRegisterAsideComponent,
+  FlaRegisterHeadComponent,
+} from './fla-register-extras.component';
 import { FlaAccountMenuComponent } from './fla-account-menu.component';
 import { FlaAccountOrderComponent } from './fla-account-order.component';
 import { FlaEmailCurrentComponent } from './fla-email-current.component';
@@ -66,6 +70,8 @@ import {
     FlaAccountOrderComponent,
     FlaEmailCurrentComponent,
     FlaFaqComponent,
+    FlaRegisterHeadComponent,
+    FlaRegisterAsideComponent,
   ],
   providers: [
     // avisos flutuantes (07/11): erro some em 6s, sucesso e informação em 4s (dá para fechar no X)
@@ -118,6 +124,17 @@ import {
       id: 'ReturningCustomerLoginComponent',
       position: OutletPosition.BEFORE,
       component: FlaLoginHaveComponent,
+    }),
+    // criar conta (/login/register) no visual do mockup (07/11, quadro 42)
+    provideOutlet({
+      id: 'RegisterCustomerComponent',
+      position: OutletPosition.BEFORE,
+      component: FlaRegisterHeadComponent,
+    }),
+    provideOutlet({
+      id: 'RegisterCustomerComponent',
+      position: OutletPosition.AFTER,
+      component: FlaRegisterAsideComponent,
     }),
     provideOutlet({
       id: 'ReturningCustomerRegisterComponent',
