@@ -1365,15 +1365,16 @@ html.fla-co-pay.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate 
   }
 
   // escolha da forma de pagamento: continua o bloco branco do título "Pagamento"
+  // (!important: a regra geral "BodyContent > *" do checkout zera o recuo lateral)
   fla-socio-payment-choice,
   cx-payment-method {
     display: block;
-    padding: 20px 30px 0;
+    padding: 20px 30px 0 !important;
     background: #fff;
   }
 
   cx-payment-method {
-    padding-bottom: 30px;
+    padding-bottom: 30px !important;
     border-radius: 0 0 4px 4px;
   }
 
@@ -1560,7 +1561,7 @@ html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTempla
   html.fla-co-pay.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
     fla-socio-payment-choice,
     cx-payment-method {
-      padding-inline: 16px;
+      padding-inline: 16px !important;
     }
   }
 
