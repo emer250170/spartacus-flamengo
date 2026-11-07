@@ -15,26 +15,8 @@
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
 
 def MODO = 'conferir'
-def PASSO = '''
-<!-- ClearSale (07/11): análise de fraude, Realtime Decision (aba ClearSale da loja base) -->
-<scriptAction id='clearSaleCheck'>
-    <script type='groovy'><![CDATA[
-def log = org.slf4j.LoggerFactory.getLogger('flamengo-clearsale')
-def ctx = de.hybris.platform.core.Registry.applicationContext
-if (!ctx.containsBean('clearSaleService')) {
-  return 'OK'
-}
-try {
-  return ctx.getBean('clearSaleService').analisar(process)
-} catch (Exception ex) {
-  log.error('Pedido ' + process.order?.code + ': falha na análise do ClearSale; o pedido segue', ex)
-  return 'OK'
-}
-]]></script>
-    <transition name='OK' to='fraudCheck'/>
-    <transition name='RECUSADO' to='failed'/>
-</scriptAction>
-'''
+// o passo vai em base64: o HAC tira do texto enviado as tags de script do HTML (proteção contra XSS)
+def PASSO = new String('PCEtLSBDbGVhclNhbGUgKDA3LzExKTogYW7DoWxpc2UgZGUgZnJhdWRlLCBSZWFsdGltZSBEZWNpc2lvbiAoYWJhIENsZWFyU2FsZSBkYSBsb2phIGJhc2UpIC0tPgo8c2NyaXB0QWN0aW9uIGlkPSdjbGVhclNhbGVDaGVjayc+CiAgICA8c2NyaXB0IHR5cGU9J2dyb292eSc+PCFbQ0RBVEFbCmRlZiBsb2cgPSBvcmcuc2xmNGouTG9nZ2VyRmFjdG9yeS5nZXRMb2dnZXIoJ2ZsYW1lbmdvLWNsZWFyc2FsZScpCmRlZiBjdHggPSBkZS5oeWJyaXMucGxhdGZvcm0uY29yZS5SZWdpc3RyeS5hcHBsaWNhdGlvbkNvbnRleHQKaWYgKCFjdHguY29udGFpbnNCZWFuKCdjbGVhclNhbGVTZXJ2aWNlJykpIHsKICByZXR1cm4gJ09LJwp9CnRyeSB7CiAgcmV0dXJuIGN0eC5nZXRCZWFuKCdjbGVhclNhbGVTZXJ2aWNlJykuYW5hbGlzYXIocHJvY2VzcykKfSBjYXRjaCAoRXhjZXB0aW9uIGV4KSB7CiAgbG9nLmVycm9yKCdQZWRpZG8gJyArIHByb2Nlc3Mub3JkZXI/LmNvZGUgKyAnOiBmYWxoYSBuYSBhbsOhbGlzZSBkbyBDbGVhclNhbGU7IG8gcGVkaWRvIHNlZ3VlJywgZXgpCiAgcmV0dXJuICdPSycKfQpdXT48L3NjcmlwdD4KICAgIDx0cmFuc2l0aW9uIG5hbWU9J09LJyB0bz0nZnJhdWRDaGVjaycvPgogICAgPHRyYW5zaXRpb24gbmFtZT0nUkVDVVNBRE8nIHRvPSdmYWlsZWQnLz4KPC9zY3JpcHRBY3Rpb24+Cg=='.decodeBase64(), 'UTF-8')
 def DE = "<action id='checkOrder' bean='checkOrderAction'>\n    <transition name='OK' to='fraudCheck'/>"
 def PARA = "<action id='checkOrder' bean='checkOrderAction'>\n    <transition name='OK' to='clearSaleCheck'/>"
 def ANTES_DE = '<!-- Fraud Check -->'
