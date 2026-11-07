@@ -8,8 +8,8 @@ import {
   Renderer2,
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { CmsService } from '@spartacus/core';
-import { StoreFinderFacade } from '@spartacus/storefinder/root';
+import { HttpClient } from '@angular/common/http';
+import { CmsService, OccEndpointsService } from '@spartacus/core';
 import { Observable, Subscription, combineLatest, of } from 'rxjs';
 import {
   distinctUntilChanged,
@@ -18,6 +18,7 @@ import {
   shareReplay,
   startWith,
   switchMap,
+  catchError,
 } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { FlaCheckoutStepService } from '../visual/fla-checkout-header.component';
@@ -41,6 +42,9 @@ const TERM_URL = /\/socio-torcedor\/termo\/?(?:[?#]|$)/;
 
 /** Encontre uma loja (/store-finder, busca, país, loja) */
 const STORES_URL = /\/store-finder(?:[/?#]|$)/;
+
+/** "Ver todas as lojas" (países) */
+const VIEW_ALL_URL = /\/store-finder\/view-all\/?(?=[?#]|$)/;
 
 /** Detalhe da loja: /store-finder/country/{país}[/region/{região}]/{loja} */
 const STORE_URL =
@@ -130,12 +134,16 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     distinctUntilChanged(),
     switchMap((id) =>
       id
-        ? this.storeFinder.getFindStoreEntityById().pipe(
-            map((store: any) =>
-              store?.name === id ? (store.displayName ?? store.name) : ''
-            ),
-            startWith('')
-          )
+        ? this.http
+            .get<{
+              name?: string;
+              displayName?: string;
+            }>(`${this.occ.getBaseUrl()}/stores/${encodeURIComponent(id)}`, { params: { fields: 'name,displayName' } })
+            .pipe(
+              map((store) => store?.displayName ?? store?.name ?? ''),
+              catchError(() => of('')),
+              startWith('')
+            )
         : of('')
     ),
     distinctUntilChanged()
@@ -222,13 +230,28 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     protected i18n: FlaI18nService,
     protected renderer: Renderer2,
     protected domLabels: FlaDomLabelsService,
-    protected storeFinder: StoreFinderFacade,
+    protected http: HttpClient,
+    protected occ: OccEndpointsService,
     @Inject(DOCUMENT) protected document: Document
   ) {}
 
   ngOnInit(): void {
     // paginação em português e cor do selo nas listas do Spartacus (todas as páginas)
     this.domLabels.start(this.document);
+    // "Ver todas as lojas" navega dentro da página (a rota do ContaModule só vale ao abrir o
+    // endereço direto): as lojas da demo são todas do Brasil, vai direto à lista
+    this.subscription.add(
+      this.url$
+        .pipe(filter((url) => VIEW_ALL_URL.test(url ?? '')))
+        .subscribe((url) =>
+          this.router.navigateByUrl(
+            url.replace(VIEW_ALL_URL, '/store-finder/country/BR'),
+            {
+              replaceUrl: true,
+            }
+          )
+        )
+    );
     this.subscription.add(
       this.mode$.subscribe((mode) => {
         const html = this.document?.documentElement;

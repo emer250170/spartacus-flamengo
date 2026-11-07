@@ -1618,11 +1618,119 @@ html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate {
     display: none !important;
   }
 
+  // Pix/boleto na identidade da loja (07/11), como no detalhe do pedido em Minha conta (mockup
+  // ContaPedido): caixa branca sem a borda colorida; aguardando pagamento em bloco preto, rótulo
+  // vermelho, título da loja, código em campo escuro, "Copiar" vermelho e o QR Code à direita
   fla-socio-payment-status .spay {
     max-width: none;
     margin: 0;
-    padding: 24px 28px;
+    padding: 28px;
+    border: 0 !important;
     border-radius: 4px;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  fla-socio-payment-status .spay.spay-wait {
+    background: #111 !important;
+    color: #fff;
+
+    .spay-kind {
+      margin: 0 0 6px;
+      color: #ff5a5a !important;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .spay-title {
+      margin: 0 0 6px;
+      color: #fff !important;
+      font-family: var(--fla-fonte-titulo);
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .spay-sub {
+      margin: 0 0 18px;
+      color: #d6d6d6 !important;
+      font-size: 16px;
+    }
+
+    .spay-code {
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      gap: 24px;
+      margin: 0 0 14px;
+    }
+
+    .spay-copy {
+      gap: 8px;
+
+      .spay-kind {
+        margin: 0;
+        color: #bdbdbd !important;
+        letter-spacing: 0.08em;
+      }
+
+      small {
+        color: #bdbdbd !important;
+        font-size: 13px;
+      }
+    }
+
+    .spay-codebox {
+      border: 1px solid #333 !important;
+      border-radius: 4px;
+      background: #1e1e1e !important;
+      color: #fff !important;
+    }
+
+    .spay-links .btn {
+      display: inline-flex;
+      align-items: center;
+      height: 48px;
+      padding: 0 22px;
+      border: 0 !important;
+      border-radius: 4px;
+      background: var(--fla-vermelho, #d70000) !important;
+      color: #fff !important;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: none;
+
+      &:hover {
+        background: var(--fla-vermelho-escuro, #a80000) !important;
+      }
+    }
+
+    .spay-qr {
+      width: 150px;
+      height: 150px;
+      border: 0;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .spay-note {
+      margin: 0;
+      color: #d6d6d6 !important;
+      font-size: 15px;
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  html.fla-oc.fla-co-mode
+    cx-page-layout.OrderConfirmationPageTemplate
+    fla-socio-payment-status
+    .spay.spay-wait
+    .spay-code {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
