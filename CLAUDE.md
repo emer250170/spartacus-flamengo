@@ -183,9 +183,11 @@ async () => {
 - `integrationservices.authorization.accessrights.enabled=true`: permissão por tipo.
   Dar as permissões em **UserGroups** (`socioapigroup`, `jogosapigroup`), não em
   BackofficeRole (só valem com o papel ativo no Backoffice).
-- `gestor.socio` ∈ sociomanagerrole + socioapigroup; `gestor.jogos` ∈ matchdaygamemanagerrole + jogosapigroup.
+- `gestor.socio` ∈ sociomanagerrole + socioapigroup; `gestor.jogos` ∈ matchdaygamemanagerrole + jogosapigroup;
+  `gestor.loja` ∈ lojamanagerrole + lojaapigroup (grupos de integração não leem catálogo: o Backoffice dele segue só Flamengo).
 - Chave do Order = `code|versionID`; datas `/Date(ms)/`; `Accept-Language: pt`.
-- Configuração no servidor: `docs/flamengo-matchday/mcp/integracao-gestores.impex`.
+- Configuração no servidor: `docs/flamengo-matchday/mcp/integracao-gestores.impex`, `integracao-ingressos.impex` e
+  `integracao-loja.impex` (persona gestor da loja).
 - MCP: código em `mcp/src` (`core.js` sem dependências + `server.mjs`), empacotado
   com esbuild num único `flamengo-mcp.mjs`. Escrita exige `confirmar=true`;
   certificado do servidor fixado por SHA-256. Detalhes em `mcp/README.md`.

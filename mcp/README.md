@@ -1,22 +1,23 @@
 # MCP "Loja Flamengo" — SAP Commerce Cloud como ferramenta de IA
 
-Um único arquivo (`flamengo-mcp.mjs`) que o Claude Desktop inicia sozinho. Três personas, cada uma com o usuário dela no SAP Commerce:
+Um único arquivo (`flamengo-mcp.mjs`) que o Claude Desktop inicia sozinho. Quatro personas, cada uma com o usuário dela no SAP Commerce:
 
 | Persona | Usuário no Commerce | API | O que pode |
 |---|---|---|---|
 | **Torcedor** | o torcedor (ex. torcedor1) | OCC (API da loja) | plano, jogos e preço de sócio, comprar ingressos, loja, carrinho, cupom, finalizar compra, pedidos, chamados, pedir cancelamento |
 | **Gestor do sócio-torcedor** | `gestor.socio` | Integration API (OData) | planos (ler/alterar), sócios, torcedores, situação e elegibilidade (por que não conseguiu comprar), chamados, confirmar cancelamento, relatórios de cancelamento e adesão, cupons (ler/alterar) |
 | **Gestor de jogos** | `gestor.jogos` | Integration API (OData) | jogos (ler/criar/alterar/encerrar), vendas de ingressos por jogo e setor, ingressos vendidos (consultar, trocar poltrona ou quem vai usar, cancelar com reembolso, marcar entrada, observação) |
+| **Gestor da loja** | `gestor.loja` | Integration API (OData) + busca pública da loja | produtos (buscar, ficha com catálogo, preço e estoque por depósito), alterar preço e estoque, resumo de vendas por categoria, pedidos, promoções (só leitura), cupons (ler/alterar), experiências do sócio (vitrine, resgates, criar/alterar) |
 
 ## Instalar (5 minutos)
 
 1. A pasta `flamengo-mcp` fica em `C:\Users\I844870\Downloads\flamengo-mcp\` (já está aí).
 2. Claude Desktop → **Configurações → Desenvolvedor → Editar configuração** (abre o `claude_desktop_config.json`).
-3. Copie os três blocos de `claude_desktop_config-trecho.json` para dentro de `"mcpServers"` (mantendo os servidores que já existem) e troque `COLOQUE_AQUI` pelas senhas:
+3. Copie os blocos de `claude_desktop_config-trecho.json` para dentro de `"mcpServers"` (mantendo os servidores que já existem) e troque `COLOQUE_AQUI` pelas senhas:
    - torcedor1: a senha dos torcedores de teste;
-   - `gestor.socio` e `gestor.jogos`: as senhas que você definiu no Backoffice.
+   - `gestor.socio`, `gestor.jogos` e `gestor.loja`: as senhas que você definiu no Backoffice.
 4. Feche o Claude Desktop por completo (ícone da bandeja → Sair) e abra de novo.
-5. Em uma conversa, no botão **+ → Conectores**, aparecem `flamengo-torcedor`, `flamengo-gestor-socio` e `flamengo-gestor-jogos`. Ligue **só a persona da cena** da demo.
+5. Em uma conversa, no botão **+ → Conectores**, aparecem `flamengo-torcedor`, `flamengo-gestor-socio`, `flamengo-gestor-jogos` e `flamengo-gestor-loja`. Ligue **só a persona da cena** da demo.
 
 Teste rápido no terminal (opcional):
 ```
@@ -32,6 +33,7 @@ O mesmo arquivo roda como servidor HTTP (`--http`, transporte Streamable HTTP do
 | Flamengo · Torcedor | `https://mcp-flamengo.democc.online/torcedor/mcp` | `MCP_TOKEN_TORCEDOR` |
 | Flamengo · Gestor do sócio | `https://mcp-flamengo.democc.online/gestor-socio/mcp` | `MCP_TOKEN_SOCIO` |
 | Flamengo · Gestor de jogos | `https://mcp-flamengo.democc.online/gestor-jogos/mcp` | `MCP_TOKEN_JOGOS` |
+| Flamengo · Gestor da loja | `https://mcp-flamengo.democc.online/gestor-loja/mcp` | `MCP_TOKEN_LOJA` |
 
 **Instalar no servidor (uma vez, quem tem acesso ao host):**
 
@@ -41,28 +43,29 @@ O mesmo arquivo roda como servidor HTTP (`--http`, transporte Streamable HTTP do
    # copiar flamengo-mcp.mjs (gerado com npm run build) para /opt/flamengo-mcp/
    cp flamengo-mcp.env.exemplo /opt/flamengo-mcp/flamengo-mcp.env && chmod 600 /opt/flamengo-mcp/flamengo-mcp.env
    ```
-2. Gerar os três tokens (`openssl rand -hex 32`, um por linha `MCP_TOKEN_*`) e colocar as senhas de torcedor1, gestor.socio e gestor.jogos no `flamengo-mcp.env`. As senhas ficam só nesse arquivo do servidor.
+2. Gerar os tokens (`openssl rand -hex 32`, um por linha `MCP_TOKEN_*`) e colocar as senhas de torcedor1, gestor.socio, gestor.jogos e gestor.loja no `flamengo-mcp.env`. As senhas ficam só nesse arquivo do servidor.
 3. Subir o container (reinicia sozinho com o servidor):
    ```
    docker run -d --name flamengo-mcp --restart unless-stopped --network host -u 1000:1000 \
      --env-file /opt/flamengo-mcp/flamengo-mcp.env \
      -v /opt/flamengo-mcp/flamengo-mcp.mjs:/app/flamengo-mcp.mjs:ro -v /opt/flamengo-mcp/logs:/logs \
      node:20-alpine node /app/flamengo-mcp.mjs --http
-   docker logs flamengo-mcp        # deve mostrar as três rotas "ligada"
+   docker logs flamengo-mcp        # deve mostrar as rotas "ligada"
    curl -s http://127.0.0.1:8787/saude
    ```
    Ouve só em `127.0.0.1:8787`: de fora, só pelo Caddy.
 4. Caddy: acrescentar o bloco de `Caddyfile-trecho` ao Caddyfile e recarregar (`systemctl reload caddy`, ou `docker exec <caddy> caddy reload --config /etc/caddy/Caddyfile` se o Caddy roda em container; nesse caso o `reverse_proxy` aponta para o endereço do host na rede do Docker, ex. `172.17.0.1:8787`). Conferir: `curl https://mcp-flamengo.democc.online/saude`.
 5. Atualizar depois de um PR: trocar o `flamengo-mcp.mjs` e `docker restart flamengo-mcp`.
+6. Persona nova (ex. Gestor da loja, 07/11): acrescentar `MCP_TOKEN_LOJA`, `LOJA_USUARIO` e `LOJA_SENHA` ao `flamengo-mcp.env`, trocar o `.mjs`, `docker restart flamengo-mcp` e incluir a rota no `@mcp` do Caddy (`/gestor-loja/*`, ver `Caddyfile-trecho`) antes de recarregar.
 
-**Cadastrar no Claude (plano Pro):** claude.ai › Customize › Connectors › **+ Add** › **Add custom connector**: nome e endereço da persona; autenticação **No sign in**; em *Request headers*, `Authorization` = `Bearer <token da persona>`. Repetir para as três. No celular, os conectores aparecem na mesma conta; ligar só a persona da cena.
+**Cadastrar no Claude (plano Pro):** claude.ai › Customize › Connectors › **+ Add** › **Add custom connector**: nome e endereço da persona; autenticação **No sign in**; em *Request headers*, `Authorization` = `Bearer <token da persona>`. Repetir para cada persona. No celular, os conectores aparecem na mesma conta; ligar só a persona da cena.
 Se o cadastro não oferecer cabeçalho: `MCP_TOKEN_NA_URL=true` no `flamengo-mcp.env`, `docker restart flamengo-mcp` e endereço `https://mcp-flamengo.democc.online/<rota>/<token>/mcp` (o token aparece no log de acesso do Caddy; usar só se preciso).
 
 **Proteções do modo internet:** token de 32+ caracteres por persona (o de uma não abre a outra), comparação em tempo constante, bloqueio de 10 min por IP depois de 20 tokens errados, corpo até 1 MB, sem sessão no servidor, tentativas negadas e chamadas na auditoria com o IP de origem (`/opt/flamengo-mcp/logs`). Continuam valendo o login próprio por persona no Commerce, a lista fechada de ações e o `confirmar=true`. Evite `entrar_como` pelo conector remoto (a senha passa pela conversa).
 
 ## Segurança (bom para mostrar ao cliente)
 
-- **Cada persona usa o próprio login do Commerce**; quem bloqueia é o Commerce, não o MCP: o gestor do sócio-torcedor recebe *"o Commerce negou"* se tentar ver jogos, e o gestor de jogos não enxerga planos nem chamados. Permissões por tipo nos grupos `socioapigroup` e `jogosapigroup`.
+- **Cada persona usa o próprio login do Commerce**; quem bloqueia é o Commerce, não o MCP: o gestor do sócio-torcedor recebe *"o Commerce negou"* se tentar ver jogos, e o gestor de jogos não enxerga planos nem chamados. O gestor da loja não vê sócios nem jogos (só os resgates de experiência e os pedidos). Permissões por tipo nos grupos `socioapigroup`, `jogosapigroup` e `lojaapigroup`; o `lojaapigroup` não lê catálogo nenhum, então o Backoffice do gestor.loja continua só com o catálogo do Flamengo.
 - **Lista fechada de ações**: não existe ferramenta genérica de consulta ou de "executar qualquer coisa".
 - **Dupla confirmação nas ações que alteram dados**: o Claude pede aprovação para usar a ferramenta *e* o servidor só executa com `confirmar=true` depois de mostrar o resumo ao usuário.
 - **Auditoria**: cada chamada fica em `logs\auditoria-<persona>.jsonl` (quem, ferramenta, parâmetros, resultado), sem senhas.
@@ -100,5 +103,14 @@ Se o cadastro não oferecer cabeçalho: `MCP_TOKEN_NA_URL=true` no `flamengo-mcp
 - "Cadastra Flamengo x Vasco, 29/11 às 16h, Brasileirão Rodada 37, Oeste a R$ 240" → o Commerce cria produto, 384 poltronas e as 4 ondas → abra a loja e mostre o jogo.
 - "Baixa o Norte desse jogo para R$ 70" / "Quanto vendemos de ingresso no jogo do Bahia, por setor?"
 - "Mostra os ingressos do torcedor24" / "Troca a poltrona do ingresso 00021000-0 para uma livre no mesmo setor" / "Cancela esse ingresso, o torcedor não pode ir" → `ingressos`, `detalhe_ingresso` (histórico, poltronas livres e reembolso se cancelar agora) e `acao_ingresso` (com `confirmar=true`). A ação é um evento novo no histórico (objeto `FlamengoIngressoEvento`) que o Commerce executa com as mesmas regras do Backoffice: troca só no mesmo setor, reembolso integral até 48 h antes e 80 % depois, nada depois do início do jogo. Objetos em `docs/flamengo-matchday/mcp/integracao-ingressos.impex`.
+
+**4. Gestor da loja (ligue só `flamengo-gestor-loja`)**
+- "Como foram as vendas nos últimos 30 dias? O que mais vendeu na loja?" → receita, pedidos, ticket médio, frete, descontos e a divisão por categoria (ingressos, sócio, experiências, estacionamento, alimentação, personalização, produtos), com as mesmas regras do painel de vendas do Backoffice (`resumo_vendas`).
+- "Tem pedido aguardando pagamento?" / "Mostra o pedido 00021000" (`pedidos`, `detalhe_pedido`).
+- "Quanto está o manto I e quanto tem em estoque?" → ficha com catálogo Staged/Online, preço e estoque por depósito; para roupa, as opções de tamanho com o código de cada uma (`buscar_produtos`, `detalhe_produto`).
+- "Baixa o manto para R$ 299,90" / "Entraram 20 unidades do tamanho G" → resumo → confirmar → a loja mostra o preço e o estoque novos em instantes (`alterar_preco`, `alterar_estoque`). Preço de ingresso, plano ou experiência é recusado e o Claude indica quem cuida.
+- "Quais promoções estão valendo?" (`promocoes`, só leitura: ativar ou criar regra é no Backoffice, que republica o motor de promoções) / "Desativa o cupom mengao" (`atualizar_cupom`).
+- "Como está a vitrine de experiências? Quem resgatou o tour?" / "Cria a experiência Visita ao museu por 300 pontos ou R$ 60, 20 vagas" → o Commerce cria o produto `EXP-VISITA-AO-MUSEU` na loja (`experiencias`, `resgates_experiencias`, `criar_experiencia`, `atualizar_experiencia`). Objetos em `docs/flamengo-matchday/mcp/integracao-loja.impex`.
+- Mostre o bloqueio: "Suspende o torcedor21" → ele não tem essa ferramenta nem acesso.
 
 Dicas: antes da demo, deixe o carrinho do torcedor vazio; para o cancelamento, use um torcedor sócio que você possa reativar (ou recompre o plano depois pela loja).

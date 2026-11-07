@@ -26,6 +26,15 @@
         "GESTOR_USUARIO": "gestor.jogos",
         "GESTOR_SENHA": "COLOQUE_AQUI"
       }
+    },
+    "flamengo-gestor-loja": {
+      "command": "node",
+      "args": ["C:\\Users\\I844870\\Downloads\\flamengo-mcp\\flamengo-mcp.mjs"],
+      "env": {
+        "FLAMENGO_PERSONA": "loja",
+        "GESTOR_USUARIO": "gestor.loja",
+        "GESTOR_SENHA": "COLOQUE_AQUI"
+      }
     }
   }
 }

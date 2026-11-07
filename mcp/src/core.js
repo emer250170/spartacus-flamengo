@@ -2,11 +2,13 @@
  * Loja Flamengo (SAP Commerce Cloud) como ferramentas para um agente de IA (MCP).
  *
  * Núcleo sem dependências: recebe um `http` (adaptador de rede) e devolve as
- * ferramentas da persona. Três personas, cada uma com o próprio usuário do
+ * ferramentas da persona. Quatro personas, cada uma com o próprio usuário do
  * Commerce e só as ferramentas do seu papel:
  *   - torcedor: API da loja (OCC) com o login do torcedor
  *   - socio:    API de integração (OData) com o gestor.socio  (planos, chamados, cupons)
  *   - jogos:    API de integração (OData) com o gestor.jogos  (jogos e venda de ingressos)
+ *   - loja:     API de integração (OData) com o gestor.loja   (produtos, preço, estoque, vendas,
+ *               pedidos, promoções, cupons e experiências)
  * Quem decide o que cada usuário pode fazer é o próprio Commerce (permissões por
  * tipo); o MCP só expõe a lista fechada de ações. Ações que alteram dados exigem
  * confirmar=true (depois de o usuário concordar).
@@ -124,7 +126,8 @@ export function buildTools(ctx) {
   if (persona === 'torcedor') return torcedorTools(cfg, http);
   if (persona === 'socio') return socioTools(cfg, http);
   if (persona === 'jogos') return jogosTools(cfg, http);
-  throw new Error(`Persona desconhecida: ${persona} (use torcedor, socio ou jogos)`);
+  if (persona === 'loja') return lojaTools(cfg, http);
+  throw new Error(`Persona desconhecida: ${persona} (use torcedor, socio, jogos ou loja)`);
 }
 
 const S = {
@@ -1153,6 +1156,13 @@ function socioTools(cfg, http) {
         return { periodo: `últimos ${dias} dias`, adesoes: os.length, porPlano: byPlan, receitaPrimeiraMensalidade: brl(revenue), pedidos: os.map((o) => ({ pedido: o.pedido, data: fmtDate(o.data), torcedor: o.torcedor, plano: o.itens.filter((i) => codes.has(i.codigo)).map((i) => i.produto).join(', '), total: brl(o.total) })) };
       },
     },
+    ...couponTools(odata),
+  ];
+}
+
+/** Cupons (FlamengoCupom, FlamengoCupomUso): gestor do sócio e gestor da loja */
+function couponTools(odata) {
+  return [
     {
       name: 'cupons',
       description: 'Cupons de desconto da loja: ativo, limites de uso e quantas vezes cada um já foi usado.',
@@ -1477,4 +1487,377 @@ function jogosTools(cfg, http) {
   ];
 }
 
-export const _test = { parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };
+// ================================================================ GESTOR DA LOJA (OData)
+
+/** Grupo de promoções do site electronics-spa (as regras dos outros sites do servidor ficam de fora) */
+const STORE_PROMO_GROUP = 'electronicsPromoGrp';
+const MAIN_WAREHOUSE = 'warehouse_s';
+/** Produtos cuidados por outra persona ou tela: preço e estoque não mudam por aqui */
+const MANAGED_ELSEWHERE = [
+  [/^JOGO-/, 'ingresso de jogo: preço por setor e poltronas são do gestor de jogos (criar_jogo / atualizar_jogo)'],
+  [/^NACAO-/, 'plano de sócio: mensalidade e vagas são do gestor do sócio-torcedor (atualizar_plano)'],
+  [/^EXP-/, 'experiência do sócio: preço e vagas mudam em atualizar_experiencia (o Commerce republica o produto)'],
+];
+/** Mesmas regras do painel de vendas do Backoffice (DefaultSummaryReportService) */
+const SALE_CATEGORIES = [
+  [/^JOGO-/, 'Ingressos'], [/^NACAO-/, 'Sócio-torcedor'], [/^EXP-/, 'Experiências'],
+  [/^FLA-EST-/, 'Estacionamento'], [/^FLA-FOOD-/, 'Alimentação'], [/^FLA-PERSONALIZACAO/, 'Personalização'],
+];
+const saleCategory = (code) => SALE_CATEGORIES.find(([re]) => re.test(code ?? ''))?.[1] ?? 'Loja (produtos)';
+const EXCLUDED_STATUS = new Set(['CANCELLED', 'CHECKED_INVALID']);
+const ORDER_STATUS = {
+  CREATED: 'Criado', PAYMENT_NOT_CAPTURED: 'Aguardando pagamento', PAYMENT_CAPTURED: 'Pagamento confirmado', CHECKED_VALID: 'Verificado',
+  CHECKED_INVALID: 'Inválido', READY: 'Pronto para envio', ON_VALIDATION: 'Em validação', SUSPENDED: 'Suspenso', PROCESSING_ERROR: 'Erro no processamento',
+  CANCELLING: 'Cancelando', CANCELLED: 'Cancelado', COMPLETED: 'Concluído', WAIT_FRAUD_MANUAL_CHECK: 'Análise de fraude', FRAUD_CHECKED: 'Fraude verificada',
+  READY_FOR_PICKUP: 'Pronto para retirada', PICKUP_COMPLETE: 'Retirado',
+};
+const RULE_STATUS = { PUBLISHED: 'publicada (vale na loja)', UNPUBLISHED: 'não publicada', MODIFIED: 'alterada, falta publicar', INACTIVE: 'inativa', ARCHIVED: 'arquivada' };
+
+function lojaTools(cfg, http) {
+  const odata = odataClient(cfg, http);
+  const q = (s) => String(s ?? '').trim().replace(/'/g, "''");
+
+  function managedElsewhere(code) {
+    const hit = MANAGED_ELSEWHERE.find(([re]) => re.test(String(code ?? '').toUpperCase()));
+    if (hit) throw new UserError(`${code} é ${hit[1]}.`);
+  }
+
+  /** Todas as páginas de uma lista OData */
+  async function all(path, query = {}, page = 500) {
+    const out = [];
+    for (let skip = 0; ; skip += page) {
+      const r = results(await odata('GET', path, { query: { ...query, $top: page, $skip: skip } }));
+      out.push(...r);
+      if (r.length < page || out.length >= 10000) return out;
+    }
+  }
+
+  // ---- produtos, preço e estoque
+  async function products(code) {
+    return results(await odata('GET', '/FlamengoProduto/Products', { query: { $filter: `code eq '${q(code)}'`, $expand: 'catalogVersion/catalog,approvalStatus,supercategories' } }))
+      .filter((p) => p.catalogVersion?.catalog?.id === 'flamengoProductCatalog');
+  }
+  async function prices(code) {
+    return results(await odata('GET', '/FlamengoPreco/PriceRows', { query: { $filter: `productId eq '${q(code)}'`, $expand: 'currency,unit' } }));
+  }
+  async function stocks(code) {
+    return results(await odata('GET', '/FlamengoEstoque/StockLevels', { query: { $filter: `productCode eq '${q(code)}'`, $expand: 'warehouse,inStockStatus' } }));
+  }
+  const showStock = (s) => ({
+    deposito: s.warehouse?.code, nome: s.warehouse?.name ?? null, disponivel: num(s.available), reservado: num(s.reserved),
+    livreParaVenda: (num(s.available) ?? 0) - (num(s.reserved) ?? 0), ...(num(s.overSelling) ? { vendaAlemDoEstoque: num(s.overSelling) } : {}),
+    ...(s.inStockStatus?.code && s.inStockStatus.code !== 'notSpecified' ? { regra: s.inStockStatus.code === 'forceInStock' ? 'sempre em estoque' : s.inStockStatus.code === 'forceOutOfStock' ? 'sempre esgotado' : s.inStockStatus.code } : {}),
+  });
+  const brlPrice = (rows) => rows.find((r) => r.currency?.isocode === 'BRL');
+
+  /** Opções (tamanhos) do produto na loja publicada (catálogo Online, OCC público) */
+  async function storeView(code) {
+    const r = await http({ base: 'occ', method: 'GET', path: `/products/${enc(code)}`, query: { lang: cfg.lang ?? 'pt', curr: cfg.curr ?? 'BRL', fields: 'code,name,price(value),stock(stockLevel,stockLevelStatus),purchasable,baseProduct,variantOptions(code,stock(stockLevel,stockLevelStatus),priceData(value),variantOptionQualifiers(name,value)),baseOptions(options(code,stock(stockLevel,stockLevelStatus),priceData(value),variantOptionQualifiers(name,value)))' } });
+    return r.status < 400 ? r.json : null;
+  }
+
+  // ---- pedidos
+  async function orders() {
+    const os = await all('/FlamengoPedido/Orders', { $expand: 'status,user,entries/product' });
+    return os.filter((o) => o.versionID == null).map((o) => {
+      const itens = results(o.entries).sort((a, b) => num(a.entryNumber) - num(b.entryNumber)).map((e) => ({
+        codigo: e.product?.code, produto: e.product?.name ?? e.product?.code, quantidade: num(e.quantity) ?? 0,
+        unitario: num(e.basePrice), total: num(e.totalPrice) ?? 0, categoria: saleCategory(e.product?.code), ...(e.ticketHolder ? { quemVaiUsar: e.ticketHolder } : {}),
+      }));
+      const linhas = itens.reduce((s, i) => s + i.total, 0);
+      const frete = num(o.deliveryCost) ?? 0;
+      const total = num(o.totalPrice) ?? 0;
+      return {
+        pedido: o.code, data: toDate(o.date), torcedor: o.user?.name, email: o.user?.uid, situacaoCodigo: o.status?.code,
+        situacao: ORDER_STATUS[o.status?.code] ?? o.status?.code, total, frete, descontos: Math.max(0, Math.round((linhas + frete - total) * 100) / 100),
+        cupons: String(o.appliedCouponCodes ?? '').split(/[,;\s]+/).filter(Boolean), itens,
+      };
+    }).sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
+  }
+
+  function period(a) {
+    const fim = a.fim ? parseLocal(a.fim.length <= 10 ? a.fim + 'T23:59' : a.fim) : new Date();
+    const inicio = a.inicio ? parseLocal(a.inicio) : new Date(fim.getTime() - (a.dias ?? 30) * 86400000);
+    if (inicio > fim) throw new UserError('O início do período é depois do fim.');
+    return { inicio, fim, texto: `${fmtDate(inicio, false)} a ${fmtDate(fim, false)}` };
+  }
+
+  const showOrder = (o) => ({ pedido: o.pedido, data: fmtDate(o.data), torcedor: o.torcedor, email: o.email, situacao: o.situacao, total: brl(o.total), itens: o.itens.map((i) => `${i.quantidade}x ${i.produto}`), ...(o.cupons.length ? { cupons: o.cupons } : {}) });
+
+  // ---- experiências
+  async function experiences() {
+    return (await all('/FlamengoExperiencia/SocioExperiences', { $expand: 'minPlan' }))
+      .sort((a, b) => (num(a.sortOrder) ?? 999) - (num(b.sortOrder) ?? 999) || num(a.points) - num(b.points));
+  }
+  async function redemptions() {
+    return (await all('/FlamengoResgate/SocioRedemptions', { $expand: 'customer,experience,plan' }))
+      .map((r) => ({
+        voucher: r.voucher, experiencia: r.experience?.code, nomeExperiencia: r.experience?.name, torcedor: r.customer?.name, email: r.customer?.uid,
+        plano: r.plan?.name ?? r.plan?.code ?? null, pontos: num(r.points), data: toDate(r.date), origem: r.origin ?? null,
+        ...(r.orderCode ? { pedido: r.orderCode, valor: brl(num(r.amount)) } : {}),
+        situacao: r.cancelledAt ? `cancelado em ${fmtDate(r.cancelledAt)}${r.cancelReason ? ` (${r.cancelReason})` : ''}` : r.usedAt ? `utilizado em ${fmtDate(r.usedAt)}` : 'válido',
+        _ativo: !r.cancelledAt,
+      }))
+      .sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
+  }
+  function showExperience(x, rs, os) {
+    const mine = rs.filter((r) => r.experiencia === x.code && r._ativo);
+    const sold = os.filter((o) => !EXCLUDED_STATUS.has(o.situacaoCodigo)).flatMap((o) => o.itens).filter((i) => i.codigo === `EXP-${x.code}`);
+    const stock = num(x.stock);
+    return {
+      code: x.code, nome: x.name, descricao: clean(x.description) || null, ativa: x.active !== false,
+      pontos: num(x.points), preco: x.price != null ? brl(num(x.price)) : 'só por pontos', planoMinimo: x.minPlan?.name ?? x.minPlan?.code ?? 'qualquer plano',
+      vagas: stock == null ? 'sem limite' : stock, resgates: mine.length, vendidasNaLoja: sold.reduce((s, i) => s + i.quantidade, 0),
+      receitaNaLoja: brl(sold.reduce((s, i) => s + i.total, 0)), ordem: num(x.sortOrder), produtoNaLoja: `EXP-${x.code}`,
+      ...(x.statusMessage ? { avisoPublicacao: x.statusMessage } : {}),
+    };
+  }
+  const expFields = {
+    nome: S.str('Nome da experiência'), descricao: S.str('Descrição para o torcedor'), pontos: S.int('Pontos para resgatar'),
+    preco: S.num('Preço em R$ para comprar na loja (produto EXP-<código>)'), vagas: S.int('Vagas (estoque); sem valor = sem limite'),
+    planoMinimo: S.str('Código do plano mínimo para resgatar (sem valor ao criar = qualquer plano)'), ativa: S.bool('Ativa na vitrine e na loja'), ordem: S.int('Ordem na vitrine'),
+  };
+  function expBody(a, body, changes) {
+    if (a.nome) { body.name = a.nome; changes.push(`nome "${a.nome}"`); }
+    if (a.descricao) { body.description = a.descricao; changes.push('descrição'); }
+    if (a.pontos != null) { body.points = a.pontos; changes.push(`${a.pontos} pontos`); }
+    if (a.preco != null) { body.price = String(a.preco); changes.push(`preço ${brl(a.preco)}`); }
+    if (a.vagas != null) { body.stock = a.vagas; changes.push(`${a.vagas} vaga(s)`); }
+    if (a.planoMinimo) { body.minPlan = { code: a.planoMinimo }; changes.push(`plano mínimo ${a.planoMinimo}`); }
+    if (a.ativa != null) { body.active = a.ativa; changes.push(a.ativa ? 'ativa' : 'inativa'); }
+    if (a.ordem != null) { body.sortOrder = a.ordem; changes.push(`ordem ${a.ordem}`); }
+  }
+
+  return [
+    {
+      name: 'buscar_produtos',
+      description: 'Busca produtos na loja publicada (texto livre ou código): preço, situação do estoque e link. Para dados completos, preço e estoque por depósito use detalhe_produto.',
+      inputSchema: obj({ texto: S.str('O que procurar, ex. "manto jogo 1" ou um código'), quantidade: S.int('Máximo de resultados (padrão 10, até 30)') }, ['texto']),
+      handler: async ({ texto, quantidade }) => {
+        const r = await http({ base: 'occ', method: 'GET', path: '/products/search', query: { lang: cfg.lang ?? 'pt', curr: cfg.curr ?? 'BRL', query: texto, pageSize: Math.min(30, quantidade ?? 10), fields: 'products(code,name,price(value),stock(stockLevel,stockLevelStatus)),pagination(totalResults)' } });
+        if (r.status >= 400) throw new UserError(`A loja recusou a busca (${r.status}).`);
+        const st = { inStock: 'em estoque', lowStock: 'estoque baixo', outOfStock: 'esgotado' };
+        return { total: r.json?.pagination?.totalResults ?? 0, produtos: (r.json?.products ?? []).map((p) => ({ code: p.code, nome: clean(p.name), preco: brl(p.price?.value), estoque: st[p.stock?.stockLevelStatus] ?? p.stock?.stockLevelStatus, quantidade: p.stock?.stockLevel ?? null, link: `${cfg.storeUrl}/p/${p.code}` })) };
+      },
+    },
+    {
+      name: 'detalhe_produto',
+      description: 'Ficha de um produto para o gestor: nome e aprovação no catálogo (Staged e Online), categorias, preço em vigor, estoque por depósito (disponível, reservado, livre) e as opções (tamanhos) com o código de cada uma, que é onde fica o estoque das roupas.',
+      inputSchema: obj({ codigo: S.str('Código do produto (de buscar_produtos)') }, ['codigo']),
+      handler: async ({ codigo }) => {
+        const [ps, pr, st, view] = await Promise.all([products(codigo), prices(codigo), stocks(codigo), storeView(codigo)]);
+        if (!ps.length && !view) throw new UserError(`Produto ${codigo} não encontrado no catálogo do Flamengo.`);
+        const online = ps.find((p) => p.catalogVersion?.version === 'Online');
+        const staged = ps.find((p) => p.catalogVersion?.version === 'Staged');
+        const base = online ?? staged;
+        const price = brlPrice(pr);
+        const opts = [...(view?.variantOptions ?? []), ...(view?.baseOptions ?? []).flatMap((b) => b.options ?? [])].filter((o) => o.code !== codigo);
+        const managed = MANAGED_ELSEWHERE.find(([re]) => re.test(codigo.toUpperCase()));
+        return {
+          code: codigo, nome: base?.name ?? clean(view?.name), descricao: clean(base?.description).slice(0, 500) || null,
+          catalogo: { staged: staged ? staged.approvalStatus?.code ?? 'sem aprovação' : 'não existe', online: online ? online.approvalStatus?.code ?? 'sem aprovação' : 'não existe no Online (não aparece na loja)' },
+          categorias: results(base?.supercategories).map((c) => c.name ?? c.code).filter((v, i, a) => a.indexOf(v) === i),
+          categoriaNasVendas: saleCategory(codigo),
+          preco: price ? brl(num(price.price)) : view?.price?.value != null ? `${brl(view.price.value)} (herdado do produto base)` : 'sem preço',
+          linhasDePreco: pr.map((r) => ({ moeda: r.currency?.isocode, preco: brl(num(r.price)), unidade: r.unit?.code, aPartirDe: num(r.minqtd) })),
+          estoque: st.map(showStock).sort((a, b) => (a.deposito === MAIN_WAREHOUSE ? -1 : b.deposito === MAIN_WAREHOUSE ? 1 : 0)),
+          ...(!st.length && opts.length ? { observacaoEstoque: 'O estoque deste produto fica nas opções (tamanhos): use detalhe_produto com o código da opção.' } : {}),
+          opcoes: opts.map((o) => ({ code: o.code, opcao: (o.variantOptionQualifiers ?? []).map((x) => `${x.name}: ${x.value}`).join(', '), preco: brl(o.priceData?.value), estoqueNaLoja: o.stock?.stockLevel ?? o.stock?.stockLevelStatus })),
+          naLoja: view ? { situacao: view.stock?.stockLevelStatus, compravel: view.purchasable !== false, link: `${cfg.storeUrl}/p/${codigo}` } : 'não aparece na loja publicada',
+          ...(managed ? { quemCuida: managed[1] } : {}),
+        };
+      },
+    },
+    {
+      name: 'alterar_preco',
+      description: 'Muda o preço (R$) de um produto da loja. A linha de preço vale para Staged e Online ao mesmo tempo, sem sincronizar; a loja mostra o preço novo em instantes. Ingressos, planos de sócio e experiências têm ferramenta própria.',
+      inputSchema: obj({ codigo: S.str('Código do produto (ou da opção/tamanho, se o preço for dela)'), preco: S.num('Preço novo em R$'), confirmar: S.confirm }, ['codigo', 'preco']),
+      handler: async (a) => {
+        managedElsewhere(a.codigo);
+        if (!(a.preco > 0)) throw new UserError('Informe um preço maior que zero.');
+        const rows = (await prices(a.codigo)).filter((r) => r.currency?.isocode === 'BRL');
+        if (!rows.length) throw new UserError(`${a.codigo} não tem linha de preço própria em R$ (o preço pode vir do produto base). Confira com detalhe_produto.`);
+        if (rows.length > 1) throw new UserError(`${a.codigo} tem ${rows.length} linhas de preço em R$ (por quantidade ou grupo): altere pelo Backoffice.`);
+        const old = num(rows[0].price);
+        const pct = old ? Math.round(((a.preco - old) / old) * 1000) / 10 : null;
+        const c = needConfirm(a, `Mudar o preço de ${a.codigo} de ${brl(old)} para ${brl(a.preco)}${pct != null ? ` (${pct > 0 ? '+' : ''}${String(pct).replace('.', ',')}%)` : ''}. Vale na loja em instantes (Staged e Online).`);
+        if (c) return c;
+        await odata('POST', '/FlamengoPreco/PriceRows', { body: { productId: a.codigo, currency: { isocode: 'BRL' }, price: String(a.preco) } });
+        const after = brlPrice(await prices(a.codigo));
+        return { executado: true, produto: a.codigo, antes: brl(old), agora: brl(num(after?.price)), link: `${cfg.storeUrl}/p/${a.codigo}` };
+      },
+    },
+    {
+      name: 'alterar_estoque',
+      description: 'Ajusta o estoque de um produto (ou opção/tamanho) num depósito: valor novo (disponivel) ou entrada/saída (ajuste, ex. +20 ou -5). Depósito padrão: warehouse_s (o da loja online). O reservado (pedidos em andamento) não muda.',
+      inputSchema: obj({ codigo: S.str('Código do produto ou da opção (tamanho)'), disponivel: S.int('Quantidade disponível nova'), ajuste: S.int('Entrada (+) ou saída (-) sobre o disponível atual'), deposito: S.str('Código do depósito (padrão warehouse_s; lojas físicas: barrastore, copacabanastore, maracanastore)'), confirmar: S.confirm }, ['codigo']),
+      handler: async (a) => {
+        managedElsewhere(a.codigo);
+        if ((a.disponivel == null) === (a.ajuste == null)) throw new UserError('Informe disponivel (valor novo) ou ajuste (+/-), um dos dois.');
+        const wh = a.deposito || MAIN_WAREHOUSE;
+        const rows = await stocks(a.codigo);
+        const row = rows.find((s) => s.warehouse?.code === wh);
+        if (!row) throw new UserError(`${a.codigo} não tem estoque no depósito ${wh}${rows.length ? ` (tem em: ${rows.map((s) => s.warehouse?.code).join(', ')})` : '; se for roupa, o estoque fica nas opções (tamanhos), veja detalhe_produto'}.`);
+        const old = num(row.available) ?? 0;
+        const novo = a.disponivel != null ? a.disponivel : old + a.ajuste;
+        if (novo < 0) throw new UserError(`O disponível ficaria negativo (${old} ${a.ajuste}).`);
+        const c = needConfirm(a, `Estoque de ${a.codigo} no depósito ${wh}: disponível de ${old} para ${novo} (reservado ${num(row.reserved) ?? 0}, livre para venda ${novo - (num(row.reserved) ?? 0)}).`);
+        if (c) return c;
+        await odata('POST', '/FlamengoEstoque/StockLevels', { body: { productCode: a.codigo, warehouse: { code: wh }, available: novo } });
+        const after = (await stocks(a.codigo)).find((s) => s.warehouse?.code === wh);
+        return { executado: true, produto: a.codigo, antes: old, estoque: after ? showStock(after) : null };
+      },
+    },
+    {
+      name: 'resumo_vendas',
+      description: 'Resumo de vendas da loja num período (padrão: últimos 30 dias), com as regras do painel do Backoffice: receita, pedidos, ticket médio, frete e descontos; por categoria (ingressos, sócio-torcedor, experiências, estacionamento, alimentação, personalização, produtos da loja); produtos mais vendidos; cupons usados; pedidos aguardando pagamento. Cancelados e inválidos ficam de fora.',
+      inputSchema: obj({ dias: S.int('Últimos N dias (padrão 30)'), inicio: S.str('Início (AAAA-MM-DD), em vez de dias'), fim: S.str('Fim (AAAA-MM-DD), padrão hoje') }),
+      handler: async (a) => {
+        const p = period(a);
+        const all = (await orders()).filter((o) => o.data && o.data >= p.inicio && o.data <= p.fim);
+        const valid = all.filter((o) => !EXCLUDED_STATUS.has(o.situacaoCodigo));
+        const sum = (xs, f) => xs.reduce((s, x) => s + (f(x) ?? 0), 0);
+        const receita = sum(valid, (o) => o.total);
+        const cats = {};
+        const prods = {};
+        for (const o of valid) for (const i of o.itens) {
+          const c = (cats[i.categoria] ??= { itens: 0, receita: 0, pedidos: new Set() });
+          c.itens += i.quantidade; c.receita += i.total; c.pedidos.add(o.pedido);
+          if (i.categoria === 'Loja (produtos)') { const k = (prods[i.codigo] ??= { produto: i.produto, codigo: i.codigo, quantidade: 0, receita: 0 }); k.quantidade += i.quantidade; k.receita += i.total; }
+        }
+        const coupons = {};
+        for (const o of valid) for (const cp of o.cupons) coupons[cp] = (coupons[cp] ?? 0) + 1;
+        const waiting = valid.filter((o) => o.situacaoCodigo === 'PAYMENT_NOT_CAPTURED');
+        return {
+          periodo: p.texto,
+          pedidos: valid.length, receita: brl(receita), ticketMedio: valid.length ? brl(receita / valid.length) : null,
+          frete: brl(sum(valid, (o) => o.frete)), descontos: brl(sum(valid, (o) => o.descontos)),
+          porCategoria: Object.entries(cats).sort((x, y) => y[1].receita - x[1].receita).map(([k, v]) => ({ categoria: k, itens: v.itens, pedidos: v.pedidos.size, receita: brl(v.receita) })),
+          maisVendidosDaLoja: Object.values(prods).sort((x, y) => y.quantidade - x.quantidade || y.receita - x.receita).slice(0, 10).map((x) => ({ ...x, receita: brl(x.receita) })),
+          cuponsUsados: coupons,
+          aguardandoPagamento: { pedidos: waiting.length, valor: brl(sum(waiting, (o) => o.total)), lista: waiting.slice(0, 10).map(showOrder) },
+          foraDoResumo: { cancelados: all.filter((o) => o.situacaoCodigo === 'CANCELLED').length, invalidos: all.filter((o) => o.situacaoCodigo === 'CHECKED_INVALID').length },
+          observacao: 'Receita = total pago dos pedidos (com frete e já com descontos). Pedidos aguardando pagamento (Pix/boleto) entram na receita, como no painel do Backoffice.',
+        };
+      },
+    },
+    {
+      name: 'pedidos',
+      description: 'Pedidos da loja, mais novos primeiro, com filtros: texto (código do pedido, e-mail ou nome do cliente, código ou nome de produto), situação, categoria e período.',
+      inputSchema: obj({
+        texto: S.str('Parte do código do pedido, do e-mail ou nome do cliente, ou do código/nome de um produto (opcional)'),
+        situacao: { type: 'string', enum: Object.keys(ORDER_STATUS), description: 'Situação do pedido (opcional), ex. PAYMENT_NOT_CAPTURED aguardando pagamento' },
+        categoria: { type: 'string', enum: [...SALE_CATEGORIES.map(([, c]) => c), 'Loja (produtos)'], description: 'Só pedidos com itens dessa categoria (opcional)' },
+        dias: S.int('Últimos N dias (opcional)'),
+      }),
+      handler: async (a) => {
+        const needle = String(a.texto ?? '').trim().toLowerCase();
+        const since = a.dias ? new Date(Date.now() - a.dias * 86400000) : null;
+        const list = (await orders()).filter((o) => (!since || (o.data && o.data >= since)) && (!a.situacao || o.situacaoCodigo === a.situacao)
+          && (!a.categoria || o.itens.some((i) => i.categoria === a.categoria))
+          && (!needle || [o.pedido, o.email, o.torcedor, ...o.itens.flatMap((i) => [i.codigo, i.produto])].some((v) => String(v ?? '').toLowerCase().includes(needle))));
+        return { total: list.length, valor: brl(list.reduce((s, o) => s + o.total, 0)), pedidos: list.slice(0, 50).map(showOrder), ...(list.length > 50 ? { observacao: 'Mostrando os 50 mais novos; use os filtros.' } : {}) };
+      },
+    },
+    {
+      name: 'detalhe_pedido',
+      description: 'Um pedido completo: cliente, situação, itens com categoria e preço, frete, descontos e cupons.',
+      inputSchema: obj({ pedido: S.str('Código do pedido') }, ['pedido']),
+      handler: async ({ pedido }) => {
+        const o = (await orders()).find((x) => x.pedido === String(pedido).trim());
+        if (!o) throw new UserError(`Pedido ${pedido} não encontrado.`);
+        return {
+          pedido: o.pedido, data: fmtDate(o.data), torcedor: o.torcedor, email: o.email, situacao: o.situacao,
+          itens: o.itens.map((i) => ({ ...i, unitario: i.unitario != null ? brl(i.unitario) : null, total: brl(i.total) })),
+          subtotal: brl(o.itens.reduce((s, i) => s + i.total, 0)), frete: brl(o.frete), descontos: brl(o.descontos), total: brl(o.total), cupons: o.cupons,
+        };
+      },
+    },
+    {
+      name: 'promocoes',
+      description: 'Promoções da loja (regras do motor de promoções do site): nome, descrição, prioridade, vigência e situação. Só leitura: criar, ativar ou desativar uma promoção exige republicar as regras, o que se faz no Backoffice (Marketing › Promoções).',
+      inputSchema: obj({ situacao: { type: 'string', enum: ['publicadas', 'nao_publicadas', 'inativas', 'todas'], description: 'Padrão: publicadas (as que valem na loja)' }, texto: S.str('Parte do nome, código ou descrição (opcional)') }),
+      handler: async ({ situacao = 'publicadas', texto }) => {
+        const want = { publicadas: ['PUBLISHED'], nao_publicadas: ['UNPUBLISHED', 'MODIFIED'], inativas: ['INACTIVE', 'ARCHIVED'], todas: null }[situacao];
+        const needle = String(texto ?? '').trim().toLowerCase();
+        const rules = (await all('/FlamengoPromocao/PromotionSourceRules', { $expand: 'status,website' }))
+          .filter((r) => r.website?.Identifier === STORE_PROMO_GROUP || r.website?.identifier === STORE_PROMO_GROUP)
+          .filter((r) => !want || want.includes(r.status?.code))
+          .filter((r) => !needle || [r.code, r.name, r.description].some((v) => clean(v).toLowerCase().includes(needle)))
+          .sort((a, b) => (num(b.priority) ?? 0) - (num(a.priority) ?? 0));
+        const now = Date.now();
+        return {
+          total: rules.length,
+          promocoes: rules.map((r) => {
+            const ini = toDate(r.startDate); const fim = toDate(r.endDate);
+            return {
+              code: r.code, nome: r.name || r.code, descricao: clean(r.description) || null, prioridade: num(r.priority), situacao: RULE_STATUS[r.status?.code] ?? r.status?.code,
+              vigencia: ini && fim ? `${fmtDate(ini, false)} a ${fmtDate(fim, false)}` : fim ? `até ${fmtDate(fim, false)}` : ini ? `a partir de ${fmtDate(ini, false)}` : 'sem prazo',
+              ...(fim && fim.getTime() < now ? { aviso: 'vencida' } : ini && ini.getTime() > now ? { aviso: 'ainda não começou' } : {}),
+            };
+          }),
+          comoMudar: 'Backoffice › Marketing › Promoções: editar a regra e publicar (Publicar). O MCP só consulta.',
+        };
+      },
+    },
+    ...couponTools(odata),
+    {
+      name: 'experiencias',
+      description: 'Vitrine de experiências do sócio-torcedor (tour, treino, manto autografado...): pontos, preço na loja, plano mínimo, vagas, resgates com pontos e vendas na loja (produto EXP-<código>).',
+      inputSchema: obj(),
+      handler: async () => {
+        const [xs, rs, os] = await Promise.all([experiences(), redemptions(), orders()]);
+        return { experiencias: xs.map((x) => showExperience(x, rs, os)) };
+      },
+    },
+    {
+      name: 'resgates_experiencias',
+      description: 'Resgates de experiências com pontos (voucher, torcedor, plano, pontos, data, situação), mais novos primeiro. Filtros opcionais por experiência e por e-mail.',
+      inputSchema: obj({ experiencia: S.str('Código da experiência (opcional)'), email: S.str('E-mail do torcedor (opcional)'), soValidos: S.bool('Só os não cancelados') }),
+      handler: async (a) => {
+        const list = (await redemptions()).filter((r) => (!a.experiencia || r.experiencia === a.experiencia) && (!a.email || r.email === String(a.email).toLowerCase()) && (!a.soValidos || r._ativo));
+        return { total: list.length, resgates: list.slice(0, 100).map(({ _ativo, ...r }) => ({ ...r, data: fmtDate(r.data) })) };
+      },
+    },
+    {
+      name: 'criar_experiencia',
+      description: 'Cadastra uma experiência nova na vitrine do sócio. Ao salvar, o Commerce cria o produto EXP-<código> na loja (preço e vagas como estoque) sozinho.',
+      inputSchema: obj({ codigo: S.str('Código em maiúsculas, ex. VISITA-MUSEU'), ...expFields, confirmar: S.confirm }, ['codigo', 'nome', 'pontos']),
+      handler: async (a) => {
+        const code = String(a.codigo).trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+        if (!code) throw new UserError('Código inválido.');
+        if ((await experiences()).some((x) => x.code === code)) throw new UserError(`Já existe a experiência ${code}; use atualizar_experiencia.`);
+        const body = { code };
+        const changes = [];
+        expBody(a, body, changes);
+        if (body.active == null) body.active = true;
+        const c = needConfirm(a, `Criar a experiência ${code}: ${changes.join('; ')}${body.active ? ' (ativa: aparece na vitrine e na loja como EXP-' + code + ')' : ''}.`);
+        if (c) return c;
+        await odata('POST', '/FlamengoExperiencia/SocioExperiences', { body });
+        const [xs, rs, os] = await Promise.all([experiences(), redemptions(), orders()]);
+        const x = xs.find((e) => e.code === code);
+        return { executado: true, experiencia: x ? showExperience(x, rs, os) : code, loja: `${cfg.storeUrl}/p/EXP-${code}` };
+      },
+    },
+    {
+      name: 'atualizar_experiencia',
+      description: 'Altera uma experiência (nome, descrição, pontos, preço, vagas, plano mínimo, ordem) ou tira/volta da vitrine (ativa). O Commerce atualiza o produto EXP-<código> da loja sozinho.',
+      inputSchema: obj({ experiencia: S.str('Código da experiência'), ...expFields, confirmar: S.confirm }, ['experiencia']),
+      handler: async (a) => {
+        const x = (await experiences()).find((e) => e.code === a.experiencia);
+        if (!x) throw new UserError('Experiência não encontrada. Veja os códigos em experiencias.');
+        const body = { code: x.code };
+        const changes = [];
+        expBody(a, body, changes);
+        if (!changes.length) throw new UserError('Nada para alterar.');
+        const c = needConfirm(a, `Alterar a experiência ${x.name} (${x.code}): ${changes.join('; ')}.`);
+        if (c) return c;
+        await odata('PATCH', `/FlamengoExperiencia/SocioExperiences('${enc(x.code)}')`, { body });
+        const [xs, rs, os] = await Promise.all([experiences(), redemptions(), orders()]);
+        return { executado: true, experiencia: showExperience(xs.find((e) => e.code === x.code), rs, os) };
+      },
+    },
+  ];
+}
+
+export const _test = { saleCategory, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };

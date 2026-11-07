@@ -3,13 +3,13 @@
  *
  *   node flamengo-mcp.mjs            → stdio, uma persona (o Claude Desktop inicia sozinho)
  *   node flamengo-mcp.mjs --teste    → testa a conexão e o login da persona e sai
- *   node flamengo-mcp.mjs --http     → servidor HTTP (Streamable HTTP) com as três personas, para usar
+ *   node flamengo-mcp.mjs --http     → servidor HTTP (Streamable HTTP) com as quatro personas, para usar
  *                                      como conector personalizado no claude.ai e no app do celular
  *
  * Modo stdio (claude_desktop_config.json):
- *   FLAMENGO_PERSONA     torcedor | socio | jogos
+ *   FLAMENGO_PERSONA     torcedor | socio | jogos | loja
  *   TORCEDOR_EMAIL / TORCEDOR_SENHA      (persona torcedor)
- *   GESTOR_USUARIO / GESTOR_SENHA        (personas socio e jogos: gestor.socio / gestor.jogos)
+ *   GESTOR_USUARIO / GESTOR_SENHA        (personas socio, jogos e loja: gestor.socio / gestor.jogos / gestor.loja)
  *
  * Modo --http (arquivo de ambiente no servidor; ver flamengo-mcp.env.exemplo):
  *   MCP_HOST (127.0.0.1), MCP_PORT (8787)
@@ -17,6 +17,7 @@
  *     /torcedor/mcp      MCP_TOKEN_TORCEDOR + TORCEDOR_EMAIL / TORCEDOR_SENHA
  *     /gestor-socio/mcp  MCP_TOKEN_SOCIO    + SOCIO_USUARIO  / SOCIO_SENHA
  *     /gestor-jogos/mcp  MCP_TOKEN_JOGOS    + JOGOS_USUARIO  / JOGOS_SENHA
+ *     /gestor-loja/mcp   MCP_TOKEN_LOJA     + LOJA_USUARIO   / LOJA_SENHA
  *   O Claude manda o token no cabeçalho "Authorization: Bearer <token>" (cadastrado no conector).
  *   Plano B, se o cabeçalho não puder ser cadastrado: /<rota>/<token>/mcp (MCP_TOKEN_NA_URL=true).
  *
@@ -35,7 +36,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { buildTools } from './core.js';
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const env = process.env;
 const baseCfg = {
   occUrl: env.OCC_URL || 'https://api-flamengo.democc.online/occ/v2/electronics-spa',
@@ -129,12 +130,14 @@ const PERSONAS = {
   torcedor: { nome: 'flamengo-torcedor', titulo: 'Loja Flamengo · Torcedor', rota: 'torcedor' },
   socio: { nome: 'flamengo-gestor-socio', titulo: 'Loja Flamengo · Gestor do sócio-torcedor', rota: 'gestor-socio' },
   jogos: { nome: 'flamengo-gestor-jogos', titulo: 'Loja Flamengo · Gestor de jogos e ingressos', rota: 'gestor-jogos' },
+  loja: { nome: 'flamengo-gestor-loja', titulo: 'Loja Flamengo · Gestor da loja', rota: 'gestor-loja' },
 };
 
 const INSTRUCTIONS = {
   torcedor: 'Você atende um torcedor do Flamengo na loja oficial (SAP Commerce Cloud). Responda em português. Antes de qualquer ação que altere o carrinho, compre, assine ou cancele plano, ou abra chamado, chame a ferramenta sem confirmar, mostre o resumo e só repita com confirmar=true depois que o torcedor concordar.',
   socio: 'Você apoia o gestor do programa sócio-torcedor do Flamengo (SAP Commerce Cloud). Responda em português. Ações que alteram planos, cupons, suspendem ou regularizam sócios ou confirmam cancelamentos: mostre o resumo e só execute com confirmar=true após o gestor concordar. Você não tem acesso a jogos e ingressos.',
   jogos: 'Você apoia o gestor de jogos e ingressos do Flamengo (SAP Commerce Cloud). Responda em português. Criar ou alterar jogos: mostre o resumo e só execute com confirmar=true após o gestor concordar. Você não tem acesso ao sócio-torcedor.',
+  loja: 'Você apoia o gestor da loja virtual do Flamengo (SAP Commerce Cloud): produtos, preço, estoque, vendas, pedidos, promoções, cupons e experiências do sócio. Responda em português e em reais (R$). Mudar preço, estoque, cupom ou experiência: chame a ferramenta sem confirmar, mostre o resumo e só repita com confirmar=true depois que o gestor concordar. Promoções são só consulta (mudar é no Backoffice). Jogos e ingressos são do gestor de jogos; planos e sócios, do gestor do sócio-torcedor.',
 };
 
 /** Uma persona pronta: ferramentas (com a sessão de login no Commerce) e o servidor MCP que as expõe. */
@@ -184,7 +187,7 @@ function createPersona(persona, creds) {
 async function runStdio() {
   const persona = (env.FLAMENGO_PERSONA || 'torcedor').toLowerCase();
   if (!PERSONAS[persona]) {
-    console.error(`FLAMENGO_PERSONA inválida: "${persona}". Use torcedor, socio ou jogos.`);
+    console.error(`FLAMENGO_PERSONA inválida: "${persona}". Use torcedor, socio, jogos ou loja.`);
     process.exit(2);
   }
   const p = createPersona(persona, {
@@ -195,7 +198,7 @@ async function runStdio() {
   });
 
   if (process.argv.includes('--teste')) {
-    const first = persona === 'torcedor' ? 'minha_conta' : persona === 'socio' ? 'planos' : 'jogos';
+    const first = { torcedor: 'minha_conta', socio: 'planos', jogos: 'jogos', loja: 'experiencias' }[persona];
     try {
       const r = await p.byName.get(first).handler({});
       console.log(`OK · ${p.info.titulo} · ${p.tools.length} ferramentas · login ${p.login() ?? '—'}`);
@@ -280,6 +283,7 @@ function httpRoutes() {
     { persona: 'torcedor', token: env.MCP_TOKEN_TORCEDOR, creds: { torcedorEmail: env.TORCEDOR_EMAIL, torcedorSenha: env.TORCEDOR_SENHA }, ok: () => env.TORCEDOR_EMAIL && env.TORCEDOR_SENHA },
     { persona: 'socio', token: env.MCP_TOKEN_SOCIO, creds: { gestorUsuario: env.SOCIO_USUARIO, gestorSenha: env.SOCIO_SENHA }, ok: () => env.SOCIO_USUARIO && env.SOCIO_SENHA },
     { persona: 'jogos', token: env.MCP_TOKEN_JOGOS, creds: { gestorUsuario: env.JOGOS_USUARIO, gestorSenha: env.JOGOS_SENHA }, ok: () => env.JOGOS_USUARIO && env.JOGOS_SENHA },
+    { persona: 'loja', token: env.MCP_TOKEN_LOJA, creds: { gestorUsuario: env.LOJA_USUARIO, gestorSenha: env.LOJA_SENHA }, ok: () => env.LOJA_USUARIO && env.LOJA_SENHA },
   ];
   const routes = new Map();
   for (const d of defs) {
