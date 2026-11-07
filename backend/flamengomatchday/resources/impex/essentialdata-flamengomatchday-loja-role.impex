@@ -187,3 +187,20 @@ BackofficeRole;lojamanagerrole;;;;;;;;
 ;;;;SolrSort;+;-;-;-;
 ;;;;SolrSortField;+;-;-;-;
 $END_USERRIGHTS;;;;;;;;;
+
+# Só o catálogo do Flamengo (07/11). O gestor fica no employeegroup (restrições Backend_visibility), e esse
+# grupo lê todos os catálogos de produtos do servidor (powertools, apparel, electronics, Default): sem isto
+# a lista de produtos mostrava 14.908 itens de outros catálogos. As restrições abaixo valem só para o
+# lojamanagerrole (só o gestor.loja) e se somam (E) às do employeegroup; não mudam nada para os outros
+# usuários. Preço e estoque sem versão de catálogo são ligados ao produto pelo código.
+INSERT_UPDATE SearchRestriction;code[unique=true];restrictedType(code)[unique=true];principal(uid);active;generate;query
+;Loja_somente_flamengo;Product;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}})
+;Loja_somente_flamengo;Category;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}})
+;Loja_somente_flamengo;Keyword;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}})
+;Loja_somente_flamengo;PriceRow;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}}) OR ({catalogVersion} IS NULL AND {productId} IN ({{SELECT {p:code} FROM {Product AS p JOIN CatalogVersion AS cv ON {p:catalogVersion}={cv:pk} JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}}))
+;Loja_somente_flamengo;DiscountRow;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}}) OR ({catalogVersion} IS NULL AND {productId} IN ({{SELECT {p:code} FROM {Product AS p JOIN CatalogVersion AS cv ON {p:catalogVersion}={cv:pk} JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}}))
+;Loja_somente_flamengo;StockLevel;lojamanagerrole;true;true;{productCode} IN ({{SELECT {p:code} FROM {Product AS p JOIN CatalogVersion AS cv ON {p:catalogVersion}={cv:pk} JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}})
+;Loja_somente_flamengo;Media;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}}) OR {catalogVersion} IS NULL
+;Loja_somente_flamengo;MediaContainer;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}}) OR {catalogVersion} IS NULL
+;Loja_somente_flamengo;CatalogVersion;lojamanagerrole;true;true;{catalog} IN ({{SELECT {c:pk} FROM {Catalog AS c} WHERE {c:id}='flamengoProductCatalog'}})
+;Loja_somente_flamengo;Catalog;lojamanagerrole;true;true;{id} = 'flamengoProductCatalog'
