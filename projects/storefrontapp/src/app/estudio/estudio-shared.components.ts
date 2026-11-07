@@ -17,23 +17,25 @@ import { ME_POSICAO, MeEstampa } from './estudio.service';
           <circle cx="60" cy="58" r="28" fill="#d70000"></circle>
           <path d="M20 62 L50 66 L60 53 L70 66 L100 62 L77 77 L64 77 L60 88 L56 77 L43 77 Z" fill="#fff"></path>
         </svg>
-        <span class="nome">{{ estampa.nome }}</span>
+        <span *ngIf="!semNome" class="nome">{{ estampa.nome }}</span>
       </ng-template>
     </div>
   `,
   styles: [
     `
       :host { display: block; width: 100%; height: 100%; }
-      .arte { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+      .arte { container-type: inline-size; position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
       img { width: 100%; height: 100%; object-fit: contain; padding: 8%; box-sizing: border-box; }
       svg { width: 76%; height: 76%; }
-      .nome { position: absolute; left: 10%; right: 10%; bottom: 9%; text-align: center; color: #fff; font-family: var(--fla-fonte-titulo); font-weight: 800; text-transform: uppercase; font-size: 15px; line-height: 1.05; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+      .nome { position: absolute; left: 10%; right: 10%; bottom: 9%; text-align: center; color: #fff; font-family: var(--fla-fonte-titulo); font-weight: 800; text-transform: uppercase; font-size: clamp(7px, 9cqw, 15px); line-height: 1.05; overflow-wrap: anywhere; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlaMeArteComponent {
   @Input() estampa!: MeEstampa;
+  /** Sem o nome na ilustração provisória (quando o card já mostra o nome por cima) */
+  @Input() semNome = false;
   constructor(protected i18n: FlaI18nService) {}
   get alt(): string {
     return this.i18n.t('me.arteAlt', { n: this.estampa?.nome });

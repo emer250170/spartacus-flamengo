@@ -70,6 +70,14 @@ export interface MeVersao {
   preco: number;
 }
 
+/**
+ * trackBy dos *ngFor do estúdio: o vm é recalculado a cada segundo (contadores); sem isto o Angular recria
+ * os cards (pisca, perde o foco dos filtros e do diálogo "Avise-me").
+ */
+export function meTrack(i: number, x: any): unknown {
+  return x?.e?.code ?? x?.code ?? x?.modelo ?? x?.k ?? x?.txt ?? x?.nome ?? i;
+}
+
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 const VAZIO: MeCatalogo = {
