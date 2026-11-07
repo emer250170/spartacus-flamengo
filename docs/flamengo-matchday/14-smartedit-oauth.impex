@@ -3,9 +3,12 @@
 #  O SmartEdit faz o login em /authorizationserver/oauth/token com client_id "smartedit",
 #  grant_type "password" e sem segredo (cliente público, padrão da SAP). O cliente não existia
 #  no servidor da demo, e o login dava "A autenticação falhou" para qualquer usuário.
+#  Escopos: basic, permissionswebservices (o SmartEdit checa a permissão no catálogo antes de
+#  abrir a página; sem o escopo: "failed to evaluate permissions") e previewwebservices
+#  (pré-visualização da loja).
 #  Usuários do SmartEdit: os do Backoffice com acesso ao CMS (admingroup, cmsmanagergroup).
 #  Para desfazer: REMOVE OAuthClientDetails;clientId[unique=true] / ;smartedit
 # =====================================================================
 
 INSERT_UPDATE OAuthClientDetails;clientId[unique=true];resourceIds;scope;authorizedGrantTypes;authorities;clientSecret;registeredRedirectUri
-;smartedit;hybris;basic;password,refresh_token;ROLE_CLIENT;;
+;smartedit;hybris;basic,permissionswebservices,previewwebservices;password,refresh_token;ROLE_CLIENT;;
