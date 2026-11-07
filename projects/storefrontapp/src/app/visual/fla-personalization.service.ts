@@ -37,8 +37,11 @@ export interface PersonalizationChoice {
   patchCode: string;
 }
 
-/** Linhas de preço da personalização no carrinho */
-export const PERSONALIZATION_ADDON = /^FLA-PERS-/;
+/**
+ * Linhas de preço da personalização no carrinho: FLA-PERS-* (mantos da loja) e FLA-PERSONALIZACAO
+ * (camisa do dia de jogo, gravada na linha da camisa desde 07/11)
+ */
+export const PERSONALIZATION_ADDON = /^FLA-PERS(-|ONALIZACAO$)/;
 
 /**
  * Personalização do manto (API /flapersonalization da extensão flamengomatchday): opções com

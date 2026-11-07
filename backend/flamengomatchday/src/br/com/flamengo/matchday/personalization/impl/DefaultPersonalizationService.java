@@ -82,8 +82,35 @@ public class DefaultPersonalizationService implements PersonalizationService
 
 	protected boolean isPersonalizable(final ProductModel product)
 	{
-		final Set<String> wanted = csv(CATEGORIES);
-		if (wanted.isEmpty())
+		return inCategories(product, csv(CATEGORIES));
+	}
+
+	@Override
+	public boolean isMatchdayShirt(final String productCode)
+	{
+		return isActive() && StringUtils.isNotBlank(productCode) && matchdayShirt(product(productCode));
+	}
+
+	/**
+	 * Camisa do dia de jogo: manto (categorias personalizáveis) que também está nas categorias do
+	 * matchday, com o produto de preço próprio configurado. Estacionamento e comida estão no matchday
+	 * mas não são mantos: ficam de fora.
+	 */
+	protected boolean matchdayShirt(final ProductModel product)
+	{
+		return product != null && config(MATCHDAY_NAME_NUMBER) != null && inCategories(product, csv(MATCHDAY_CATEGORIES))
+				&& inCategories(product, csv(CATEGORIES));
+	}
+
+	/** Produto de preço de nome e número para este produto */
+	protected String nameNumberCode(final ProductModel product)
+	{
+		return product != null && matchdayShirt(product) ? config(MATCHDAY_NAME_NUMBER) : config(NAME_NUMBER);
+	}
+
+	protected boolean inCategories(final ProductModel product, final Set<String> wanted)
+	{
+		if (product == null || wanted.isEmpty())
 		{
 			return false;
 		}
@@ -117,6 +144,13 @@ public class DefaultPersonalizationService implements PersonalizationService
 	public PersonalizationOption nameNumberOption()
 	{
 		return option(config(NAME_NUMBER));
+	}
+
+	@Override
+	public PersonalizationOption nameNumberOption(final String productCode)
+	{
+		final ProductModel product = StringUtils.isBlank(productCode) ? null : product(productCode);
+		return option(nameNumberCode(product));
 	}
 
 	@Override
@@ -197,11 +231,15 @@ public class DefaultPersonalizationService implements PersonalizationService
 		{
 			throw new PersonalizationException("Patch não disponível.");
 		}
+		if (matchdayShirt(entry.getProduct()) && (sponsor || patch != null))
+		{
+			throw new PersonalizationException("A camisa do dia de jogo tem só nome e número.");
+		}
 		if (sponsor && option(config(SPONSOR)) == null)
 		{
 			throw new PersonalizationException("Kit de patrocínio não disponível.");
 		}
-		if ((cleanName != null || cleanNumber != null) && option(config(NAME_NUMBER)) == null)
+		if ((cleanName != null || cleanNumber != null) && option(nameNumberCode(entry.getProduct())) == null)
 		{
 			throw new PersonalizationException("Nome e número não disponíveis.");
 		}
@@ -345,7 +383,7 @@ public class DefaultPersonalizationService implements PersonalizationService
 			{
 				continue;
 			}
-			if (code.equals(config(NAME_NUMBER)))
+			if (code.equals(nameNumberCode(e.getProduct())))
 			{
 				modelService.setAttributeValue(e, ENTRY_NAME, null);
 				modelService.setAttributeValue(e, ENTRY_NUMBER, null);
@@ -415,7 +453,7 @@ public class DefaultPersonalizationService implements PersonalizationService
 		}
 		if (str(e, ENTRY_NAME) != null || str(e, ENTRY_NUMBER) != null)
 		{
-			put(want, config(NAME_NUMBER), qty);
+			put(want, nameNumberCode(e.getProduct()), qty);
 		}
 		if (Boolean.TRUE.equals(attr(e, ENTRY_SPONSOR)))
 		{
