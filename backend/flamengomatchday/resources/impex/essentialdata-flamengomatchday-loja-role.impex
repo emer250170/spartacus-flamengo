@@ -27,8 +27,10 @@ INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];
 UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
 ;backofficeadministratorrole;lojaperspective
 
-# groups[mode=append]: mantém o employeegroup (restrições de busca de catálogo dos funcionários)
-INSERT_UPDATE Employee;uid[unique=true];groups(uid)[mode=append];sessionLanguage(isocode);backOfficeLoginDisabled;loginDisabled
+# Só no papel, sem o employeegroup (como gestor.jogos, gestor.socio...): o employeegroup lê todos os
+# catálogos de produtos do servidor e a lista de produtos do Backoffice (Solr) mostrava todos eles.
+# O que o employeegroup trazia (esconder admin, filtros por catálogo) está nas restrições do fim do arquivo.
+INSERT_UPDATE Employee;uid[unique=true];groups(uid);sessionLanguage(isocode);backOfficeLoginDisabled;loginDisabled
 ;gestor.loja;lojamanagerrole;pt;false;false
 
 # Produtos, preços e estoque são gravados direto no catálogo (Staged e Online), como no resto da demo.
@@ -188,12 +190,17 @@ BackofficeRole;lojamanagerrole;;;;;;;;
 ;;;;SolrSortField;+;-;-;-;
 $END_USERRIGHTS;;;;;;;;;
 
-# Só o catálogo do Flamengo (07/11). O gestor fica no employeegroup (restrições Backend_visibility), e esse
-# grupo lê todos os catálogos de produtos do servidor (powertools, apparel, electronics, Default): sem isto
-# a lista de produtos mostrava 14.908 itens de outros catálogos. As restrições abaixo valem só para o
-# lojamanagerrole (só o gestor.loja) e se somam (E) às do employeegroup; não mudam nada para os outros
-# usuários. Preço e estoque sem versão de catálogo são ligados ao produto pelo código.
+# Só o catálogo do Flamengo (07/11). A lista de produtos do Backoffice (Solr) segue os catálogos que o
+# usuário lê (readPrincipals); por isso o gestor não fica no employeegroup (ver acima) e lê só o
+# flamengoProductCatalog. As restrições abaixo valem só para o lojamanagerrole (só o gestor.loja) e
+# repõem as do employeegroup (Backend_visibility, HideSystemPrincipals), limitadas ao Flamengo, para as
+# telas que usam a busca no banco. Preço e estoque sem versão de catálogo são ligados ao produto pelo código.
 INSERT_UPDATE SearchRestriction;code[unique=true];restrictedType(code)[unique=true];principal(uid);active;generate;query
+;Loja_somente_flamengo;Principal;lojamanagerrole;true;true;{uid} not in ( 'anonymous', 'admin', 'admingroup' )
+;Loja_somente_flamengo;AbstractAsSearchProfile;lojamanagerrole;true;true;{catalogVersion} IN ( ?session.catalogversions ) OR {catalogVersion} IS NULL
+;Loja_somente_flamengo;AbstractAsSearchConfiguration;lojamanagerrole;true;true;{catalogVersion} IN ( ?session.catalogversions ) OR {catalogVersion} IS NULL
+;Loja_somente_flamengo;AbstractAsItemConfiguration;lojamanagerrole;true;true;{catalogVersion} IN ( ?session.catalogversions ) OR {catalogVersion} IS NULL
+;Loja_somente_flamengo;AsSearchProfileActivationSet;lojamanagerrole;true;true;{catalogVersion} IN ( ?session.catalogversions ) OR {catalogVersion} IS NULL
 ;Loja_somente_flamengo;Product;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}})
 ;Loja_somente_flamengo;Category;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}})
 ;Loja_somente_flamengo;Keyword;lojamanagerrole;true;true;{catalogVersion} IN ({{SELECT {cv:pk} FROM {CatalogVersion AS cv JOIN Catalog AS c ON {cv:catalog}={c:pk}} WHERE {c:id}='flamengoProductCatalog'}})
