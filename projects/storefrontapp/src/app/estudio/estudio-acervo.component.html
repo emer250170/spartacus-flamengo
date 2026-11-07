@@ -1,0 +1,73 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <ng-container *ngIf="vm.ativo">
+    <fla-me-subnav ativo="acervo"></fla-me-subnav>
+    <main class="me-wrap pg">
+      <nav class="me-crumb" [attr.aria-label]="'me.crumbs' | flaT">
+        <a routerLink="/">{{ 'me.lojaOficial' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+        <a routerLink="/mengo-estudio">{{ 'me.nome' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+        <span class="atual" aria-current="page">{{ 'me.nav.acervo' | flaT }}</span>
+      </nav>
+      <div class="intro">
+        <h1 class="me-t">{{ 'me.nav.acervo' | flaT }}</h1>
+        <p>{{ 'me.acervo.d' | flaT }}</p>
+      </div>
+      <div *ngIf="!vm.lista.length" class="me-vazio" role="status">
+        <strong>{{ 'me.acervo.vazio.t' | flaT }}</strong>
+        <span>{{ 'me.acervo.vazio.d' | flaT }}</span>
+        <a class="me-btn" routerLink="/mengo-estudio">{{ 'me.verEstampas' | flaT }}</a>
+      </div>
+      <div class="me-grade">
+        <div *ngFor="let x of vm.lista" class="item">
+          <div class="q">
+            <fla-me-arte [estampa]="x.e"></fla-me-arte>
+            <span class="me-badge ENCERRADA">{{ 'me.nav.acervo' | flaT }}</span>
+          </div>
+          <span class="nome">{{ x.e.nome }}</span>
+          <span class="sub">{{ 'me.linhaDe' | flaT: { l: x.e.linha | meLinha: vm.c.linhas } }} · {{ 'me.saiuEm' | flaT: { d: x.saiu } }}</span>
+          <span *ngIf="inscritos.has(x.e.code); else botao" class="ok" role="status">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>{{ 'me.aviso.ativado' | flaT }}
+          </span>
+          <ng-template #botao>
+            <button type="button" class="me-btn sec" aria-haspopup="dialog" (click)="abrir(x.e, $event)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>{{ 'me.aviso.botao' | flaT }}
+            </button>
+          </ng-template>
+        </div>
+      </div>
+    </main>
+
+    <div *ngIf="alvo" class="fundo">
+      <button type="button" class="fundo-x" (click)="fechar()" [attr.aria-label]="'me.fechar' | flaT"></button>
+      <div #dlg class="dlg" role="dialog" aria-modal="true" aria-labelledby="me-av-t">
+        <div class="d-top">
+          <h2 id="me-av-t">{{ 'me.aviso.botao' | flaT }}</h2>
+          <button type="button" class="x" (click)="fechar()" [attr.aria-label]="'me.fechar' | flaT">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </div>
+        <form *ngIf="!feito; else pronto" (submit)="enviar($event)" novalidate>
+          <p>{{ 'me.aviso.txt' | flaT: { n: alvo.nome } }}</p>
+          <label class="campo">{{ 'me.aviso.email' | flaT }}
+            <input type="email" autocomplete="email" name="email" [(ngModel)]="email" [attr.aria-invalid]="tentou && !emailOk" aria-describedby="me-av-e" [class.erro]="tentou && !emailOk" />
+            <span id="me-av-e" [class.msg-erro]="tentou && !emailOk">{{ (tentou && !emailOk ? (email ? 'me.aviso.emailInvalido' : 'me.aviso.emailVazio') : 'me.aviso.emailDica') | flaT }}</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="consent" [(ngModel)]="consent" [attr.aria-invalid]="tentou && !consent" aria-describedby="me-av-c" />
+            <span>{{ 'me.aviso.consent' | flaT }}<br /><span class="fin">{{ 'me.aviso.finalidade' | flaT }}</span></span>
+          </label>
+          <span id="me-av-c" class="msg-erro" role="alert">{{ tentou && !consent ? ('me.aviso.consentErro' | flaT) : '' }}</span>
+          <span *ngIf="erro" class="msg-erro" role="alert">{{ erro }}</span>
+          <button type="submit" class="me-btn" [disabled]="enviando">{{ 'me.aviso.enviar' | flaT }}</button>
+        </form>
+        <ng-template #pronto>
+          <div class="pronto" role="status">
+            <span class="ok-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"></path></svg></span>
+            <strong>{{ 'me.aviso.ativado' | flaT }}</strong>
+            <span>{{ 'me.aviso.feito' | flaT: { n: alvo.nome, e: email } }}</span>
+            <button type="button" class="me-btn sec" (click)="fechar()">{{ 'me.fechar' | flaT }}</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </ng-container>
+</ng-container>

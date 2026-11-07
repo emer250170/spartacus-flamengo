@@ -1319,6 +1319,13 @@
 				<explorer-tree:navigation-node id="loja.tree.expReport"/>
 				<explorer-tree:type-node id="loja.tree.expRecords" code="SocioExperience"/>
 			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.estudio">
+				<explorer-tree:type-node id="loja.tree.estudioEstampas" code="MengoEstampa"/>
+				<explorer-tree:type-node id="loja.tree.estudioDrops" code="MengoDrop"/>
+				<explorer-tree:type-node id="loja.tree.estudioLinhas" code="MengoLinha"/>
+				<explorer-tree:type-node id="loja.tree.estudioAvisos" code="MengoAvisoRetorno"/>
+				<explorer-tree:type-node id="loja.tree.estudioDemo" code="MengoDemoConfig"/>
+			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
 	</context>
 
@@ -1353,6 +1360,13 @@
 			<explorer-tree:navigation-node id="loja.tree.experiences">
 				<explorer-tree:type-node id="loja.tree.expRecords" code="SocioExperience"/>
 				<explorer-tree:type-node id="loja.tree.expRedemptions" code="SocioRedemption"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.estudio">
+				<explorer-tree:type-node id="loja.tree.estudioEstampas" code="MengoEstampa"/>
+				<explorer-tree:type-node id="loja.tree.estudioDrops" code="MengoDrop"/>
+				<explorer-tree:type-node id="loja.tree.estudioLinhas" code="MengoLinha"/>
+				<explorer-tree:type-node id="loja.tree.estudioAvisos" code="MengoAvisoRetorno"/>
+				<explorer-tree:type-node id="loja.tree.estudioDemo" code="MengoDemoConfig"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
 	</context>
@@ -2108,5 +2122,257 @@
 			<n:type-node code="CustomerVendorReview" id="customersupport_backoffice_explorerTree_vendorReviews"/>
         </n:explorer-tree>
     </context>
+
+	<!--
+	  Mengo Estúdio (07/11, PR 2): manutenção do que o Estúdio vende, no menu "Mengo Estúdio" da perspectiva
+	  Loja Flamengo e do cockpit do gestor da loja. Estampas (prazo, arte, cores indisponíveis), drops, linhas,
+	  avisos "Avise-me se voltar" e as simulações da demo. As camisetas (ME-CAM-*) são produtos: aba
+	  "Mengo Estúdio" no produto, com modelo, tecido, tamanhos e medidas (o preço fica em Preços).
+	-->
+	<context merge-by="type" parent="GenericItem" type="MengoEstampa" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>name + ' (' + code + ')'</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoEstampa" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="name"/>
+			<list-view:column qualifier="linha"/>
+			<list-view:column qualifier="drop"/>
+			<list-view:column qualifier="situacao"/>
+			<list-view:column qualifier="endDate"/>
+			<list-view:column qualifier="art"/>
+			<list-view:column qualifier="active"/>
+		</list-view:list-view>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoEstampa" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="name" selected="true"/>
+				<advanced-search:field name="linha" selected="true"/>
+				<advanced-search:field name="drop" selected="false"/>
+				<advanced-search:field name="endDate" selected="false"/>
+				<advanced-search:field name="active" selected="false"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="endDate" asc="true"/>
+		</advanced-search:advanced-search>
+	</context>
+	<context type="MengoEstampa" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="estudio.estampa.essentials">
+					<editorArea:attribute qualifier="code"/>
+					<editorArea:attribute qualifier="name"/>
+					<editorArea:attribute qualifier="situacao" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="estudio.estampa.tab">
+				<editorArea:section name="estudio.estampa.venda">
+					<editorArea:attribute qualifier="drop"/>
+					<editorArea:attribute qualifier="linha"/>
+					<editorArea:attribute qualifier="number"/>
+					<editorArea:attribute qualifier="launchDate"/>
+					<editorArea:attribute qualifier="endDate"/>
+					<editorArea:attribute qualifier="active"/>
+				</editorArea:section>
+				<editorArea:section name="estudio.estampa.arte">
+					<editorArea:attribute qualifier="art" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>estampa</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="position"/>
+					<editorArea:attribute qualifier="wideArt"/>
+					<editorArea:attribute qualifier="background"/>
+					<editorArea:attribute qualifier="blockedColors" editor="com.hybris.cockpitng.editor.defaulttext">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>3</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="description" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>4</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="MengoDrop" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>name</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoDrop" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="number"/>
+			<list-view:column qualifier="code"/>
+			<list-view:column qualifier="name"/>
+			<list-view:column qualifier="active"/>
+		</list-view:list-view>
+	</context>
+	<context type="MengoDrop" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="estudio.drop.essentials">
+					<editorArea:attribute qualifier="code"/>
+					<editorArea:attribute qualifier="number"/>
+					<editorArea:attribute qualifier="name"/>
+					<editorArea:attribute qualifier="active"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="estudio.drop.tab">
+				<editorArea:section name="estudio.drop.texto">
+					<editorArea:attribute qualifier="description" editor="com.hybris.cockpitng.editor.localized(com.hybris.cockpitng.editor.defaulttext)">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>4</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="MengoLinha" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>name</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoLinha" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="position"/>
+			<list-view:column qualifier="code"/>
+			<list-view:column qualifier="name"/>
+			<list-view:column qualifier="description"/>
+		</list-view:list-view>
+	</context>
+	<context type="MengoLinha" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="estudio.linha.essentials">
+					<editorArea:attribute qualifier="code"/>
+					<editorArea:attribute qualifier="name"/>
+					<editorArea:attribute qualifier="position"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="estudio.linha.tab">
+				<editorArea:section name="estudio.linha.texto">
+					<editorArea:attribute qualifier="description"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="MengoAvisoRetorno" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>email</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoAvisoRetorno" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="estampa"/>
+			<list-view:column qualifier="email"/>
+			<list-view:column qualifier="customer"/>
+			<list-view:column qualifier="consentDate"/>
+			<list-view:column qualifier="notifiedDate"/>
+		</list-view:list-view>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoAvisoRetorno" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="estampa" selected="true"/>
+				<advanced-search:field name="email" selected="true"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="consentDate" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+	<context type="MengoAvisoRetorno" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="estudio.aviso.essentials">
+					<editorArea:attribute qualifier="estampa" readonly="true"/>
+					<editorArea:attribute qualifier="email" readonly="true"/>
+					<editorArea:attribute qualifier="customer" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="estudio.aviso.tab">
+				<editorArea:section name="estudio.aviso.consentimento">
+					<editorArea:attribute qualifier="consentText" readonly="true"/>
+					<editorArea:attribute qualifier="consentDate" readonly="true"/>
+					<editorArea:attribute qualifier="notifiedDate"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context merge-by="type" parent="GenericItem" type="MengoDemoConfig" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>code</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoDemoConfig" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="code"/>
+			<list-view:column qualifier="clockOffsetMinutes"/>
+			<list-view:column qualifier="nextPayment"/>
+			<list-view:column qualifier="cancelResponse"/>
+		</list-view:list-view>
+	</context>
+	<context type="MengoDemoConfig" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="estudio.demo.essentials">
+					<editorArea:attribute qualifier="code" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="estudio.demo.tab">
+				<editorArea:section name="estudio.demo.simulacoes">
+					<editorArea:attribute qualifier="clockOffsetMinutes"/>
+					<editorArea:attribute qualifier="forcedEnds" editor="com.hybris.cockpitng.editor.defaulttext">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>3</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="nextPayment"/>
+					<editorArea:attribute qualifier="cancelResponse"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- Camisetas do Mengo Estúdio: aba no produto (vazio = não é camiseta do Estúdio) -->
+	<context merge-by="type" type="Product" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:tab name="estudio.produto.tab" position="99">
+				<editorArea:section name="estudio.produto.camiseta">
+					<editorArea:attribute qualifier="mengoModelo"/>
+					<editorArea:attribute qualifier="mengoTecido"/>
+					<editorArea:attribute qualifier="mengoTamanhos"/>
+					<editorArea:attribute qualifier="mengoMedidas" editor="com.hybris.cockpitng.editor.defaulttext">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>3</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
 
 </config>

@@ -56,6 +56,18 @@ public interface MengoEstudioService
 	/** Medidas: tamanho -> [largura, comprimento] em cm (exemplo, de propriedade) */
 	Map<String, int[]> medidas(String modelo, String tecido);
 
+	/** Tamanhos da camiseta: os do produto (Backoffice) ou, vazio, os da propriedade */
+	List<String> tamanhos(ProductModel camiseta);
+
+	/** Medidas da camiseta: as do produto (Backoffice) ou, vazio, as da propriedade */
+	Map<String, int[]> medidas(ProductModel camiseta);
+
+	/**
+	 * "Avise-me se voltar": grava a inscrição (estampa do acervo, e-mail válido, consentimento marcado). Repetir o
+	 * mesmo e-mail para a mesma estampa não duplica. Recusa com IllegalArgumentException e a mensagem para a loja.
+	 */
+	void avisar(String estampaCode, String email, boolean consentimento, ItemModel customer);
+
 	/** Dados para a loja (drops, linhas, estampas, camisetas, regras) */
 	Map<String, Object> catalogo();
 

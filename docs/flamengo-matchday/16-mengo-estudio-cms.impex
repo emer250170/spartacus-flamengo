@@ -1,0 +1,55 @@
+# =====================================================================
+#  Mengo Estúdio (07/11, PR 2) - CMS (electronics-spaContentCatalog, Staged e Online)
+#  - página de conteúdo /mengo-estudio com a sub-home (CMSFlexComponent MengoEstudioHomeComponent);
+#    as rotas /mengo-estudio/drop/... e /mengo-estudio/acervo usam o cabeçalho e o rodapé desta página
+#  - item "Mengo Estúdio" no menu da loja (FlamengoCategoryNavNode)
+# =====================================================================
+$contentCatalog=electronics-spaContentCatalog
+
+#### ---------- Staged ----------
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+
+INSERT_UPDATE CMSFlexComponent;$contentCV[unique=true];uid[unique=true];name;flexType
+;;MengoEstudioHomeComponent;Mengo Estudio - sub-home;MengoEstudioHomeComponent
+
+INSERT_UPDATE ContentPage;$contentCV[unique=true];uid[unique=true];name;masterTemplate(uid,$contentCV);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;mengoEstudioPage;Mengo Estudio;LandingPage2Template;/mengo-estudio;;;;Mengo Estúdio;Mengo Estúdio
+
+INSERT_UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];name;active;cmsComponents(uid,$contentCV)
+;;Section1Slot-MengoEstudio;Mengo Estudio Section1;true;MengoEstudioHomeComponent
+
+INSERT_UPDATE ContentSlotForPage;$contentCV[unique=true];uid[unique=true];position[unique=true];page(uid,$contentCV)[unique=true];contentSlot(uid,$contentCV)[unique=true]
+;;Section1-MengoEstudio;Section1;mengoEstudioPage;Section1Slot-MengoEstudio
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;linkName[lang=pt];linkName[lang=en]
+;;FlaMengoEstudioLink;Link Mengo Estudio;/mengo-estudio;Mengo Estúdio;Mengo Estúdio
+
+INSERT_UPDATE CMSNavigationNode;$contentCV[unique=true];uid[unique=true];name;title[lang=pt];title[lang=en];parent(uid,$contentCV)
+;;FlaMengoEstudioNavNode;Mengo Estudio;Mengo Estúdio;Mengo Estúdio;FlamengoCategoryNavNode
+
+INSERT_UPDATE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true];name;navigationNode(uid,$contentCV);item(CMSLinkComponent.uid,CMSLinkComponent.catalogVersion(CatalogVersion.catalog(Catalog.id),CatalogVersion.version))
+;;FlaMengoEstudioEntry;Mengo Estudio;FlaMengoEstudioNavNode;FlaMengoEstudioLink:electronics-spaContentCatalog:Staged
+
+#### ---------- Online ----------
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Online])[default=$contentCatalog:Online]
+
+INSERT_UPDATE CMSFlexComponent;$contentCV[unique=true];uid[unique=true];name;flexType
+;;MengoEstudioHomeComponent;Mengo Estudio - sub-home;MengoEstudioHomeComponent
+
+INSERT_UPDATE ContentPage;$contentCV[unique=true];uid[unique=true];name;masterTemplate(uid,$contentCV);label;defaultPage[default='true'];approvalStatus(code)[default='approved'];homepage[default='false'];title[lang=pt];title[lang=en]
+;;mengoEstudioPage;Mengo Estudio;LandingPage2Template;/mengo-estudio;;;;Mengo Estúdio;Mengo Estúdio
+
+INSERT_UPDATE ContentSlot;$contentCV[unique=true];uid[unique=true];name;active;cmsComponents(uid,$contentCV)
+;;Section1Slot-MengoEstudio;Mengo Estudio Section1;true;MengoEstudioHomeComponent
+
+INSERT_UPDATE ContentSlotForPage;$contentCV[unique=true];uid[unique=true];position[unique=true];page(uid,$contentCV)[unique=true];contentSlot(uid,$contentCV)[unique=true]
+;;Section1-MengoEstudio;Section1;mengoEstudioPage;Section1Slot-MengoEstudio
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;linkName[lang=pt];linkName[lang=en]
+;;FlaMengoEstudioLink;Link Mengo Estudio;/mengo-estudio;Mengo Estúdio;Mengo Estúdio
+
+INSERT_UPDATE CMSNavigationNode;$contentCV[unique=true];uid[unique=true];name;title[lang=pt];title[lang=en];parent(uid,$contentCV)
+;;FlaMengoEstudioNavNode;Mengo Estudio;Mengo Estúdio;Mengo Estúdio;FlamengoCategoryNavNode
+
+INSERT_UPDATE CMSNavigationEntry;$contentCV[unique=true];uid[unique=true];name;navigationNode(uid,$contentCV);item(CMSLinkComponent.uid,CMSLinkComponent.catalogVersion(CatalogVersion.catalog(Catalog.id),CatalogVersion.version))
+;;FlaMengoEstudioEntry;Mengo Estudio;FlaMengoEstudioNavNode;FlaMengoEstudioLink:electronics-spaContentCatalog:Online
