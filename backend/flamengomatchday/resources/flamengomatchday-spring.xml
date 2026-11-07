@@ -118,6 +118,14 @@
 		<property name="mediaService" ref="mediaService"/>
 		<property name="modelService" ref="modelService"/>
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="searchIndexRefresher" ref="flamengoProductSearchIndexRefresher"/>
+	</bean>
+
+	<!-- Foto nova de jogo/experiência (07/11): atualiza a busca só daquele produto, segundos depois -->
+	<bean id="flamengoProductSearchIndexRefresher" class="br.com.flamengo.matchday.media.impl.ProductSearchIndexRefresher">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="userService" ref="userService"/>
 	</bean>
 
 	<bean id="matchdayGameService" class="br.com.flamengo.matchday.game.impl.DefaultMatchdayGameService">
