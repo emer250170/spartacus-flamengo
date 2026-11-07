@@ -1031,3 +1031,19 @@ python3 docs/flamengo-matchday/emails/gerar.py --modo restaurar --saida /tmp/res
   senha ("535 5.7.139 SmtpClientAuthentication is disabled"), por isso não usamos.
 - O remetente das 16 páginas de e-mail (`EmailPage`, Staged e Online, pt e en) passou de `customerservices@hybris.com`
   para o endereço da Hostinger, com nome "Loja Flamengo": o provedor recusa remetente de outro domínio.
+
+## Criar conta com CPF (07/11)
+
+O cadastro da loja pede o **CPF** no lugar do "Tratamento", e o CPF fica no cliente (`Customer.cpf`, só dígitos).
+Ele é a base para a análise de fraude do ClearSale, que exige o CPF de quem compra.
+
+- **Loja:** `conta/fla-register.*` troca o `RegisterCustomerComponent` do CMS. É o formulário padrão do Spartacus
+  sem o "Tratamento" e com o CPF depois do sobrenome, com máscara `000.000.000-00` e validação dos dígitos.
+- **API:** `POST /{baseSiteId}/flamengo/cadastro` (`CadastroController` → `DefaultCadastroService`), com o token do
+  cliente da loja, como o `POST /users` padrão. Faz o mesmo que o cadastro padrão: nome "nome sobrenome", e-mail
+  em minúsculas, idioma e moeda da sessão, `CustomerAccountService.register` (senha e e-mail de boas-vindas).
+  Recusa com 400 e a mensagem em português: CPF inválido, CPF já usado em outra conta, e-mail já cadastrado.
+- **Chave:** `flamengo.cadastro.cpfObrigatorio` (padrão `true`; `false` = CPF opcional, validado se vier).
+- **Sem o endpoint no servidor** (loja publicada antes do `ant all`): a loja volta para o cadastro padrão, sem CPF.
+- **Clientes antigos** ficam com o CPF vazio. O Backoffice mostra o CPF no cliente (aba Administração).
+
