@@ -1,0 +1,12 @@
+# Acrescentar ao Caddyfile do servidor (o mesmo que publica spartacus-flamengo e api-flamengo).
+# O Caddy emite o certificado de mcp-flamengo.democc.online sozinho.
+mcp-flamengo.democc.online {
+	# só as rotas do MCP e a checagem de saúde passam
+	@mcp path /torcedor/* /gestor-socio/* /gestor-jogos/* /saude
+	handle @mcp {
+		reverse_proxy 127.0.0.1:8787
+	}
+	handle {
+		respond 404
+	}
+}

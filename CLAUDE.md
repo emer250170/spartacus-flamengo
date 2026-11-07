@@ -178,6 +178,9 @@ async () => {
 - MCP: código em `mcp/src` (`core.js` sem dependências + `server.mjs`), empacotado
   com esbuild num único `flamengo-mcp.mjs`. Escrita exige `confirmar=true`;
   certificado do servidor fixado por SHA-256. Detalhes em `mcp/README.md`.
+- MCP na internet (conectores do claude.ai/celular): `--http`, container `flamengo-mcp` no host do Commerce
+  (`/opt/flamengo-mcp`, porta 127.0.0.1:8787) atrás do Caddy em `https://mcp-flamengo.democc.online/<persona>/mcp`;
+  token por persona no `flamengo-mcp.env` do servidor (nunca no repositório). Atualizar = trocar o `.mjs` e `docker restart`.
 
 ## Navegador (Playwright no notebook)
 
