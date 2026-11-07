@@ -4,6 +4,8 @@ import { RouterModule } from '@angular/router';
 import {
   AuthGuard,
   CmsConfig,
+  GlobalMessageConfig,
+  GlobalMessageType,
   I18nModule,
   UrlModule,
   provideConfig,
@@ -58,6 +60,15 @@ import {
     FlaEmailCurrentComponent,
   ],
   providers: [
+    // avisos flutuantes (07/11): erro some em 6s, sucesso e informação em 4s (dá para fechar no X)
+    provideConfig(<GlobalMessageConfig>{
+      globalMessages: {
+        [GlobalMessageType.MSG_TYPE_ERROR]: { timeout: 6000 },
+        [GlobalMessageType.MSG_TYPE_WARNING]: { timeout: 6000 },
+        [GlobalMessageType.MSG_TYPE_CONFIRMATION]: { timeout: 4000 },
+        [GlobalMessageType.MSG_TYPE_INFO]: { timeout: 4000 },
+      },
+    }),
     // Meus pedidos no visual do mockup (07/11): itens, selo da situação, "Ver pedido"
     provideConfig(<CmsConfig>{
       cmsComponents: {
