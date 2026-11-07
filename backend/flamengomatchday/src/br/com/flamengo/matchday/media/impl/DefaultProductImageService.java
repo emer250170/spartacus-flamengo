@@ -33,7 +33,11 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -136,7 +140,7 @@ public class DefaultProductImageService implements ProductImageService
 				media.setCatalogVersion(catalogVersion);
 			}
 			final boolean png = "image/png".equalsIgnoreCase(image.getMime());
-			final byte[] data = source == null ? original : resize(source, qualifier, png);
+			final byte[] data = source == null ? original : resize(source, size(qualifier), png, quality());
 			media.setMediaFormat(format);
 			media.setMediaContainer(container);
 			media.setMime(source == null ? image.getMime() : png ? "image/png" : "image/jpeg");
@@ -226,8 +230,41 @@ public class DefaultProductImageService implements ProductImageService
 		}
 	}
 
-	/** Reduz para caber no formato (ex.: 515Wx515H), sem cortar nem aumentar */
+	/**
+	 * Tamanho máximo gravado num formato (07/11, fotos nítidas): {@code flamengo.produtos.imagem.tamanho.<formato>}
+	 * (ex.: {@code flamengo.produtos.imagem.tamanho.515Wx515H=1600Wx1600H}) grava a foto maior que o nome do
+	 * formato, para a foto grande e a ampliada da loja ficarem nítidas. Sem a chave, o tamanho do próprio formato.
+	 */
+	protected String size(final String qualifier)
+	{
+		return config("flamengo.produtos.imagem.tamanho." + qualifier, qualifier);
+	}
+
+	/** Qualidade do JPG (0 a 1); chave flamengo.produtos.imagem.qualidade, padrão 0.9 */
+	protected float quality()
+	{
+		try
+		{
+			final float q = Float.parseFloat(config("flamengo.produtos.imagem.qualidade", "0.9"));
+			return q > 0f && q <= 1f ? q : 0.9f;
+		}
+		catch (final NumberFormatException e)
+		{
+			return 0.9f;
+		}
+	}
+
+	/** Reduz para caber no tamanho (ex.: 515Wx515H), sem cortar nem aumentar */
 	protected static byte[] resize(final BufferedImage source, final String qualifier, final boolean png)
+	{
+		return resize(source, qualifier, png, 0.9f);
+	}
+
+	/**
+	 * Reduz para caber no tamanho (ex.: 515Wx515H), sem cortar nem aumentar. Redução grande é feita em
+	 * etapas (metade por vez), que deixa a foto mais nítida que uma redução direta; JPG na qualidade dada.
+	 */
+	protected static byte[] resize(final BufferedImage source, final String qualifier, final boolean png, final float quality)
 	{
 		int maxWidth = source.getWidth();
 		int maxHeight = source.getHeight();
@@ -240,6 +277,41 @@ public class DefaultProductImageService implements ProductImageService
 		final double scale = Math.min(1d, Math.min((double) maxWidth / source.getWidth(), (double) maxHeight / source.getHeight()));
 		final int width = Math.max(1, (int) Math.round(source.getWidth() * scale));
 		final int height = Math.max(1, (int) Math.round(source.getHeight() * scale));
+		BufferedImage current = source;
+		int w = source.getWidth();
+		int h = source.getHeight();
+		do
+		{
+			w = Math.max(width, w / 2);
+			h = Math.max(height, h / 2);
+			if (w < width * 2 && h < height * 2)
+			{
+				w = width;
+				h = height;
+			}
+			current = draw(current, w, h, png);
+		}
+		while (w != width || h != height);
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream())
+		{
+			if (png)
+			{
+				ImageIO.write(current, "png", out);
+			}
+			else
+			{
+				writeJpg(current, out, quality);
+			}
+			return out.toByteArray();
+		}
+		catch (final IOException e)
+		{
+			throw new IllegalStateException("Não foi possível reduzir a imagem para " + qualifier + ".", e);
+		}
+	}
+
+	protected static BufferedImage draw(final BufferedImage from, final int width, final int height, final boolean png)
+	{
 		final BufferedImage target = new BufferedImage(width, height, png ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
 		final Graphics2D g = target.createGraphics();
 		try
@@ -252,20 +324,35 @@ public class DefaultProductImageService implements ProductImageService
 				g.setColor(Color.WHITE);
 				g.fillRect(0, 0, width, height);
 			}
-			g.drawImage(source, 0, 0, width, height, null);
+			g.drawImage(from, 0, 0, width, height, null);
 		}
 		finally
 		{
 			g.dispose();
 		}
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream())
+		return target;
+	}
+
+	protected static void writeJpg(final BufferedImage image, final ByteArrayOutputStream out, final float quality) throws IOException
+	{
+		final java.util.Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+		if (!writers.hasNext())
 		{
-			ImageIO.write(target, png ? "png" : "jpg", out);
-			return out.toByteArray();
+			ImageIO.write(image, "jpg", out);
+			return;
 		}
-		catch (final IOException e)
+		final ImageWriter writer = writers.next();
+		try (ImageOutputStream ios = ImageIO.createImageOutputStream(out))
 		{
-			throw new IllegalStateException("Não foi possível reduzir a imagem para " + qualifier + ".", e);
+			writer.setOutput(ios);
+			final ImageWriteParam param = writer.getDefaultWriteParam();
+			param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+			param.setCompressionQuality(quality);
+			writer.write(null, new IIOImage(image, null, null), param);
+		}
+		finally
+		{
+			writer.dispose();
 		}
 	}
 

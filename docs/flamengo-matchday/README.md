@@ -864,7 +864,7 @@ Condição nova no construtor de promoções: **Forma de pagamento** (`fla_forma
   seção "Imagem da vitrine"), no passo 1 do assistente de jogo novo, na ficha da experiência e no
   formulário da vitrine de experiências (Gestão de experiências › Vitrine), que também mostra a foto no card.
 - Ao salvar, `flamengoProductImageService` copia a foto para o produto da loja: um conjunto de mídias
-  `<produto>-fla-img` com um tamanho por formato (515, 300, 96 e 65 px de lado maior, sem cortar), que vira
+  `<produto>-fla-img` com um tamanho por formato (515, 300, 96 e 65 px de lado maior, sem cortar; desde 07/11 a "zoom" é gravada com até 1600 px, chave `flamengo.produtos.imagem.tamanho.515Wx515H`, e o JPG sai com qualidade 0,9), que vira
   imagem principal, miniatura e primeira da galeria. Jogo: no produto `JOGO-…` ao abrir ou ao salvar uma
   mudança; as poltronas (variantes) usam a imagem do produto do jogo. Experiência: no `EXP-…` ao publicar.
   Remover a foto tira do produto só o que a cópia tinha posto.
