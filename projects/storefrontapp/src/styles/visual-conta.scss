@@ -910,28 +910,9 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
       order: 5;
     }
 
-    // "Exportar produtos para CSV" à direita, na linha do número do pedido
+    // "Exportar produtos para CSV" saiu do detalhe do pedido (Emerson, 07/11)
     > cx-export-order-entries {
-      position: absolute;
-      z-index: 1;
-      top: 0;
-      right: 28px;
-      display: flex;
-      align-items: center;
-      width: auto;
-      max-width: none;
-      height: 98px;
-      margin: 0;
-      padding: 0;
-
-      .cx-export-btn {
-        padding: 0;
-        color: $fla-acc-ink !important;
-        font-size: 15px;
-        font-weight: 700;
-        text-decoration: underline;
-        text-transform: none;
-      }
+      display: none !important;
     }
   }
 
@@ -1138,10 +1119,24 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
       color: #fff !important;
     }
 
+    // "Copiar" e "Baixar boleto (PDF)": mesmo botão, texto centrado (o PDF é um link)
     .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 48px;
+      min-height: 0;
+      margin: 0;
+      padding: 0 22px;
       border: 0 !important;
+      border-radius: 4px;
       background: $fla-acc-red !important;
       color: #fff !important;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none !important;
+      text-transform: none !important;
     }
 
     .spay-qr {
