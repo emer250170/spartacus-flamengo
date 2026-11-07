@@ -58,6 +58,8 @@ html.fla-login {
 
   a,
   span {
+    min-width: 0 !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     font-family: inherit !important;
@@ -506,6 +508,20 @@ html.fla-account
     .cx-card-label {
       font-size: 18px;
       font-weight: 700;
+    }
+  }
+
+  // itens do pedido: a coluna Ações quebra a linha em vez de passar da borda do cartão (1024px)
+  cx-order-details-items {
+    td.cx-actions,
+    th.cx-item-list-actions {
+      width: auto !important;
+      min-width: 0 !important;
+      white-space: normal !important;
+
+      * {
+        white-space: normal !important;
+      }
     }
   }
 
