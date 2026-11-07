@@ -4,7 +4,6 @@ import {
   ChangeDetectorRef,
   Component,
   HostListener,
-  inject,
 } from '@angular/core';
 import { ImageGroup, Product, ProductScope } from '@spartacus/core';
 import {
@@ -13,8 +12,8 @@ import {
   TabConfig,
   TabParagraphContainerComponent,
 } from '@spartacus/storefront';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { filter, map, startWith } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 
 interface Gallery {
   name: string;
@@ -249,26 +248,12 @@ export class FlaPdpTabsComponent
     mode: TAB_MODE.ACCORDIAN,
   });
 
-  protected currentProduct = inject(CurrentProductService);
-
-  /** Produto sem especificações (classificações): a sanfona "Especificações" não aparece */
-  protected readonly hasSpecs$: Observable<boolean> = this.currentProduct
-    .getProduct(ProductScope.ATTRIBUTES)
-    .pipe(
-      map((p) =>
-        (p?.classifications ?? []).some((c) => (c.features ?? []).length > 0)
-      ),
-      startWith(true)
-    );
-
+  /** "Especificações" sai da sanfona (Emerson, 07/11): ficam Sobre o produto, Avaliações e Entrega */
   override ngAfterViewInit(): void {
     super.ngAfterViewInit();
-    const tabs$ = this.tabs$;
-    this.tabs$ = combineLatest([tabs$, this.hasSpecs$]).pipe(
-      map(([tabs, specs]) =>
-        specs
-          ? tabs
-          : tabs.filter((t) => !String(t.headerKey ?? '').includes(SPECS_TAB))
+    this.tabs$ = this.tabs$.pipe(
+      map((tabs) =>
+        tabs.filter((t) => !String(t.headerKey ?? '').includes(SPECS_TAB))
       )
     );
   }
