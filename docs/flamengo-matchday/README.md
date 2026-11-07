@@ -998,3 +998,33 @@ isso, porque o `?context=` da URL muda a cada gravação. Por isso, o catálogo 
   planos), nenhum sem preço ou categoria, nenhuma foto WEBP ou acima de 1 MB.
 - O fabricante está vazio no catálogo, então a coluna `brand` não foi incluída. O add-on Loyalty do Emarsys exige `brand`.
 - Instalação: deploy pelo HAC + `ant all` (sem Update, porque não há tipo novo). Conferir abrindo os dois endereços no navegador.
+
+## E-mail de confirmação de pedido com a cara do Flamengo (07/11)
+
+O e-mail "pedido recebido" é o processo padrão do Commerce (`orderConfirmationEmailProcess`, página
+`OrderConfirmationEmail`). Só trocamos o template: o `OrderConfirmationEmailTemplate` do
+`electronics-spaContentCatalog` (Staged e Online) passa a usar os RendererTemplates
+`fla_Email_Order_Confirmation_Body` e `fla_Email_Order_Confirmation_Subject` (Velocity, mesmo
+`OrderNotificationEmailContext`), com remetente "Loja Flamengo".
+
+- Corpo: `docs/flamengo-matchday/emails/confirmacao-pedido-corpo.vm`. Topo branco com o escudo, listras
+  vermelha e preta, botão "Ver meu pedido", itens separados em **Ingressos** (setor e poltrona), **Dia de jogo**
+  (estacionamento e comida) e **Loja** (tamanho da camisa), totais com "Você economizou", bloco "Como você recebe"
+  e rodapé preto. HTML de e-mail: só tabelas e estilos em linha.
+- Assunto: `Pedido <número> recebido · Loja Flamengo`.
+- Escudo: `projects/storefrontapp/src/assets/email/escudo-flamengo.png`, publicado com a loja em
+  `https://spartacus-flamengo.democc.online/assets/email/escudo-flamengo.png`. Fotos dos produtos vêm das
+  `/medias` da API. Os endereços são fixos no template porque o `baseUrl` do site aponta para localhost.
+- Aplicar, ver prévia ou voltar ao padrão, pelo HAC:
+
+```bash
+python3 docs/flamengo-matchday/emails/gerar.py --modo previa    --pedido 00045000 --saida /tmp/previa.js     # só renderiza (commit=false)
+python3 docs/flamengo-matchday/emails/gerar.py --modo aplicar   --saida /tmp/aplicar.js                     # grava templates e troca Staged/Online
+python3 docs/flamengo-matchday/emails/gerar.py --modo restaurar --saida /tmp/restaurar.js                   # volta para electronics_Email_Order_Confirmation_*
+```
+
+  A prévia roda numa thread com o usuário do pedido, o site e o idioma do pedido (fora disso o contexto do e-mail
+  não encontra os beans e o produto fica ambíguo) e renderiza com o `VelocityEngine` direto.
+- Envio de verdade depende do SMTP (`mail.smtp.server`, `mail.smtp.port`, `mail.use.tls`, `mail.from`,
+  `mail.smtp.user`, `mail.smtp.password`). Para Gmail: `smtp.gmail.com`, porta 587, TLS e **senha de app**;
+  usuário e senha ficam só no `local.properties` do servidor, nunca no repositório.

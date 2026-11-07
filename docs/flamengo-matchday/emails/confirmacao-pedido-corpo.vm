@@ -1,0 +1,186 @@
+## Confirmação de pedido · Loja Flamengo (RendererTemplate fla_Email_Order_Confirmation_Body)
+## Contexto: OrderNotificationEmailContext ($ctx.order = OrderData). HTML de e-mail: tabelas e estilos em linha.
+## Endereços fixos: a loja é o Spartacus e as imagens vêm das /medias da API (o baseUrl do site aponta para localhost).
+#set($loja = "https://spartacus-flamengo.democc.online/electronics-spa/pt/BRL")
+#set($midia = "https://api-flamengo.democc.online")
+#set($logo = "https://spartacus-flamengo.democc.online/assets/email/escudo-flamengo.png")
+#set($vermelho = "#d70000")
+#set($preto = "#1b1b1b")
+#set($cinza = "#6b6b6b")
+#set($fonte = "Arial, Helvetica, sans-serif")
+#set($order = $ctx.order)
+#if ($order.guestCustomer)
+#set($linkPedido = "${loja}/guest/order/${order.guid}")
+#else
+#set($linkPedido = "${loja}/my-account/order/${order.code}")
+#end
+## separa os itens: ingressos (JOGO-), dia de jogo (estacionamento e comida) e loja
+#set($ingressos = [])
+#set($diaDeJogo = [])
+#set($loja_itens = [])
+#foreach($e in $order.entries)
+#if($e.product.code.startsWith("JOGO-"))
+#set($ok = $ingressos.add($e))
+#elseif($e.product.code.startsWith("FLA-EST-") || $e.product.code.startsWith("FLA-FOOD-"))
+#set($ok = $diaDeJogo.add($e))
+#else
+#set($ok = $loja_itens.add($e))
+#end
+#end
+#macro(imagem $e)
+#set($img = "")
+#if($e.product.images)
+#foreach($i in $e.product.images)
+#if($img == "" && ($i.format == "thumbnail" || $i.format == "product"))
+#set($img = $i.url)
+#end
+#end
+#end
+#if($img != "")
+#if($img.startsWith("http"))#set($src = $img)#else#set($src = "${midia}${img}")#end
+<img src="$src" width="64" height="64" alt="" style="display:block;border:0;border-radius:4px;width:64px;height:64px;object-fit:cover;" />
+#else
+<div style="width:64px;height:64px;border-radius:4px;background:#f2f2f2;"></div>
+#end
+#end
+## O Commerce agrupa as variantes no produto base: $e.product é o jogo (com data) ou a camisa, e
+## $e.entries traz as poltronas ("Flamengo x Bahia · Norte · G7") ou os tamanhos ("... · M", "... - M").
+#macro(detalheVariantes $e $tipo)
+#set($detalhe = "")
+#if($e.entries && $e.entries.size() > 0)
+#foreach($v in $e.entries)
+#set($nomeV = $v.product.name)
+#if($tipo == "ingresso")
+#set($p = $nomeV.split(" · "))
+#if($p.size() >= 3)#set($item = "Setor ${p.get(1)} · Poltrona ${p.get(2)}")#else#set($item = $nomeV)#end
+#else
+#set($p = $nomeV.split(" · | - "))
+#set($ultimo = $p.size() - 1)
+#set($item = "Tamanho ${p.get($ultimo)}")
+#end
+#if($v.quantity && $v.quantity > 1)#set($item = "${item} (${v.quantity}x)")#end
+#if($detalhe == "")#set($detalhe = $item)#else#set($detalhe = "${detalhe}<br/>${item}")#end
+#end
+#end
+#end
+#macro(linhaItem $e $titulo $detalhe)
+<tr>
+  <td width="76" valign="top" style="padding:12px 12px 12px 0;border-bottom:1px solid #eeeeee;">#imagem($e)</td>
+  <td valign="top" style="padding:12px 0;border-bottom:1px solid #eeeeee;font-family:${fonte};">
+    <div style="font-size:15px;font-weight:bold;color:${preto};">$titulo</div>
+    #if($detalhe != "")<div style="font-size:13px;color:${cinza};padding-top:4px;">$detalhe</div>#end
+    <div style="font-size:13px;color:${cinza};padding-top:4px;">Qtd. ${e.quantity}</div>
+  </td>
+  <td valign="top" align="right" style="padding:12px 0 12px 12px;border-bottom:1px solid #eeeeee;font-family:${fonte};font-size:15px;font-weight:bold;color:${preto};white-space:nowrap;">${e.totalPrice.formattedValue}</td>
+</tr>
+#end
+#macro(tituloBloco $texto)
+<tr><td colspan="3" style="padding:24px 0 4px 0;font-family:${fonte};font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${vermelho};">$texto</td></tr>
+#end
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pedido ${order.code}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f4;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;">
+
+  <tr><td align="center" bgcolor="#ffffff" style="background:#ffffff;padding:20px 24px 16px 24px;">
+    <a href="${loja}/" style="text-decoration:none;"><img src="${logo}" width="63" height="80" alt="Flamengo" style="display:block;border:0;width:63px;height:80px;" /></a>
+  </td></tr>
+  <tr><td bgcolor="${vermelho}" style="background:${vermelho};height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>
+  <tr><td bgcolor="${preto}" style="background:${preto};height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>
+
+  <tr><td style="padding:32px 32px 8px 32px;font-family:${fonte};">
+    <div style="font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${vermelho};">Pedido recebido</div>
+    <div style="font-size:26px;font-weight:bold;color:${preto};padding-top:8px;line-height:1.2;">Valeu, ${ctx.displayName}! Seu pedido está com a gente.</div>
+    <div style="font-size:15px;color:#444444;padding-top:12px;line-height:1.5;">
+      Recebemos o pedido <b>nº ${order.code}</b>.
+      #if($ingressos.size() > 0)Seus ingressos ficam no app e em <b>Minha conta</b>, prontos para o dia do jogo.#end
+      Se o pagamento foi por Pix ou boleto, o pedido segue assim que o pagamento for confirmado.
+    </div>
+  </td></tr>
+
+  <tr><td align="left" style="padding:16px 32px 8px 32px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td bgcolor="${vermelho}" style="background:${vermelho};border-radius:4px;">
+        <a href="${linkPedido}" style="display:inline-block;padding:12px 24px;font-family:${fonte};font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#ffffff;text-decoration:none;">Ver meu pedido</a>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <tr><td style="padding:8px 32px 0 32px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  #if($ingressos.size() > 0)
+    #tituloBloco("Ingressos")
+    #foreach($e in $ingressos)
+      #detalheVariantes($e "ingresso")
+      #linhaItem($e, $e.product.name, $detalhe)
+    #end
+  #end
+  #if($diaDeJogo.size() > 0)
+    #tituloBloco("Dia de jogo")
+    #foreach($e in $diaDeJogo)
+      #linhaItem($e, $e.product.name, "")
+    #end
+  #end
+  #if($loja_itens.size() > 0)
+    #tituloBloco("Loja")
+    #foreach($e in $loja_itens)
+      #detalheVariantes($e "loja")
+      #linhaItem($e, $e.product.name, $detalhe)
+    #end
+  #end
+  </table>
+  </td></tr>
+
+  <tr><td style="padding:16px 32px 8px 32px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:${fonte};font-size:14px;color:#444444;">
+    <tr><td style="padding:4px 0;">Subtotal</td><td align="right" style="padding:4px 0;">${order.subTotal.formattedValue}</td></tr>
+    #if($order.deliveryCost)
+    <tr><td style="padding:4px 0;">Entrega</td><td align="right" style="padding:4px 0;">${order.deliveryCost.formattedValue}</td></tr>
+    #end
+    <tr><td style="padding:12px 0 4px 0;border-top:2px solid ${preto};font-size:16px;font-weight:bold;color:${preto};">Total</td>
+        <td align="right" style="padding:12px 0 4px 0;border-top:2px solid ${preto};font-size:18px;font-weight:bold;color:${preto};">${order.totalPriceWithTax.formattedValue}</td></tr>
+    #if($order.totalDiscounts && $order.totalDiscounts.value > 0)
+    <tr><td colspan="2" align="right" style="padding:4px 0;font-size:13px;color:${vermelho};font-weight:bold;">Você economizou ${order.totalDiscounts.formattedValue} (sócio e promoções)</td></tr>
+    #end
+  </table>
+  </td></tr>
+
+  #if($order.deliveryMode)
+  <tr><td style="padding:16px 32px 24px 32px;font-family:${fonte};">
+    <div style="background:#f7f7f7;border-left:4px solid ${vermelho};padding:14px 16px;">
+      <div style="font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${cinza};">Como você recebe</div>
+      <div style="font-size:15px;font-weight:bold;color:${preto};padding-top:6px;">${order.deliveryMode.name}</div>
+      #if($order.deliveryMode.description)<div style="font-size:13px;color:${cinza};padding-top:4px;">${order.deliveryMode.description}</div>#end
+      #if($order.deliveryAddress && !$order.deliveryMode.code.startsWith("matchday"))
+      <div style="font-size:13px;color:#444444;padding-top:8px;line-height:1.5;">
+        ${order.deliveryAddress.line1}#if($order.deliveryAddress.line2), ${order.deliveryAddress.line2}#end<br/>
+        ${order.deliveryAddress.town}#if($order.deliveryAddress.postalCode) · CEP ${order.deliveryAddress.postalCode}#end
+      </div>
+      #end
+    </div>
+  </td></tr>
+  #end
+
+  <tr><td bgcolor="${preto}" style="background:${preto};padding:24px 32px;font-family:${fonte};">
+    <div style="font-size:13px;color:#ffffff;line-height:1.6;">
+      <a href="${loja}/my-account/orders" style="color:#ffffff;text-decoration:underline;">Meus pedidos</a> &nbsp;·&nbsp;
+      <a href="${loja}/" style="color:#ffffff;text-decoration:underline;">Loja Flamengo</a> &nbsp;·&nbsp;
+      <a href="${loja}/contact" style="color:#ffffff;text-decoration:underline;">Fale conosco</a>
+    </div>
+    <div style="font-size:11px;color:#9a9a9a;padding-top:12px;line-height:1.5;">
+      Este é um e-mail automático da Loja Oficial do Flamengo sobre o seu pedido. Ambiente de demonstração.
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
