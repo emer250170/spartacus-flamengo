@@ -996,6 +996,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.points': 'pontos',
     'sp.pts': 'pts',
     'sp.summary': 'Ganhos {earned} · resgatados {redeemed}',
+    'sp.balanceLine': 'pontos · ganhos {earned} · resgatados {redeemed}',
     'sp.rule':
       '{ticket} pontos por ingresso e {real} por real em produtos da loja, nas compras desde a adesão.',
     'sp.ruleBonus':
@@ -2111,6 +2112,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'sp.points': 'points',
     'sp.pts': 'pts',
     'sp.summary': 'Earned {earned} · redeemed {redeemed}',
+    'sp.balanceLine': 'points · earned {earned} · redeemed {redeemed}',
     'sp.rule':
       '{ticket} points per ticket and {real} per real in store products, on purchases since you joined.',
     'sp.ruleBonus':

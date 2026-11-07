@@ -160,3 +160,13 @@
     grid-column: 1 / -1;
   }
 }
+
+// mockup (07/11): ao lado da carteirinha, na mesma linha
+:host {
+  grid-column: auto;
+}
+
+.sg {
+  height: 100%;
+  box-sizing: border-box;
+}

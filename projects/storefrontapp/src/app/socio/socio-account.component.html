@@ -40,7 +40,10 @@
           </span>
           <div>
             <p class="sa-kicker">{{ 'sa.kicker' | flaT }}</p>
-            <h2 class="sa-plan">{{ p.name }}</h2>
+            <h2 class="sa-plan">
+              {{ planHead(p.name) }}
+              <span>{{ planTail(p.name) }}</span>
+            </h2>
             <div class="sa-chips">
               <span class="sa-chip sa-chip--{{ statusTone }}">{{
                 statusKey | flaT
@@ -55,14 +58,26 @@
                 >{{ 'sa.since' | flaT }} {{ monthYear(start) }}</span
               >
             </div>
+            <!-- Termo do Nação dentro do cabeçalho (mockup, 07/11) -->
+            <fla-socio-term-notice *ngIf="!ended"></fla-socio-term-notice>
           </div>
         </div>
         <div class="sa-hero-rating" *ngIf="rating">
-          <span class="sa-hero-score">{{ rating.score }}</span>
-          <span class="sa-level sa-level--{{ rating.level }}">{{
-            'sa.level.' + rating.level | flaT
-          }}</span>
           <span class="sa-hero-caption">{{ 'sa.rating.title' | flaT }}</span>
+          <span class="sa-hero-score">{{ rating.score }}</span>
+          <span class="sa-hero-level"
+            >{{ 'sa.level.' + rating.level | flaT }}
+            <span
+              class="sa-hero-stars"
+              [attr.aria-label]="'sa.rating.stars' | flaT: { n: rating.stars }"
+              ><span
+                *ngFor="let s of starList"
+                class="sa-star sa-star--{{ s }}"
+                aria-hidden="true"
+                >★</span
+              ></span
+            ></span
+          >
         </div>
       </div>
 
@@ -82,9 +97,6 @@
           {{ 'sa.suspended.action' | flaT }}
         </button>
       </div>
-
-      <!-- Termo do Nação: aviso de versão nova / aceite em dia -->
-      <fla-socio-term-notice *ngIf="!ended"></fla-socio-term-notice>
 
       <div class="sa-grid">
         <!-- dados gerais -->
@@ -196,7 +208,7 @@
         </article>
 
         <!-- carteirinha digital (item 8; some para ex-sócio e enquanto aguarda pagamento) -->
-        <article class="sa-card sa-card--wide" *ngIf="!ended">
+        <article class="sa-card sa-card--idcard" *ngIf="!ended">
           <h3 class="sa-card-title">{{ 'sc.title' | flaT }}</h3>
           <fla-socio-card></fla-socio-card>
         </article>
@@ -411,9 +423,8 @@
           </ng-template>
 
           <div class="sa-plan-actions" *ngIf="!ended">
-            <div class="sa-plan-left">
             <!-- upgrade -->
-            <section class="sa-up">
+            <section class="sa-up sa-actbox">
               <h4 class="sa-subtitle">{{ 'sa.up.title' | flaT }}</h4>
               <p class="sa-muted" *ngIf="!upgrades.length">
                 {{ 'sa.up.best' | flaT }}
@@ -451,9 +462,12 @@
 
             <!-- renovação: vigência de 12 meses (item 6) -->
             <ng-container *ngIf="contract as k">
-              <section class="sa-renew" *ngIf="k.member && k.end">
+              <section class="sa-renew sa-actbox" *ngIf="k.member && k.end">
                 <h4 class="sa-subtitle">{{ 'sa.rn.title' | flaT }}</h4>
-                <p class="sa-renew-state" [class.sa-renew-state--off]="!k.autoRenew">
+                <p
+                  class="sa-renew-state"
+                  [class.sa-renew-state--off]="!k.autoRenew"
+                >
                   {{
                     !k.autoRenew
                       ? ('sa.rn.off' | flaT: { date: date(k.end) })
@@ -494,13 +508,16 @@
                         <div>
                           <strong>{{ o.name }}</strong>
                           <span class="sa-up-price"
-                            >{{ brl(o.monthlyPrice) }}{{ 'st.perMonth' | flaT }}</span
+                            >{{ brl(o.monthlyPrice)
+                            }}{{ 'st.perMonth' | flaT }}</span
                           >
                         </div>
                         <button
                           type="button"
                           class="sa-btn"
-                          [disabled]="k.locked || contractBusy || !!cancellation"
+                          [disabled]="
+                            k.locked || contractBusy || !!cancellation
+                          "
                           (click)="scheduleDowngrade(o.code)"
                         >
                           {{ 'sa.rn.schedule' | flaT }}
@@ -514,10 +531,9 @@
                 </p>
               </section>
             </ng-container>
-            </div>
 
             <!-- cancelamento -->
-            <section class="sa-cancel">
+            <section class="sa-cancel sa-actbox">
               <h4 class="sa-subtitle">{{ 'sa.cancel.title' | flaT }}</h4>
               <ng-container *ngIf="cancellation; else canCancel">
                 <p class="sa-muted">
@@ -611,73 +627,49 @@
         </article>
 
         <!-- rating -->
-        <article class="sa-card sa-card--wide sa-rating" *ngIf="rating">
-          <h3 class="sa-card-title">{{ 'sa.rating.title' | flaT }}</h3>
+        <article
+          class="sa-card sa-card--wide sa-rating"
+          id="sa-rating"
+          *ngIf="rating"
+        >
           <div class="sa-rating-body">
-            <div class="sa-gauge">
-              <svg viewBox="0 0 200 116" aria-hidden="true">
-                <path
-                  d="M20 100a80 80 0 0 1 160 0"
-                  fill="none"
-                  stroke="#ececec"
-                  stroke-width="16"
-                  stroke-linecap="round"
-                />
-                <path
-                  class="sa-gauge-arc"
-                  d="M20 100a80 80 0 0 1 160 0"
-                  fill="none"
-                  stroke-width="16"
-                  stroke-linecap="round"
-                  [attr.stroke-dasharray]="gaugeDash"
+            <div class="sa-ring sa-ring--{{ rating.level }}">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle cx="60" cy="60" r="52" class="sa-ring-track" />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  class="sa-ring-arc"
+                  [attr.stroke-dasharray]="ringDash"
                 />
               </svg>
-              <div class="sa-gauge-value">
+              <div class="sa-ring-value">
                 <strong>{{ rating.score }}</strong>
                 <span>{{ 'sa.rating.of' | flaT }}</span>
               </div>
             </div>
 
             <div class="sa-rating-info">
-              <span class="sa-level sa-level--{{ rating.level }}">{{
-                'sa.level.' + rating.level | flaT
-              }}</span>
-              <div
-                class="sa-stars"
-                [attr.aria-label]="
-                  'sa.rating.stars' | flaT: { n: rating.stars }
-                "
-              >
-                <span
-                  *ngFor="let s of starList"
-                  class="sa-star sa-star--{{ s }}"
-                  aria-hidden="true"
-                  >★</span
-                >
-              </div>
-              <div class="sa-factor">
-                <span class="sa-factor-label"
-                  >{{ 'sa.rating.tenure' | flaT }}
-                  <em>{{
+              <h3 class="sa-card-title">
+                {{ 'sa.rating.title' | flaT }} ·
+                {{ 'sa.level.' + rating.level | flaT }}
+              </h3>
+              <div class="sa-rating-kv">
+                <div>
+                  <span>{{ 'sa.rating.tenure' | flaT }}</span>
+                  <strong>{{
                     rating.months
                       ? ('sa.rating.months' | flaT: { n: rating.months })
                       : ('sa.rating.new' | flaT)
-                  }}</em></span
-                >
-                <span class="sa-bar"
-                  ><span [style.width.%]="rating.tenure"></span
-                ></span>
-              </div>
-              <div class="sa-factor">
-                <span class="sa-factor-label"
-                  >{{ 'sa.rating.punctuality' | flaT }}
-                  <em>{{
+                  }}</strong>
+                </div>
+                <div>
+                  <span>{{ 'sa.rating.punctuality' | flaT }}</span>
+                  <strong>{{
                     'sa.rating.paid' | flaT: { n: paidCount, total: paidCount }
-                  }}</em></span
-                >
-                <span class="sa-bar"
-                  ><span [style.width.%]="rating.punctuality"></span
-                ></span>
+                  }}</strong>
+                </div>
               </div>
               <p class="sa-muted sa-rating-note">
                 {{ 'sa.rating.note' | flaT }}

@@ -1,25 +1,33 @@
 <article class="sa-card sp" *ngIf="visible && data as d">
   <h3 class="sa-card-title">{{ 'sp.title' | flaT }}</h3>
 
+  <!-- mockup (07/11): regra embaixo do título, saldo grande em vermelho, ganhos e resgates -->
+  <p class="sa-muted sp-rule">
+    {{
+      (d.bonus ? 'sp.ruleBonus' : 'sp.rule')
+        | flaT
+          : {
+              ticket: num(d.perTicket),
+              real: num(d.perReal),
+              bonus: num(d.bonus),
+            }
+    }}
+  </p>
   <div class="sp-top">
     <div class="sp-balance">
       <span class="sp-balance-value">{{ num(d.balance) }}</span>
-      <span class="sp-balance-label">{{ 'sp.points' | flaT }}</span>
+      <span class="sp-balance-label">{{
+        'sp.balanceLine'
+          | flaT: { earned: num(d.earned), redeemed: num(d.redeemed) }
+      }}</span>
     </div>
-    <div class="sp-summary">
-      <p class="sp-summary-line">
-        {{ 'sp.summary' | flaT: { earned: num(d.earned), redeemed: num(d.redeemed) } }}
-      </p>
-      <p class="sa-muted sp-rule">
-        {{
-          (d.bonus ? 'sp.ruleBonus' : 'sp.rule')
-            | flaT: { ticket: num(d.perTicket), real: num(d.perReal), bonus: num(d.bonus) }
-        }}
-      </p>
-      <button type="button" class="sa-link sp-toggle" (click)="showEarnings = !showEarnings">
-        {{ (showEarnings ? 'sp.earningsHide' : 'sp.earningsShow') | flaT }}
-      </button>
-    </div>
+    <button
+      type="button"
+      class="sa-link sp-toggle"
+      (click)="showEarnings = !showEarnings"
+    >
+      {{ (showEarnings ? 'sp.earningsHide' : 'sp.earningsShow') | flaT }}
+    </button>
   </div>
 
   <!-- de onde vieram os pontos -->
@@ -38,7 +46,11 @@
         <tr *ngFor="let e of d.earnings">
           <td>{{ day(e.date) }}</td>
           <td>
-            {{ e.bonus ? ('sp.bonus' | flaT) : ('sp.order' | flaT: { code: e.orderCode }) }}
+            {{
+              e.bonus
+                ? ('sp.bonus' | flaT)
+                : ('sp.order' | flaT: { code: e.orderCode })
+            }}
           </td>
           <td>{{ e.bonus ? '—' : e.tickets }}</td>
           <td>{{ e.bonus ? '—' : brl(e.productsAmount) }}</td>
@@ -48,7 +60,11 @@
     </table>
   </div>
 
-  <p class="sa-note sa-note--warn" *ngIf="!d.canRedeem && d.reason" role="status">
+  <p
+    class="sa-note sa-note--warn"
+    *ngIf="!d.canRedeem && d.reason"
+    role="status"
+  >
     {{ d.reason }}
   </p>
 
@@ -62,26 +78,35 @@
 
   <!-- vitrine -->
   <h4 class="sa-subtitle">{{ 'sp.showcase' | flaT }}</h4>
-  <p class="sa-muted sp-showcase-hint" *ngIf="hasSale(d)">{{ 'sp.saleHint' | flaT }}</p>
-  <p class="sa-muted" *ngIf="!d.experiences.length">{{ 'sp.noExperiences' | flaT }}</p>
+  <p class="sa-muted sp-showcase-hint" *ngIf="hasSale(d)">
+    {{ 'sp.saleHint' | flaT }}
+  </p>
+  <p class="sa-muted" *ngIf="!d.experiences.length">
+    {{ 'sp.noExperiences' | flaT }}
+  </p>
   <div class="sp-grid">
     <div
       class="sp-exp"
       *ngFor="let x of d.experiences"
       [class.sp-exp--ok]="x.redeemable"
     >
-      <img
-        class="sp-exp-img"
-        *ngIf="x.imageUrl"
-        [src]="x.imageUrl"
-        alt=""
-        loading="lazy"
-      />
-      <div class="sp-exp-head">
-        <span class="sp-exp-points">{{ num(x.points) }} <small>{{ 'sp.pts' | flaT }}</small></span>
-        <span class="sp-exp-chip" *ngIf="x.minPlanName">{{
-          'sp.minPlan' | flaT: { plan: x.minPlanName }
-        }}</span>
+      <!-- foto com os pontos (selo vermelho) e o plano mínimo por cima (mockup) -->
+      <div class="sp-exp-media">
+        <img
+          class="sp-exp-img"
+          *ngIf="x.imageUrl"
+          [src]="x.imageUrl"
+          alt=""
+          loading="lazy"
+        />
+        <div class="sp-exp-head">
+          <span class="sp-exp-points"
+            >{{ num(x.points) }} <small>{{ 'sp.pts' | flaT }}</small></span
+          >
+          <span class="sp-exp-chip" *ngIf="x.minPlanName">{{
+            'sp.minPlan' | flaT: { plan: x.minPlanName }
+          }}</span>
+        </div>
       </div>
       <p class="sp-exp-name">{{ x.name }}</p>
       <p class="sp-exp-desc" *ngIf="x.description">{{ x.description }}</p>
@@ -95,7 +120,11 @@
         }}
       </p>
 
-      <div class="sp-bar" *ngIf="!x.redeemable && missing(x) > 0 && d.canRedeem" aria-hidden="true">
+      <div
+        class="sp-bar"
+        *ngIf="!x.redeemable && missing(x) > 0 && d.canRedeem"
+        aria-hidden="true"
+      >
         <span [style.width.%]="progress(x)"></span>
       </div>
 
@@ -117,10 +146,16 @@
             [disabled]="!x.buyable || !!buying"
             (click)="buy(x)"
           >
-            {{ (buying === x.code ? 'sp.buying' : 'sp.buy') | flaT: { price: brl(x.price) } }}
+            {{
+              (buying === x.code ? 'sp.buying' : 'sp.buy')
+                | flaT: { price: brl(x.price) }
+            }}
           </button>
         </div>
-        <p class="sp-exp-reason" *ngIf="!x.redeemable && x.reason && d.canRedeem">
+        <p
+          class="sp-exp-reason"
+          *ngIf="!x.redeemable && x.reason && d.canRedeem"
+        >
           {{ x.reason }}
         </p>
       </ng-container>
@@ -130,12 +165,18 @@
           <p>
             {{
               'sp.confirm'
-                | flaT: { points: num(x.points), after: num(d.balance - x.points) }
+                | flaT
+                  : { points: num(x.points), after: num(d.balance - x.points) }
             }}
           </p>
           <p class="sa-error" *ngIf="error" role="alert">{{ error }}</p>
           <div class="sp-confirm-actions">
-            <button type="button" class="sa-btn" [disabled]="busy" (click)="cancel()">
+            <button
+              type="button"
+              class="sa-btn"
+              [disabled]="busy"
+              (click)="cancel()"
+            >
               {{ 'sp.cancel' | flaT }}
             </button>
             <button
@@ -169,10 +210,16 @@
         <tbody>
           <tr *ngFor="let r of redemptions" [class.sp-off]="r.cancelledAt">
             <td>{{ r.experienceName }}</td>
-            <td><code class="sp-code">{{ r.voucher }}</code></td>
+            <td>
+              <code class="sp-code">{{ r.voucher }}</code>
+            </td>
             <td>{{ day(r.date) }}</td>
             <td class="sp-num">
-              {{ isPurchase(r) ? ('sp.purchase' | flaT: { price: brl(r.amount ?? 0) }) : '−' + num(r.points) }}
+              {{
+                isPurchase(r)
+                  ? ('sp.purchase' | flaT: { price: brl(r.amount ?? 0) })
+                  : '−' + num(r.points)
+              }}
             </td>
             <td>
               {{

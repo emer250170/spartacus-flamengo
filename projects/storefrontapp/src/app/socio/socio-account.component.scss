@@ -992,3 +992,362 @@
     gap: 16px;
   }
 }
+
+// =====================================================================================
+// Visual do mockup "Meu sócio-torcedor" (07/11): cartões brancos de canto reto sobre o
+// fundo cinza da conta, títulos sem a barra vermelha, cabeçalho preto liso com o termo e o
+// rating, dados gerais em grade, carteirinha em cartão vermelho ao lado dos convidados,
+// ações do plano em caixas e o rating em anel. Vale para os componentes que usam esta folha
+// (conta, carteirinha, pontos, convidados).
+// =====================================================================================
+.sa-btn {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 4px;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+
+  // "Quero cancelar meu plano" e a confirmação: preto cheio
+  &--danger {
+    border-color: var(--sa-black);
+    background: var(--sa-black);
+    color: #fff;
+
+    &:hover {
+      border-color: #000;
+      background: #000;
+      color: #fff;
+    }
+  }
+}
+
+.sa-hero {
+  align-items: center;
+  padding: 28px;
+  border-radius: 4px;
+  background: #111;
+  box-shadow: none;
+  margin-bottom: 20px;
+
+  .sa-seal {
+    display: none;
+  }
+}
+
+.sa-kicker {
+  margin: 0 0 6px;
+  color: #ff5a5a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sa-plan {
+  margin: 0 0 10px;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 34px;
+  line-height: 1.05;
+
+  span {
+    color: #ff3b3b;
+  }
+}
+
+.sa-hero .sa-chip {
+  padding: 4px 10px;
+  background: #2a2a2a;
+  font-size: 13px;
+
+  &::before {
+    display: none;
+  }
+
+  &.sa-chip--ok {
+    background: #1d8b21;
+    color: #fff;
+  }
+
+  &.sa-chip--warn {
+    background: #8a4b00;
+    color: #fff;
+  }
+}
+
+.sa-hero-rating {
+  align-items: flex-start;
+  gap: 4px;
+  flex: 0 1 220px;
+  padding: 18px;
+  border: 0;
+  border-radius: 4px;
+  background: #1e1e1e;
+  color: #fff;
+  text-decoration: none;
+
+  &:hover {
+    color: #fff;
+    text-decoration: none;
+  }
+}
+
+.sa-hero-caption {
+  order: -1;
+  margin: 0;
+  color: #cfcfcf;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.sa-hero-score {
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 32px;
+}
+
+.sa-hero-level {
+  color: #ffc94d;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sa-hero-stars .sa-star {
+  color: #ffc94d;
+}
+
+.sa-hero-stars .sa-star--empty {
+  color: rgba(255, 201, 77, 0.35);
+}
+
+.sa-card {
+  padding: 28px;
+  border: 0;
+  border-radius: 4px;
+}
+
+.sa-card-title {
+  margin: 0 0 16px;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 20px;
+  letter-spacing: 0;
+
+  &::before {
+    display: none;
+  }
+}
+
+// dados gerais: rótulo em cima, valor embaixo, duas colunas
+.sa-dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    border: 0;
+  }
+
+  dt {
+    color: #555;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    font-size: 17px;
+    text-align: left;
+
+    small {
+      font-size: 14px;
+    }
+  }
+}
+
+.sa-tile {
+  padding: 12px;
+  border-left: 0;
+  border-radius: 4px;
+  background: #f3f2f2;
+}
+
+.sa-tile-value {
+  font-size: 20px;
+}
+
+.sa-tile-label {
+  font-size: 14px;
+}
+
+// carteirinha: o cartão inteiro em vermelho (ao lado de Meus convidados)
+.sa-card--idcard {
+  background: var(--sa-red);
+  color: #fff;
+
+  .sa-card-title {
+    color: #fff;
+    font-size: 15px;
+  }
+}
+
+// pagamentos e plano
+.sa-box {
+  border-radius: 4px;
+  background: #f3f2f2;
+}
+
+.sa-brand {
+  display: none;
+}
+
+.sa-plan-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.sa-actbox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--sa-line-strong, #cfcfcf);
+  border-radius: 4px;
+
+  .sa-subtitle {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  .sa-muted {
+    margin: 0;
+  }
+
+  > .sa-btn {
+    align-self: stretch;
+    margin-top: auto;
+  }
+}
+
+.sa-cancel.sa-actbox {
+  grid-column: 1 / -1;
+}
+
+.sa-renew-state {
+  margin: 0;
+}
+
+// rating: anel com a nota, tempo de plano e adimplência
+.sa-rating-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+}
+
+.sa-ring {
+  position: relative;
+  flex: 0 0 160px;
+  width: 160px;
+  height: 160px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  circle {
+    fill: none;
+    stroke-width: 10;
+  }
+
+  .sa-ring-track {
+    stroke: #eee;
+  }
+
+  .sa-ring-arc {
+    stroke: #ffc94d;
+    stroke-linecap: round;
+  }
+
+  &--bronze .sa-ring-arc {
+    stroke: #c47f3d;
+  }
+
+  &--silver .sa-ring-arc {
+    stroke: #a9a9ae;
+  }
+
+  &--diamond .sa-ring-arc {
+    stroke: #7fd3f0;
+  }
+}
+
+.sa-ring-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  strong {
+    font-size: 36px;
+    line-height: 1;
+  }
+
+  span {
+    color: #555;
+    font-size: 14px;
+  }
+}
+
+.sa-rating-info {
+  flex: 1 1 320px;
+  min-width: 0;
+
+  .sa-card-title {
+    margin-bottom: 12px;
+  }
+}
+
+.sa-rating-kv {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  span {
+    color: #555;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 767px) {
+  .sa-dl,
+  .sa-plan-actions,
+  .sa-rating-kv {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sa-plan {
+    font-size: 28px;
+  }
+}
