@@ -9,13 +9,15 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { CmsService } from '@spartacus/core';
-import { Observable, Subscription, combineLatest } from 'rxjs';
+import { StoreFinderFacade } from '@spartacus/storefinder/root';
+import { Observable, Subscription, combineLatest, of } from 'rxjs';
 import {
   distinctUntilChanged,
   filter,
   map,
   shareReplay,
   startWith,
+  switchMap,
 } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { FlaCheckoutStepService } from '../visual/fla-checkout-header.component';
@@ -32,11 +34,19 @@ import {
 export const ACCOUNT_CLASS = 'fla-account';
 export const LOGIN_CLASS = 'fla-login';
 export const TERM_CLASS = 'fla-term';
+export const STORES_CLASS = 'fla-stores';
 
 /** Página do Termo do Nação (/socio-torcedor/termo) */
 const TERM_URL = /\/socio-torcedor\/termo\/?(?:[?#]|$)/;
 
-type Mode = 'account' | 'login' | 'term' | null;
+/** Encontre uma loja (/store-finder, busca, país, loja) */
+const STORES_URL = /\/store-finder(?:[/?#]|$)/;
+
+/** Detalhe da loja: /store-finder/country/{país}[/region/{região}]/{loja} */
+const STORE_URL =
+  /\/store-finder\/country\/[^/?#]+\/(?:region\/[^/?#]+\/)?([^/?#]+)\/?(?:[?#]|$)/;
+
+type Mode = 'account' | 'login' | 'term' | 'stores' | null;
 
 interface Band {
   login: boolean;
@@ -49,7 +59,7 @@ interface Band {
 }
 
 /**
- * Faixa escura do topo de Minha conta e do login (mockup, 07/11): trilha "Início › Minha conta ›
+ * Faixa escura do topo de Minha conta, do login, do Termo do Nação e de Encontre uma loja (mockup, 07/11): trilha "Início › Minha conta ›
  * página", título e a frase da página. Fica no lugar do breadcrumb cinza (o tema esconde o
  * breadcrumb com as classes fla-account / fla-login no <html>). Login a caminho do checkout
  * (cabeçalho da compra) fica como está. Entra pelo outlet do slot BottomHeaderSlot.
@@ -99,12 +109,36 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
           ? 'account'
           : TERM_URL.test(url ?? '')
             ? 'term'
-            : isLoginUrl(url) && !step
-              ? 'login'
-              : null
+            : STORES_URL.test(url ?? '')
+              ? 'stores'
+              : isLoginUrl(url) && !step
+                ? 'login'
+                : null
     ),
     distinctUntilChanged(),
     shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  /** Nome da loja aberta (detalhe), para a trilha */
+  protected readonly storeName$: Observable<string> = combineLatest([
+    this.mode$,
+    this.url$,
+  ]).pipe(
+    map(([mode, url]) =>
+      mode === 'stores' ? (STORE_URL.exec(url ?? '')?.[1] ?? '') : ''
+    ),
+    distinctUntilChanged(),
+    switchMap((id) =>
+      id
+        ? this.storeFinder.getFindStoreEntityById().pipe(
+            map((store: any) =>
+              store?.name === id ? (store.displayName ?? store.name) : ''
+            ),
+            startWith('')
+          )
+        : of('')
+    ),
+    distinctUntilChanged()
   );
 
   readonly band$: Observable<Band | null> = combineLatest([
@@ -112,8 +146,22 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     this.url$,
     this.cms.getCurrentPage().pipe(startWith(undefined)),
     this.i18n.lang$,
+    this.storeName$.pipe(startWith('')),
   ]).pipe(
-    map(([mode, url, page]) => {
+    map(([mode, url, page, , storeName]) => {
+      if (mode === 'stores') {
+        const stores = this.i18n.t('sf.band.crumb');
+        return {
+          login: false,
+          parent: storeName
+            ? { label: stores, url: '/store-finder' }
+            : undefined,
+          crumb: storeName || stores,
+          title: this.i18n.t('sf.band.title'),
+          titleRed: this.i18n.t('sf.band.titleRed'),
+          lead: this.i18n.t('sf.band.lead'),
+        };
+      }
       if (mode === 'term') {
         return {
           login: false,
@@ -174,6 +222,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     protected i18n: FlaI18nService,
     protected renderer: Renderer2,
     protected domLabels: FlaDomLabelsService,
+    protected storeFinder: StoreFinderFacade,
     @Inject(DOCUMENT) protected document: Document
   ) {}
 
@@ -189,6 +238,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
         this.toggle(html, ACCOUNT_CLASS, mode === 'account');
         this.toggle(html, LOGIN_CLASS, mode === 'login');
         this.toggle(html, TERM_CLASS, mode === 'term');
+        this.toggle(html, STORES_CLASS, mode === 'stores');
       })
     );
   }
@@ -200,6 +250,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
       this.renderer.removeClass(html, ACCOUNT_CLASS);
       this.renderer.removeClass(html, LOGIN_CLASS);
       this.renderer.removeClass(html, TERM_CLASS);
+      this.renderer.removeClass(html, STORES_CLASS);
     }
   }
 

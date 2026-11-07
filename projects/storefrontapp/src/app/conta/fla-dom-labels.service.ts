@@ -13,6 +13,11 @@ const PAGE_WORDS: [RegExp, string][] = [
 ];
 
 /** Situações em listas do Spartacus que viram selo colorido (data-tone; cores no tema) */
+/** Serviços da loja que vêm do Commerce em inglês (Encontre uma loja) */
+const STORE_FEATURES: Record<string, string> = {
+  'buy online pick up in store': 'sf.feature.pickup',
+};
+
 const STATUS_CELLS = [
   'cx-customer-ticketing-list .cx-ticketing-list-table td:last-child .cx-ticketing-list-value',
 ];
@@ -20,7 +25,8 @@ const STATUS_CELLS = [
 /**
  * Ajustes no DOM de componentes do Spartacus que não têm tradução nem classe para isso (07/11):
  * - rótulos de acessibilidade da paginação em português ("Ir para a primeira página");
- * - situação dos chamados de atendimento com a cor do selo (data-tone).
+ * - situação dos chamados de atendimento com a cor do selo (data-tone);
+ * - serviços da loja em português ("Retirada na loja") em Encontre uma loja.
  * Só no navegador; olha as mudanças da página e só mexe quando o valor muda.
  */
 @Injectable({ providedIn: 'root' })
@@ -81,6 +87,13 @@ export class FlaDomLabelsService implements OnDestroy {
         }
       });
     }
+    doc.querySelectorAll('.cx-feature-item').forEach((item) => {
+      const key = STORE_FEATURES[(item.textContent ?? '').trim().toLowerCase()];
+      const text = key ? this.i18n.t(key) : '';
+      if (text && item.textContent !== text) {
+        item.textContent = text;
+      }
+    });
     doc.querySelectorAll(STATUS_CELLS.join(',')).forEach((cell) => {
       const tone = statusTone(cell.textContent ?? '');
       if (cell.getAttribute('data-tone') !== tone) {

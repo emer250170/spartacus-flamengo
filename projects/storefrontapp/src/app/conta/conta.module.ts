@@ -43,6 +43,12 @@ import {
         redirectTo: 'my-account/orders',
         pathMatch: 'full',
       },
+      // "Ver todas as lojas": as lojas da demo são todas do Brasil; vai direto à lista (07/11)
+      {
+        path: 'store-finder/view-all',
+        redirectTo: 'store-finder/country/BR',
+        pathMatch: 'full',
+      },
     ]),
     UrlModule,
     I18nModule,

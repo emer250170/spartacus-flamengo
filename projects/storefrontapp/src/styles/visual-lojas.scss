@@ -1,0 +1,732 @@
+// Encontre uma loja (/store-finder...) no visual do mockup (07/11, quadros 32 e 33). A classe
+// fla-stores no <html> vem do FlaAccountBandComponent, que também desenha a faixa escura
+// ("Início › Lojas oficiais", "Encontre uma loja"). Sem o banner amarelo da lateral e sem o mapa
+// do Google (não há chave no ambiente): busca e lojas em cartões brancos à esquerda, "Minha loja"
+// à direita. Conteúdo nas bordas do container de 1140px; 16px de recuo abaixo de 1172px.
+
+$fla-sf-ink: #111;
+$fla-sf-muted: #555;
+$fla-sf-line: #cfcfcf;
+$fla-sf-red: var(--fla-vermelho, #d70000);
+$fla-sf-pin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2'%3E%3Cpath d='M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E");
+$fla-sf-pin-white: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2'%3E%3Cpath d='M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E");
+
+@mixin fla-sf-title($size: 20px) {
+  margin: 0;
+  color: $fla-sf-ink;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: $size;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+@mixin fla-sf-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 22px;
+  border-radius: 4px !important;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-decoration: none !important;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+@mixin fla-sf-card {
+  display: block;
+  box-sizing: border-box;
+  padding: 28px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+html.fla-stores main cx-page-layout.StoreFinderPageTemplate {
+  display: block !important;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--cx-page-width-max, 1140px) !important;
+  margin: 0 auto !important;
+  padding: 40px 0 64px !important;
+  color: $fla-sf-ink;
+
+  // banner amarelo (SLR Lenses) e resumo do checkout vazio
+  > cx-page-slot.SideContent {
+    display: none !important;
+  }
+
+  > cx-page-slot.MiddleContent {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    column-gap: 24px;
+    row-gap: 20px;
+    align-items: start;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    > cx-store-finder {
+      grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
+    }
+
+    > cx-my-preferred-store {
+      grid-column: 2;
+      grid-row: 1;
+      min-width: 0;
+    }
+  }
+
+  .container {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .row {
+    margin: 0;
+  }
+
+  // ---------- Minha loja (à direita) ----------
+  cx-my-preferred-store {
+    @include fla-sf-card;
+    padding: 24px;
+
+    [class*='col-'] {
+      flex: 0 0 100%;
+      max-width: 100%;
+      padding: 0;
+    }
+
+    .cx-my-preferred-store-heading {
+      @include fla-sf-title(17px);
+      margin-bottom: 10px;
+    }
+
+    cx-card .cx-card {
+      padding: 0;
+      border: 0 !important;
+      box-shadow: none;
+    }
+
+    .card-body {
+      padding: 0;
+    }
+
+    .card-header {
+      padding: 0;
+      background: none;
+      color: $fla-sf-muted;
+      text-transform: uppercase;
+    }
+
+    .cx-card-label,
+    .fla-no-store,
+    .cx-store-full-address {
+      margin: 0;
+      color: $fla-sf-muted;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .cx-card-label-bold {
+      color: $fla-sf-ink;
+      font-size: 16px;
+    }
+
+    .cx-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      padding: 0;
+
+      .card-link,
+      a,
+      button {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: $fla-sf-red;
+        font-weight: 700;
+        text-decoration: none;
+      }
+    }
+  }
+
+  // ---------- busca e resultados (à esquerda) ----------
+  cx-store-finder .cx-store-finder-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+  }
+
+  cx-store-finder-header,
+  cx-store-finder-grid,
+  cx-store-finder-search-result,
+  cx-store-finder-stores-count,
+  cx-store-finder-store {
+    @include fla-sf-card;
+    margin: 0;
+  }
+
+  cx-store-finder-search {
+    display: block;
+    margin: 0;
+
+    > .container > .row {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch !important;
+      gap: 14px;
+    }
+
+    [class*='col-'] {
+      flex: 0 0 100%;
+      max-width: 100%;
+      padding: 0;
+    }
+
+    .form-group {
+      margin: 0;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      margin: 0;
+    }
+
+    .label-content {
+      color: $fla-sf-ink;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .search-wrapper {
+      position: relative;
+    }
+
+    .form-control {
+      height: 48px;
+      padding: 0 48px 0 14px;
+      border: 1px solid $fla-sf-line;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    cx-icon.search {
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      transform: translateY(-50%);
+      color: $fla-sf-muted;
+    }
+
+    .cx-search-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0 !important;
+
+      > [class*='col-'] {
+        flex: 1 1 200px;
+        max-width: none;
+      }
+
+      .btn {
+        @include fla-sf-btn;
+      }
+
+      // "Usar minha localização": contorno preto com o pino
+      > :first-child .btn {
+        border: 1px solid $fla-sf-ink !important;
+        background: #fff !important;
+        color: $fla-sf-ink !important;
+
+        &::before {
+          content: '';
+          flex: none;
+          width: 16px;
+          height: 16px;
+          background: $fla-sf-pin no-repeat center / contain;
+        }
+
+        &:hover {
+          background: $fla-sf-ink !important;
+          color: #fff !important;
+
+          &::before {
+            background-image: $fla-sf-pin-white;
+          }
+        }
+      }
+    }
+  }
+
+  // "Lojas encontradas" + contagem
+  .cx-counter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 16px;
+    padding: 0;
+    color: $fla-sf-muted;
+    font-size: 15px;
+  }
+
+  .cx-counter-title {
+    @include fla-sf-title;
+  }
+
+  // lojas em 3 colunas
+  cx-store-finder-grid .container > .row,
+  cx-store-finder-search-result ol.cx-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0 !important;
+    list-style: none;
+
+    > .item,
+    > li {
+      flex: none;
+      width: auto;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+  }
+
+  cx-store-finder-list-item {
+    display: block;
+    height: 100%;
+    margin: 0;
+    padding: 0 !important;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-sizing: border-box;
+      height: 100%;
+      padding: 20px;
+      border: 1px solid $fla-sf-line;
+      border-radius: 4px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .cx-store-list-order {
+      display: none;
+    }
+
+    .cx-store-name {
+      margin: 0;
+      padding: 0;
+      color: $fla-sf-ink !important;
+      font-size: 17px;
+      font-weight: 700;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .cx-store-address {
+      margin: 0;
+      color: $fla-sf-muted;
+    }
+
+    .cx-store-address-street {
+      color: $fla-sf-ink;
+    }
+
+    .cx-store-distance {
+      color: $fla-sf-muted;
+      font-size: 14px;
+    }
+
+    // o "Definir como minha loja" aparecia duas vezes
+    cx-set-preferred-store + cx-set-preferred-store {
+      display: none !important;
+    }
+
+    cx-set-preferred-store {
+      display: block;
+      margin-top: auto;
+      padding-top: 10px;
+    }
+
+    .cx-button {
+      align-self: flex-start;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: $fla-sf-red !important;
+      font-weight: 700;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  // "Definir como minha loja": botão de contorno com o coração
+  cx-set-preferred-store .setpreferredstore-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    height: 40px;
+    margin: 0 0 10px;
+    padding: 0 12px;
+    border: 1px solid $fla-sf-ink;
+    border-radius: 4px;
+    background: #fff;
+    color: $fla-sf-ink;
+    cursor: pointer;
+
+    > div {
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+
+    cx-icon {
+      color: $fla-sf-ink;
+      font-size: 15px;
+    }
+
+    .set-preferred-heading {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font-family: inherit;
+      font-size: 15px;
+      text-transform: none;
+      white-space: nowrap;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    &[data-store-is-selected='true'] {
+      border-color: $fla-sf-red;
+
+      cx-icon {
+        color: $fla-sf-red;
+      }
+    }
+  }
+
+  // busca: sem o mapa (sem chave do Google no ambiente) e sem as abas Lista/Mapa do celular
+  cx-store-finder-search-result {
+    .cx-pagination:not(:has(.page)) {
+      display: none;
+    }
+
+    .cx-columns {
+      display: flex !important;
+    }
+
+    .cx-map-col,
+    .cx-columns-mobile {
+      display: none !important;
+    }
+
+    .cx-address-col {
+      flex: 0 0 100%;
+      max-width: 100%;
+      padding: 0;
+    }
+
+    .cx-back-wrapper {
+      padding: 0;
+    }
+  }
+
+  cx-store-finder-pagination-details {
+    display: block;
+    margin: 0 0 16px;
+    color: $fla-sf-muted;
+    font-size: 15px;
+  }
+
+  .cx-no-stores,
+  .cx-not-found {
+    color: $fla-sf-muted;
+    font-size: 16px;
+  }
+
+  // países (quando houver mais de um)
+  cx-store-finder-stores-count {
+    .col-12.m-3 {
+      margin: 0 0 16px !important;
+      padding: 0;
+      color: $fla-sf-muted;
+      font-size: 15px;
+    }
+
+    .cx-title {
+      @include fla-sf-title(17px);
+
+      .cx-country-count {
+        margin-left: 6px;
+        color: $fla-sf-muted;
+      }
+    }
+  }
+
+  // ---------- detalhe da loja ----------
+  cx-store-finder-store {
+    .cx-store-actions {
+      display: flex;
+      justify-content: flex-start;
+      width: 100%;
+      max-width: none;
+      margin: 0 0 18px;
+      padding: 0;
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 6px;
+        width: auto;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        border: 0 !important;
+        background: none !important;
+        color: $fla-sf-ink !important;
+        font-size: 15px;
+        font-weight: 700;
+        text-transform: none !important;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .col-12 {
+      padding: 0;
+    }
+  }
+
+  cx-store-finder-store-description {
+    .cx-container {
+      margin: 0;
+      padding: 0;
+    }
+
+    .cx-storeMap {
+      display: none !important;
+    }
+
+    .cx-store {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-flow: row dense;
+      column-gap: 28px;
+      row-gap: 8px;
+      align-content: start;
+      margin: 0;
+      padding: 0;
+      border: 0;
+
+      > * {
+        grid-column: 1;
+        margin: 0;
+      }
+
+      > h2 {
+        @include fla-sf-title(26px);
+      }
+
+      > .cx-schedule {
+        grid-column: 2;
+        grid-row: 1 / span 5;
+      }
+    }
+
+    .cx-store-description-address {
+      font-size: 16px;
+      line-height: 1.5;
+
+      > div + div {
+        color: $fla-sf-muted;
+      }
+    }
+
+    .cx-contact {
+      margin-top: 8px;
+
+      .cx-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .cx-item {
+        margin: 0;
+      }
+
+      .cx-link {
+        @include fla-sf-btn;
+        width: auto;
+        border: 0;
+        background: $fla-sf-red;
+        color: #fff !important;
+
+        &::before {
+          content: '';
+          flex: none;
+          width: 16px;
+          height: 16px;
+          background: $fla-sf-pin-white no-repeat center / contain;
+        }
+
+        &:hover {
+          background: var(--fla-vermelho-escuro, #a80000);
+        }
+      }
+    }
+
+    h3 {
+      @include fla-sf-title(17px);
+      margin: 0 0 6px;
+      padding: 0;
+    }
+
+    .cx-features {
+      margin-top: 18px;
+
+      .cx-feature-item {
+        display: inline-block;
+        margin: 0 6px 6px 0;
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: $fla-sf-ink;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+      }
+    }
+
+    cx-schedule {
+      display: block;
+
+      .cx-store-hours {
+        margin: 0;
+        padding: 0;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 16px;
+      }
+
+      .cx-days,
+      .cx-hours {
+        flex: none;
+        width: auto;
+        max-width: none;
+        padding: 0;
+      }
+
+      .cx-hours {
+        font-weight: 700;
+        text-align: right;
+      }
+    }
+  }
+}
+
+// ---------- telas menores ----------
+@media (max-width: 1171.98px) {
+  html.fla-stores main cx-page-layout.StoreFinderPageTemplate {
+    padding-inline: 16px !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  html.fla-stores main cx-page-layout.StoreFinderPageTemplate {
+    padding-top: 24px !important;
+
+    > cx-page-slot.MiddleContent {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 16px;
+
+      > cx-my-preferred-store {
+        grid-column: 1;
+        grid-row: 2;
+      }
+    }
+
+    cx-store-finder-grid .container > .row,
+    cx-store-finder-search-result ol.cx-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  html.fla-stores main cx-page-layout.StoreFinderPageTemplate {
+    cx-store-finder-header,
+    cx-store-finder-grid,
+    cx-store-finder-search-result,
+    cx-store-finder-stores-count,
+    cx-store-finder-store,
+    cx-my-preferred-store {
+      padding: 20px;
+    }
+
+    cx-store-finder-grid .container > .row,
+    cx-store-finder-search-result ol.cx-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    cx-store-finder-store-description .cx-store {
+      grid-template-columns: minmax(0, 1fr);
+
+      > .cx-schedule {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 18px;
+      }
+    }
+  }
+}
