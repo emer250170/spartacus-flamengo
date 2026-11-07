@@ -1,0 +1,189 @@
+# Papel "Gestor da loja" (07/11, pedido do Emerson): mantém a loja virtual na venda de produtos e de
+# experiências. Entra no Backoffice num papel só (sem trocar de papel) e vê:
+#   - Loja Flamengo (perspectiva nova, access="lojaperspective"): produtos, categorias, preços, estoque,
+#     pedidos, devoluções, remessas, clientes, chamados, promoções, cupons e experiências (vitrine,
+#     vouchers e relatório);
+#   - Atendimento ao cliente (customersupportbackoffice): autoridades customersupportmanagerrole e
+#     customersupportagentrole;
+#   - Atendimento do pedido / Expedição (warehousingbackoffice): autoridade warehousemanagerrole;
+#   - Pesquisa adaptável e Cockpit de produtos: sem restrição de acesso no SAP Commerce;
+#   - Cockpit de administração com o menu da loja e o Resumo de vendas no painel inicial.
+#
+# Por que um papel só, com as permissões copiadas, e não os grupos padrão: o Backoffice lista como papel
+# todo BackofficeRole alcançável pelos grupos do usuário e mostra só os cockpits do papel ATIVO. Com o
+# gestor em customersupportmanagergroup e warehousemanagergroup ele teria 4 papéis e precisaria trocar
+# de papel para cada cockpit. As telas dos cockpits padrão (contextos com principal="customersupport...",
+# "warehousemanagerrole") valem para este papel porque o Backoffice compara o principal com as
+# AUTORIDADES do papel ativo, na ordem da lista: lojamanagerrole vem primeiro, então os contextos
+# próprios dele (menu, painel) têm prioridade.
+#
+# Usuário: Employee gestor.loja (criado pelo Emerson no Backoffice, com senha; a senha não fica aqui).
+# Importar à parte (base64 + ImportConfig), por causa do $START_USERRIGHTS.
+
+INSERT_UPDATE BackofficeRole;uid[unique=true];locname[lang=pt];locname[lang=en];description;authorities;backOfficeLoginDisabled[default=false]
+;lojamanagerrole;Gestor da loja;Store manager;Mantém a loja virtual: produtos, preços, estoque, pedidos, clientes, atendimento, expedição, promoções, cupons e experiências;lojamanagerrole,lojaperspective,customersupportmanagerrole,customersupportagentrole,warehousemanagerrole,backofficeworkflowuser;
+
+# A perspectiva também para o administrador
+UPDATE BackofficeRole;uid[unique=true];authorities[mode=append]
+;backofficeadministratorrole;lojaperspective
+
+# groups[mode=append]: mantém o employeegroup (restrições de busca de catálogo dos funcionários)
+INSERT_UPDATE Employee;uid[unique=true];groups(uid)[mode=append];sessionLanguage(isocode);backOfficeLoginDisabled;loginDisabled
+;gestor.loja;lojamanagerrole;pt;false;false
+
+# Produtos, preços e estoque são gravados direto no catálogo (Staged e Online), como no resto da demo.
+# Sem direito de sincronizar: o Online tem itens que o Staged não tem (jogos e poltronas) e a
+# sincronização Staged -> Online poderia apagá-los.
+UPDATE CatalogVersion;catalog(id)[unique=true];version[unique=true];readPrincipals(uid)[mode=append];writePrincipals(uid)[mode=append]
+;flamengoProductCatalog;Online;lojamanagerrole;lojamanagerrole
+;flamengoProductCatalog;Staged;lojamanagerrole;lojamanagerrole
+
+# Permissões por tipo (read;change;create;remove;change_perm).
+# Blocos:
+#  1. Atendimento ao cliente e expedição: cópia das permissões de customersupportmanagergroup,
+#     warehousemanagerrole e warehousemanagergroup (exportadas do servidor em 07/11), com ajustes de
+#     segurança: Principal e User só leitura (não altera funcionários nem grupos, então não se coloca
+#     em grupo de administrador); Customer e Address completos; BaseStore, Country e DeliveryMode sem
+#     criar/apagar; Warehouse e PointOfService sem apagar.
+#  2. Produtos, categorias, preços, estoque e mídias: completo (inclui apagar).
+#  3. Promoções e cupons: as mesmas do gestor de merchandising.
+#  4. Experiências: as mesmas do gestor de experiências (experiência não se apaga: quem tem voucher
+#     continua com ele).
+#  5. Pesquisa adaptável: perfis, configurações e regras (fixar, impulsionar, excluir, facetas).
+$START_USERRIGHTS;;;;;;;;;
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+BackofficeRole;lojamanagerrole;;;;;;;;
+# --- 1. Atendimento ao cliente e expedição ---
+;;;;AbstractOrder;+;+;+;+;
+;;;;AbstractOrderEntry;+;+;+;+;
+;;;;AbstractOrderEntry.product;+;+;+;+;
+;;;;Address;+;+;+;+;
+;;;;AdvancedShippingNotice;+;+;-;-;
+;;;;AdvancedShippingNotice.asnEntries;+;-;-;-;
+;;;;AdvancedShippingNotice.comments;+;-;-;-;
+;;;;AdvancedShippingNotice.externalId;+;-;-;-;
+;;;;AdvancedShippingNotice.internalId;+;-;-;-;
+;;;;AdvancedShippingNotice.pointOfService;+;-;-;-;
+;;;;AdvancedShippingNotice.releaseDate;+;-;-;-;
+;;;;AdvancedShippingNotice.warehouse;+;-;-;-;
+;;;;AdvancedShippingNoticeEntry;+;-;-;-;
+;;;;AuditReportConfig;+;-;-;-;
+;;;;AuditReportData;+;+;+;+;
+;;;;AuditReportData.folder;-;-;-;-;
+;;;;AutomatedWorkflowActionTemplate;+;+;-;-;
+;;;;BackofficeSavedQuery;+;+;+;+;
+;;;;BaseSite;+;+;-;-;
+;;;;BaseStore;+;+;-;-;
+;;;;Carrier;+;+;+;+;
+;;;;Comment;+;-;-;-;
+;;;;Consignment;+;+;+;+;
+;;;;ConsignmentEntry;+;+;+;+;
+;;;;ConsignmentStatus;+;+;+;+;
+;;;;Country;+;+;-;-;
+;;;;CsInterventionType;+;+;-;-;
+;;;;CsTicket;+;+;+;+;
+;;;;CsTicket.events;+;+;+;+;
+;;;;CsTicketCategory;+;+;-;-;
+;;;;CsTicketEvent;+;+;+;+;
+;;;;CsTicketPriority;+;+;-;-;
+;;;;CsTicketState;+;+;-;-;
+;;;;Customer;+;+;+;+;
+;;;;CustomerReview;+;+;-;-;
+;;;;CustomerType;+;+;+;+;
+;;;;DeliveryMode;+;+;-;-;
+;;;;FraudReport;+;+;-;-;
+;;;;FraudStatus;+;+;-;-;
+;;;;FraudSymptomScoring;+;+;-;-;
+;;;;InStockStatus;+;+;+;+;
+;;;;OrderCancelRecordEntry;+;+;+;+;
+;;;;OrderEntry;+;+;+;+;
+;;;;OrderEntryCancelRecordEntry;+;+;+;+;
+;;;;OrderEntryModificationRecordEntry;+;+;+;+;
+;;;;OrderHistoryEntry;+;+;+;+;
+;;;;OrderModificationRecord;+;+;+;+;
+;;;;OrderStatus;+;+;+;+;
+;;;;PackagingInfo;+;+;+;+;
+;;;;PaymentInfo;+;+;-;-;
+;;;;PaymentTransaction;+;+;+;+;
+;;;;PaymentTransactionEntry;+;+;+;+;
+;;;;PointOfService;+;+;+;-;
+;;;;PointOfServiceTypeEnum;+;+;+;+;
+;;;;Principal;+;-;-;-;
+;;;;User;+;-;-;-;
+;;;;Quote;-;-;-;-;
+;;;;Region;+;+;-;-;
+;;;;ReturnEntry;+;+;+;+;
+;;;;ReturnOrder;+;+;+;+;
+;;;;ReturnOrderEntry;+;+;+;+;
+;;;;ReturnRequest;+;+;-;-;
+;;;;ReturnStatus;+;+;-;-;
+;;;;Title;+;+;+;+;
+;;;;Vendor;+;+;+;+;
+;;;;Warehouse;+;+;+;-;
+;;;;Warehouse.score;+;-;-;-;
+;;;;Workflow;+;+;-;-;
+;;;;WorkflowAction;+;+;-;-;
+;;;;WorkflowActionTemplate;+;+;-;-;
+;;;;WorkflowDecision;+;+;-;-;
+;;;;WorkflowItemAttachment;+;+;-;-;
+;;;;ZoneDeliveryModeValue;+;+;+;+;
+;;;;AdyenNotification;+;-;-;-;
+# --- 2. Produtos, categorias, preços, estoque e mídias ---
+;;;;Product;+;+;+;+;
+;;;;Category;+;+;+;+;
+;;;;PriceRow;+;+;+;+;
+;;;;DiscountRow;+;+;+;+;
+;;;;TaxRow;+;-;-;-;
+;;;;StockLevel;+;+;+;+;
+;;;;ProductReference;+;+;+;+;
+;;;;ProductFeature;+;+;+;+;
+;;;;Keyword;+;+;+;+;
+;;;;Media;+;+;+;+;
+;;;;MediaContainer;+;+;+;+;
+;;;;MediaFormat;+;-;-;-;
+;;;;MediaFolder;+;-;-;-;
+;;;;Unit;+;-;-;-;
+;;;;Catalog;+;-;-;-;
+;;;;CatalogVersion;+;-;-;-;
+;;;;Currency;+;-;-;-;
+;;;;Language;+;-;-;-;
+;;;;UserPriceGroup;+;-;-;-;
+;;;;UserTaxGroup;+;-;-;-;
+;;;;UserDiscountGroup;+;-;-;-;
+# --- 3. Promoções e cupons (como o gestor de merchandising) ---
+;;;;PromotionSourceRule;+;+;+;+;
+;;;;PromotionSourceRuleTemplate;+;+;+;-;
+;;;;PromotionGroup;+;+;+;-;
+;;;;RuleGroup;+;+;+;-;
+;;;;AbstractCoupon;+;+;+;+;
+;;;;CouponRedemption;+;-;-;-;
+;;;;CodeGenerationConfiguration;+;+;+;-;
+;;;;AbstractRule;+;-;-;-;
+;;;;AbstractRuleEngineRule;+;-;-;-;
+;;;;AbstractRulesModule;+;-;-;-;
+;;;;RuleConditionDefinition;+;-;-;-;
+;;;;RuleConditionDefinitionCategory;+;-;-;-;
+;;;;RuleConditionDefinitionParameter;+;-;-;-;
+;;;;RuleConditionDefinitionRuleTypeMapping;+;-;-;-;
+;;;;RuleActionDefinition;+;-;-;-;
+;;;;RuleActionDefinitionCategory;+;-;-;-;
+;;;;RuleActionDefinitionParameter;+;-;-;-;
+;;;;RuleActionDefinitionRuleTypeMapping;+;-;-;-;
+;;;;UserGroup;+;-;-;-;
+;;;;CronJob;+;-;-;-;
+# --- 4. Experiências (como o gestor de experiências) ---
+;;;;SocioExperience;+;+;+;-;
+;;;;SocioRedemption;+;+;-;-;
+;;;;SocioPlan;+;-;-;-;
+;;;;SocioEvent;+;-;+;-;
+;;;;SocioEventType;+;-;-;-;
+# --- 5. Pesquisa adaptável ---
+;;;;AbstractAsSearchProfile;+;+;+;+;
+;;;;AbstractAsConfiguration;+;+;+;+;
+;;;;AsSearchProfileActivationSet;+;+;-;-;
+;;;;SolrFacetSearchConfig;+;-;-;-;
+;;;;SolrIndexedType;+;-;-;-;
+;;;;SolrIndexedProperty;+;-;-;-;
+;;;;SolrSort;+;-;-;-;
+;;;;SolrSortField;+;-;-;-;
+$END_USERRIGHTS;;;;;;;;;

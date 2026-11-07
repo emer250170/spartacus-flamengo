@@ -843,6 +843,24 @@ O painel padrão do Cockpit de administração mostra gráficos do sistema (thre
 - **Desconto.** Soma o desconto do pedido e o dos itens. Pedidos cancelados não contam.
 - **Deploy.** `ant all`, reiniciar e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
 
+### Cockpit Loja Flamengo e papel Gestor da loja (07/11)
+
+Usuário `gestor.loja` (criado pelo Emerson no Backoffice, com senha) para manter a loja virtual na venda de produtos e de experiências, com tudo num papel só, sem trocar de papel.
+
+| Parte | Como funciona |
+|---|---|
+| Papel | **Gestor da loja** (`lojamanagerrole`). Autoridades, nesta ordem: `lojamanagerrole`, `lojaperspective`, `customersupportmanagerrole`, `customersupportagentrole`, `warehousemanagerrole`, `backofficeworkflowuser`. Grupos do usuário: `lojamanagerrole` e `employeegroup` (o `employeegroup` traz as restrições de busca de catálogo de todo funcionário). |
+| Cockpits que ele vê | **Loja Flamengo** (novo), **Atendimento ao cliente**, **Atendimento do pedido** (expedição), **Pesquisa adaptável**, **Cockpit de produtos** e **Cockpit de administração**, que traz o menu da loja e o Resumo de vendas no painel inicial. |
+| Menu da Loja Flamengo | **Produtos**: produtos, categorias, preços, estoque. **Pedidos**: pedidos, devoluções, remessas, avisos da Adyen. **Clientes e atendimento**: clientes, chamados. **Promoções e cupons**: regras, cupons de código único e de vários códigos, resgates de cupom. **Experiências**: Vitrine, Vouchers, resgates e compras, Relatório (as mesmas telas da Gestão de experiências, em instâncias próprias) e o cadastro completo. Ao abrir, Produtos já vem selecionado. |
+| Permissões | `essentialdata-flamengomatchday-loja-role.impex`. Atendimento e expedição: cópia das permissões de `customersupportmanagergroup`, `warehousemanagerrole` e `warehousemanagergroup` (exportadas do servidor), com ajustes de segurança. Funcionários e grupos ficam só para leitura (Principal e User), então ele não consegue se colocar em grupo de administrador. Clientes e endereços, completo. Loja base, país e modo de entrega: não cria nem apaga. Depósito e ponto de venda: não apaga. Produtos, categorias, preços, estoque e mídias: completo, inclusive apagar. Promoções e cupons: como o gestor de merchandising. Experiências: como o gestor de experiências (não apaga experiência). Pesquisa adaptável: perfis, configurações e regras. Escrita no `flamengoProductCatalog` Staged e Online. |
+| Sem sincronização | Ele grava direto no catálogo **Online**, como o resto da demo. Não tem direito de sincronizar Staged → Online: o Online tem itens que o Staged não tem (jogos e poltronas), e a sincronização poderia apagá-los. |
+
+Por que um papel só e não os grupos padrão: o Backoffice trata como papel **todo** `BackofficeRole` alcançável pelos grupos do usuário e mostra só os cockpits do papel **ativo**. Com o `gestor.loja` em `customersupportmanagergroup` e `warehousemanagergroup`, ele teria 4 papéis e precisaria trocar de papel para cada cockpit. As telas dos cockpits padrão (contextos com `principal="customersupport..."` ou `"warehousemanagerrole"`) valem para o papel novo porque o Backoffice compara o `principal` com as **autoridades** do papel ativo, na ordem da lista. Como `lojamanagerrole` vem primeiro, o menu e o painel do gestor da loja têm prioridade.
+
+Fora do papel: o atendimento assistido na loja (ASM), que pede o grupo `asagentsalesgroup` (como o `atendente.asm`), e a atribuição automática de chamado a agente, que usa os grupos `CsAgentGroup`.
+
+Deploy: `ant all`, reiniciar, importar a ImpEx do papel à parte (base64 + `ImportConfig`) e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
+
 ### Promoção pela forma de pagamento (05/11)
 
 Condição nova no construtor de promoções: **Forma de pagamento** (`fla_forma_pagamento`, categoria Carrinho). Exemplo: "Forma de pagamento é Pix" + "Desconto percentual no pedido" 5% = 5% no Pix à vista da loja.
