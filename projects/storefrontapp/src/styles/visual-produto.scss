@@ -527,24 +527,57 @@ fla-pdp-gallery {
   margin-bottom: 24px;
 }
 
-.fla-gal {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.fla-gal-item {
+// foto grande e, embaixo, as fotos de detalhe num carrossel (07/11)
+.fla-gal-main {
   display: block;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  aspect-ratio: 1 / 1.1;
   overflow: hidden;
   padding: 0;
   border: 0;
   background: #f2f2f2;
   cursor: zoom-in;
 
-  &.is-main {
-    grid-column: 1 / -1;
-    aspect-ratio: 1 / 1.1;
+  cx-media,
+  cx-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.fla-gal-strip {
+  position: relative;
+  margin-top: 8px;
+}
+
+.fla-gal-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 3 * 8px) / 4);
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.fla-gal-thumb {
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid transparent;
+  background: #f2f2f2;
+  cursor: pointer;
+  scroll-snap-align: start;
+
+  &.is-active {
+    border-color: #111;
   }
 
   cx-media,
@@ -553,6 +586,50 @@ fla-pdp-gallery {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+}
+
+.fla-gal-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #e2e2e2;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font-size: 24px;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+
+  &.is-prev {
+    left: -12px;
+  }
+
+  &.is-next {
+    right: -12px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .fla-gal-track {
+    grid-auto-columns: calc((100% - 2 * 8px) / 3);
+  }
+
+  .fla-gal-arrow {
+    &.is-prev {
+      left: 4px;
+    }
+
+    &.is-next {
+      right: 4px;
+    }
   }
 }
 
