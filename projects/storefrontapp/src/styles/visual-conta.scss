@@ -1,0 +1,843 @@
+// Minha conta e login no visual do mockup (07/11). As classes no <html> vêm do
+// FlaAccountBandComponent: fla-account (endereços /my-account/...) e fla-login (/login fora do
+// checkout). Faixa escura com trilha e título (no lugar do breadcrumb cinza), fundo cinza,
+// menu lateral em grupos à esquerda (FlaAccountMenuComponent) e o conteúdo em cartões brancos.
+// Conteúdo nas bordas do container de 1140px, como o header; 16px de recuo abaixo de 1172px.
+
+$fla-acc-ink: #111;
+$fla-acc-muted: #555;
+$fla-acc-line: #cfcfcf;
+$fla-acc-soft: #f3f2f2;
+$fla-acc-red: var(--fla-vermelho, #d70000);
+
+// ---------- faixa escura (trilha, título, frase) ----------
+fla-account-band {
+  display: contents;
+}
+
+html.fla-account,
+html.fla-login {
+  cx-page-slot.BottomHeaderSlot {
+    display: block !important;
+    padding: 0 !important;
+    background: $fla-acc-ink !important;
+
+    // o breadcrumb cinza e a linha "Número: ..." dão lugar à faixa
+    > cx-breadcrumb,
+    fla-order-number-header {
+      display: none !important;
+    }
+  }
+
+  main {
+    background: $fla-acc-soft;
+  }
+}
+
+.fab {
+  width: 100%;
+  background: $fla-acc-ink;
+  color: #fff;
+}
+
+.fab-in {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+  max-width: var(--cx-page-width-max, 1140px);
+  margin: 0 auto;
+  padding: 32px 0 36px;
+}
+
+.fab-crumbs,
+.fab-lead {
+  font-family: var(--fla-fonte, 'Archivo Narrow', Arial, sans-serif) !important;
+  letter-spacing: normal;
+  text-transform: none !important;
+
+  a,
+  span {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+}
+
+.fab-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #cfcfcf;
+  font-size: 14px;
+
+  a {
+    color: #cfcfcf !important;
+    text-decoration: none;
+
+    &:hover {
+      color: #fff !important;
+      text-decoration: underline;
+    }
+  }
+
+  .fab-here {
+    color: #fff;
+  }
+}
+
+.fab-title {
+  margin: 0;
+  color: #fff;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+
+  span {
+    color: #ff3b3b;
+  }
+}
+
+.fab-lead {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 17px;
+}
+
+// ---------- Minha conta: menu à esquerda, conteúdo à direita ----------
+html.fla-account main cx-page-layout.AccountPageTemplate {
+  display: grid !important;
+  grid-template-columns: 280px minmax(0, 1fr);
+  grid-auto-rows: auto;
+  column-gap: 24px;
+  align-items: start;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--cx-page-width-max, 1140px) !important;
+  margin: 0 auto !important;
+  padding: 40px 0 64px !important;
+
+  > fla-account-menu {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-width: 0;
+  }
+
+  > cx-page-slot {
+    grid-column: 2;
+    min-width: 0;
+    max-width: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  > cx-page-slot.SideContent:not(.has-components) {
+    display: none !important;
+  }
+
+  // cada componente num cartão branco (os do checkout que ficam vazios aqui somem)
+  > cx-page-slot.BodyContent {
+    display: flex !important;
+    flex-direction: column;
+    gap: 20px;
+
+    > :empty {
+      display: none !important;
+    }
+
+    > :not(:empty):not(fla-socio-account):not(fla-socio-order-payment):not(
+        cx-export-order-entries
+      ):not(cx-order-details-actions):not(cx-import-order-entries) {
+      box-sizing: border-box;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 28px;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    // Encerrar conta: texto e botões num cartão só
+    > cx-paragraph:has(+ cx-close-account) {
+      border-radius: 4px 4px 0 0 !important;
+      padding-bottom: 8px !important;
+    }
+
+    > cx-paragraph + cx-close-account {
+      margin-top: -20px !important;
+      border-radius: 0 0 4px 4px !important;
+      padding-top: 8px !important;
+    }
+  }
+}
+
+// ---------- menu lateral ----------
+.fam {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 20px 0;
+  border-radius: 4px;
+  background: #fff;
+  color: $fla-acc-ink;
+}
+
+.fam-me {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.fam-avatar {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: $fla-acc-red;
+  color: #fff;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.fam-me-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 17px;
+  }
+}
+
+.fam-mail {
+  overflow: hidden;
+  color: $fla-acc-muted;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fam-plan {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: $fla-acc-ink;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fam-toggle {
+  display: none;
+}
+
+.fam-group {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0 4px;
+
+  a {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 20px;
+    color: $fla-acc-ink !important;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none !important;
+
+    &:hover {
+      background: $fla-acc-soft;
+    }
+
+    &.is-current {
+      background: $fla-acc-ink;
+      box-shadow: inset 4px 0 0 $fla-acc-red;
+      color: #fff !important;
+      font-weight: 700;
+    }
+  }
+}
+
+.fam-group-title {
+  padding: 0 20px 6px;
+  color: $fla-acc-muted;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fam-out {
+  margin-top: 8px;
+  padding: 14px 20px 0;
+  border-top: 1px solid #eee;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    color: $fla-acc-red !important;
+    font-weight: 700;
+    text-decoration: none !important;
+  }
+}
+
+// ---------- telas da conta: ajustes nos componentes do Spartacus ----------
+html.fla-account
+  main
+  cx-page-layout.AccountPageTemplate
+  > cx-page-slot.BodyContent {
+  // títulos dos componentes no padrão do mockup
+  h2,
+  h3,
+  .cx-my-coupons-header,
+  .cx-saved-cart-list-header,
+  .cx-wish-list-header,
+  .cx-my-interests-header {
+    font-family: var(--fla-fonte-titulo, inherit);
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  // o título já está na faixa escura
+  .cx-order-history-header {
+    display: none;
+  }
+
+  // abas (Todos os pedidos / Devoluções): sublinhado vermelho, sem caixa cinza
+  cx-tab-paragraph-container {
+    .tab {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid $fla-acc-line;
+      background: none;
+    }
+
+    .tab-btn {
+      margin-bottom: -1px;
+      padding: 10px 0 !important;
+      border: 0 !important;
+      border-bottom: 3px solid transparent !important;
+      background: none !important;
+      color: $fla-acc-muted !important;
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+
+      &::after,
+      &::before {
+        display: none !important;
+      }
+
+      &.active {
+        border-bottom-color: $fla-acc-red !important;
+        color: $fla-acc-ink !important;
+      }
+    }
+
+    cx-tab-panel > div {
+      padding: 0 !important;
+      background: none !important;
+    }
+  }
+
+  // formulários (e-mail, senha): ocupam o cartão; Cancelar e Salvar à direita depois de uma linha
+  cx-update-email,
+  cx-update-password {
+    width: 100%;
+    max-width: none;
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0 12px;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+
+      > label {
+        flex: 0 0 100%;
+      }
+
+      > label:last-of-type {
+        margin-bottom: 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #eee;
+      }
+
+      > .btn {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 140px;
+        margin: 0;
+      }
+    }
+  }
+
+  // colunas do Bootstrap que estreitavam e centralizavam o conteúdo: agora ocupam o cartão
+  cx-consent-management,
+  cx-notification-preference,
+  cx-close-account {
+    .row {
+      justify-content: flex-start !important;
+      margin-inline: 0;
+    }
+
+    [class*='col-'] {
+      flex: 0 0 100%;
+      max-width: 100%;
+      padding-inline: 0;
+    }
+  }
+
+  // Consentimentos: "Desmarcar todos" e "Marcar todos" juntos, à direita
+  .cx-consent-action-links > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px 20px;
+
+    .btn {
+      width: auto;
+      margin: 0;
+      padding-inline: 0;
+    }
+  }
+
+  cx-consent-management-form + cx-consent-management-form .form-check {
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+
+  // Encerrar conta: Cancelar e Encerrar à direita
+  cx-close-account .cx-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end !important;
+    gap: 12px;
+    margin: 18px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid #eee;
+
+    > [class*='col-'] {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: none;
+    }
+
+    .btn {
+      width: auto;
+      min-width: 140px;
+    }
+  }
+
+  // Formas de pagamento: sem o recuo do container
+  cx-payment-methods .cx-payment.container {
+    max-width: none;
+    padding: 0;
+  }
+
+  // detalhe do pedido: número, data e situação lado a lado, sem a caixa cinza
+  cx-order-overview {
+    .cx-order-summary {
+      padding: 0 !important;
+      background: none !important;
+    }
+
+    .cx-order-summary > .container {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .cx-order-details-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 40px;
+    }
+
+    cx-card .cx-card,
+    cx-card .card-body {
+      padding: 0 !important;
+      border: 0 !important;
+      background: none !important;
+    }
+
+    .cx-summary-card {
+      flex: 0 1 auto;
+      width: auto;
+      max-width: none;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .cx-card-title {
+      color: $fla-acc-muted;
+      font-size: 13px;
+      font-weight: 400;
+      text-transform: uppercase;
+    }
+
+    .cx-card-label {
+      font-size: 18px;
+      font-weight: 700;
+    }
+  }
+
+  // resumo do pedido à direita, em meia largura
+  cx-order-details-totals {
+    .row {
+      justify-content: flex-end;
+      margin: 0;
+    }
+
+    .row > [class*='col-'] {
+      flex: 0 1 420px;
+      max-width: 100%;
+      padding: 0;
+    }
+  }
+
+  // paginação: página atual em preto (mockup)
+  cx-pagination a.current,
+  cx-pagination a[aria-current='page'] {
+    border-color: $fla-acc-ink !important;
+    background: $fla-acc-ink !important;
+    color: #fff !important;
+  }
+
+  // tabelas: cabeçalho em cinza, linhas finas
+  table {
+    th {
+      color: $fla-acc-muted;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+  }
+}
+
+// ---------- login: "Já tenho conta" (branco) e "Ainda não tem conta?" (vermelho) ----------
+fla-login-have,
+fla-login-perks {
+  display: none;
+}
+
+html.fla-login main cx-page-layout.LoginPageTemplate {
+  display: block !important;
+  box-sizing: border-box;
+  max-width: var(--cx-page-width-max, 1140px) !important;
+  margin: 0 auto !important;
+  padding: 48px 0 72px !important;
+
+  > cx-page-slot.RightContentSlot:not(.has-components) {
+    display: none !important;
+  }
+
+  > cx-page-slot.LeftContentSlot {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr auto;
+    column-gap: 24px;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    // fundos dos dois cartões (atrás dos itens)
+    &::before,
+    &::after {
+      content: '';
+      position: relative;
+      z-index: 0;
+      display: block;
+      align-self: stretch;
+      justify-self: stretch;
+      border-radius: 4px;
+    }
+
+    &::before {
+      grid-area: 1 / 1 / 5 / 2;
+      background: #fff;
+    }
+
+    &::after {
+      grid-area: 1 / 2 / 5 / 3;
+      background: $fla-acc-red;
+    }
+
+    > * {
+      position: relative;
+      z-index: 1;
+      width: auto !important;
+      min-width: 0;
+      max-width: none !important;
+    }
+
+    > fla-checkout-identity-intro,
+    > fla-checkout-identity-extra {
+      display: none;
+    }
+
+    > fla-login-have {
+      display: block;
+      grid-area: 1 / 1;
+      padding: 36px 36px 0;
+    }
+
+    > cx-login-form {
+      grid-area: 2 / 1 / 5 / 2;
+      width: auto !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 18px 36px 36px !important;
+    }
+
+    > cx-login-register,
+    > cx-login-register > .register {
+      display: contents;
+    }
+
+    .cx-section-title {
+      position: relative;
+      z-index: 1;
+      grid-area: 1 / 2;
+      margin: 0;
+      padding: 36px 36px 0;
+      color: #fff;
+      font-family: var(--fla-fonte-titulo, inherit);
+      font-size: 24px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    > fla-login-perks {
+      display: block;
+      grid-area: 2 / 2 / 4 / 3;
+      padding: 16px 36px 0;
+      color: #fff;
+    }
+
+    .btn-register {
+      grid-area: 4 / 2;
+      position: relative;
+      z-index: 1;
+      align-self: end;
+      width: auto !important;
+      margin: 24px 36px 36px !important;
+      border: 0 !important;
+      background: #fff !important;
+      color: $fla-acc-red !important;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.flg-have {
+  margin: 0;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 24px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.flg-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  p {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    gap: 10px;
+  }
+
+  svg {
+    flex: 0 0 18px;
+    margin-top: 2px;
+  }
+}
+
+// ---------- telas menores ----------
+@media (max-width: 1171.98px) {
+  .fab-in {
+    padding-inline: 16px;
+  }
+
+  html.fla-account main cx-page-layout.AccountPageTemplate,
+  html.fla-login main cx-page-layout.LoginPageTemplate {
+    padding-inline: 16px !important;
+  }
+
+  html.fla-account
+    main
+    cx-page-layout.AccountPageTemplate
+    > cx-page-slot.BodyContent {
+    padding-inline: 0 !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  html.fla-account main cx-page-layout.AccountPageTemplate {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 16px;
+    padding-top: 24px !important;
+
+    > fla-account-menu {
+      grid-row: auto;
+    }
+
+    > cx-page-slot {
+      grid-column: 1;
+    }
+  }
+
+  // menu fechado num botão com o nome da página
+  .fam {
+    padding: 0;
+  }
+
+  .fam-me {
+    padding: 16px 16px 12px;
+  }
+
+  .fam-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 0;
+    background: none;
+    color: $fla-acc-ink;
+    font-size: 16px;
+    font-weight: 700;
+
+    svg {
+      transition: transform 0.15s;
+    }
+  }
+
+  .fam.is-open .fam-toggle svg {
+    transform: rotate(180deg);
+  }
+
+  .fam-groups {
+    display: none;
+    padding-bottom: 12px;
+    border-top: 1px solid #eee;
+  }
+
+  .fam.is-open .fam-groups {
+    display: block;
+  }
+
+  .fam-out {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .fab-title {
+    font-size: 28px;
+  }
+
+  .fab-in {
+    padding-block: 24px 28px;
+  }
+
+  html.fla-account
+    main
+    cx-page-layout.AccountPageTemplate
+    > cx-page-slot.BodyContent {
+    > :not(:empty):not(fla-socio-account):not(fla-socio-order-payment):not(
+        cx-export-order-entries
+      ):not(cx-order-details-actions):not(cx-import-order-entries) {
+      padding: 20px;
+    }
+  }
+
+  // login: um cartão embaixo do outro
+  html.fla-login main cx-page-layout.LoginPageTemplate {
+    padding-top: 24px !important;
+
+    > cx-page-slot.LeftContentSlot {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto 24px auto auto auto;
+
+      &::before {
+        grid-area: 1 / 1 / 3 / 2;
+      }
+
+      &::after {
+        grid-area: 4 / 1 / 7 / 2;
+      }
+
+      > fla-login-have {
+        grid-area: 1 / 1;
+        padding: 24px 20px 0;
+      }
+
+      > cx-login-form {
+        grid-area: 2 / 1;
+        padding: 16px 20px 24px !important;
+      }
+
+      .cx-section-title {
+        grid-area: 4 / 1;
+        padding: 24px 20px 0;
+      }
+
+      > fla-login-perks {
+        grid-area: 5 / 1;
+        padding: 12px 20px 0;
+      }
+
+      .btn-register {
+        grid-area: 6 / 1;
+        margin: 20px !important;
+      }
+    }
+  }
+}

@@ -20,6 +20,9 @@ import { SocioService } from './socio.service';
 /** Link do menu Minha conta para a área do sócio (CMS: SocioTorcedorAccountLink) */
 export const SOCIO_ACCOUNT_URL = '/my-account/socio-torcedor';
 
+/** Telas que saíram do menu Minha conta (07/11: Dados pessoais, decisão do Emerson) */
+export const REMOVED_ACCOUNT_URLS = ['/my-account/update-profile'];
+
 /**
  * Menu Minha conta: "Meu sócio-torcedor" só para quem é ou já foi sócio.
  * - sócio (grupo do plano) → mostra;
@@ -28,6 +31,7 @@ export const SOCIO_ACCOUNT_URL = '/my-account/socio-torcedor';
  * - Pix ou boleto do plano aguardando pagamento (item 7) → mostra, com o código;
  * - nunca foi sócio (inclusive com o plano só no carrinho) → esconde.
  * Os outros menus (categorias, rodapé) passam direto, sem consulta extra.
+ * Também tira do menu as telas removidas da conta (REMOVED_ACCOUNT_URLS).
  */
 @Injectable({ providedIn: 'root' })
 export class SocioNavigationService extends NavigationService {
@@ -47,21 +51,20 @@ export class SocioNavigationService extends NavigationService {
   getNavigationNode(
     data$: Observable<CmsNavigationComponent>
   ): Observable<NavigationNode> {
-    return super
-      .getNavigationNode(data$)
-      .pipe(
-        switchMap((node) =>
-          hasSocioLink(node)
-            ? this.showSocio().pipe(
-                map((show) => (show ? node : withoutSocioLink(node)))
-              )
-            : of(node)
-        )
-      );
+    return super.getNavigationNode(data$).pipe(
+      map((node) => (hasRemovedLink(node) ? withoutRemovedLinks(node) : node)),
+      switchMap((node) =>
+        hasSocioLink(node)
+          ? this.showSocio().pipe(
+              map((show) => (show ? node : withoutSocioLink(node)))
+            )
+          : of(node)
+      )
+    );
   }
 
   /** É ou já foi sócio? (recalcula quando o login ou o plano mudam) */
-  protected showSocio(): Observable<boolean> {
+  showSocio(): Observable<boolean> {
     if (!this.showSocio$) {
       this.showSocio$ = this.auth.isUserLoggedIn().pipe(
         distinctUntilChanged(),
@@ -107,5 +110,32 @@ function withoutSocioLink(node: NavigationNode): NavigationNode {
     children: node.children
       ?.filter((c) => !isSocioLink(c))
       .map((c) => withoutSocioLink(c)),
+  };
+}
+
+function nodeUrl(node: NavigationNode): string {
+  const url = Array.isArray(node.url) ? node.url.join('/') : (node.url ?? '');
+  return url.replace(/\/+$/, '');
+}
+
+function isRemovedLink(node: NavigationNode): boolean {
+  const url = nodeUrl(node);
+  return REMOVED_ACCOUNT_URLS.some((removed) => url.endsWith(removed));
+}
+
+function hasRemovedLink(node: NavigationNode | undefined): boolean {
+  return (
+    !!node &&
+    (isRemovedLink(node) ||
+      (node.children ?? []).some((c) => hasRemovedLink(c)))
+  );
+}
+
+function withoutRemovedLinks(node: NavigationNode): NavigationNode {
+  return {
+    ...node,
+    children: node.children
+      ?.filter((c) => !isRemovedLink(c))
+      .map((c) => withoutRemovedLinks(c)),
   };
 }

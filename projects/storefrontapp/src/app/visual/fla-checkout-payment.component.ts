@@ -34,7 +34,8 @@ interface DoneStep {
   title: string;
   l1: string;
   l2?: string;
-  route: string;
+  /** Sem rota: etapa sem "Alterar" (dados pessoais, depois que a tela saiu da conta em 07/11) */
+  route?: string;
 }
 
 /** Página do pagamento (escolha da forma) ou revisão (cartão, aceites e finalizar) */
@@ -69,7 +70,7 @@ function payPage(url: string): 'payment' | 'review' | null {
           <span>{{ s.l1 }}</span>
           <span class="fla-cdn-muted" *ngIf="s.l2">{{ s.l2 }}</span>
         </div>
-        <a [routerLink]="{ cxRoute: s.route } | cxUrl">{{ 'cpay.change' | flaT }}</a>
+        <a *ngIf="s.route" [routerLink]="{ cxRoute: s.route } | cxUrl">{{ 'cpay.change' | flaT }}</a>
       </section>
       <div class="fla-cpay-head">
         <h1 class="fla-co-title">{{ 'cpay.title' | flaT }}</h1>
@@ -132,7 +133,6 @@ export class FlaCheckoutDoneComponent implements OnInit, OnDestroy {
                     l1: [[user?.firstName, user?.lastName].filter((x) => !!x).join(' ') || user?.name, user?.uid]
                       .filter((x) => !!x)
                       .join(' · '),
-                    route: 'updateProfile',
                   },
                   this.deliveryStep(cart, storeName, address, mode),
                 ];

@@ -8,7 +8,6 @@
       </h2>
       <span>{{ v.name }}<ng-container *ngIf="v.email"> · {{ v.email }}</ng-container></span>
     </div>
-    <a [routerLink]="{ cxRoute: 'updateProfile' } | cxUrl">{{ 'cdl.change' | flaT }}</a>
   </section>
 
   <section class="fla-cdl" aria-labelledby="fla-cdl-title">
