@@ -1050,3 +1050,11 @@ cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
   .quantity {
   display: none !important;
 }
+
+// sem "Forma de entrega" na página do produto (Emerson, 07/11): o produto vai para o carrinho
+// como "Receber em casa"; a retirada na loja (com a escolha da loja) fica na entrega do checkout
+cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
+  cx-add-to-cart
+  cx-cart-pickup-options-container {
+  display: none !important;
+}
