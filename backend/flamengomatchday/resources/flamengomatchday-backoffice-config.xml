@@ -342,6 +342,38 @@
 			</editorArea:tab>
 		</editorArea:editorArea>
 	</context>
+	<!-- ============================ ClearSale (07/11) ============================ -->
+	<!-- Aba "ClearSale" na loja base: liga/desliga a análise de fraude e as credenciais -->
+	<context merge-by="type" type="BaseStore" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:tab name="clearsale.editor.tab">
+				<editorArea:section name="clearsale.editor.ligar">
+					<editorArea:attribute qualifier="clearSaleAtivo"/>
+					<editorArea:attribute qualifier="clearSaleEmails"/>
+				</editorArea:section>
+				<editorArea:section name="clearsale.editor.api">
+					<editorArea:attribute qualifier="clearSaleUrl"/>
+					<editorArea:attribute qualifier="clearSaleUsuario"/>
+					<editorArea:attribute qualifier="clearSaleSenha"/>
+					<editorArea:attribute qualifier="clearSaleFingerprint"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+	<!-- Aba "ClearSale" no pedido: decisão, score e resumo da análise (só leitura) -->
+	<context merge-by="type" type="Order" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:tab name="clearsale.editor.order.tab">
+				<editorArea:section name="clearsale.editor.order.section">
+					<editorArea:attribute qualifier="clearSaleStatus" readonly="true"/>
+					<editorArea:attribute qualifier="clearSaleScore" readonly="true"/>
+					<editorArea:attribute qualifier="clearSaleDate" readonly="true"/>
+					<editorArea:attribute qualifier="clearSaleRequestId" readonly="true"/>
+					<editorArea:attribute qualifier="clearSaleMessage" readonly="true"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
 	<!-- Avisos do webhook: "AUTHORISATION · pedido 00031000 · aplicado" -->
 	<context merge-by="type" parent="GenericItem" type="AdyenNotification" component="base">
 		<y:base>

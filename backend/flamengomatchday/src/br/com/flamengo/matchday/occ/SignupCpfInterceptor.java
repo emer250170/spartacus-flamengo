@@ -1,6 +1,7 @@
 package br.com.flamengo.matchday.occ;
 
 import br.com.flamengo.matchday.customer.SignupCpfHolder;
+import br.com.flamengo.matchday.customer.Telefone;
 import br.com.flamengo.matchday.socio.SocioGuestService;
 import de.hybris.platform.servicelayer.config.ConfigurationService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
@@ -27,6 +28,10 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * (ValidationError, subject cpf, reason invalid ou duplicate). Certo, fica guardado até o fim da chamada
  * para o {@code CustomerCpfPrepareInterceptor} gravar no torcedor novo. Sem o parâmetro, o cadastro
  * segue como antes (outros clientes da API). Chave {@code flamengo.cadastro.cpf.ativo}.
+ * <p>
+ * Telefone (07/11, para o ClearSale): no mesmo POST, parâmetro {@code telefone} (DDD + número). Conferido
+ * (celular com 11 números e o 9, fixo com 10) e gravado em {@code Customer.phone}; errado, 400 com subject
+ * {@code telefone}. Chave {@code flamengo.cadastro.telefone.ativo}.
  */
 public class SignupCpfInterceptor implements HandlerInterceptor
 {
@@ -41,23 +46,35 @@ public class SignupCpfInterceptor implements HandlerInterceptor
 			throws IOException
 	{
 		SignupCpfHolder.clear();
-		final String cpf = request.getParameter("cpf");
-		if (cpf == null || !"POST".equalsIgnoreCase(request.getMethod())
-				|| !REGISTER_PATH.matcher(StringUtils.defaultString(request.getRequestURI())).matches()
-				|| !configurationService.getConfiguration().getBoolean(SignupCpfHolder.ENABLED_PROPERTY, true))
+		if (!"POST".equalsIgnoreCase(request.getMethod())
+				|| !REGISTER_PATH.matcher(StringUtils.defaultString(request.getRequestURI())).matches())
 		{
 			return true;
 		}
-		final String digits = SocioGuestService.digits(cpf);
-		if (!SocioGuestService.isValidCpf(digits))
+		final String cpf = request.getParameter("cpf");
+		if (cpf != null && configurationService.getConfiguration().getBoolean(SignupCpfHolder.ENABLED_PROPERTY, true))
 		{
-			return reject(response, "invalid", "CPF inválido: confira os 11 números.");
+			final String digits = SocioGuestService.digits(cpf);
+			if (!SocioGuestService.isValidCpf(digits))
+			{
+				return reject(response, "cpf", "invalid", "CPF inválido: confira os 11 números.");
+			}
+			if (inUse(digits))
+			{
+				return reject(response, "cpf", "duplicate", "Já existe uma conta com este CPF.");
+			}
+			SignupCpfHolder.set(digits);
 		}
-		if (inUse(digits))
+		final String telefone = request.getParameter("telefone");
+		if (telefone != null && configurationService.getConfiguration().getBoolean(SignupCpfHolder.PHONE_ENABLED_PROPERTY, true))
 		{
-			return reject(response, "duplicate", "Já existe uma conta com este CPF.");
+			if (!Telefone.valido(telefone))
+			{
+				SignupCpfHolder.clear();
+				return reject(response, "telefone", "invalid", "Telefone inválido: informe o DDD e o número.");
+			}
+			SignupCpfHolder.setPhone(Telefone.digitos(telefone));
 		}
-		SignupCpfHolder.set(digits);
 		return true;
 	}
 
@@ -77,13 +94,14 @@ public class SignupCpfInterceptor implements HandlerInterceptor
 		return !result.isEmpty();
 	}
 
-	protected boolean reject(final HttpServletResponse response, final String reason, final String message) throws IOException
+	protected boolean reject(final HttpServletResponse response, final String subject, final String reason,
+			final String message) throws IOException
 	{
-		LOG.info("Cadastro recusado: CPF {}", reason);
+		LOG.info("Cadastro recusado: {} {}", subject, reason);
 		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		response.setContentType("application/json");
 		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		response.getWriter().write("{\"errors\":[{\"type\":\"ValidationError\",\"subject\":\"cpf\",\"subjectType\":\"parameter\","
+		response.getWriter().write("{\"errors\":[{\"type\":\"ValidationError\",\"subject\":\"" + subject + "\",\"subjectType\":\"parameter\","
 				+ "\"reason\":\"" + reason + "\",\"message\":\"" + message + "\"}]}");
 		return false;
 	}

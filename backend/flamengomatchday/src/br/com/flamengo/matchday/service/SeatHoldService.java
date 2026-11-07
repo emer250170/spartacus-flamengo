@@ -34,6 +34,13 @@ public interface SeatHoldService
 	/** Converte as reservas do pedido em venda e baixa o estoque de todos os itens. */
 	void commitSale(AbstractOrderModel order);
 
+	/**
+	 * Desfaz o {@link #commitSale}: pedido recusado antes do pagamento (análise de fraude, 07/11). Devolve ao
+	 * estoque as mesmas linhas que a venda baixou (poltrona volta a ficar livre) e troca a marca do pedido
+	 * para {@code matchday:estoque-devolvido}. Pedido sem a marca de venda: não faz nada.
+	 */
+	void revertSale(AbstractOrderModel order);
+
 	/** Solta as reservas vencidas; devolve quantas. */
 	int releaseExpired();
 

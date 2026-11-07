@@ -84,6 +84,15 @@ public interface MatchdayTicketService
 
 	MatchdayTicketModel cancel(String code, String reason, String author);
 
+	/**
+	 * Pedido recusado antes do pagamento (análise de fraude, 07/11): cancela todos os ingressos ainda não
+	 * cancelados do pedido, sem reembolso (nada foi cobrado) e sem mexer no estoque da poltrona (quem
+	 * devolve é o {@code SeatHoldService.revertSale}). Grava o evento Cancelamento com o motivo.
+	 *
+	 * @return quantos ingressos foram cancelados
+	 */
+	int cancelForOrder(AbstractOrderModel order, String reason, String author);
+
 	MatchdayTicketModel markUsed(String code, String author);
 
 	MatchdayTicketModel addNote(String code, String note, String author);

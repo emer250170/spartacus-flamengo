@@ -799,6 +799,12 @@
 					<persistence type="property"/>
 					<modifiers optional="true"/>
 				</attribute>
+				<!-- 07/11: telefone obrigatório no cadastro (o ClearSale exige um telefone em cada pedido) -->
+				<attribute qualifier="phone" type="java.lang.String">
+					<description>Telefone do torcedor (só números, DDD + número), informado ao criar a conta</description>
+					<persistence type="property"/>
+					<modifiers optional="true"/>
+				</attribute>
 			</attributes>
 		</itemtype>
 
@@ -846,6 +852,36 @@
 							<value>HYBRIS.LONG_STRING</value>
 						</columntype>
 					</persistence>
+				</attribute>
+				<!-- ClearSale (07/11): análise de fraude dos pedidos, configurada na aba ClearSale da loja base -->
+				<attribute qualifier="clearSaleAtivo" type="java.lang.Boolean">
+					<description>Liga a análise de fraude do ClearSale nos pedidos novos (vazio = desligada)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleUrl" type="java.lang.String">
+					<description>Endereço da API (homologação: https://homologacao.clearsale.com.br/api; produção: https://api.clearsale.com.br)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleUsuario" type="java.lang.String">
+					<description>Usuário da API do ClearSale</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleSenha" type="java.lang.String">
+					<description>Senha da API do ClearSale (criptografada)</description>
+					<modifiers encrypted="true"/>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="clearSaleFingerprint" type="java.lang.String">
+					<description>Chave do script de identificação do aparelho (fingerprint) usada pela loja (pública)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleEmails" type="java.lang.String">
+					<description>Só analisa pedidos destes e-mails, separados por vírgula (vazio = todos)</description>
+					<persistence type="property"/>
 				</attribute>
 			</attributes>
 		</itemtype>
@@ -1286,6 +1322,36 @@
 					<key attribute="pspReference"/>
 				</index>
 			</indexes>
+		</itemtype>
+
+		<!-- ClearSale (07/11): resultado da análise de fraude do pedido (aba ClearSale do pedido no Backoffice) -->
+		<itemtype code="Order" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="clearSaleStatus" type="java.lang.String">
+					<description>Decisão do ClearSale (APA, APP, RPA, RPP...) ou INDISPONIVEL quando a análise não respondeu</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleScore" type="java.lang.Double">
+					<description>Score de risco devolvido pelo ClearSale</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleRequestId" type="java.lang.String">
+					<description>Request-ID da resposta do ClearSale (para o suporte rastrear)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleDate" type="java.util.Date">
+					<description>Quando o pedido foi analisado</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="clearSaleMessage" type="java.lang.String">
+					<description>Resumo da análise (decisão, o que foi feito ou o erro)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+			</attributes>
 		</itemtype>
 
 	</itemtypes>
