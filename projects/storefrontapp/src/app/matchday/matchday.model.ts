@@ -61,6 +61,8 @@ export interface MatchdayProduct {
   price: number;
   /** Destaque "Recomendado para você" */
   recommended?: boolean;
+  /** Foto do produto (experiências) */
+  imageUrl?: string;
 }
 
 export interface MatchdayShirt {
@@ -77,6 +79,8 @@ export interface MatchdayCatalog {
   parking: MatchdayProduct[];
   food: MatchdayProduct[];
   shirt?: MatchdayShirt;
+  /** Experiências do dia de jogo (entrada em campo, manto autografado), na ordem da etapa */
+  experiences?: MatchdayProduct[];
 }
 
 /**
@@ -102,6 +106,8 @@ export interface MatchdaySelection {
   shirtSize?: string;
   shirtName?: string;
   shirtNumber?: string;
+  /** Experiências escolhidas (códigos) */
+  experiences?: string[];
   createdAt: string;
 }
 

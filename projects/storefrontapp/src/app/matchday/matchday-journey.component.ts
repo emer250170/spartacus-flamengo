@@ -108,16 +108,20 @@ interface SeatCell {
   code?: string;
 }
 
-/** Etapas (textos em fla-texts: md.step.N) */
-const STEPS = [0, 1, 2, 3, 4, 5];
+/**
+ * Etapas (textos em fla-texts: md.step.N), na ordem da barra. O número é a identidade da etapa,
+ * não a posição: Experiência (6) entrou depois, entre Camisa (4) e Revisão (5) (07/11).
+ */
+export const EXPERIENCE_STEP = 6;
+const STEPS = [0, 1, 2, 3, 4, EXPERIENCE_STEP, 5];
 /**
  * Compra de ingresso (?modo=ingresso&jogo=..., 04/11): o jogo já foi escolhido na lista
  * "Jogos em casa" (botão Escolher poltrona) ou na vitrine da home, então a etapa Jogo sai e
- * ficam Setor e poltrona, Estacionamento, Comidas e bebidas, Camisa e Revisão; a
+ * ficam Setor e poltrona, Estacionamento, Comidas e bebidas, Camisa, Experiência e Revisão; a
  * elegibilidade vai para a coluna da direita, embaixo do resumo. A página de um jogo ou de
  * uma poltrona também abre aqui (MatchdayTicketRedirectService).
  */
-const TICKET_STEPS = [1, 2, 3, 4, 5];
+const TICKET_STEPS = [1, 2, 3, 4, EXPERIENCE_STEP, 5];
 /** Lista "Jogos em casa": onde começa a compra de ingresso */
 export const TICKET_LIST_URL = ['/c', MATCHES_CATEGORY];
 export const TICKET_MODE_PARAM = 'modo';
@@ -168,6 +172,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   shirtSize = 'M';
   shirtName = '';
   shirtNumber = '';
+  /** Experiências escolhidas (uma, as duas ou nenhuma) */
+  experiences: Record<string, boolean> = {};
+  readonly experienceStep = EXPERIENCE_STEP;
 
   // reserva da poltrona: ela entra no carrinho assim que é escolhida
   loggedIn = false;
@@ -2042,6 +2049,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       }
     }
 
+    for (const exp of catalog.experiences ?? []) {
+      if (inCart.has(exp.code)) {
+        this.experiences = { ...this.experiences, [exp.code]: true };
+      }
+    }
+
     const shirt = catalog.shirt;
     const size = shirt?.sizes.find((s) => inCart.has(s.code));
     if (shirt && size) {
@@ -2353,7 +2366,34 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         });
       }
     }
+    for (const exp of this.chosenExperiences) {
+      const q = this.experienceQty(exp.code);
+      lines.push({
+        label: q > 1 ? `${q}x ${exp.name}` : exp.name,
+        detail: this.i18n.t('md.line.experience'),
+        price: q * exp.price,
+      });
+    }
     return lines;
+  }
+
+  /** Experiências marcadas, na ordem da etapa */
+  get chosenExperiences() {
+    return (this.catalog?.experiences ?? []).filter(
+      (e) => this.experiences[e.code]
+    );
+  }
+
+  toggleExperience(code: string): void {
+    this.experiences = { ...this.experiences, [code]: !this.experiences[code] };
+  }
+
+  /** 1 por experiência; mais só se o torcedor já tinha posto mais no carrinho (pela vitrine) */
+  protected experienceQty(code: string): number {
+    const have = this.cartEntries
+      .filter((e) => e.product?.code === code)
+      .reduce((sum, e) => sum + (e.quantity ?? 0), 0);
+    return Math.max(1, have);
   }
 
   get total(): number {
@@ -2365,6 +2405,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     count += this.parkingProduct ? 1 : 0;
     count += Object.values(this.food).reduce((a, b) => a + b, 0);
     count += this.addShirt ? this.shirtQty : 0;
+    count += this.chosenExperiences.reduce(
+      (sum, e) => sum + this.experienceQty(e.code),
+      0
+    );
     return count;
   }
 
@@ -2395,9 +2439,11 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     );
     const shirtCode = this.addShirt ? this.shirtVariantCode : undefined;
     const pers = this.catalog?.shirt?.personalization;
+    const experiences = this.chosenExperiences;
 
     // quantidade que cada produto da jornada deve ter no carrinho
     const desired = new Map<string, number>();
+    experiences.forEach((e) => desired.set(e.code, this.experienceQty(e.code)));
     if (parking) {
       desired.set(parking.code, 1);
     }
@@ -2431,6 +2477,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       shirtSize: shirtCode ? this.shirtSize : undefined,
       shirtName: shirtCode ? this.shirtName.trim() : undefined,
       shirtNumber: shirtCode ? this.shirtNumber.trim() : undefined,
+      experiences: experiences.map((e) => e.code),
       createdAt: new Date().toISOString(),
     });
 
@@ -2487,8 +2534,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   /**
    * Deixa no carrinho exatamente o que está na jornada: inclui o que falta,
    * ajusta quantidades e tira o que foi desmarcado. Vale só para os produtos da
-   * jornada (estacionamentos, comidas e bebidas, tamanhos da camisa e
-   * personalização) e para o ingresso escolhido; o resto do carrinho não muda.
+   * jornada (estacionamentos, comidas e bebidas, tamanhos da camisa,
+   * personalização e experiências) e para o ingresso escolhido; o resto do carrinho não muda.
    * Antes, cada fechamento somava os itens de novo e as quantidades dobravam
    * na volta do pagamento.
    *
@@ -2504,6 +2551,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
       ...(catalog?.food ?? []).map((f) => f.code),
       ...(shirt?.sizes ?? []).map((size) => size.code),
       ...(shirt?.personalization ? [shirt.personalization.code] : []),
+      ...(catalog?.experiences ?? []).map((e) => e.code),
     ]);
     const updates: { entryNumber: number; quantity: number }[] = [];
     const removals: OrderEntry[] = [];
