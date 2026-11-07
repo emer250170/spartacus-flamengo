@@ -1,0 +1,225 @@
+## ===================================================================================================
+## Base comum dos e-mails da Loja Flamengo (gerar.py junta este arquivo com o de cada e-mail).
+## HTML de e-mail no padrão que o Outlook (motor do Word) entende: só tabelas; espaçamento sempre em <td>
+## (o Outlook ignora padding/margin em <div> e em <a>); botão com borda grossa da mesma cor; toda imagem
+## com texto alternativo. As imagens vão embutidas na mensagem pelo FlaEmailService (PR #222).
+## Endereços fixos: a loja é o Spartacus e as fotos vêm das /medias da API (o baseUrl do site aponta
+## para localhost). Os macros têm o prefixo "fla" e são idênticos em todos os e-mails (o Velocity guarda
+## macro com o mesmo nome entre um e-mail e outro).
+## ===================================================================================================
+#set($loja = "https://spartacus-flamengo.democc.online/electronics-spa/pt/BRL")
+#set($midia = "https://api-flamengo.democc.online")
+#set($logo = "https://spartacus-flamengo.democc.online/assets/email/escudo-flamengo.png")
+#set($vermelho = "#d70000")
+#set($preto = "#1b1b1b")
+#set($cinza = "#6b6b6b")
+#set($corTexto = "#444444")
+#set($linha = "#e6e6e6")
+#set($fonte = "Arial, Helvetica, sans-serif")
+##
+## ---------- itens -----------------------------------------------------------------------------------
+## miniatura do produto; sem foto, um quadrado cinza com "+"
+#macro(flaImagem $produto)
+#set($img = "")
+#if($produto && $produto.images)
+#foreach($i in $produto.images)
+#if($img == "" && ($i.format == "thumbnail" || $i.format == "product"))
+#set($img = $i.url)
+#end
+#end
+#end
+#if($img != "")
+#if($img.startsWith("http"))#set($src = $img)#else#set($src = "${midia}${img}")#end
+<img src="$src" width="64" height="64" alt="" style="display:block;border:0;outline:none;width:64px;height:64px;background:#f2f2f2;" />
+#else
+<table role="presentation" width="64" cellpadding="0" cellspacing="0" border="0"><tr><td width="64" height="64" align="center" valign="middle" bgcolor="#f2f2f2" style="background:#f2f2f2;width:64px;height:64px;font-family:${fonte};font-size:22px;font-weight:bold;color:${vermelho};">+</td></tr></table>
+#end
+#end
+## O Commerce agrupa as variantes no produto base: $e.product é o jogo (com data) ou a camisa, e
+## $e.entries traz as poltronas ("Flamengo x Bahia · Norte · G7") ou os tamanhos ("... · M", "... - M").
+## Item sem agrupamento (lista de remessa, cancelamento) traz a própria variante: o detalhe sai do nome dela.
+#macro(flaDetalhe $e $tipo)
+#set($detalhe = "")
+#set($variantes = [])
+#if($e.entries && $e.entries.size() > 0)
+#foreach($v in $e.entries)#set($ok = $variantes.add($v))#end
+#end
+#foreach($v in $variantes)
+#set($nomeV = $v.product.name)
+#if($tipo == "ingresso")
+#set($p = $nomeV.split(" · "))
+#if($p.size() >= 3)#set($item = "Setor ${p.get(1)} · Poltrona ${p.get(2)}")#else#set($item = $nomeV)#end
+#else
+#set($p = $nomeV.split(" · | - "))
+#set($ultimo = $p.size() - 1)
+#set($item = "Tamanho ${p.get($ultimo)}")
+#end
+#if($v.quantity && $v.quantity > 1)#set($item = "${item} (${v.quantity}x)")#end
+#if($detalhe == "")#set($detalhe = $item)#else#set($detalhe = "${detalhe}<br/>${item}")#end
+#end
+#end
+#macro(flaLinhaItem $e $titulo $detalhe $qtd $valor)
+<tr>
+  <td width="64" valign="top" style="padding:14px 0;border-bottom:1px solid ${linha};">#flaImagem($e.product)</td>
+  <td valign="top" style="padding:14px 12px 14px 14px;border-bottom:1px solid ${linha};font-family:${fonte};font-size:15px;line-height:20px;font-weight:bold;color:${preto};">
+    $titulo
+#if($detalhe != "")
+    <br/><span style="font-size:13px;line-height:18px;font-weight:normal;color:${corTexto};">$detalhe</span>
+#end
+    <br/><span style="font-size:12px;line-height:18px;font-weight:normal;color:${cinza};">Qtd. ${qtd}</span>
+  </td>
+  <td valign="top" align="right" style="padding:14px 0;border-bottom:1px solid ${linha};font-family:${fonte};font-size:15px;line-height:20px;font-weight:bold;color:${preto};white-space:nowrap;">$valor</td>
+</tr>
+#end
+#macro(flaTituloBloco $texto)
+<tr><td colspan="3" style="padding:28px 0 6px 0;border-bottom:2px solid ${preto};font-family:${fonte};font-size:12px;line-height:16px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:${vermelho};">$texto</td></tr>
+#end
+## Lista de itens (OrderEntryData) separada em Ingressos (JOGO-), Dia de jogo (estacionamento e comida) e Loja.
+## Item que é variante (poltrona ou tamanho, sem agrupamento) mostra o produto base como título.
+#macro(flaListaItens $lista)
+#set($ingressos = [])
+#set($diaDeJogo = [])
+#set($lojaItens = [])
+#foreach($e in $lista)
+#set($cod = $e.product.code)
+#if($e.product.baseProduct)#set($cod = $e.product.baseProduct)#end
+#if($cod.startsWith("JOGO-"))#set($ok = $ingressos.add($e))
+#elseif($cod.startsWith("FLA-EST-") || $cod.startsWith("FLA-FOOD-"))#set($ok = $diaDeJogo.add($e))
+#else#set($ok = $lojaItens.add($e))#end
+#end
+<tr><td class="miolo" style="padding:8px 40px 0 40px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+#if($ingressos.size() > 0)
+  #flaTituloBloco("Ingressos")
+#foreach($e in $ingressos)
+  #flaDetalhe($e "ingresso")
+#if($detalhe == "" && $e.product.baseProduct)#set($p = $e.product.name.split(" · "))#if($p.size() >= 3)#set($detalhe = "Setor ${p.get(1)} · Poltrona ${p.get(2)}")#end#end
+  #flaLinhaItem($e $e.product.name $detalhe $e.quantity $e.totalPrice.formattedValue)
+#end
+#end
+#if($diaDeJogo.size() > 0)
+  #flaTituloBloco("Dia de jogo")
+#foreach($e in $diaDeJogo)
+  #flaLinhaItem($e $e.product.name "" $e.quantity $e.totalPrice.formattedValue)
+#end
+#end
+#if($lojaItens.size() > 0)
+  #flaTituloBloco("Loja")
+#foreach($e in $lojaItens)
+  #flaDetalhe($e "loja")
+  #flaLinhaItem($e $e.product.name $detalhe $e.quantity $e.totalPrice.formattedValue)
+#end
+#end
+</table>
+</td></tr>
+#end
+## Itens de uma remessa (ConsignmentEntryData: orderEntry + quantidade da remessa)
+#macro(flaListaRemessa $consignment)
+#set($lista = [])
+#if($consignment && $consignment.entries)
+#foreach($ce in $consignment.entries)#if($ce.orderEntry)#set($ok = $lista.add($ce.orderEntry))#end#end
+#end
+#if($lista.size() > 0)#flaListaItens($lista)#end
+#end
+##
+## ---------- blocos de texto -------------------------------------------------------------------------
+#macro(flaEtiqueta $texto)
+<tr><td class="miolo" style="padding:36px 40px 0 40px;font-family:${fonte};font-size:12px;line-height:16px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:${vermelho};">$texto</td></tr>
+#end
+#macro(flaTitulo $texto)
+<tr><td class="miolo titulo" style="padding:10px 40px 0 40px;font-family:${fonte};font-size:28px;line-height:34px;font-weight:bold;color:${preto};">$texto</td></tr>
+#end
+#macro(flaParagrafo $texto)
+<tr><td class="miolo" style="padding:16px 40px 0 40px;font-family:${fonte};font-size:15px;line-height:23px;color:${corTexto};">$texto</td></tr>
+#end
+## botão: a borda grossa faz o "padding" no Outlook
+#macro(flaBotao $rotulo $link)
+<tr><td class="miolo" style="padding:26px 40px 8px 40px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td align="center" bgcolor="${vermelho}" style="background:${vermelho};">
+      <a href="$link" style="display:inline-block;border-top:14px solid ${vermelho};border-bottom:14px solid ${vermelho};border-left:30px solid ${vermelho};border-right:30px solid ${vermelho};background:${vermelho};font-family:${fonte};font-size:14px;line-height:16px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#ffffff;text-decoration:none;">$rotulo</a>
+    </td>
+  </tr></table>
+</td></tr>
+#end
+## caixa cinza com borda vermelha à esquerda: rótulo, título e texto (título ou texto podem ser "")
+#macro(flaCaixa $rotulo $titulo $corpo)
+<tr><td class="miolo" style="padding:28px 40px 0 40px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td width="4" bgcolor="${vermelho}" style="width:4px;background:${vermelho};font-size:0;line-height:0;">&nbsp;</td>
+    <td bgcolor="#f6f6f6" style="background:#f6f6f6;padding:16px 18px;font-family:${fonte};">
+      <span style="font-size:11px;line-height:16px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:${cinza};">$rotulo</span>
+#if($titulo != "")
+      <br/><span style="font-size:16px;line-height:24px;font-weight:bold;color:${preto};">$titulo</span>
+#end
+#if($corpo != "")
+      <br/><span style="font-size:13px;line-height:19px;color:${corTexto};">$corpo</span>
+#end
+    </td>
+  </tr></table>
+</td></tr>
+#end
+## valor em destaque (total, reembolso): rótulo à esquerda, valor grande à direita
+#macro(flaValor $rotulo $valor)
+<tr><td class="miolo" style="padding:20px 40px 0 40px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td style="padding:14px 0 0 0;border-top:2px solid ${preto};font-family:${fonte};font-size:17px;line-height:22px;font-weight:bold;color:${preto};">$rotulo</td>
+    <td align="right" style="padding:14px 0 0 0;border-top:2px solid ${preto};font-family:${fonte};font-size:22px;line-height:26px;font-weight:bold;color:${preto};">$valor</td>
+  </tr></table>
+</td></tr>
+#end
+#macro(flaEspaco)
+<tr><td style="padding:0 0 36px 0;font-size:0;line-height:0;">&nbsp;</td></tr>
+#end
+##
+## ---------- moldura -----------------------------------------------------------------------------------
+#macro(flaTopo $titulo $resumo)
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="x-apple-disable-message-reformatting" />
+<title>$titulo</title>
+<!--[if mso]><style>table,td,a,span{font-family:Arial,Helvetica,sans-serif !important;}</style><![endif]-->
+<style>
+  @media only screen and (max-width:620px) {
+    .moldura { padding:0 !important; }
+    .miolo { padding-left:20px !important; padding-right:20px !important; }
+    .titulo { font-size:24px !important; line-height:30px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#efefef;">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">$resumo</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#efefef" style="background:#efefef;">
+<tr><td align="center" class="moldura" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:600px;background:#ffffff;">
+  <tr><td align="center" bgcolor="#ffffff" style="padding:22px 24px 18px 24px;">
+    <a href="${loja}/" style="text-decoration:none;"><img src="${logo}" width="63" height="80" alt="FLAMENGO" style="display:block;border:0;outline:none;width:63px;height:80px;font-family:${fonte};font-size:18px;font-weight:bold;color:${vermelho};" /></a>
+  </td></tr>
+  <tr><td height="8" bgcolor="${vermelho}" style="height:8px;line-height:8px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
+  <tr><td height="8" bgcolor="${preto}" style="height:8px;line-height:8px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
+#end
+#macro(flaRodape $motivo)
+  <tr><td height="4" bgcolor="${vermelho}" style="height:4px;line-height:4px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
+  <tr><td class="miolo" align="center" bgcolor="${preto}" style="padding:26px 40px 8px 40px;font-family:${fonte};font-size:13px;line-height:20px;font-weight:bold;color:#ffffff;">
+    <a href="${loja}/my-account/orders" style="color:#ffffff;text-decoration:none;">Meus pedidos</a>
+    &nbsp;&nbsp;<span style="color:${vermelho};">|</span>&nbsp;&nbsp;
+    <a href="${loja}/" style="color:#ffffff;text-decoration:none;">Loja Flamengo</a>
+    &nbsp;&nbsp;<span style="color:${vermelho};">|</span>&nbsp;&nbsp;
+    <a href="${loja}/contact" style="color:#ffffff;text-decoration:none;">Fale conosco</a>
+  </td></tr>
+  <tr><td class="miolo" align="center" bgcolor="${preto}" style="padding:6px 40px 26px 40px;font-family:${fonte};font-size:11px;line-height:17px;color:#9a9a9a;">
+    $motivo<br/>Ambiente de demonstração.
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+#end
+## link do pedido: convidado vê pelo guid, cliente em Minha conta
+#macro(flaLinkPedido $codigo $guid $convidado)
+#if($convidado && $guid)#set($linkPedido = "${loja}/guest/order/${guid}")#else#set($linkPedido = "${loja}/my-account/order/${codigo}")#end
+#end

@@ -1,0 +1,10 @@
+## Cancelamento parcial · OrderPartiallyCanceledEmailContext (canceledEntries = OrderEntryData)
+#flaLinkPedido($ctx.orderCode $ctx.orderGuid $ctx.guest)
+#flaTopo("Itens do pedido ${ctx.orderCode} cancelados" "Alguns itens do pedido nº ${ctx.orderCode} foram cancelados.")
+#flaEtiqueta("Cancelamento de itens")
+#flaTitulo("Cancelamos parte do seu pedido")
+#flaParagrafo("${ctx.displayName}, os itens abaixo do pedido <b style='color:${preto};'>nº ${ctx.orderCode}</b> foram cancelados. O restante do pedido segue normalmente, e o valor dos itens cancelados volta pela mesma forma de pagamento.")
+#if($ctx.canceledEntries && $ctx.canceledEntries.size() > 0)#flaListaItens($ctx.canceledEntries)#end
+#flaBotao("Ver meu pedido" $linkPedido)
+#flaEspaco()
+#flaRodape("E-mail automático da Loja Oficial do Flamengo sobre o seu pedido.")

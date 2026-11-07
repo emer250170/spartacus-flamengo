@@ -1,0 +1,22 @@
+## Pedido enviado · DeliverySentEmailContext (consignment, orderCode, orderGuid, guest)
+#flaLinkPedido($ctx.orderCode $ctx.orderGuid $ctx.guest)
+#flaTopo("Pedido ${ctx.orderCode} enviado" "O pedido nº ${ctx.orderCode} saiu para entrega.")
+#flaEtiqueta("Pedido a caminho")
+#flaTitulo("Seu pedido saiu para entrega, ${ctx.displayName}!")
+#flaParagrafo("Os itens abaixo do pedido <b style='color:${preto};'>nº ${ctx.orderCode}</b> já estão com a transportadora.")
+#flaBotao("Acompanhar pedido" $linkPedido)
+#flaListaRemessa($ctx.consignment)
+#if($ctx.consignment && $ctx.consignment.trackingID)
+#set($rastreio = $ctx.consignment.trackingID)
+#flaCaixa("Rastreamento" "Código ${rastreio}" "Use o código no site da transportadora para acompanhar a entrega.")
+#end
+#if($ctx.consignment && $ctx.consignment.shippingAddress)
+#set($a = $ctx.consignment.shippingAddress)
+#set($end = $a.line1)
+#if($a.line2)#set($end = "${end}, ${a.line2}")#end
+#set($end = "${end}<br/>${a.town}")
+#if($a.postalCode)#set($end = "${end} · CEP ${a.postalCode}")#end
+#flaCaixa("Endereço de entrega" "" $end)
+#end
+#flaEspaco()
+#flaRodape("E-mail automático da Loja Oficial do Flamengo sobre o seu pedido.")

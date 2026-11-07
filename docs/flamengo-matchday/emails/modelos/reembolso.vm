@@ -1,0 +1,11 @@
+## Reembolso · OrderRefundEmailContext (orderData, refundAmount)
+#flaLinkPedido($ctx.orderCode $ctx.orderGuid $ctx.guest)
+#flaTopo("Reembolso do pedido ${ctx.orderCode}" "O reembolso do pedido nº ${ctx.orderCode} foi feito.")
+#flaEtiqueta("Reembolso")
+#flaTitulo("Seu reembolso foi feito")
+#flaParagrafo("${ctx.displayName}, recebemos a devolução do pedido <b style='color:${preto};'>nº ${ctx.orderCode}</b> e fizemos o reembolso pela mesma forma de pagamento. Dependendo do banco, o valor pode levar alguns dias para aparecer.")
+#if($ctx.refundAmount)#flaValor("Valor reembolsado" $ctx.refundAmount.formattedValue)#end
+#flaBotao("Ver meu pedido" $linkPedido)
+#if($ctx.orderData)#flaListaItens($ctx.orderData.entries)#end
+#flaEspaco()
+#flaRodape("E-mail automático da Loja Oficial do Flamengo sobre o seu pedido.")
