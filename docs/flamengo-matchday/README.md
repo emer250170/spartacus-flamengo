@@ -1043,3 +1043,63 @@ python3 docs/flamengo-matchday/emails/gerar.py --modo restaurar --saida /tmp/res
   senha ("535 5.7.139 SmtpClientAuthentication is disabled"), por isso não usamos.
 - O remetente das 16 páginas de e-mail (`EmailPage`, Staged e Online, pt e en) passou de `customerservices@hybris.com`
   para o endereço da Hostinger, com nome "Loja Flamengo": o provedor recusa remetente de outro domínio.
+
+## ClearSale: análise de fraude dos pedidos (07/11)
+
+Integração com o **ClearSale Realtime Decision**: cada pedido novo é analisado logo depois de fechado, e a
+decisão volta na hora (sem webhook). Ambiente de homologação: `https://homologacao.clearsale.com.br/api`.
+
+### Como liga e desliga
+- **Backoffice › loja base (Base Store) › aba ClearSale**:
+  - "Análise de fraude ClearSale" (Sim/Não);
+  - "Só estes e-mails" (vazio = todos);
+  - endereço da API, usuário, senha (criptografada) e chave do fingerprint.
+- Vale na hora, sem reiniciar.
+- Chave geral `flamengo.clearsale.ativo` (padrão `true`): `false` desliga mesmo com a loja ligada.
+- Desligado, o pedido segue a checagem de fraude de sempre e nada vai para o ClearSale.
+
+### Fluxo
+1. **Loja:** ao entrar no checkout, com a análise ligada (`GET /{site}/flamengo/clearsale`), carrega o script
+   `device.clearsale.com.br/p/fp.js` com a chave pública. A sessão é o `guid` do carrinho, que vira o `guid`
+   do pedido.
+2. **Pedido:** o passo `clearSaleCheck` do order-process (versão dinâmica criada por
+   `docs/flamengo-matchday/clearsale/order-process-clearsale.groovy`) chama o `clearSaleService`, que manda
+   `POST /v1/orders` com:
+   - `billing`: CPF e telefone do cadastro, e endereço quando houver;
+   - `shipping`;
+   - `payments`: 27 Pix, 2 boleto, 1 cartão (bin de teste `flamengo.clearsale.binTeste`, porque a demo guarda o
+     cartão mascarado);
+   - `items` com categoria Ingresso, Dia de jogo, Loja ou Sócio-torcedor.
+3. **Decisão:**
+   - **APA, APP...**: o pedido segue (fraudCheck, pagamento).
+   - **RPA, RPP, RPM, SUS, FRD** (`flamengo.clearsale.recusa`): o pedido é **cancelado sem cobrança**.
+     - Estoque e poltrona voltam (`SeatHoldService.revertSale`; marca `matchday:estoque-devolvido`).
+     - Ingressos e vouchers de experiência são cancelados.
+     - Sai o e-mail "Pedido cancelado".
+     - A confirmação do pedido mostra "Pedido não aprovado".
+   - **Sem resposta** em `flamengo.clearsale.timeoutMs` (8 s), erro ou cliente sem CPF/telefone: o pedido segue
+     e fica `INDISPONIVEL`.
+4. **Backoffice › pedido › aba ClearSale:** decisão, score, data, Request-ID e resumo do que foi feito.
+
+### CPF e telefone
+O ClearSale exige os dois em todo pedido.
+- **Conta nova:** pede os dois no cadastro (CPF no #233; telefone `POST /users?telefone=` → `Customer.phone`,
+  chave `flamengo.cadastro.telefone.ativo`).
+- **Conta antiga:** informa uma vez no checkout. O bloco "Complete o seu cadastro" aparece antes dos aceites e o
+  "Finalizar" espera (`GET/PUT /{site}/users/current/flamengo/dados`; CPF sem repetir entre contas).
+
+### Homologação (regras do ClearSale pelo último dígito do CPF de cobrança)
+
+| CPF termina em | Resultado | Na demo |
+|---|---|---|
+| 1 | APA (aprovação automática) | pedido segue |
+| 2 | RPA (reprovação automática) | pedido cancelado, poltrona livre |
+| 3 | APP (aprovação por política) | pedido segue |
+| outro | RPP (reprovação por política) | pedido cancelado |
+
+### Voltar atrás
+- **Desligar:** aba ClearSale da loja base.
+- **Tirar o passo do processo:** ativar a versão anterior do `order-process` em Backoffice › Sistema › Processos
+  de negócio › Definições de processo dinâmicas. O backup do XML fica em
+  `/backup/order-process-v<N>-antes-clearsale.xml`.
+

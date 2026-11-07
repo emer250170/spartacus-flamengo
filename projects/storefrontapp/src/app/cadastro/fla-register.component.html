@@ -113,6 +113,38 @@
             </label>
           </div>
 
+          <!-- Telefone (Flamengo, 07/11): obrigatório, com DDD; vai para o ClearSale nos pedidos -->
+          <div class="form-group fla-phone">
+            <label>
+              <span class="label-content"
+                >{{ 'rg.phone' | flaT }}
+                <ng-template [ngTemplateOutlet]="requiredAsterisk"></ng-template
+              ></span>
+              <input
+                required="true"
+                class="form-control"
+                type="tel"
+                name="telefone"
+                inputmode="tel"
+                autocomplete="tel-national"
+                maxlength="15"
+                [placeholder]="'rg.phonePlaceholder' | flaT"
+                formControlName="telefone"
+                (input)="onTelefone($any($event.target).value)"
+                [attr.aria-invalid]="telefoneError ? 'true' : null"
+                aria-describedby="fla-phone-error"
+              />
+              <p
+                class="fla-cpf-error"
+                id="fla-phone-error"
+                role="alert"
+                *ngIf="telefoneError as error"
+              >
+                {{ error | flaT }}
+              </p>
+            </label>
+          </div>
+
           <div class="form-group">
             <label>
               <span class="label-content"

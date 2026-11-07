@@ -19,6 +19,7 @@ import {
 import { UntypedFormBuilder } from '@angular/forms';
 import { isValidCpf, maskCpf } from '../socio/socio-guests.service';
 import { FlaSignupCpfService } from './fla-signup-cpf.service';
+import { isValidTelefone, maskTelefone } from './telefone';
 
 /** CPF com 11 números e dígitos verificadores certos */
 export function cpfValidator(
@@ -26,6 +27,14 @@ export function cpfValidator(
 ): ValidationErrors | null {
   const value = String(control.value ?? '');
   return !value || isValidCpf(value) ? null : { cpfInvalid: true };
+}
+
+/** Telefone com DDD (celular com o 9 ou fixo) */
+export function telefoneValidator(
+  control: AbstractControl
+): ValidationErrors | null {
+  const value = String(control.value ?? '');
+  return !value || isValidTelefone(value) ? null : { telefoneInvalid: true };
 }
 
 /**
@@ -65,6 +74,11 @@ export class FlaRegisterComponent extends RegisterComponent implements OnInit {
       'cpf',
       new UntypedFormControl('', [Validators.required, cpfValidator])
     );
+    // telefone obrigatório (07/11): o ClearSale pede um telefone em cada pedido
+    this.registerForm.addControl(
+      'telefone',
+      new UntypedFormControl('', [Validators.required, telefoneValidator])
+    );
     super.ngOnInit();
   }
 
@@ -86,8 +100,31 @@ export class FlaRegisterComponent extends RegisterComponent implements OnInit {
     return control.errors?.['required'] ? 'rg.cpfRequired' : 'rg.cpfInvalid';
   }
 
+  /** Máscara (21) 98765-4321 enquanto digita */
+  onTelefone(value: string): void {
+    const masked = maskTelefone(value);
+    const control = this.registerForm.get('telefone');
+    if (control && control.value !== masked) {
+      control.setValue(masked, { emitEvent: false });
+    }
+  }
+
+  /** Chave do texto do erro do telefone, depois de tocar no campo ou tentar enviar */
+  get telefoneError(): string | null {
+    const control = this.registerForm.get('telefone');
+    if (!control || !control.invalid || !(control.touched || control.dirty)) {
+      return null;
+    }
+    return control.errors?.['required']
+      ? 'rg.phoneRequired'
+      : 'rg.phoneInvalid';
+  }
+
   override registerUser(): void {
     this.signupCpf.set(String(this.registerForm.get('cpf')?.value ?? ''));
+    this.signupCpf.setPhone(
+      String(this.registerForm.get('telefone')?.value ?? '')
+    );
     super.registerUser();
   }
 }

@@ -816,7 +816,9 @@ html.fla-co-mode cx-page-layout.LoginPageTemplate {
 }
 
 @media (max-width: 991.98px) {
-  html.fla-co-mode cx-page-layout.LoginPageTemplate cx-page-slot.LeftContentSlot {
+  html.fla-co-mode
+    cx-page-layout.LoginPageTemplate
+    cx-page-slot.LeftContentSlot {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1344,8 +1346,83 @@ fla-checkout-accept {
   color: #b00000;
 }
 
+// ClearSale (07/11): CPF e telefone das contas antigas, antes dos aceites
+.fla-dados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+  min-width: 0;
+  margin: 0 0 16px;
+  padding: 18px 20px;
+  border: 2px solid var(--fla-vermelho);
+  border-radius: 4px;
+
+  legend {
+    width: auto;
+    margin: 0;
+    padding: 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  > p,
+  > button,
+  > .fla-dados-error {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .fla-dados-error {
+    color: #b00000;
+    font-size: 14px;
+  }
+
+  > button {
+    justify-self: start;
+  }
+}
+
+// ClearSale (07/11): pedido não aprovado, no topo da confirmação
+.fla-refused {
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  border-left: 6px solid var(--fla-vermelho);
+  background: #fdeaea;
+  color: var(--fla-preto);
+
+  strong {
+    display: block;
+    font-size: 18px;
+    color: var(--fla-vermelho);
+  }
+
+  p {
+    margin: 6px 0 8px;
+  }
+
+  a {
+    color: var(--fla-preto) !important;
+    font-weight: 700;
+    text-decoration: underline !important;
+  }
+}
+
 @media (max-width: 767.98px) {
   .fla-acc {
+    padding: 14px;
+  }
+
+  .fla-dados {
+    grid-template-columns: minmax(0, 1fr);
     padding: 14px;
   }
 }
@@ -1359,7 +1436,8 @@ fla-checkout-accept {
 // Na revisão, os componentes do "Finalizar pedido" (slot SideContent) vão para a coluna
 // principal: o slot vira "display: contents" e a página uma grade de duas colunas.
 // ---------------------------------------------------------------------------------------------
-html.fla-co-pay.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+html.fla-co-pay.fla-co-mode
+  cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
   cx-page-slot.BodyContent,
   cx-page-slot.SideContent {
     display: flex !important;
@@ -1470,7 +1548,8 @@ fla-checkout-done {
 }
 
 // revisão: duas colunas; o "Finalizar pedido" (e o cartão da Adyen) na coluna principal
-html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+html.fla-co-review.fla-co-mode
+  cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) 380px;
   grid-template-rows: repeat(10, auto) 1fr;
@@ -1541,7 +1620,8 @@ html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTempla
 }
 
 @media (max-width: 991.98px) {
-  html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+  html.fla-co-review.fla-co-mode
+    cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
 
@@ -1568,14 +1648,18 @@ html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTempla
     padding: 20px 16px 0;
   }
 
-  html.fla-co-pay.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
+  html.fla-co-pay.fla-co-mode
+    cx-page-layout.MultiStepCheckoutSummaryPageTemplate {
     fla-socio-payment-choice,
     cx-payment-method {
       padding-inline: 16px !important;
     }
   }
 
-  html.fla-co-review.fla-co-mode cx-page-layout.MultiStepCheckoutSummaryPageTemplate cx-page-slot.SideContent > :not(fla-checkout-summary) {
+  html.fla-co-review.fla-co-mode
+    cx-page-layout.MultiStepCheckoutSummaryPageTemplate
+    cx-page-slot.SideContent
+    > :not(fla-checkout-summary) {
     padding-inline: 16px;
   }
 }
@@ -1597,7 +1681,9 @@ html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate {
     padding: 48px 0 !important;
     background: transparent !important;
 
-    > :not(fla-oc-hero):not(fla-oc-body):not(fla-matchday-order-confirmation):not(fla-socio-payment-status) {
+    > :not(fla-oc-hero):not(fla-oc-body):not(
+        fla-matchday-order-confirmation
+      ):not(fla-socio-payment-status) {
       display: none !important;
     }
 
@@ -1898,13 +1984,17 @@ a.fla-oc-back {
 }
 
 @media (max-width: 1171.98px) {
-  html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate cx-page-slot.BodyContent {
+  html.fla-oc.fla-co-mode
+    cx-page-layout.OrderConfirmationPageTemplate
+    cx-page-slot.BodyContent {
     padding: 32px 16px !important;
   }
 }
 
 @media (max-width: 767.98px) {
-  html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate cx-page-slot.BodyContent {
+  html.fla-oc.fla-co-mode
+    cx-page-layout.OrderConfirmationPageTemplate
+    cx-page-slot.BodyContent {
     padding: 24px 16px !important;
   }
 

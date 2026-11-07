@@ -26,10 +26,17 @@ export class FlaSignupCpfInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     if (request.method === 'POST' && REGISTER_URL.test(request.url)) {
       const cpf = this.cpf.take();
+      const phone = this.cpf.takePhone();
+      let params = request.params;
       if (cpf) {
-        return next.handle(
-          request.clone({ params: request.params.set('cpf', cpf) })
-        );
+        params = params.set('cpf', cpf);
+      }
+      // telefone (07/11): o servidor confere (DDD + número) e grava em Customer.phone
+      if (phone) {
+        params = params.set('telefone', phone);
+      }
+      if (cpf || phone) {
+        return next.handle(request.clone({ params }));
       }
     }
     return next.handle(request);
