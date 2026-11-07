@@ -102,4 +102,15 @@
 		<property name="configurationService" ref="configurationService"/>
 	</bean>
 
+	<!-- ClearSale (07/11): configuração para o checkout (script de identificação do aparelho) -->
+	<bean id="flamengoClearSaleController" class="br.com.flamengo.matchday.occ.ClearSaleController">
+		<property name="clearSaleService" ref="clearSaleService"/>
+	</bean>
+	<!-- CPF e telefone das contas antigas, informados uma vez no checkout (07/11) -->
+	<bean id="flamengoCustomerDataController" class="br.com.flamengo.matchday.occ.CustomerDataController">
+		<property name="userService" ref="userService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+	</bean>
+
 </beans>

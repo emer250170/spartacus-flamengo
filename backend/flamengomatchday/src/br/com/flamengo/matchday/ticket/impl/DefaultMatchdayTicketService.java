@@ -399,6 +399,36 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 	}
 
 	@Override
+	public int cancelForOrder(final AbstractOrderModel order, final String reason, final String author)
+	{
+		if (order == null || order.getCode() == null)
+		{
+			return 0;
+		}
+		return unrestricted(() -> {
+			final FlexibleSearchQuery q = new FlexibleSearchQuery(
+					"SELECT {pk} FROM {MatchdayTicket} WHERE {orderCode}=?o AND {status}<>?s");
+			q.addQueryParameter("o", order.getCode());
+			q.addQueryParameter("s", MatchdayTicketStatus.CANCELADO);
+			final List<MatchdayTicketModel> tickets = flexibleSearchService.<MatchdayTicketModel> search(q).getResult();
+			final Date now = new Date();
+			for (final MatchdayTicketModel t : tickets)
+			{
+				t.setStatus(MatchdayTicketStatus.CANCELADO);
+				t.setCancelledAt(now);
+				save(t);
+				event(t, MatchdayTicketEventType.CANCELAMENTO, author, null, null, null,
+						"Pedido cancelado sem cobrança. " + StringUtils.defaultString(reason) + " A poltrona voltou para a venda.");
+			}
+			if (!tickets.isEmpty())
+			{
+				LOG.info("Pedido {}: {} ingresso(s) cancelado(s) ({})", order.getCode(), tickets.size(), reason);
+			}
+			return tickets.size();
+		}).intValue();
+	}
+
+	@Override
 	public MatchdayTicketModel cancel(final String code, final String reason, final String author)
 	{
 		return unrestricted(() -> {

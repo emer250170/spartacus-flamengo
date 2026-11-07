@@ -44,6 +44,9 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultSeatHoldService implements SeatHoldService
 {
+	/** Marca do pedido recusado antes do pagamento, depois de devolver o estoque (07/11) */
+	public static final String STOCK_RETURNED_MARKER = "matchday:estoque-devolvido";
+
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultSeatHoldService.class);
 
 	private static final String FIND_BY_PRODUCT = "SELECT {" + SeatHoldModel.PK + "} FROM {" + SeatHoldModel._TYPECODE
@@ -208,6 +211,46 @@ public class DefaultSeatHoldService implements SeatHoldService
 		order.setStatusInfo(FlamengomatchdayConstants.STOCK_MARKER);
 		modelService.save(order);
 		LOG.info("Estoque baixado para o pedido {}", order.getCode());
+	}
+
+	@Override
+	public void revertSale(final AbstractOrderModel order)
+	{
+		if (order == null || !FlamengomatchdayConstants.STOCK_MARKER.equals(order.getStatusInfo()))
+		{
+			return;
+		}
+		final boolean homeDelivery = shipsFromStoreWarehouse(order);
+		for (final AbstractOrderEntryModel entry : order.getEntries())
+		{
+			final ProductModel product = entry.getProduct();
+			final int quantity = entry.getQuantity() == null ? 0 : entry.getQuantity().intValue();
+			if (product == null || quantity <= 0)
+			{
+				continue;
+			}
+			// as mesmas regras do commitSale: retirada na loja e entrega em casa com remessa não baixaram aqui
+			if (entry.getDeliveryPointOfService() != null
+					&& configurationService.getConfiguration().getBoolean(FlamengomatchdayConstants.PICKUP_ENABLED, true))
+			{
+				continue;
+			}
+			final StockLevelModel level = findStockLevel(product);
+			if (level == null)
+			{
+				continue;
+			}
+			if (!isSeat(product) && entry.getDeliveryPointOfService() == null && homeDelivery && hasConsignment(product, level))
+			{
+				continue;
+			}
+			modelService.refresh(level);
+			level.setAvailable(level.getAvailable() + quantity);
+			modelService.save(level);
+		}
+		order.setStatusInfo(STOCK_RETURNED_MARKER);
+		modelService.save(order);
+		LOG.info("Estoque devolvido para o pedido {}", order.getCode());
 	}
 
 	/**

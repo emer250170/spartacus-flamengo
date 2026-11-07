@@ -651,4 +651,20 @@
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
+	<!-- ClearSale (07/11): análise de fraude no order-process (passo clearSaleCheck, versão dinâmica 9).
+	     Liga na aba ClearSale da loja base (Backoffice) + flamengo.clearsale.ativo -->
+	<bean id="clearSaleClient" class="br.com.flamengo.matchday.clearsale.ClearSaleClient"/>
+	<bean id="clearSaleService" class="br.com.flamengo.matchday.clearsale.impl.DefaultClearSaleService">
+		<property name="clearSaleClient" ref="clearSaleClient"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="baseStoreService" ref="baseStoreService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="eventService" ref="eventService"/>
+		<property name="seatHoldService" ref="seatHoldService"/>
+		<property name="matchdayTicketService" ref="matchdayTicketService"/>
+		<property name="socioExperienceService" ref="socioExperienceService"/>
+		<property name="socioPlanService" ref="socioPlanService"/>
+	</bean>
+
 </beans>
