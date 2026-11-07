@@ -188,6 +188,30 @@ BackofficeRole;lojamanagerrole;;;;;;;;
 ;;;;SolrIndexedProperty;+;-;-;-;
 ;;;;SolrSort;+;-;-;-;
 ;;;;SolrSortField;+;-;-;-;
+# --- 6. Leitura dos tipos que aparecem nas telas (sem isto: "Nenhum acesso de leitura" nos campos) ---
+# Todas as enumerações (aprovação do produto, status do pedido/pagamento/entrega, forma de pagamento,
+# gênero, ação de devolução, status da regra...) e os tipos referenciados pelos editores.
+;;;;EnumerationValue;+;-;-;-;
+;;;;ComposedType;+;-;-;-;
+;;;;Discount;+;-;-;-;
+;;;;FutureStock;+;-;-;-;
+;;;;InventoryEvent;+;-;-;-;
+;;;;StockLevelHistoryEntry;+;-;-;-;
+;;;;ProductOrderLimit;+;-;-;-;
+;;;;DerivedMedia;+;-;-;-;
+;;;;PromotionResult;+;-;-;-;
+;;;;PromotionOrderRestriction;+;-;-;-;
+;;;;AbstractOrderEntryProductInfo;+;-;-;-;
+;;;;OrderProcess;+;-;-;-;
+;;;;ConsignmentProcess;+;-;-;-;
+;;;;ReturnProcess;+;-;-;-;
+;;;;DeclineConsignmentEntryEvent;+;-;-;-;
+;;;;Campaign;+;-;-;-;
+;;;;City;+;-;-;-;
+;;;;District;+;-;-;-;
+;;;;AbstractComment;+;-;-;-;
+;;;;SocioGuest;+;-;-;-;
+;;;;PaymentMode;+;-;-;-;
 $END_USERRIGHTS;;;;;;;;;
 
 # Só o catálogo do Flamengo (07/11). A lista de produtos do Backoffice (Solr) segue os catálogos que o
