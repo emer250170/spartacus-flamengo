@@ -2,14 +2,7 @@
   class="md"
   [attr.aria-label]="(ticketMode ? 'md.ticketTitle' : 'md.title') | flaT"
 >
-  <!-- o título e o breadcrumb são os do cabeçalho padrão da loja (MatchdayPageMetaResolver);
-       aqui só a frase de apoio (04/11) -->
-  <div class="md-wrap">
-    <p class="md-lead">
-      {{ (ticketMode ? 'md.ticketLead' : 'md.lead') | flaT }}
-    </p>
-  </div>
-
+  <!-- trilha, título e frase de apoio na faixa escura do topo (FlaAccountBandComponent, 07/11) -->
   <div class="md-wrap">
     <div *ngIf="loading" class="md-state" role="status">
       <cx-spinner></cx-spinner>
@@ -66,7 +59,11 @@
         </p>
       </div>
 
-      <nav class="md-steps" [attr.aria-label]="'md.stepsNav' | flaT">
+      <nav
+        class="md-steps"
+        [attr.aria-label]="'md.stepsNav' | flaT"
+        [style.--md-step-count]="steps.length"
+      >
         <ol>
           <li *ngFor="let n of steps; let i = index">
             <button
@@ -78,7 +75,9 @@
               [attr.aria-current]="n === step ? 'step' : null"
               (click)="goTo(n)"
             >
-              <span class="md-step-num" aria-hidden="true">{{ i + 1 }}</span>
+              <span class="md-step-num" aria-hidden="true">{{
+                i < stepPos(step) ? '✓' : i + 1
+              }}</span>
               <span class="md-step-label">{{ 'md.step.' + n | flaT }}</span>
             </button>
           </li>
@@ -865,33 +864,36 @@
             <p class="md-muted">{{ 'md.s7.lead' | flaT }}</p>
             <div
               *ngIf="cat.experiences?.length; else noExperience"
-              class="md-list"
+              class="md-exps"
             >
               <button
                 type="button"
                 *ngFor="let e of cat.experiences; trackBy: trackByCode"
-                class="md-card md-option md-exp"
+                class="md-card md-exp"
                 [class.is-selected]="experiences[e.code]"
                 [attr.aria-pressed]="!!experiences[e.code]"
                 (click)="toggleExperience(e.code)"
               >
-                <span class="md-exp-check" aria-hidden="true">{{
-                  experiences[e.code] ? '✓' : ''
-                }}</span>
-                <img
-                  *ngIf="e.imageUrl"
-                  class="md-exp-img"
-                  [src]="e.imageUrl"
-                  alt=""
-                  loading="lazy"
-                />
-                <span class="md-option-body">
-                  <span class="md-option-name">{{ e.name }}</span>
-                  <span class="md-small" *ngIf="e.summary">{{
-                    e.summary
-                  }}</span>
+                <span class="md-exp-photo">
+                  <img
+                    *ngIf="e.imageUrl"
+                    [src]="e.imageUrl"
+                    alt=""
+                    loading="lazy"
+                  />
                 </span>
-                <span class="md-price">{{ brl(e.price) }}</span>
+                <span class="md-exp-body">
+                  <span class="md-exp-check" aria-hidden="true">{{
+                    experiences[e.code] ? '✓' : ''
+                  }}</span>
+                  <span class="md-exp-text">
+                    <span class="md-option-name">{{ e.name }}</span>
+                    <span class="md-small" *ngIf="e.summary">{{
+                      e.summary
+                    }}</span>
+                    <span class="md-exp-price">{{ brl(e.price) }}</span>
+                  </span>
+                </span>
               </button>
             </div>
             <ng-template #noExperience
