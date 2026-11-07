@@ -1,0 +1,18 @@
+## Produto de volta ao estoque · BackInStockNotificationEmailContext (productData, productReferences)
+#set($prod = $ctx.productData)
+#set($linkProd = "${loja}/product/${prod.code}")
+#flaTopo("${prod.name} voltou" "${prod.name} voltou ao estoque da Loja Flamengo.")
+#flaEtiqueta("De volta ao estoque")
+#flaTitulo("Voltou! Corre que é por pouco tempo")
+#flaParagrafo("${ctx.displayName}, o produto que você pediu para ser avisado está de novo disponível na Loja Oficial do Flamengo.")
+<tr><td class="miolo" style="padding:20px 40px 0 40px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+  <td width="64" valign="top" style="padding:14px 0;border-top:1px solid ${linha};border-bottom:1px solid ${linha};">#flaImagem($prod)</td>
+  <td valign="middle" style="padding:14px 0 14px 14px;border-top:1px solid ${linha};border-bottom:1px solid ${linha};font-family:${fonte};font-size:16px;line-height:22px;font-weight:bold;color:${preto};">${prod.name}
+#if($prod.price)<br/><span style="font-size:15px;color:${vermelho};">${prod.price.formattedValue}</span>#end
+  </td>
+</tr></table>
+</td></tr>
+#flaBotao("Comprar agora" $linkProd)
+#flaEspaco()
+#flaRodape("Você recebeu este e-mail porque pediu para ser avisado quando o produto voltasse ao estoque.")

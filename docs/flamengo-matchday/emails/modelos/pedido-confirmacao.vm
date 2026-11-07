@@ -1,0 +1,44 @@
+## Confirmação de pedido · OrderNotificationEmailContext ($ctx.order = OrderData)
+#set($order = $ctx.order)
+#flaLinkPedido($order.code $order.guid $order.guestCustomer)
+#set($temIngresso = false)
+#foreach($e in $order.entries)#if($e.product.code.startsWith("JOGO-"))#set($temIngresso = true)#end#end
+#flaTopo("Pedido ${order.code}" "Recebemos o pedido nº ${order.code}. Total ${order.totalPriceWithTax.formattedValue}.")
+#flaEtiqueta("Pedido recebido")
+#flaTitulo("Valeu, ${ctx.displayName}!<br/>Seu pedido está com a gente.")
+#if($temIngresso)#set($frase = " Seus ingressos ficam no app e em <b style='color:${preto};'>Minha conta</b>, prontos para o dia do jogo.")#else#set($frase = "")#end
+#flaParagrafo("Recebemos o pedido <b style='color:${preto};'>nº ${order.code}</b>.${frase} Se o pagamento foi por Pix ou boleto, o pedido segue assim que o pagamento for confirmado.")
+#flaBotao("Ver meu pedido" $linkPedido)
+#flaListaItens($order.entries)
+<tr><td class="miolo" style="padding:20px 40px 0 40px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr><td style="padding:4px 0;font-family:${fonte};font-size:14px;line-height:20px;color:${corTexto};">Subtotal</td>
+      <td align="right" style="padding:4px 0;font-family:${fonte};font-size:14px;line-height:20px;color:${corTexto};">${order.subTotal.formattedValue}</td></tr>
+#if($order.deliveryCost)
+  <tr><td style="padding:4px 0;font-family:${fonte};font-size:14px;line-height:20px;color:${corTexto};">Entrega</td>
+      <td align="right" style="padding:4px 0;font-family:${fonte};font-size:14px;line-height:20px;color:${corTexto};">#if($order.deliveryCost.value > 0)${order.deliveryCost.formattedValue}#{else}Grátis#end</td></tr>
+#end
+</table>
+</td></tr>
+#flaValor("Total" $order.totalPriceWithTax.formattedValue)
+#if($order.totalDiscounts && $order.totalDiscounts.value > 0)
+<tr><td class="miolo" align="right" style="padding:12px 40px 0 40px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td bgcolor="#fdeaea" style="background:#fdeaea;padding:8px 14px;font-family:${fonte};font-size:13px;line-height:18px;font-weight:bold;color:${vermelho};">Você economizou ${order.totalDiscounts.formattedValue} com sócio e promoções</td>
+  </tr></table>
+</td></tr>
+#end
+#if($order.deliveryMode)
+#set($como = "")
+#if($order.deliveryMode.description)#set($como = $order.deliveryMode.description)#end
+#if($order.deliveryAddress && !$order.deliveryMode.code.startsWith("matchday"))
+#set($end = $order.deliveryAddress.line1)
+#if($order.deliveryAddress.line2)#set($end = "${end}, ${order.deliveryAddress.line2}")#end
+#set($end = "${end}<br/>${order.deliveryAddress.town}")
+#if($order.deliveryAddress.postalCode)#set($end = "${end} · CEP ${order.deliveryAddress.postalCode}")#end
+#if($como != "")#set($como = "${como}<br/><br/>${end}")#else#set($como = $end)#end
+#end
+#flaCaixa("Como você recebe" $order.deliveryMode.name $como)
+#end
+#flaEspaco()
+#flaRodape("E-mail automático da Loja Oficial do Flamengo sobre o seu pedido.")

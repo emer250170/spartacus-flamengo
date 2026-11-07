@@ -1011,32 +1011,53 @@ isso, porque o `?context=` da URL muda a cada gravação. Por isso, o catálogo 
 - O fabricante está vazio no catálogo, então a coluna `brand` não foi incluída. O add-on Loyalty do Emarsys exige `brand`.
 - Instalação: deploy pelo HAC + `ant all` (sem Update, porque não há tipo novo). Conferir abrindo os dois endereços no navegador.
 
-## E-mail de confirmação de pedido com a cara do Flamengo (07/11)
+## E-mails da loja com a cara do Flamengo (07/11)
 
-O e-mail "pedido recebido" é o processo padrão do Commerce (`orderConfirmationEmailProcess`, página
-`OrderConfirmationEmail`). Só trocamos o template: o `OrderConfirmationEmailTemplate` do
-`electronics-spaContentCatalog` (Staged e Online) passa a usar os RendererTemplates
-`fla_Email_Order_Confirmation_Body` e `fla_Email_Order_Confirmation_Subject` (Velocity, mesmo
-`OrderNotificationEmailContext`), com remetente "Loja Flamengo".
+Os 16 e-mails transacionais são os processos padrão do Commerce; só trocamos os modelos. Cada
+`EmailPageTemplate` do `electronics-spaContentCatalog` (Staged e Online) passa a usar os RendererTemplates
+`fla_Email_*_Body` / `fla_Email_*_Subject` (Velocity, pt e en iguais, mesmo `contextClass` do original). Os
+originais `electronics_Email_*` continuam no banco (modo `restaurar`).
 
-- Corpo: `docs/flamengo-matchday/emails/confirmacao-pedido-corpo.vm`. Topo branco com o escudo, listras
-  vermelha e preta, botão "Ver meu pedido", itens separados em **Ingressos** (setor e poltrona), **Dia de jogo**
-  (estacionamento e comida) e **Loja** (tamanho da camisa), totais com "Você economizou", bloco "Como você recebe"
-  e rodapé preto. HTML de e-mail: só tabelas e estilos em linha.
-- Assunto: `Pedido <número> recebido · Loja Flamengo`.
-- Escudo: `projects/storefrontapp/src/assets/email/escudo-flamengo.png`, publicado com a loja em
-  `https://spartacus-flamengo.democc.online/assets/email/escudo-flamengo.png`. Fotos dos produtos vêm das
-  `/medias` da API. Os endereços são fixos no template porque o `baseUrl` do site aponta para localhost.
-- Aplicar, ver prévia ou voltar ao padrão, pelo HAC:
+| E-mail | Quando sai | Modelo (`modelos/`) |
+|---|---|---|
+| Confirmação de pedido | ao finalizar a compra | `pedido-confirmacao.vm` |
+| Boas-vindas | ao criar conta na loja | `cadastro.vm` |
+| Esqueci minha senha | "esqueci a senha" no login (link para `/login/pw/change?token=` do Spartacus) | `senha.vm` |
+| Pedido enviado | remessa marcada como enviada | `pedido-enviado.vm` |
+| Pronto para retirada | remessa de retirada pronta | `retirada-pronta.vm` |
+| Lembrete de retirada | lembrete enquanto não retira | `retirada-lembrete.vm` |
+| Retirada cancelada | prazo de retirada vencido | `retirada-cancelada.vm` |
+| Pedido com o atendimento | falha na remessa de retirada | `pedido-atendimento.vm` |
+| Pedido cancelado / cancelamento parcial | cancelamento total / de itens | `pedido-cancelado.vm`, `cancelamento-parcial.vm` |
+| Reembolso / reembolso parcial | devolução reembolsada | `reembolso.vm`, `reembolso-parcial.vm` |
+| Devolução aprovada (etiqueta) | devolução aprovada | `devolucao-etiqueta.vm` |
+| Cupom | cupom do cliente começa a valer ou vai vencer | `cupom.vm` |
+| De volta ao estoque | produto com aviso volta ao estoque | `estoque.vm` |
+| Código de acesso | login com código de uso único | `codigo.vm` |
+
+- **Montagem:** cada e-mail = `modelos/_base.vm` (cores, topo com escudo, listas de itens separadas em Ingressos /
+  Dia de jogo / Loja, botão, caixas, rodapé) + o arquivo do e-mail. A lista (página, códigos, assunto, processo
+  usado na prévia) está em `emails.json`. Os macros têm prefixo `fla` e são idênticos em todos (o Velocity guarda
+  macro entre um e-mail e outro).
+- **Padrão Outlook:** só tabelas, espaçamento em `<td>`, botão com borda grossa, texto alternativo nas imagens,
+  largura fluida no celular. As imagens saem **embutidas** na mensagem pelo `FlaEmailService` (PR #222, chave
+  `flamengo.email.imagensEmbutidas`), senão o Outlook pede para baixar.
+- **Etiqueta de devolução:** este ambiente não tem o bean do `ReturnLabelEmailContext` ("Cannot find bean in
+  application context"), então esse e-mail não sai nem com o modelo padrão; o modelo novo fica pronto para quando
+  o contexto existir.
+- Escudo: `projects/storefrontapp/src/assets/email/escudo-flamengo.png` (publicado com a loja). Fotos: `/medias`
+  da API. Endereços fixos no `_base.vm` porque o `baseUrl` do site aponta para localhost.
+- Prévia, aplicar, restaurar (HAC, Groovy):
 
 ```bash
-python3 docs/flamengo-matchday/emails/gerar.py --modo previa    --pedido 00045000 --saida /tmp/previa.js     # só renderiza (commit=false)
-python3 docs/flamengo-matchday/emails/gerar.py --modo aplicar   --saida /tmp/aplicar.js                     # grava templates e troca Staged/Online
-python3 docs/flamengo-matchday/emails/gerar.py --modo restaurar --saida /tmp/restaurar.js                   # volta para electronics_Email_Order_Confirmation_*
+python3 docs/flamengo-matchday/emails/gerar.py --modo previa  [--so OrderConfirmationEmailTemplate] --saida /tmp/previa.groovy   # commit=false
+python3 docs/flamengo-matchday/emails/gerar.py --modo aplicar   --saida /tmp/aplicar.groovy     # commit=true
+python3 docs/flamengo-matchday/emails/gerar.py --modo restaurar --saida /tmp/restaurar.groovy   # commit=true
 ```
 
-  A prévia roda numa thread com o usuário do pedido, o site e o idioma do pedido (fora disso o contexto do e-mail
-  não encontra os beans e o produto fica ambíguo) e renderiza com o `VelocityEngine` direto.
+  A prévia usa o processo real quando há um no banco e, nos outros, um contexto de exemplo com o pedido
+  `--pedido`. O script tem ~300 KB: o navegador do HAC pode montá-lo direto dos arquivos do GitHub (mesma
+  lógica do `gerar.py`) e conferir o SHA-256 antes de rodar.
 - Envio (07/11): pela caixa da Hostinger `emerson.oliveira@emersondigital.com.br` — `mail.smtp.server=smtp.hostinger.com`,
   `mail.smtp.port=587`, `mail.use.tls=true`, `mail.smtp.user`/`mail.from`/`mail.replyto` = esse endereço. A senha fica só no
   `local.properties` do servidor, nunca no repositório. Gmail exige senha de app e o Outlook.com pessoal recusa SMTP com

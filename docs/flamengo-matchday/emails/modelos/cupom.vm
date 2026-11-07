@@ -1,0 +1,23 @@
+## Cupom · CouponNotificationEmailContext (couponNotificationType, couponTitle, couponSummary, startDate, endDate)
+#set($tipo = "")
+#if($ctx.couponNotificationType)#set($tipo = "$ctx.couponNotificationType")#end
+#set($vence = $tipo.toUpperCase().contains("EXPIRE"))
+#if($vence)#set($chamada = "Seu cupom vence em breve")#{else}#set($chamada = "Você ganhou um cupom!")#end
+#flaTopo("Cupom Loja Flamengo" $chamada)
+#flaEtiqueta("Cupom")
+#flaTitulo("${chamada}")
+#if($vence)
+#flaParagrafo("${ctx.displayName}, não deixe passar: use o seu cupom na Loja Oficial do Flamengo antes do fim da validade.")
+#else
+#flaParagrafo("${ctx.displayName}, separamos um cupom para você usar na Loja Oficial do Flamengo.")
+#end
+#set($validade = "")
+#if($ctx.startDate && $ctx.endDate)#set($validade = "Válido de ${ctx.startDate} a ${ctx.endDate}")#elseif($ctx.endDate)#set($validade = "Válido até ${ctx.endDate}")#end
+#set($titulo = "Cupom")
+#if($ctx.couponTitle)#set($titulo = $ctx.couponTitle)#end
+#set($resumo = $validade)
+#if($ctx.couponSummary)#if($resumo != "")#set($resumo = "${ctx.couponSummary}<br/>${resumo}")#else#set($resumo = $ctx.couponSummary)#end#end
+#flaCaixa("Seu cupom" $titulo $resumo)
+#flaBotao("Ver meus cupons" "${loja}/my-account/coupons")
+#flaEspaco()
+#flaRodape("Você recebeu este e-mail porque tem um cupom na Loja Oficial do Flamengo.")

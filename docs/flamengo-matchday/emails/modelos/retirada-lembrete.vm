@@ -1,0 +1,19 @@
+## Lembrete de retirada · ConsignmentCollectionReminderEmailContext (consignment, pickUpDate)
+#flaLinkPedido($ctx.orderCode $ctx.orderGuid $ctx.guest)
+#set($local = "")
+#set($localEnd = "")
+#if($ctx.consignment && $ctx.consignment.deliveryPointOfService)
+#set($pos = $ctx.consignment.deliveryPointOfService)
+#if($pos.displayName)#set($local = $pos.displayName)#else#set($local = $pos.name)#end
+#if($pos.address)#set($localEnd = $pos.address.line1)#if($pos.address.town)#set($localEnd = "${localEnd} · ${pos.address.town}")#end#end
+#end
+#flaTopo("Lembrete: retire o pedido ${ctx.orderCode}" "O pedido nº ${ctx.orderCode} ainda está esperando por você.")
+#flaEtiqueta("Lembrete de retirada")
+#flaTitulo("Seu pedido ainda está esperando por você")
+#if($ctx.pickUpDate)#set($prazo = " até <b style='color:${preto};'>${ctx.pickUpDate}</b>")#else#set($prazo = "")#end
+#flaParagrafo("${ctx.displayName}, os itens do pedido <b style='color:${preto};'>nº ${ctx.orderCode}</b> continuam separados. Passe para retirar${prazo}; depois disso a retirada é cancelada e o valor, devolvido.")
+#if($local != "")#flaCaixa("Onde retirar" $local $localEnd)#end
+#flaBotao("Ver meu pedido" $linkPedido)
+#flaListaRemessa($ctx.consignment)
+#flaEspaco()
+#flaRodape("E-mail automático da Loja Oficial do Flamengo sobre o seu pedido.")
