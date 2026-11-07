@@ -16,6 +16,9 @@
         <requires-extension name="b2bacceleratorservices"/>
         <!-- 05/11: condição "Forma de pagamento" no construtor de promoções (tradutor do compilador de regras) -->
         <requires-extension name="ruleengineservices"/>
+        <!-- 07/11: envio de e-mail com imagens embutidas (FlaEmailService estende o DefaultEmailService);
+             já carregava antes desta extensão via b2bacceleratorservices -->
+        <requires-extension name="acceleratorservices"/>
 
         <coremodule generated="true" manager="de.hybris.platform.jalo.extension.GenericManager" packageroot="br.com.flamengo.matchday"/>
 
