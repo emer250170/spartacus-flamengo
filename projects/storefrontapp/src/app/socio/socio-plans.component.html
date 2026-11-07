@@ -1,34 +1,56 @@
+<!-- Planos no visual do mockup "Sócio" (07/11): faixa escura com o título e o "Seu plano",
+     planos em fundo branco, vantagens em faixa cinza. Ficam também (decisão do Emerson): os
+     convidados por plano, os benefícios detalhados, a vitrine de experiências, "Em todos os
+     planos" e as ondas de venda. Faixas de borda a borda; conteúdo em 1140px. -->
 <section class="st" aria-labelledby="st-title">
-  <div class="st-hero">
-    <div class="st-wrap">
-      <p class="st-eyebrow">{{ 'st.eyebrow' | flaT }}</p>
-      <h1 id="st-title" class="st-title">
-        {{ title || ('st.title' | flaT) }}
-      </h1>
-      <p class="st-lead">
-        {{
-          (maxDiscount ? 'st.lead' : 'st.leadNoOff') | flaT: { d: maxDiscount }
-        }}
-      </p>
-      <p *ngIf="member" class="st-member" role="status">
-        <span [innerHTML]="'st.youAre' | flaT: { plan: member.name }"></span>
+  <div class="st-band st-hero">
+    <div class="st-wrap st-hero-in">
+      <div class="st-hero-text">
+        <p class="st-eyebrow">{{ 'st.eyebrow' | flaT }}</p>
+        <h1 id="st-title" class="st-title">
+          {{ 'st.join' | flaT }}
+          <span>{{ title || ('st.title' | flaT) }}</span>
+        </h1>
+        <p class="st-lead">
+          {{
+            (maxDiscount ? 'st.lead' : 'st.leadNoOff')
+              | flaT: { d: maxDiscount }
+          }}
+        </p>
+      </div>
+
+      <!-- "Seu plano" (mockup): plano comprado, ou o que está no carrinho -->
+      <div *ngIf="member" class="st-box" role="status">
+        <span class="st-box-label">{{ 'st.box.title' | flaT }}</span>
+        <strong class="st-box-plan"
+          >{{ member.name }} · {{ 'st.box.active' | flaT }}</strong
+        >
+        <span *ngIf="points" class="st-box-meta">{{
+          'st.box.points' | flaT: { n: pointsText }
+        }}</span>
+        <a routerLink="/my-account/socio-torcedor">{{
+          'st.box.account' | flaT
+        }}</a>
         <a routerLink="/matchday">{{
           (member.discount ? 'st.buyTickets' : 'st.pickTickets') | flaT
         }}</a>
-      </p>
-      <p
+      </div>
+      <div
         *ngIf="inCart && inCart.code !== member?.code"
-        class="st-member"
+        class="st-box"
         role="status"
       >
-        <span [innerHTML]="'st.inCart' | flaT: { plan: inCart.name }"></span>
-        <a routerLink="/matchday">{{ 'st.pickTickets' | flaT }}</a> ·
+        <span class="st-box-label">{{ 'st.badge.inCart' | flaT }}</span>
+        <strong class="st-box-plan">{{ inCart.name }}</strong>
+        <a routerLink="/matchday">{{ 'st.pickTickets' | flaT }}</a>
         <a routerLink="/cart">{{ 'st.viewCart' | flaT }}</a>
-      </p>
+      </div>
     </div>
   </div>
 
-  <div class="st-wrap">
+  <div class="st-wrap st-plans-area">
+    <h2 class="st-h2">{{ 'st.choose' | flaT }}</h2>
+
     <div *ngIf="loading" class="st-state" role="status">
       <cx-spinner></cx-spinner>
       <p>{{ 'st.loading' | flaT }}</p>
@@ -43,32 +65,28 @@
       class="st-group"
       [attr.aria-label]="group.family || null"
     >
-      <h2 *ngIf="groups.length > 1 && group.family" class="st-h2 st-family">
+      <h3 *ngIf="groups.length > 1 && group.family" class="st-family">
         {{ group.family }}
-      </h2>
+      </h3>
       <div class="st-plans" [attr.data-cols]="group.cols">
         <article
-          *ngFor="let plan of group.plans; trackBy: trackByCode"
+          *ngFor="let plan of group.plans; let i = index; trackBy: trackByCode"
           class="st-card"
-          [class.is-featured]="plan.code === featuredCode"
           [class.is-mine]="isCurrent(plan)"
           [attr.aria-labelledby]="'st-plan-' + plan.code"
         >
-          <div class="st-card-head">
-            <span *ngIf="isMember(plan)" class="st-badge">{{
-              'st.badge.mine' | flaT
-            }}</span>
-            <span *ngIf="isInCart(plan) && !isMember(plan)" class="st-badge">{{
-              'st.badge.inCart' | flaT
-            }}</span>
-            <span
-              *ngIf="!isCurrent(plan) && plan.code === featuredCode"
-              class="st-badge"
-              >{{ 'st.badge.limited' | flaT }}</span
-            >
-            <h2 [id]="'st-plan-' + plan.code" class="st-card-title">
+          <div class="st-card-head" [attr.data-tone]="tone(plan, i)">
+            <span class="st-tag">
+              {{
+                plan.wave
+                  ? ('wave.n' | flaT: { n: plan.wave })
+                  : ('st.noPriority' | flaT)
+              }}
+              <ng-container *ngIf="badge(plan) as b"> · {{ b }}</ng-container>
+            </span>
+            <h3 [id]="'st-plan-' + plan.code" class="st-card-title">
               {{ plan.name }}
-            </h2>
+            </h3>
             <p class="st-price">
               <span class="st-price-value">{{ brl(plan.price) }}</span>
               <span class="st-price-unit">{{ 'st.perMonth' | flaT }}</span>
@@ -76,28 +94,24 @@
             <p class="st-term">{{ 'st.term' | flaT }}</p>
           </div>
 
-          <ul class="st-highlights">
-            <li *ngIf="plan.discount">
-              <strong>{{ plan.discount }}%</strong>
-              <span>{{ 'st.offFull' | flaT }}</span>
-            </li>
-            <li *ngIf="plan.storeDiscount">
-              <strong>{{ plan.storeDiscount }}%</strong>
-              <span>{{ 'st.offStore' | flaT }}</span>
-            </li>
-            <li *ngIf="plan.wave; else noPriority">
-              <strong>{{ 'wave.n' | flaT: { n: plan.wave } }}</strong>
-              <span>{{ 'st.priority' | flaT }}</span>
-            </li>
-            <ng-template #noPriority>
-              <li>
-                <strong>{{ 'st.noPriority' | flaT }}</strong>
-                <span>{{ 'st.generalSale' | flaT }}</span>
-              </li>
-            </ng-template>
-          </ul>
-
           <ul class="st-benefits">
+            <li *ngIf="plan.discount" class="is-key">
+              <strong>{{ plan.discount }}%</strong> {{ 'st.offFull' | flaT }}
+            </li>
+            <li *ngIf="plan.storeDiscount" class="is-key">
+              <strong>{{ plan.storeDiscount }}%</strong>
+              {{ 'st.offStore' | flaT }}
+            </li>
+            <li class="is-key">
+              <ng-container *ngIf="plan.wave; else noPriority">
+                <strong>{{ 'wave.n' | flaT: { n: plan.wave } }}</strong>
+                · {{ 'st.priority' | flaT }}
+              </ng-container>
+              <ng-template #noPriority>
+                <strong>{{ 'st.noPriority' | flaT }}</strong> ·
+                {{ 'st.generalSale' | flaT }}
+              </ng-template>
+            </li>
             <li *ngFor="let b of plan.benefits">{{ b }}</li>
           </ul>
 
@@ -149,9 +163,8 @@
             </p>
             <button
               type="button"
-              class="btn btn-block"
-              [class.btn-primary]="!isCurrent(plan)"
-              [class.btn-secondary]="isCurrent(plan)"
+              class="st-btn"
+              [class.is-current]="isCurrent(plan)"
               [disabled]="plan.soldOut || isCurrent(plan) || !!submitting"
               (click)="subscribe(plan)"
             >
@@ -167,15 +180,32 @@
       </div>
     </section>
 
-    <!-- experiências do sócio com as fotos (04/11): argumento para virar sócio -->
-    <fla-experience-showcase
-      class="st-experiences"
-      [dark]="true"
-      [flat]="true"
-      titleKey="vit.exp.socioTitle"
-      subKey="vit.exp.socioSub"
-    ></fla-experience-showcase>
+    <p *ngIf="plans.length" class="st-note">{{ 'st.note' | flaT }}</p>
+  </div>
 
+  <!-- vantagens (mockup): faixa cinza -->
+  <div class="st-band st-adv-band">
+    <ul class="st-wrap st-adv">
+      <li *ngFor="let a of advantages">
+        <strong>{{ 'st.adv.' + a + '.t' | flaT }}</strong>
+        <span>{{ 'st.adv.' + a + '.x' | flaT }}</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- experiências do sócio com as fotos (04/11): faixa escura -->
+  <div class="st-band st-exp-band">
+    <div class="st-wrap">
+      <fla-experience-showcase
+        [dark]="true"
+        [flat]="true"
+        titleKey="vit.exp.socioTitle"
+        subKey="vit.exp.socioSub"
+      ></fla-experience-showcase>
+    </div>
+  </div>
+
+  <div class="st-wrap">
     <section class="st-section" aria-labelledby="st-common">
       <h2 id="st-common" class="st-h2">{{ 'st.common' | flaT }}</h2>
       <ul class="st-common">
@@ -194,7 +224,7 @@
           {{ waveLabel(w) }}
         </li>
       </ol>
-      <a class="btn btn-secondary st-tickets" routerLink="/matchday">{{
+      <a class="st-btn st-btn-ghost" routerLink="/matchday">{{
         'st.seeMatches' | flaT
       }}</a>
     </section>

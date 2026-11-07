@@ -1,9 +1,12 @@
+import { DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  Inject,
   OnDestroy,
   OnInit,
+  Renderer2,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { ActiveCartFacade, OrderEntry } from '@spartacus/cart/base/root';
@@ -18,7 +21,14 @@ import { Observable, Subscription, raceWith, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { GENERAL_SALE_WAVE, SocioPlan } from './socio.model';
+import { SocioPointsService } from './socio-points.service';
 import { SocioService } from './socio.service';
+
+/** Vantagens da faixa cinza (mockup "Sócio"; textos em fla-texts: st.adv.*) */
+const ADVANTAGES = ['priority', 'discount', 'points', 'badge'];
+
+/** Classe no <html> para o tema soltar o layout (faixas de borda a borda) */
+const WIDE_CLASS = 'fla-wide';
 
 /** Benefícios que valem para todos os planos (textos em fla-texts: st.b.*) */
 const COMMON_BENEFITS = [
@@ -54,6 +64,9 @@ interface PlanGroup {
 })
 export class SocioPlansComponent implements OnInit, OnDestroy {
   readonly commonBenefits = COMMON_BENEFITS;
+  readonly advantages = ADVANTAGES;
+  /** Saldo de pontos do sócio (caixa "Seu plano"); 0 = não mostra */
+  points = 0;
   /** Ondas 1 a 3 e venda geral */
   readonly waves = Array.from({ length: GENERAL_SALE_WAVE }, (_, i) => i + 1);
 
@@ -92,10 +105,14 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
     protected router: Router,
     protected globalMessages: GlobalMessageService,
     protected cd: ChangeDetectorRef,
-    protected i18n: FlaI18nService
+    protected i18n: FlaI18nService,
+    protected socioPoints: SocioPointsService,
+    protected renderer: Renderer2,
+    @Inject(DOCUMENT) protected document: Document
   ) {}
 
   ngOnInit(): void {
+    this.renderer.addClass(this.document.documentElement, WIDE_CLASS);
     // planos no idioma do site (nome e benefícios vêm da API)
     this.subscription.add(
       this.i18n.lang$
@@ -124,10 +141,56 @@ export class SocioPlansComponent implements OnInit, OnDestroy {
         this.cd.markForCheck();
       })
     );
+    // pontos na caixa "Seu plano" (só para quem está logado; sem pontos, a linha não aparece)
+    this.subscription.add(
+      this.auth
+        .isUserLoggedIn()
+        .pipe(
+          filter(Boolean),
+          take(1),
+          switchMap(() => this.socioPoints.load())
+        )
+        .subscribe((p) => {
+          this.points = p.enabled && p.member ? p.balance : 0;
+          this.cd.markForCheck();
+        })
+    );
   }
 
   ngOnDestroy(): void {
+    this.renderer.removeClass(this.document.documentElement, WIDE_CLASS);
     this.subscription.unsubscribe();
+  }
+
+  /** "12.480" (pt) ou "12,480" (en) */
+  get pointsText(): string {
+    return this.points.toLocaleString(
+      this.i18n.lang === 'pt' ? 'pt-BR' : 'en-US'
+    );
+  }
+
+  /** Cor do topo do card (mockup): o 1º plano da onda 1 em vermelho, o 2º preto, os outros cinza */
+  tone(plan: SocioPlan, index: number): string {
+    if (plan.code === this.featuredCode) {
+      return 'red';
+    }
+    return index <= 1 ? 'dark' : 'gray';
+  }
+
+  /** Selo do topo do card: seu plano, no carrinho, esgotado ou vagas limitadas */
+  badge(plan: SocioPlan): string {
+    if (this.isMember(plan)) {
+      return this.i18n.t('st.badge.mine');
+    }
+    if (this.isInCart(plan)) {
+      return this.i18n.t('st.badge.inCart');
+    }
+    if (plan.soldOut) {
+      return this.i18n.t('st.btn.soldOut');
+    }
+    return plan.code === this.featuredCode
+      ? this.i18n.t('st.badge.limited')
+      : '';
   }
 
   guestCount(plan: SocioPlan): number {
