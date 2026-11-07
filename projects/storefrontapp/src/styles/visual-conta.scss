@@ -16,7 +16,8 @@ fla-account-band {
 }
 
 html.fla-account,
-html.fla-login {
+html.fla-login,
+html.fla-term {
   cx-page-slot.BottomHeaderSlot {
     display: block !important;
     padding: 0 !important;
@@ -645,6 +646,8 @@ html.fla-login main cx-page-layout.LoginPageTemplate {
     .cx-section-title {
       position: relative;
       z-index: 1;
+      // com o erro do login a primeira linha cresce: o título fica em cima
+      align-self: start;
       grid-area: 1 / 2;
       margin: 0;
       padding: 36px 36px 0;
