@@ -22,7 +22,10 @@ pares = json.load(open(os.path.join(BASE, 'estampa-artes.json')))
 linhas = []
 for codigo, arquivo in pares:
     dados = open(os.path.join(BASE, 'artes', arquivo + '.webp'), 'rb').read()
-    linhas.append('  ["%s", "%s", "%s"]' % (codigo, arquivo, base64.b64encode(dados).decode()))
+    b64 = base64.b64encode(dados).decode()
+    # o Groovy não aceita literal com mais de 65535 caracteres: a imagem vai em pedaços
+    partes = ', '.join('"%s"' % b64[i:i + 60000] for i in range(0, len(b64), 60000))
+    linhas.append('  ["%s", "%s", [%s].join("")]' % (codigo, arquivo, partes))
 
 groovy = '''// Mengo Estúdio: artes das estampas (gerado por estudio-artes.py)
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
