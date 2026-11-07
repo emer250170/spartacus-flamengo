@@ -36,6 +36,7 @@ export const ACCOUNT_CLASS = 'fla-account';
 export const LOGIN_CLASS = 'fla-login';
 export const TERM_CLASS = 'fla-term';
 export const STORES_CLASS = 'fla-stores';
+export const MATCHDAY_CLASS = 'fla-matchday';
 
 /** Página do Termo do Nação (/socio-torcedor/termo) */
 const TERM_URL = /\/socio-torcedor\/termo\/?(?:[?#]|$)/;
@@ -50,7 +51,11 @@ const VIEW_ALL_URL = /\/store-finder\/view-all\/?(?=[?#]|$)/;
 const STORE_URL =
   /\/store-finder\/country\/[^/?#]+\/(?:region\/[^/?#]+\/)?([^/?#]+)\/?(?:[?#]|$)/;
 
-type Mode = 'account' | 'login' | 'term' | 'stores' | null;
+/** Monte o seu dia de jogo / Compre seu ingresso (/matchday, ?modo=ingresso) */
+const MATCHDAY_URL = /\/matchday\/?(?:[?#]|$)/;
+const TICKET_MODE_URL = /[?&]modo=ingresso(?:&|#|$)/;
+
+type Mode = 'account' | 'login' | 'term' | 'stores' | 'matchday' | null;
 
 interface Band {
   login: boolean;
@@ -115,9 +120,11 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
             ? 'term'
             : STORES_URL.test(url ?? '')
               ? 'stores'
-              : isLoginUrl(url) && !step
-                ? 'login'
-                : null
+              : MATCHDAY_URL.test(url ?? '')
+                ? 'matchday'
+                : isLoginUrl(url) && !step
+                  ? 'login'
+                  : null
     ),
     distinctUntilChanged(),
     shareReplay({ bufferSize: 1, refCount: true })
@@ -138,7 +145,9 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
             .get<{
               name?: string;
               displayName?: string;
-            }>(`${this.occ.getBaseUrl()}/stores/${encodeURIComponent(id)}`, { params: { fields: 'name,displayName' } })
+            }>(`${this.occ.getBaseUrl()}/stores/${encodeURIComponent(id)}`, {
+              params: { fields: 'name,displayName' },
+            })
             .pipe(
               map((store) => store?.displayName ?? store?.name ?? ''),
               catchError(() => of('')),
@@ -157,6 +166,25 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     this.storeName$.pipe(startWith('')),
   ]).pipe(
     map(([mode, url, page, , storeName]) => {
+      if (mode === 'matchday') {
+        // compra só de ingresso (lista "Jogos em casa") ou o dia de jogo completo
+        const ticket = TICKET_MODE_URL.test(url ?? '');
+        return {
+          login: false,
+          parent: ticket
+            ? {
+                label: this.i18n.t('md.crumbTicket'),
+                url: '/c/flamengo_jogos_casa',
+              }
+            : undefined,
+          crumb: this.i18n.t(ticket ? 'md.ticketTitle' : 'md.title'),
+          title: this.i18n.t(ticket ? 'md.band.ticketTitle' : 'md.band.title'),
+          titleRed: this.i18n.t(
+            ticket ? 'md.band.ticketTitleRed' : 'md.band.titleRed'
+          ),
+          lead: this.i18n.t(ticket ? 'md.ticketLead' : 'md.lead'),
+        };
+      }
       if (mode === 'stores') {
         const stores = this.i18n.t('sf.band.crumb');
         return {
@@ -262,6 +290,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
         this.toggle(html, LOGIN_CLASS, mode === 'login');
         this.toggle(html, TERM_CLASS, mode === 'term');
         this.toggle(html, STORES_CLASS, mode === 'stores');
+        this.toggle(html, MATCHDAY_CLASS, mode === 'matchday');
       })
     );
   }
@@ -274,6 +303,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
       this.renderer.removeClass(html, LOGIN_CLASS);
       this.renderer.removeClass(html, TERM_CLASS);
       this.renderer.removeClass(html, STORES_CLASS);
+      this.renderer.removeClass(html, MATCHDAY_CLASS);
     }
   }
 

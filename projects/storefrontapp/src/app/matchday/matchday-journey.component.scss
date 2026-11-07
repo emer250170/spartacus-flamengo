@@ -391,37 +391,6 @@
 .md-food {
   cursor: default;
 }
-// Experiência: cartão marcável (uma, as duas ou nenhuma), com a foto do produto
-.md-exp {
-  align-items: center;
-  gap: 14px;
-}
-.md-exp-check {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--md-line);
-  border-radius: 4px;
-  background: var(--md-panel);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-
-  .is-selected & {
-    border-color: var(--md-red);
-    background: var(--md-red);
-  }
-}
-.md-exp-img {
-  flex: none;
-  width: 64px;
-  height: 64px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: var(--md-bg);
-}
 .md-qty {
   display: flex;
   align-items: center;
@@ -1109,4 +1078,448 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+// =============================================================================================
+// Visual do mockup (07/11, quadros 34 a 40 "Monte o seu dia de jogo"): faixa escura no topo
+// (FlaAccountBandComponent, classe fla-matchday), fundo cinza, etapas numa barra branca (feitas
+// com ✓, a atual sublinhada em vermelho), conteúdo em caixas brancas e "Seu pedido" à direita.
+// =============================================================================================
+:host {
+  --md-bg: transparent;
+  --md-panel: #ffffff;
+  --md-panel-2: #ffffff;
+  --md-line: #cfcfcf;
+  --md-line-strong: #8a8a8a;
+  --md-text: #111111;
+  --md-strong: #111111;
+  --md-muted: #555555;
+  --md-selected: #ffffff;
+  --md-num-bg: #bdbdbd;
+
+  background: transparent;
+}
+
+.md {
+  padding: 0 0 64px;
+}
+
+@mixin md-title($size) {
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: $size;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+// barra do sócio
+.md-socio-bar {
+  margin: 0 0 20px;
+  padding: 14px 20px;
+  border: 0;
+  border-left: 4px solid var(--md-red);
+  border-radius: 4px;
+  font-size: 15px;
+}
+
+// etapas
+.md-steps {
+  margin: 0 0 20px;
+  padding: 0 20px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.md-steps ol {
+  display: grid;
+  grid-template-columns: repeat(var(--md-step-count, 7), minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  overflow: visible;
+}
+
+.md-steps li {
+  min-width: 0;
+}
+
+.md-step {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px 4px 13px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: #8a8a8a;
+  font-size: 15px;
+  font-weight: 500;
+
+  &.is-done {
+    color: var(--md-text);
+  }
+
+  &.is-active {
+    border-color: transparent;
+    border-bottom-color: var(--md-red);
+    background: none;
+    color: var(--md-text);
+    font-weight: 700;
+  }
+
+  &:disabled {
+    opacity: 1;
+  }
+}
+
+.md-step-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md-step-num {
+  flex: none;
+  width: 26px;
+  height: 26px;
+}
+
+// colunas e caixas
+.md-grid {
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.md-panel,
+.md-summary {
+  border: 0;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.md-panel {
+  padding: 28px;
+}
+
+.md-h2 {
+  @include md-title(24px);
+  margin: 0 0 6px;
+}
+
+.md-h3 {
+  @include md-title(18px);
+}
+
+.md-muted {
+  font-size: 16px;
+}
+
+// cartões: borda cinza; escolhido com borda preta de 2px (sem mudar o tamanho)
+.md-card {
+  border-radius: 4px;
+  background: #fff;
+
+  &.is-selected {
+    border-color: var(--md-strong);
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--md-strong);
+  }
+}
+
+.md-date {
+  min-width: 76px;
+  min-height: 76px;
+  border-radius: 4px;
+}
+
+.md-date-num {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.md-match-title {
+  @include md-title(20px);
+}
+
+.md-tag {
+  border: 0;
+  background: #eee;
+  color: var(--md-muted);
+  font-size: 12px;
+  font-weight: 700;
+
+  &.is-hot {
+    background: var(--md-red);
+  }
+}
+
+.md-wave {
+  &.is-open {
+    background: #e8f4e8;
+    color: #1d6b21;
+  }
+
+  &.is-locked {
+    border: 0;
+    background: #eee;
+  }
+}
+
+// setor e poltrona: os 4 setores numa única linha, embaixo do desenho do estádio
+fla-matchday-stadium-map {
+  display: block;
+  margin: 16px 0 0;
+}
+
+.md-sectors {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 16px 0 24px;
+
+  @media (max-width: 767.98px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.md-sector {
+  min-width: 0;
+  padding: 14px;
+
+  .md-small {
+    font-size: 13px;
+  }
+
+  .md-price {
+    font-size: 18px;
+  }
+}
+
+.md-sector-name {
+  font-size: 17px;
+}
+
+.md-old-price {
+  display: block;
+  font-size: 13px;
+}
+
+.md-seatmap {
+  border: 0;
+  border-radius: 4px;
+  background: #f7f7f7;
+  padding: 20px;
+}
+
+.md-field {
+  background: none;
+  color: var(--md-muted);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+.md-seat {
+  border-radius: 4px;
+  background: #fff;
+  border-color: #8a8a8a;
+  color: #333;
+  font-weight: 700;
+
+  &.is-mine {
+    color: #fff;
+  }
+
+  &.is-occupied {
+    background: #cfcfcf;
+    border-color: #cfcfcf;
+    color: #8a8a8a;
+  }
+}
+
+.md-hold {
+  border: 0;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font-size: 15px;
+
+  &.is-warn {
+    background: #fff4e5;
+    color: #8a4b00;
+  }
+
+  .md-link {
+    color: inherit;
+  }
+}
+
+// experiências: 2 colunas, foto em cima
+.md-exps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+
+  @media (max-width: 575.98px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.md-exp {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.md-exp-photo {
+  display: block;
+  height: 180px;
+  background: #1b1b1b;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.md-exp-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+}
+
+.md-exp-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.md-exp-price {
+  color: var(--md-red);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.md-exp-check {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #8a8a8a;
+  border-radius: 4px;
+  background: #fff;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+
+  .is-selected & {
+    border-color: var(--md-red);
+    background: var(--md-red);
+  }
+}
+
+// quantidades e campos
+.md-qty button {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.md-input input {
+  height: 48px;
+  border-radius: 4px;
+}
+
+.md-size {
+  border-radius: 4px;
+
+  &.is-selected {
+    border-color: #111;
+    background: #111;
+    color: #fff;
+  }
+}
+
+// botões
+.md-btn {
+  min-height: 48px;
+  border-radius: 4px;
+  text-transform: none;
+  font-size: 16px;
+}
+
+.md-actions {
+  margin-top: 20px;
+
+  .md-btn {
+    min-width: 200px;
+  }
+}
+
+.md-btn-big {
+  min-height: 56px;
+}
+
+// resumo e revisão
+.md-summary {
+  padding: 24px;
+}
+
+.md-sum-total,
+.md-review-total {
+  font-weight: 700;
+}
+
+.md-review-total {
+  font-size: 24px;
+}
+
+.md-sum-hold {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+}
+
+.md-elig {
+  border: 0;
+  border-left: 4px solid #f59e0b;
+  border-radius: 4px;
+  padding: 24px;
+
+  &.is-ok {
+    border-left-color: #1d8b21;
+  }
+}
+
+@media (max-width: 991px) {
+  .md-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .md-steps {
+    padding: 0 12px;
+    overflow-x: auto;
+  }
+
+  .md-steps ol {
+    grid-template-columns: repeat(var(--md-step-count, 7), max-content);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .md-panel {
+    padding: 20px;
+  }
+
+  .md-actions .md-btn {
+    min-width: 0;
+    flex: 1 1 0;
+  }
 }
