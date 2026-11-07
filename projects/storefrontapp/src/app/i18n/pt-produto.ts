@@ -73,7 +73,7 @@ export const ptProduto: TranslationResources = {
       },
       TabPanelContainer: {
         tabs: {
-          ProductDetailsTabComponent: 'Detalhes do produto',
+          ProductDetailsTabComponent: 'Sobre o produto',
           ProductSpecsTabComponent: 'Especificações',
           ProductReviewsTabComponent: 'Avaliações',
           deliveryTab: 'Entrega',
