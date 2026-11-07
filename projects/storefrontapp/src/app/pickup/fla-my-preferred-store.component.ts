@@ -90,11 +90,15 @@ export class FlaMyPreferredStoreComponent
       this.lastTranslated = {
         ...content,
         header: label(content.header),
-        actions: content.actions.map((action) => ({
-          ...action,
-          name: label(action.name),
-          ...('link' in action && directions ? { link: directions } : {}),
-        })),
+        // "Como chegar" só com o link pronto (sem loja ou sem endereço, o link do Spartacus é um
+        // Observable e saía "[object Object]"): sem link, a ação sai do cartão
+        actions: content.actions
+          .filter((action) => !('link' in action) || !!directions)
+          .map((action) => ({
+            ...action,
+            name: label(action.name),
+            ...('link' in action && directions ? { link: directions } : {}),
+          })),
       };
     }
     return this.lastTranslated;

@@ -1134,6 +1134,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'acc.od.saved': 'Você economizou {v}',
     'acc.em.now': 'E-mail atual:',
     'acc.em.note': 'O novo e-mail passa a ser o seu login.',
+    'pk.noStore': 'Você ainda não escolheu uma loja de retirada.',
   },
 
   en: {
@@ -2247,5 +2248,6 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'acc.od.saved': 'You saved {v}',
     'acc.em.now': 'Current email:',
     'acc.em.note': 'The new email becomes your sign-in.',
+    'pk.noStore': 'You have not chosen a pickup store yet.',
   },
 };
