@@ -19,6 +19,7 @@ import {
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { FlaAccountBandComponent } from './fla-account-band.component';
 import { FlaFaqComponent } from './fla-faq.component';
+import { FlaRegisterModule } from './fla-register.module';
 import { FlaAccountMenuComponent } from './fla-account-menu.component';
 import { FlaAccountOrderComponent } from './fla-account-order.component';
 import { FlaEmailCurrentComponent } from './fla-email-current.component';
@@ -56,6 +57,8 @@ import {
     ListNavigationModule,
     MediaModule,
     FlaI18nModule,
+    // criar conta com CPF e sem "Tratamento" (07/11)
+    FlaRegisterModule,
   ],
   declarations: [
     FlaAccountBandComponent,

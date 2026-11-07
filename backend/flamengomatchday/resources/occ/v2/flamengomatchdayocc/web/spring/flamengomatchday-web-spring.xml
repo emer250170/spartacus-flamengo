@@ -84,4 +84,9 @@
 		<property name="configurationService" ref="configurationService"/>
 	</bean>
 
+	<!-- Criação de conta com CPF (07/11): POST /{baseSiteId}/flamengo/cadastro, no lugar do POST /users -->
+	<bean id="flamengoCadastroController" class="br.com.flamengo.matchday.occ.CadastroController">
+		<property name="cadastroService" ref="cadastroService"/>
+	</bean>
+
 </beans>

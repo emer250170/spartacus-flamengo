@@ -1277,5 +1277,23 @@
 			</indexes>
 		</itemtype>
 
+		<!--
+			CPF no cadastro do cliente (07/11): pedido na criação de conta da loja (no lugar do
+			"Tratamento") e usado pela análise de fraude do ClearSale. Vazio nos clientes antigos.
+		-->
+		<itemtype code="Customer" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="cpf" type="java.lang.String">
+					<description>CPF do cliente, só dígitos</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="customerCpf">
+					<key attribute="cpf"/>
+				</index>
+			</indexes>
+		</itemtype>
+
 	</itemtypes>
 </items>

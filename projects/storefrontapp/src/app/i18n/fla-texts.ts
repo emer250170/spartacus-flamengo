@@ -1229,6 +1229,8 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'lg.titleRed': 'sua conta',
     'lg.crumb': 'Entrar',
     'lg.lead': 'Pedidos, ingressos e o seu plano Nação Maraca num só lugar.',
+    // criar conta (07/11): CPF no lugar do "Tratamento"
+    'rg.cpf': 'CPF',
     'lg.have': 'Já tenho conta',
     'lg.newText':
       'Crie a sua em um minuto e compre ingresso, estacionamento, comida e manto num só pagamento.',
@@ -2461,6 +2463,7 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'lg.titleRed': 'your account',
     'lg.crumb': 'Sign in',
     'lg.lead': 'Orders, tickets and your Nação Maraca plan in one place.',
+    'rg.cpf': 'CPF (Brazilian tax ID)',
     'lg.have': 'I have an account',
     'lg.newText':
       'Create yours in a minute and buy ticket, parking, food and jersey in a single payment.',

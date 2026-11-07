@@ -644,4 +644,13 @@
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
+	<!-- Criação de conta com CPF (07/11): POST /{baseSiteId}/flamengo/cadastro; chave flamengo.cadastro.cpfObrigatorio -->
+	<bean id="cadastroService" class="br.com.flamengo.matchday.cadastro.impl.DefaultCadastroService">
+		<property name="customerAccountService" ref="customerAccountService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+
 </beans>
