@@ -935,3 +935,8 @@ cx-storefront.ProductDetailsPageTemplate:has(.fla-pdp)
   cx-add-to-cart {
   padding-top: 0 !important;
 }
+
+// "Troca grátis" embaixo de Receber em casa / Retirar na loja sai (Emerson, 07/11)
+cx-storefront.ProductDetailsPageTemplate cx-pickup-options cx-tab-panel {
+  display: none !important;
+}
