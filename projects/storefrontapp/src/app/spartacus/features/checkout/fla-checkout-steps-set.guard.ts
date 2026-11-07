@@ -7,7 +7,7 @@ import { filter, map, switchMap, take } from 'rxjs/operators';
 import { SocioPaymentService } from '../../../socio/socio-payment.service';
 
 /**
- * Plano em Pix ou boleto (item 7) e cartão pela Adyen (05/11, o cartão é
+ * Pix ou boleto (item 7; com ou sem plano desde 07/11) e cartão pela Adyen (05/11, o cartão é
  * informado na revisão): o passo de pagamento conta como feito sem cartão salvo,
  * e a revisão abre. Nos demais casos, a regra do Spartacus.
  *
@@ -79,8 +79,10 @@ export class FlaCheckoutStepsSetGuard extends CheckoutStepsSetGuard {
       filter((id): id is string => !!id),
       take(1),
       switchMap((id) => this.socioPayment.options(id)),
+      // Pix/boleto aceito pelo servidor no carrinho, com plano ou sem (07/11: carrinho só da
+      // loja com Pix/boleto também abre a revisão; antes só o carrinho com plano)
       switchMap((p) =>
-        (p.planCode && this.socioPayment.isUpfront(p.method)) ||
+        (p.enabled && !!p.method && this.socioPayment.isUpfront(p.method) && p.methods.includes(p.method)) ||
         this.socioPayment.isAdyenCard(p)
           ? of(true)
           : super.isPaymentDetailsSet(step)
