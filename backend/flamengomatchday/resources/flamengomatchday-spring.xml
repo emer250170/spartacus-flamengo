@@ -28,6 +28,13 @@
 		<property name="typeCode" value="SeatHold"/>
 	</bean>
 
+	<!-- Criar conta com CPF (07/11): grava no torcedor novo o CPF conferido no POST /users (SignupCpfInterceptor, OCC) -->
+	<bean id="customerCpfPrepareInterceptor" class="br.com.flamengo.matchday.customer.CustomerCpfPrepareInterceptor"/>
+	<bean id="customerCpfPrepareInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="customerCpfPrepareInterceptor"/>
+		<property name="typeCode" value="Customer"/>
+	</bean>
+
 	<!-- Adicionar ao carrinho: reserva a poltrona -->
 	<bean id="seatHoldAddToCartMethodHook" class="br.com.flamengo.matchday.hook.SeatHoldAddToCartMethodHook">
 		<property name="seatHoldService" ref="seatHoldService"/>

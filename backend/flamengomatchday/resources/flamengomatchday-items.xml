@@ -791,6 +791,17 @@
 			</attributes>
 		</itemtype>
 
+		<!-- Criar conta com CPF (07/11): só números; conferido e sem repetir entre contas no cadastro -->
+		<itemtype code="Customer" autocreate="false" generate="false">
+			<attributes>
+				<attribute qualifier="cpf" type="java.lang.String">
+					<description>CPF do torcedor (só números), informado ao criar a conta</description>
+					<persistence type="property"/>
+					<modifiers optional="true"/>
+				</attribute>
+			</attributes>
+		</itemtype>
+
 		<!--
 			Configuração da Adyen na loja base (05/11): digitada no Backoffice (aba Adyen da
 			loja base). Chave de API, chave HMAC e senha do webhook ficam criptografadas.

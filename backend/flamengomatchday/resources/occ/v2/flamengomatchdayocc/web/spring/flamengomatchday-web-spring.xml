@@ -9,6 +9,22 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<!-- Criar conta com CPF (07/11): POST /{baseSiteId}/users?cpf=... confere o CPF antes de criar a conta.
+	     MappedInterceptor: o handler mapping da commercewebservices pega sozinho os desta configuração. -->
+	<bean id="flamengoSignupCpfInterceptor" class="org.springframework.web.servlet.handler.MappedInterceptor">
+		<constructor-arg index="0" type="java.lang.String[]">
+			<array value-type="java.lang.String">
+				<value>/**</value>
+			</array>
+		</constructor-arg>
+		<constructor-arg index="1" type="org.springframework.web.servlet.HandlerInterceptor">
+			<bean class="br.com.flamengo.matchday.occ.SignupCpfInterceptor">
+				<property name="flexibleSearchService" ref="flexibleSearchService"/>
+				<property name="configurationService" ref="configurationService"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
 	<!-- Meus convidados: /{baseSiteId}/users/{userId}/socioguests -->
 	<bean id="flamengoSocioGuestsController" class="br.com.flamengo.matchday.occ.SocioGuestsController">
 		<property name="socioGuestService" ref="socioGuestService"/>

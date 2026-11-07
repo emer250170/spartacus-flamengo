@@ -824,8 +824,15 @@ html.fla-register main cx-page-layout.AccountPageTemplate {
         grid-column: auto;
       }
 
-      > .form-group:has([formcontrolname='titleCode']) {
-        max-width: 320px;
+      // CPF (só a primeira coluna)
+      > .form-group.fla-cpf {
+        grid-column: 1;
+      }
+
+      .fla-cpf-error {
+        margin: 6px 0 0;
+        color: $fla-acc-red;
+        font-size: 14px;
       }
 
       // consentimentos vazios e captcha sem conteúdo não abrem espaço
