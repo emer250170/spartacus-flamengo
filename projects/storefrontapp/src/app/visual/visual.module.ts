@@ -51,6 +51,8 @@ import {
 } from './fla-checkout-identity.component';
 import { FlaCheckoutDeliveryComponent } from './fla-checkout-delivery.component';
 import { FlaOcBodyComponent, FlaOcHeroComponent } from './fla-order-confirmation.component';
+import { FlaItemPersonalizationComponent } from './fla-item-personalization.component';
+import { CartOutlets } from '@spartacus/cart/base/root';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -95,8 +97,16 @@ import { FlaOcBodyComponent, FlaOcHeroComponent } from './fla-order-confirmation
     FlaCheckoutSummaryComponent,
     FlaOcHeroComponent,
     FlaOcBodyComponent,
+    FlaItemPersonalizationComponent,
   ],
   providers: [
+    // "Personalizado: JUNIOR · 9" nas listas de itens padrão (detalhe do pedido em Meus pedidos,
+    // itens da entrega no checkout)
+    provideOutlet({
+      id: CartOutlets.ITEM_DETAILS,
+      position: OutletPosition.AFTER,
+      component: FlaItemPersonalizationComponent,
+    }),
     // página do produto: código, nome, preço com parcelas e preço de sócio no topo do
     // resumo; tamanhos em botões
     provideOutlet({
