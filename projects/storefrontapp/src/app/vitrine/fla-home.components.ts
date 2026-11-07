@@ -46,8 +46,8 @@ export const FLA_HOME = {
     { category: 'flamengo_c145', titleKey: 'home.tabTraining', link: '/c/flamengo_c145' },
     { category: 'flamengo_c52', titleKey: 'home.tabAccessories', link: '/c/flamengo_c52' },
   ] as { carousel?: string; category?: string; titleKey?: string; link: string }[],
-  /** Personalize o seu Manto Sagrado */
-  personalizeLink: '/c/flamengo_personalizacao',
+  /** Personalize o seu Manto Sagrado: leva à categoria Mantos (pedido do Emerson, 07/11) */
+  personalizeLink: '/c/flamengo_c115',
   /** Linhas (3 blocos com a foto do primeiro produto) */
   lines: [
     { category: 'flamengo_c11', titleKey: 'home.lineAdidas' },
