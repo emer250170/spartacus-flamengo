@@ -873,6 +873,16 @@ Condição nova no construtor de promoções: **Forma de pagamento** (`fla_forma
 | Chave | `flamengo.promocao.formaPagamento.ativo` (false = o motor não recebe a forma). |
 | Instalação | `ant all` (a extensão passa a depender da `ruleengineservices`) e a ImpEx `essentialdata-flamengomatchday-promocao-pagamento.impex` importada à parte. Reiniciar o Backoffice se a condição não aparecer no construtor de regras. |
 
+### Foto nova atualiza a busca (07/11)
+
+A vitrine da home (próximos jogos e experiências) pega a foto pela busca (Solr), que guarda o endereço da foto.
+Ao regravar a foto (Backoffice ou script) o endereço muda; antes, a busca ficava com o antigo (404) até o próximo
+índice e a home mostrava a imagem padrão. Agora o `ProductSearchIndexRefresher` atualiza a busca **só daquele
+produto** ~10 s depois de gravar (nunca as poltronas, que não ficam na busca). Chaves
+`flamengo.produtos.imagem.reindexar`, `.reindexar.config` (electronicsIndex) e `.reindexar.segundos`.
+Cuidado ao reindexar à mão: `updateTypeIndex` com os produtos `JOGO-%` põe as poltronas na busca; filtrar só os
+códigos de jogo (`JOGO-AAAAMMDD-ADV`) e de experiência (`EXP-%`).
+
 ### Criar conta com CPF (07/11)
 
 - Loja (`src/app/cadastro/`): `FlaRegisterComponent` no lugar do `RegisterCustomerComponent` (mesmo formulário do

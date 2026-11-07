@@ -56,6 +56,8 @@ public class DefaultProductImageService implements ProductImageService
 	private MediaService mediaService;
 	private ModelService modelService;
 	private FlexibleSearchService flexibleSearchService;
+	/** Atualiza a busca do produto depois da foto nova (07/11); opcional */
+	private ProductSearchIndexRefresher searchIndexRefresher;
 
 	// ------------------------------------------------------------ envio pelo Backoffice
 
@@ -175,6 +177,7 @@ public class DefaultProductImageService implements ProductImageService
 		}
 		product.setGalleryImages(gallery);
 		modelService.save(product);
+		refreshSearch(product);
 		LOG.info("Imagem {} copiada para o produto {} ({})", image.getCode(), product.getCode(), catalogVersion.getVersion());
 		return "Imagem copiada para o produto " + product.getCode() + ".";
 	}
@@ -203,7 +206,17 @@ public class DefaultProductImageService implements ProductImageService
 			return null;
 		}
 		modelService.save(product);
+		refreshSearch(product);
 		return "Imagem retirada do produto " + product.getCode() + ".";
+	}
+
+	/** Foto nova ou retirada: a busca (vitrine da home) passa a ter o endereço novo em segundos */
+	protected void refreshSearch(final ProductModel product)
+	{
+		if (searchIndexRefresher != null)
+		{
+			searchIndexRefresher.refreshLater(product);
+		}
 	}
 
 	@Override
@@ -452,6 +465,11 @@ public class DefaultProductImageService implements ProductImageService
 	public void setModelService(final ModelService modelService)
 	{
 		this.modelService = modelService;
+	}
+
+	public void setSearchIndexRefresher(final ProductSearchIndexRefresher searchIndexRefresher)
+	{
+		this.searchIndexRefresher = searchIndexRefresher;
 	}
 
 	public void setFlexibleSearchService(final FlexibleSearchService flexibleSearchService)
