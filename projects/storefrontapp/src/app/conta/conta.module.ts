@@ -1,11 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { UrlModule } from '@spartacus/core';
-import { OutletPosition, provideOutlet } from '@spartacus/storefront';
+import {
+  AuthGuard,
+  CmsConfig,
+  I18nModule,
+  UrlModule,
+  provideConfig,
+} from '@spartacus/core';
+import {
+  ListNavigationModule,
+  MediaModule,
+  OutletPosition,
+  provideOutlet,
+} from '@spartacus/storefront';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { FlaAccountBandComponent } from './fla-account-band.component';
 import { FlaAccountMenuComponent } from './fla-account-menu.component';
+import { FlaAccountOrderComponent } from './fla-account-order.component';
+import { FlaEmailCurrentComponent } from './fla-email-current.component';
+import { FlaOrderHistoryComponent } from './fla-order-history.component';
 import {
   FlaLoginHaveComponent,
   FlaLoginPerksComponent,
@@ -29,6 +43,9 @@ import {
       },
     ]),
     UrlModule,
+    I18nModule,
+    ListNavigationModule,
+    MediaModule,
     FlaI18nModule,
   ],
   declarations: [
@@ -36,8 +53,32 @@ import {
     FlaAccountMenuComponent,
     FlaLoginHaveComponent,
     FlaLoginPerksComponent,
+    FlaOrderHistoryComponent,
+    FlaAccountOrderComponent,
+    FlaEmailCurrentComponent,
   ],
   providers: [
+    // Meus pedidos no visual do mockup (07/11): itens, selo da situação, "Ver pedido"
+    provideConfig(<CmsConfig>{
+      cmsComponents: {
+        AccountOrderHistoryComponent: {
+          component: FlaOrderHistoryComponent,
+          guards: [AuthGuard],
+        },
+      },
+    }),
+    // detalhe do pedido no visual do mockup (só aparece em /my-account/order/...)
+    provideOutlet({
+      id: 'BodyContent',
+      position: OutletPosition.BEFORE,
+      component: FlaAccountOrderComponent,
+    }),
+    // E-mail: "E-mail atual" em cima do formulário
+    provideOutlet({
+      id: 'UpdateEmailComponent',
+      position: OutletPosition.BEFORE,
+      component: FlaEmailCurrentComponent,
+    }),
     provideOutlet({
       id: 'BottomHeaderSlot',
       position: OutletPosition.BEFORE,

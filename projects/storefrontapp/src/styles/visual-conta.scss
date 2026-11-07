@@ -156,8 +156,10 @@ html.fla-account main cx-page-layout.AccountPageTemplate {
     }
 
     > :not(:empty):not(fla-socio-account):not(fla-socio-order-payment):not(
-        cx-export-order-entries
-      ):not(cx-order-details-actions):not(cx-import-order-entries) {
+        fla-account-order
+      ):not(cx-export-order-entries):not(cx-order-details-actions):not(
+        cx-import-order-entries
+      ) {
       box-sizing: border-box;
       width: 100%;
       max-width: none;
@@ -714,6 +716,1135 @@ html.fla-login main cx-page-layout.LoginPageTemplate {
   }
 }
 
+// ---------- telas no formato do mockup (07/11, segunda passada) ----------
+// selo de situação (pedidos, detalhe do pedido, atendimento)
+.fla-badge,
+[data-tone].cx-ticketing-list-value {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #e7f1fb;
+  color: #0b4f8a !important;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none !important;
+  white-space: nowrap;
+
+  &[data-tone='amber'] {
+    background: #fff4e5;
+    color: #8a4b00 !important;
+  }
+
+  &[data-tone='green'] {
+    background: #e5f4e4;
+    color: #1d6b21 !important;
+  }
+
+  &[data-tone='grey'] {
+    background: #eee;
+    color: #333 !important;
+  }
+}
+
+$fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-page-slot.BodyContent';
+
+#{$fla-acc-body} {
+  // paginação: caixas de 40px, a atual em preto
+  cx-pagination {
+    display: flex;
+    gap: 6px;
+
+    a {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      min-width: 40px;
+      height: 40px;
+      margin: 0 !important;
+      border: 1px solid $fla-acc-line !important;
+      border-radius: 4px;
+      background: #fff;
+      color: $fla-acc-ink !important;
+      text-decoration: none !important;
+    }
+  }
+
+  // ordenação (ng-select do Spartacus) em 40px
+  cx-sorting .ng-select .ng-select-container {
+    min-height: 40px !important;
+    height: 40px !important;
+    border-color: $fla-acc-line !important;
+    border-radius: 4px;
+  }
+
+  // ---------- Meus pedidos ----------
+  .foh {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .foh-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .foh-bottom {
+    justify-content: flex-end;
+  }
+
+  .foh-sort {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+
+    cx-sorting {
+      width: 190px;
+    }
+  }
+
+  .foh-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      padding: 12px 14px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    td {
+      padding: 14px;
+      border-bottom: 1px solid #eee;
+      font-size: 16px;
+      vertical-align: middle;
+    }
+
+    .foh-num {
+      text-align: right;
+    }
+  }
+
+  .foh-code a {
+    color: $fla-acc-ink !important;
+    font-weight: 700;
+    text-decoration: underline !important;
+  }
+
+  .foh-items {
+    display: table-cell;
+    max-width: 260px;
+    color: $fla-acc-muted;
+    font-size: 15px !important;
+  }
+
+  .foh-total {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .foh-go {
+    text-align: right;
+    white-space: nowrap;
+
+    a {
+      color: $fla-acc-red !important;
+      font-weight: 700;
+      text-decoration: underline !important;
+    }
+  }
+
+  .foh-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  // ---------- detalhe do pedido ----------
+  fla-account-order {
+    display: contents;
+  }
+
+  &:has(.fao-head) {
+    position: relative;
+
+    > cx-order-overview,
+    > cx-order-details-items,
+    > cx-order-details-totals {
+      display: none !important;
+    }
+
+    > .fao-head,
+    > fla-account-order > .fao-head {
+      order: 1;
+    }
+
+    > fla-socio-order-payment {
+      order: 2;
+    }
+
+    > fla-account-order > .fao-group {
+      order: 3;
+    }
+
+    > fla-account-order > .fao-cols {
+      order: 4;
+    }
+
+    > cx-order-details-actions {
+      order: 5;
+    }
+
+    // "Exportar produtos para CSV" à direita, na linha do número do pedido
+    > cx-export-order-entries {
+      position: absolute;
+      z-index: 1;
+      top: 0;
+      right: 28px;
+      display: flex;
+      align-items: center;
+      width: auto;
+      max-width: none;
+      height: 98px;
+      margin: 0;
+      padding: 0;
+
+      .cx-export-btn {
+        padding: 0;
+        color: $fla-acc-ink !important;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: underline;
+        text-transform: none;
+      }
+    }
+  }
+
+  .fao {
+    box-sizing: border-box;
+    padding: 28px;
+    border-radius: 4px;
+    background: #fff;
+  }
+
+  .fao-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px 40px;
+    min-height: 98px;
+    padding-right: 260px;
+  }
+
+  .fao-kv {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    > span:first-child {
+      color: $fla-acc-muted;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    strong {
+      font-size: 18px;
+    }
+
+    .fla-badge {
+      align-self: flex-start;
+    }
+  }
+
+  .fao-h2 {
+    margin: 0 0 4px;
+    font-size: 20px;
+  }
+
+  .fao-sub {
+    margin: 0;
+    color: $fla-acc-muted;
+    font-size: 15px;
+  }
+
+  .fao-lines {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fao-line {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) 60px 110px 140px;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .fao-thumb {
+    display: block;
+    width: 64px;
+    height: 64px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: $fla-acc-soft;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .fao-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+
+    strong {
+      font-size: 16px;
+    }
+  }
+
+  .fao-code {
+    color: $fla-acc-muted;
+    font-size: 13px;
+  }
+
+  .fao-details {
+    color: #333;
+    font-size: 14px;
+  }
+
+  .fao-qty {
+    font-size: 15px;
+  }
+
+  .fao-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    s {
+      color: $fla-acc-muted;
+      font-size: 13px;
+    }
+  }
+
+  .fao-again {
+    text-align: right;
+
+    a {
+      color: $fla-acc-red !important;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: underline !important;
+    }
+  }
+
+  .fao-cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 20px;
+  }
+
+  .fao-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 15px;
+  }
+
+  .fao-h3 {
+    margin: 0;
+    font-size: 17px !important;
+  }
+
+  .fao-muted {
+    color: $fla-acc-muted;
+  }
+
+  .fao-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 16px;
+  }
+
+  .fao-off {
+    color: $fla-acc-red;
+  }
+
+  .fao-total {
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .fao-saved {
+    color: #1d6b21;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  // Pix/boleto do pedido em bloco escuro (mockup)
+  fla-socio-order-payment .spay-status {
+    margin: 0;
+    padding: 28px;
+    border: 0 !important;
+    border-radius: 4px;
+    background: $fla-acc-ink !important;
+    color: #fff;
+
+    .spay-kind {
+      color: #ff5a5a !important;
+    }
+
+    .spay-title {
+      color: #fff !important;
+    }
+
+    .spay-sub,
+    .spay-note,
+    .spay-line,
+    .spay-links,
+    p {
+      color: #d6d6d6;
+    }
+
+    .spay-codebox {
+      border-color: #333 !important;
+      background: #1e1e1e !important;
+      color: #fff !important;
+    }
+
+    .btn-secondary {
+      border: 0 !important;
+      background: $fla-acc-red !important;
+      color: #fff !important;
+    }
+
+    .spay-qr {
+      border-radius: 4px;
+      background: #fff;
+    }
+  }
+
+  // Voltar à esquerda; Cancelar itens / Devolver à direita, em preto
+  cx-order-details-actions {
+    .cx-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0;
+
+      > [class*='col-'] {
+        flex: 0 0 auto;
+        width: auto;
+        max-width: none;
+        padding: 0;
+      }
+
+      > [class*='col-']:only-child {
+        margin-right: auto;
+      }
+
+      .btn {
+        width: auto;
+        min-width: 120px;
+      }
+
+      > [class*='col-']:not(:first-child) .btn {
+        border-color: $fla-acc-ink !important;
+        background: $fla-acc-ink !important;
+        color: #fff !important;
+      }
+    }
+  }
+
+  // ---------- E-mail: "E-mail atual" no mesmo cartão do formulário ----------
+  > fla-email-current:has(+ cx-update-email) {
+    padding-bottom: 0 !important;
+    border-radius: 4px 4px 0 0 !important;
+  }
+
+  > fla-email-current + cx-update-email {
+    margin-top: -20px !important;
+    padding-top: 12px !important;
+    border-radius: 0 0 4px 4px !important;
+  }
+
+  .fec-now {
+    margin: 0 0 8px;
+    font-size: 16px;
+  }
+
+  .fec-note {
+    margin: 0;
+    color: $fla-acc-muted;
+    font-size: 14px;
+  }
+
+  // ---------- cartões de endereço, loja e cartão de pagamento ----------
+  cx-address-book,
+  cx-my-preferred-store,
+  cx-payment-methods {
+    cx-card .cx-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      height: 100%;
+      padding: 20px;
+      border: 1px solid $fla-acc-line !important;
+      border-radius: 4px;
+      box-shadow: none;
+    }
+
+    // endereço/cartão padrão: borda preta e selo "✓ Padrão"
+    cx-card .cx-card:has(.card-header) {
+      border: 2px solid $fla-acc-ink !important;
+    }
+
+    .card-header {
+      align-self: flex-start;
+      margin: 0 0 4px;
+      padding: 4px 10px;
+      border: 0;
+      border-radius: 999px;
+      background: $fla-acc-ink;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: none;
+    }
+
+    .card-body {
+      padding: 0 !important;
+    }
+
+    .cx-card-label,
+    .cx-card-label-bold {
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .cx-card-label-bold {
+      font-weight: 700;
+    }
+
+    .cx-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 16px;
+      margin-top: 8px;
+      padding: 0;
+
+      .btn,
+      a {
+        min-height: 0;
+        height: auto;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: $fla-acc-ink !important;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: underline;
+        text-transform: none;
+      }
+
+      .cx-card-action-item:last-child .btn {
+        color: $fla-acc-red !important;
+      }
+    }
+  }
+
+  // Endereços: título com o botão vermelho; cartões em 2 colunas
+  cx-address-book .cx-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+
+    &::before {
+      content: 'Endereços de entrega';
+      font-family: var(--fla-fonte-titulo, inherit);
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    > .row {
+      margin: 0;
+    }
+
+    > .row:first-child {
+      grid-column: 2;
+
+      > [class*='col-'] {
+        flex: none;
+        max-width: none;
+        padding: 0;
+      }
+
+      .btn {
+        width: auto;
+        min-height: 44px;
+        padding: 0 22px;
+        border: 0 !important;
+        background: $fla-acc-red !important;
+        color: #fff !important;
+      }
+    }
+
+    > .cx-address-deck {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+
+      > .cx-address-card {
+        flex: none;
+        max-width: none;
+        padding: 0;
+      }
+    }
+
+    // formulário de endereço (adicionar/editar) ocupa a largura toda
+    > cx-address-form,
+    > .row:not(:first-child):not(.cx-address-deck) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  // Loja de retirada
+  cx-my-preferred-store {
+    .row {
+      margin: 0;
+    }
+
+    [class*='col-'] {
+      flex: 0 0 100%;
+      max-width: 100%;
+      padding: 0;
+    }
+
+    .cx-my-preferred-store-heading {
+      margin: 0 0 12px;
+    }
+
+    .card-header {
+      padding: 0;
+      background: none;
+      color: $fla-acc-muted;
+      text-transform: uppercase;
+    }
+
+    .cx-store-opening-hours-toggle {
+      padding: 0;
+      border: 0;
+      background: none;
+      color: $fla-acc-ink;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+  }
+
+  // Formas de pagamento: "Cartões salvos", cartões em 2 colunas
+  cx-payment-methods {
+    > .form-legend {
+      display: none;
+    }
+
+    .cx-header h2 {
+      margin: 0 0 6px;
+    }
+
+    .cx-msg {
+      margin-bottom: 16px;
+      color: $fla-acc-muted;
+      font-size: 15px;
+    }
+
+    .cx-existing {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 0;
+
+      > .cx-payment-card {
+        flex: none;
+        max-width: none;
+        padding: 0;
+      }
+
+      .cx-payment-inner {
+        height: 100%;
+      }
+    }
+  }
+
+  // ---------- Atendimento: título com "Nova solicitação"; ordenação embaixo ----------
+  cx-customer-ticketing-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+
+    > .cx-ticketing-list-title {
+      grid-area: 1 / 1;
+
+      h2 {
+        margin: 0;
+      }
+    }
+
+    > .cx-ticketing-list-sort {
+      display: contents;
+
+      > label {
+        display: flex;
+        grid-area: 2 / 1 / 3 / 3;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+
+        cx-sorting {
+          width: 190px;
+        }
+      }
+
+      > cx-customer-ticketing-create {
+        grid-area: 1 / 2;
+
+        .btn {
+          width: auto;
+          min-height: 44px;
+          margin: 0;
+        }
+      }
+    }
+
+    > table,
+    > :not(.cx-ticketing-list-title):not(.cx-ticketing-list-sort) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  // ---------- Consentimentos e Notificações: chave liga/desliga ----------
+  .cx-consent-action-links > div .btn {
+    min-height: 40px;
+    padding: 0 18px !important;
+    border: 1px solid $fla-acc-ink !important;
+    border-radius: 4px;
+    background: #fff;
+    color: $fla-acc-ink !important;
+    font-weight: 700;
+    text-decoration: none !important;
+  }
+
+  .cx-consent-action-links > div .btn + .btn {
+    background: $fla-acc-ink !important;
+    color: #fff !important;
+  }
+
+  .cx-consent-action-links {
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  cx-consent-management-form {
+    .form-check {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 52px;
+      column-gap: 16px;
+      margin: 0;
+      padding: 18px 0 !important;
+      border-bottom: 1px solid #eee;
+    }
+
+    label {
+      display: contents;
+    }
+
+    .form-check-label {
+      grid-column: 1;
+      margin: 0;
+      padding: 0;
+      color: $fla-acc-muted;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .cx-be-bold {
+      grid-row: 1;
+      color: $fla-acc-ink;
+      font-size: 17px;
+      font-weight: 700;
+
+      br {
+        display: none;
+      }
+    }
+
+    input[type='checkbox'] {
+      grid-area: 1 / 2 / 3 / 3;
+    }
+  }
+
+  cx-consent-management-form + cx-consent-management-form .form-check {
+    border-top: 0 !important;
+  }
+
+  cx-consent-management::after {
+    content: 'Cada escolha é registrada com data e hora (LGPD).';
+    display: block;
+    margin-top: 16px;
+    color: $fla-acc-muted;
+    font-size: 14px;
+  }
+
+  cx-notification-preference {
+    .pref-header {
+      margin: 0 0 4px;
+      font-family: var(--fla-fonte-titulo, inherit);
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .pref-channel {
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0;
+      padding: 18px 0 !important;
+      border-bottom: 1px solid #eee;
+
+      .form-check-label {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 700;
+      }
+    }
+
+    .pref-note {
+      margin: 16px 0 0;
+      color: $fla-acc-muted;
+      font-size: 15px;
+
+      strong {
+        font-weight: 400;
+      }
+    }
+  }
+
+  // a chave (checkbox sem a aparência do navegador)
+  cx-consent-management-form input[type='checkbox'],
+  cx-notification-preference input[type='checkbox'] {
+    position: relative !important;
+    flex: 0 0 52px;
+    width: 52px !important;
+    height: 30px !important;
+    margin: 2px 0 0 !important;
+    border: 0;
+    border-radius: 15px;
+    background: $fla-acc-line;
+    cursor: pointer;
+    appearance: none !important;
+    transition: background 0.15s;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+      transition: left 0.15s;
+    }
+
+    &:checked {
+      background: $fla-acc-red;
+
+      &::before {
+        left: 25px;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid $fla-acc-ink;
+      outline-offset: 2px;
+    }
+  }
+
+  // ---------- Lista de desejos: uma linha por produto ----------
+  cx-wish-list {
+    table,
+    tbody {
+      display: block;
+      width: 100%;
+      margin: 0;
+      border: 0 !important;
+    }
+
+    thead {
+      display: none;
+    }
+
+    .cx-wish-list-item-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid #eee;
+
+      > td {
+        padding: 0;
+        border: 0;
+      }
+
+      > td:first-child {
+        flex: 1 1 280px;
+        min-width: 0;
+      }
+    }
+
+    .cx-table-item-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      cx-media {
+        flex: 0 0 96px;
+        width: 96px;
+        height: 96px;
+      }
+    }
+
+    .cx-name a {
+      color: $fla-acc-ink !important;
+      font-size: 17px;
+      font-weight: 700;
+      text-decoration: none !important;
+    }
+
+    .cx-code,
+    .cx-property {
+      color: $fla-acc-muted;
+      font-size: 14px;
+    }
+
+    .cx-property {
+      margin-left: 112px;
+    }
+
+    .cx-price {
+      flex: 0 0 140px;
+      font-size: 18px;
+      font-weight: 700;
+
+      .cx-mobile-header {
+        display: none;
+      }
+    }
+
+    .cx-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      cx-add-to-cart .btn {
+        width: auto;
+        min-height: 44px;
+        padding: 0 22px;
+      }
+
+      .cx-remove-btn {
+        padding: 0;
+        color: $fla-acc-ink;
+        font-weight: 700;
+        text-decoration: underline;
+      }
+    }
+  }
+
+  // ---------- tabelas do Spartacus (carrinhos salvos, interesses) no padrão de Meus pedidos ----------
+  cx-saved-cart-list,
+  cx-my-interests {
+    table {
+      width: 100%;
+    }
+
+    th {
+      padding: 12px 14px !important;
+      border-bottom: 1px solid #eee;
+      color: $fla-acc-muted;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 14px !important;
+      border-bottom: 1px solid #eee;
+      font-size: 16px;
+    }
+  }
+
+  // ---------- Encerrar conta ----------
+  > cx-paragraph:has(+ cx-close-account) {
+    h2 {
+      margin: 0 0 12px;
+    }
+
+    p {
+      margin: 0 0 12px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    ul {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 24px;
+      margin: 0;
+      padding-left: 22px;
+      font-size: 16px;
+    }
+  }
+
+  cx-close-account .btn-primary {
+    border-color: $fla-acc-ink !important;
+    background: $fla-acc-ink !important;
+    color: #fff !important;
+  }
+}
+
+// textos dos títulos em CSS (sem elemento próprio no Spartacus) também em inglês
+html.fla-account[lang='en'] main cx-address-book .cx-section::before {
+  content: 'Delivery addresses';
+}
+
+html.fla-account[lang='en'] main cx-consent-management::after {
+  content: 'Each choice is recorded with date and time (LGPD).';
+}
+
+@media (max-width: 767.98px) {
+  #{$fla-acc-body} {
+    // Meus pedidos em cartões
+    .foh-table {
+      thead {
+        display: none;
+      }
+
+      tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 12px;
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      td {
+        padding: 0;
+        border: 0;
+        text-align: left;
+      }
+
+      .foh-items {
+        grid-column: 1 / -1;
+        max-width: none;
+      }
+
+      .foh-num,
+      .foh-go {
+        text-align: right;
+      }
+    }
+
+    &:has(.fao-head) > cx-export-order-entries {
+      position: static;
+      order: 1;
+      height: auto;
+    }
+
+    .fao-head {
+      padding-right: 20px;
+    }
+
+    .fao-line {
+      grid-template-columns: 64px minmax(0, 1fr) auto;
+
+      .fao-qty {
+        grid-column: 2;
+      }
+
+      .fao-price {
+        grid-column: 3;
+        grid-row: 1;
+      }
+
+      .fao-again {
+        grid-column: 2 / -1;
+        text-align: left;
+      }
+    }
+
+    .fao-cols,
+    cx-address-book .cx-section > .cx-address-deck,
+    cx-payment-methods .cx-existing,
+    > cx-paragraph:has(+ cx-close-account) ul {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    cx-address-book .cx-section {
+      grid-template-columns: minmax(0, 1fr);
+
+      > .row:first-child {
+        grid-column: 1;
+      }
+    }
+
+    cx-customer-ticketing-list {
+      grid-template-columns: minmax(0, 1fr);
+
+      > .cx-ticketing-list-sort > cx-customer-ticketing-create {
+        grid-area: auto;
+      }
+
+      > .cx-ticketing-list-sort > label {
+        grid-area: auto;
+      }
+    }
+  }
+}
+
 // ---------- telas menores ----------
 @media (max-width: 1171.98px) {
   .fab-in {
@@ -808,8 +1939,10 @@ html.fla-login main cx-page-layout.LoginPageTemplate {
     cx-page-layout.AccountPageTemplate
     > cx-page-slot.BodyContent {
     > :not(:empty):not(fla-socio-account):not(fla-socio-order-payment):not(
-        cx-export-order-entries
-      ):not(cx-order-details-actions):not(cx-import-order-entries) {
+        fla-account-order
+      ):not(cx-export-order-entries):not(cx-order-details-actions):not(
+        cx-import-order-entries
+      ) {
       padding: 20px;
     }
   }
