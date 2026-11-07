@@ -532,6 +532,11 @@ fla-pdp-gallery {
   display: block;
   width: 100%;
   aspect-ratio: 1 / 1.1;
+
+  // foto deitada (experiências, 515×288): área no formato da foto, sem cortar nem ampliar 2×
+  &.is-landscape {
+    aspect-ratio: 16 / 9;
+  }
   overflow: hidden;
   padding: 0;
   border: 0;

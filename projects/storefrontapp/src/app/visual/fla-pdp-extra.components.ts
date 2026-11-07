@@ -35,8 +35,10 @@ const DETAILS_TAB = 'ProductDetailsTabComponent';
   template: `
     <ng-container *ngIf="gallery$ | async as g">
       <button
+        #mainBtn
         type="button"
         class="fla-gal-main"
+        [class.is-landscape]="landscape"
         [attr.aria-label]="'pdp.zoomPhoto' | flaT: { n: current + 1 }"
         (click)="open(current, g.all.length)"
       >
@@ -44,6 +46,7 @@ const DETAILS_TAB = 'ProductDetailsTabComponent';
           [container]="g.all[current]"
           format="zoom"
           [alt]="g.name"
+          (loaded)="shape(mainBtn)"
         ></cx-media>
       </button>
 
@@ -130,6 +133,8 @@ const DETAILS_TAB = 'ProductDetailsTabComponent';
 export class FlaPdpGalleryComponent {
   /** Foto mostrada grande */
   current = 0;
+  /** Foto grande deitada (experiências): área 16:9 em vez de em pé, sem ampliar demais */
+  landscape = false;
   /** Fotos que cabem no carrossel sem rolar (setas a partir daí) */
   readonly visibleThumbs = 4;
   /** Foto ampliada (índice) ou null */
@@ -166,6 +171,17 @@ export class FlaPdpGalleryComponent {
       this.current = 0;
     }
     return list.length ? { name: product.name ?? '', all: list } : null;
+  }
+
+  /** Formato da foto grande, quando ela carrega */
+  shape(box: HTMLElement): void {
+    const img = box.querySelector('img');
+    const landscape =
+      !!img?.naturalWidth && img.naturalWidth > img.naturalHeight * 1.15;
+    if (landscape !== this.landscape) {
+      this.landscape = landscape;
+      this.cd.markForCheck();
+    }
   }
 
   /** Setas do carrossel: rola uma "página" de fotos */
