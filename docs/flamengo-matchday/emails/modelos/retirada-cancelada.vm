@@ -1,0 +1,11 @@
+## Retirada cancelada · NotPickedUpConsignmentCanceledEmailContext (consignment, refundAmount)
+#flaLinkPedido($ctx.orderCode $ctx.orderGuid $ctx.guest)
+#flaTopo("Retirada do pedido ${ctx.orderCode} cancelada" "O prazo de retirada do pedido nº ${ctx.orderCode} terminou.")
+#flaEtiqueta("Retirada cancelada")
+#flaTitulo("O prazo de retirada terminou")
+#flaParagrafo("${ctx.displayName}, como os itens abaixo do pedido <b style='color:${preto};'>nº ${ctx.orderCode}</b> não foram retirados no prazo, cancelamos a retirada e vamos devolver o valor pela mesma forma de pagamento.")
+#flaListaRemessa($ctx.consignment)
+#if($ctx.refundAmount)#flaValor("Valor a devolver" $ctx.refundAmount.formattedValue)#end
+#flaBotao("Ver meu pedido" $linkPedido)
+#flaEspaco()
+#flaRodape("E-mail automático da Loja Oficial do Flamengo sobre o seu pedido.")

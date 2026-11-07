@@ -1,0 +1,12 @@
+## Esqueci minha senha · ForgottenPasswordEmailContext (token, URLEncodedToken, expiresInMinutes)
+## A tela de nova senha é a do Spartacus (/login/pw/change?token=...), não a do accelerator.
+#set($linkSenha = "${loja}/login/pw/change?token=${ctx.URLEncodedToken}")
+#flaTopo("Redefinir senha" "Crie uma nova senha para a sua conta da Loja Flamengo.")
+#flaEtiqueta("Redefinir senha")
+#flaTitulo("Vamos criar uma nova senha, ${ctx.displayName}?")
+#flaParagrafo("Recebemos um pedido para redefinir a senha da sua conta na Loja Oficial do Flamengo. Clique no botão para escolher a nova senha.")
+#flaBotao("Criar nova senha" $linkSenha)
+#if($ctx.expiresInMinutes && $ctx.expiresInMinutes > 0)#set($validade = "O link vale por ${ctx.expiresInMinutes} minutos.")#else#set($validade = "O link vale por pouco tempo.")#end
+#flaCaixa("Não foi você?" "" "${validade} Se você não pediu a troca, ignore este e-mail: a sua senha continua a mesma.")
+#flaEspaco()
+#flaRodape("Você recebeu este e-mail porque pediu para redefinir a senha na Loja Oficial do Flamengo.")

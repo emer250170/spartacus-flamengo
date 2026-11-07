@@ -1,0 +1,15 @@
+## Código de verificação · VerificationTokenEmailContext (tokenCode, ttlSeconds, maxAttempts, purpose)
+#set($minutos = 5)
+#if($ctx.ttlSeconds && $ctx.ttlSeconds > 0)#set($minutos = $ctx.ttlSeconds / 60)#end
+#flaTopo("Seu código de acesso" "Seu código de acesso à Loja Flamengo: ${ctx.tokenCode}")
+#flaEtiqueta("Código de acesso")
+#flaTitulo("Use este código para entrar")
+#flaParagrafo("Digite o código abaixo na Loja Oficial do Flamengo para confirmar que é você.")
+<tr><td class="miolo" align="center" style="padding:24px 40px 0 40px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td bgcolor="#f6f6f6" style="background:#f6f6f6;border:2px dashed ${vermelho};padding:16px 28px;font-family:'Courier New', Courier, monospace;font-size:32px;line-height:36px;font-weight:bold;letter-spacing:8px;color:${preto};">${ctx.tokenCode}</td>
+  </tr></table>
+</td></tr>
+#flaCaixa("Importante" "" "O código vale por ${minutos} minutos. Não compartilhe com ninguém: a Loja Flamengo nunca pede esse código por telefone ou mensagem.")
+#flaEspaco()
+#flaRodape("Você recebeu este e-mail porque pediu um código de acesso na Loja Oficial do Flamengo.")

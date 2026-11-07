@@ -1,0 +1,130 @@
+[
+  {
+    "modelo": "OrderConfirmationEmailTemplate",
+    "original": "electronics_Email_Order_Confirmation",
+    "codigo": "fla_Email_Order_Confirmation",
+    "arquivo": "pedido-confirmacao",
+    "assunto": "Pedido ${ctx.order.code} recebido · Loja Flamengo",
+    "processo": "SELECT {p.pk} FROM {OrderProcess AS p JOIN Order AS o ON {p.order}={o.pk}} WHERE {o.code}='@PEDIDO@' AND {p.processDefinitionName}='orderConfirmationEmailProcess'"
+  },
+  {
+    "modelo": "CustomerRegistrationEmailTemplate",
+    "original": "electronics_Email_Customer_Registration",
+    "codigo": "fla_Email_Customer_Registration",
+    "arquivo": "cadastro",
+    "assunto": "Bem-vindo à Loja Flamengo, ${ctx.displayName}!",
+    "processo": "SELECT {pk} FROM {StoreFrontCustomerProcess} WHERE {processDefinitionName}='customerRegistrationEmailProcess' ORDER BY {creationtime} DESC"
+  },
+  {
+    "modelo": "ForgottenPasswordEmailTemplate",
+    "original": "electronics_Email_Forgotten_Password",
+    "codigo": "fla_Email_Forgotten_Password",
+    "arquivo": "senha",
+    "assunto": "Redefina sua senha · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "DeliverySentEmailTemplate",
+    "original": "electronics_Email_Delivery_Sent",
+    "codigo": "fla_Email_Delivery_Sent",
+    "arquivo": "pedido-enviado",
+    "assunto": "Pedido ${ctx.orderCode} a caminho · Loja Flamengo",
+    "processo": "SELECT {pk} FROM {ConsignmentProcess} WHERE {processDefinitionName}='sendDeliveryEmailProcess' ORDER BY {creationtime} DESC"
+  },
+  {
+    "modelo": "ReadyForPickupEmailTemplate",
+    "original": "electronics_Email_Ready_For_Pickup",
+    "codigo": "fla_Email_Ready_For_Pickup",
+    "arquivo": "retirada-pronta",
+    "assunto": "Pedido ${ctx.orderCode} pronto para retirada · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "OrderCollectionReminderEmailTemplate",
+    "original": "electronics_Email_Order_Collection_Reminder",
+    "codigo": "fla_Email_Order_Collection_Reminder",
+    "arquivo": "retirada-lembrete",
+    "assunto": "Lembrete: retire o pedido ${ctx.orderCode} · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "NotPickedUpConsignmentCanceledEmailTemplate",
+    "original": "electronics_Email_NotPickedUpConsignment_Canceled",
+    "codigo": "fla_Email_NotPickedUpConsignment_Canceled",
+    "arquivo": "retirada-cancelada",
+    "assunto": "Retirada do pedido ${ctx.orderCode} cancelada · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "OrderMoveToCsEmailTemplate",
+    "original": "electronics_Email_Order_Move_To_CS",
+    "codigo": "fla_Email_Order_Move_To_CS",
+    "arquivo": "pedido-atendimento",
+    "assunto": "Pedido ${ctx.orderCode} com o atendimento · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "OrderCancelledEmailTemplate",
+    "original": "electronics_Email_Order_Cancelled",
+    "codigo": "fla_Email_Order_Cancelled",
+    "arquivo": "pedido-cancelado",
+    "assunto": "Pedido ${ctx.orderCode} cancelado · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "OrderPartiallyCanceledEmailTemplate",
+    "original": "electronics_Email_Order_Partially_Canceled",
+    "codigo": "fla_Email_Order_Partially_Canceled",
+    "arquivo": "cancelamento-parcial",
+    "assunto": "Itens do pedido ${ctx.orderCode} cancelados · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "OrderRefundEmailTemplate",
+    "original": "electronics_Email_Order_Refund",
+    "codigo": "fla_Email_Order_Refund",
+    "arquivo": "reembolso",
+    "assunto": "Reembolso do pedido ${ctx.orderCode} · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "OrderPartiallyRefundedEmailTemplate",
+    "original": "electronics_Email_Order_Partially_Refunded",
+    "codigo": "fla_Email_Order_Partially_Refunded",
+    "arquivo": "reembolso-parcial",
+    "assunto": "Reembolso parcial do pedido ${ctx.orderCode} · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "ReturnLabelEmailTemplate",
+    "original": "electronics_Email_Return_Label",
+    "codigo": "fla_Email_Return_Label",
+    "arquivo": "devolucao-etiqueta",
+    "assunto": "Devolução do pedido ${ctx.order.code} aprovada · Loja Flamengo",
+    "processo": "SELECT {pk} FROM {ReturnProcess} WHERE {processDefinitionName}='sendReturnLabelEmail-process' ORDER BY {creationtime} DESC"
+  },
+  {
+    "modelo": "CustomerCouponEmailTemplate",
+    "original": "electronics_Email_Customer_Customer_Coupon",
+    "codigo": "fla_Email_Customer_Coupon",
+    "arquivo": "cupom",
+    "assunto": "#if(\"$!ctx.couponNotificationType\".toUpperCase().contains(\"EXPIRE\"))Seu cupom vence em breve#{else}Você ganhou um cupom#end · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "ProductBackInStockNotificationEmailTemplate",
+    "original": "electronics_Email_Product_Back_In_Stock",
+    "codigo": "fla_Email_Product_Back_In_Stock",
+    "arquivo": "estoque",
+    "assunto": "${ctx.productData.name} voltou ao estoque · Loja Flamengo",
+    "processo": ""
+  },
+  {
+    "modelo": "VerificationTokenEmailTemplate",
+    "original": "electronics_Email_Verification_Token",
+    "codigo": "fla_Email_Verification_Token",
+    "arquivo": "codigo",
+    "assunto": "Seu código de acesso: ${ctx.tokenCode} · Loja Flamengo",
+    "processo": ""
+  }
+]
