@@ -23,6 +23,43 @@ Teste rápido no terminal (opcional):
 set FLAMENGO_PERSONA=jogos& set GESTOR_USUARIO=gestor.jogos& set GESTOR_SENHA=...& node C:\Users\I844870\Downloads\flamengo-mcp\flamengo-mcp.mjs --teste
 ```
 
+## Na internet: Claude no celular e no claude.ai (07/11)
+
+O mesmo arquivo roda como servidor HTTP (`--http`, transporte Streamable HTTP do MCP) no servidor do Commerce, atrás do Caddy, em `https://mcp-flamengo.democc.online`. Cada persona vira um **conector personalizado** da conta do Claude (plano Pro), que aparece também no app do celular. As chamadas vêm da nuvem da Anthropic, não do celular.
+
+| Conector | Endereço | Token |
+|---|---|---|
+| Flamengo · Torcedor | `https://mcp-flamengo.democc.online/torcedor/mcp` | `MCP_TOKEN_TORCEDOR` |
+| Flamengo · Gestor do sócio | `https://mcp-flamengo.democc.online/gestor-socio/mcp` | `MCP_TOKEN_SOCIO` |
+| Flamengo · Gestor de jogos | `https://mcp-flamengo.democc.online/gestor-jogos/mcp` | `MCP_TOKEN_JOGOS` |
+
+**Instalar no servidor (uma vez, quem tem acesso ao host):**
+
+1. Pasta e arquivos:
+   ```
+   mkdir -p /opt/flamengo-mcp/logs && chown 1000:1000 /opt/flamengo-mcp/logs
+   # copiar flamengo-mcp.mjs (gerado com npm run build) para /opt/flamengo-mcp/
+   cp flamengo-mcp.env.exemplo /opt/flamengo-mcp/flamengo-mcp.env && chmod 600 /opt/flamengo-mcp/flamengo-mcp.env
+   ```
+2. Gerar os três tokens (`openssl rand -hex 32`, um por linha `MCP_TOKEN_*`) e colocar as senhas de torcedor1, gestor.socio e gestor.jogos no `flamengo-mcp.env`. As senhas ficam só nesse arquivo do servidor.
+3. Subir o container (reinicia sozinho com o servidor):
+   ```
+   docker run -d --name flamengo-mcp --restart unless-stopped --network host -u 1000:1000 \
+     --env-file /opt/flamengo-mcp/flamengo-mcp.env \
+     -v /opt/flamengo-mcp/flamengo-mcp.mjs:/app/flamengo-mcp.mjs:ro -v /opt/flamengo-mcp/logs:/logs \
+     node:20-alpine node /app/flamengo-mcp.mjs --http
+   docker logs flamengo-mcp        # deve mostrar as três rotas "ligada"
+   curl -s http://127.0.0.1:8787/saude
+   ```
+   Ouve só em `127.0.0.1:8787`: de fora, só pelo Caddy.
+4. Caddy: acrescentar o bloco de `Caddyfile-trecho` ao Caddyfile e recarregar (`systemctl reload caddy`, ou `docker exec <caddy> caddy reload --config /etc/caddy/Caddyfile` se o Caddy roda em container; nesse caso o `reverse_proxy` aponta para o endereço do host na rede do Docker, ex. `172.17.0.1:8787`). Conferir: `curl https://mcp-flamengo.democc.online/saude`.
+5. Atualizar depois de um PR: trocar o `flamengo-mcp.mjs` e `docker restart flamengo-mcp`.
+
+**Cadastrar no Claude (plano Pro):** claude.ai › Customize › Connectors › **+ Add** › **Add custom connector**: nome e endereço da persona; autenticação **No sign in**; em *Request headers*, `Authorization` = `Bearer <token da persona>`. Repetir para as três. No celular, os conectores aparecem na mesma conta; ligar só a persona da cena.
+Se o cadastro não oferecer cabeçalho: `MCP_TOKEN_NA_URL=true` no `flamengo-mcp.env`, `docker restart flamengo-mcp` e endereço `https://mcp-flamengo.democc.online/<rota>/<token>/mcp` (o token aparece no log de acesso do Caddy; usar só se preciso).
+
+**Proteções do modo internet:** token de 32+ caracteres por persona (o de uma não abre a outra), comparação em tempo constante, bloqueio de 10 min por IP depois de 20 tokens errados, corpo até 1 MB, sem sessão no servidor, tentativas negadas e chamadas na auditoria com o IP de origem (`/opt/flamengo-mcp/logs`). Continuam valendo o login próprio por persona no Commerce, a lista fechada de ações e o `confirmar=true`. Evite `entrar_como` pelo conector remoto (a senha passa pela conversa).
+
 ## Segurança (bom para mostrar ao cliente)
 
 - **Cada persona usa o próprio login do Commerce**; quem bloqueia é o Commerce, não o MCP: o gestor do sócio-torcedor recebe *"o Commerce negou"* se tentar ver jogos, e o gestor de jogos não enxerga planos nem chamados. Permissões por tipo nos grupos `socioapigroup` e `jogosapigroup`.
@@ -31,7 +68,7 @@ set FLAMENGO_PERSONA=jogos& set GESTOR_USUARIO=gestor.jogos& set GESTOR_SENHA=..
 - **Auditoria**: cada chamada fica em `logs\auditoria-<persona>.jsonl` (quem, ferramenta, parâmetros, resultado), sem senhas.
 - **Dados sensíveis**: cartões só com os 4 últimos dígitos; checkout usa cartão e endereço já salvos (o agente nunca vê número de cartão).
 - **Certificado fixado**: o servidor de integração usa certificado autoassinado; o MCP só aceita aquele certificado específico (impressão digital SHA-256).
-- As senhas ficam só no `claude_desktop_config.json` do seu notebook.
+- As senhas ficam só no `claude_desktop_config.json` do seu notebook (no modo internet, só no `flamengo-mcp.env` do servidor).
 
 ## Roteiro sugerido da demo
 
