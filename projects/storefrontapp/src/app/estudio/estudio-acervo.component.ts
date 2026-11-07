@@ -4,7 +4,7 @@ import { UserAccountFacade } from '@spartacus/user/account/root';
 import { combineLatest, Observable, of } from 'rxjs';
 import { catchError, map, switchMap, take } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { EstudioService, MeEstampa } from './estudio.service';
+import { EstudioService, MeEstampa, meTrack } from './estudio.service';
 
 /**
  * Acervo (/mengo-estudio/acervo; mockup E5–E6): estampas que saíram de linha, com a data, e o "Avise-me se
@@ -17,6 +17,7 @@ import { EstudioService, MeEstampa } from './estudio.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EstudioAcervoComponent {
+  readonly tb = meTrack;
   @ViewChild('dlg') dlg?: ElementRef<HTMLElement>;
   alvo: MeEstampa | null = null;
   email = '';

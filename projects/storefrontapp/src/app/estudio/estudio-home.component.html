@@ -17,7 +17,7 @@
           </div>
         </div>
         <div class="hero-cards">
-          <a *ngFor="let d of vm.destaques" class="hero-card" [routerLink]="['/mengo-estudio/drop', d.e.drop]">
+          <a *ngFor="let d of vm.destaques; trackBy: tb" class="hero-card" [routerLink]="['/mengo-estudio/drop', d.e.drop]">
             <div class="q"><fla-me-arte [estampa]="d.e"></fla-me-arte></div>
             <strong class="me-t">{{ d.e.nome }}</strong>
             <span>{{ d.prazo }}</span>
@@ -31,7 +31,7 @@
       <div class="me-wrap">
         <h2 id="me-como-t" class="me-t">{{ 'me.como.t' | flaT }}</h2>
         <ol>
-          <li *ngFor="let n of [1, 2, 3, 4]">
+          <li *ngFor="let n of [1, 2, 3, 4]; trackBy: tb">
             <span class="num" aria-hidden="true">0{{ n }}</span>
             <strong class="me-t">{{ 'me.como.' + n + '.t' | flaT }}</strong>
             <span>{{ 'me.como.' + n + '.d' | flaT }}</span>
@@ -66,7 +66,7 @@
     <section class="me-wrap bloco" aria-labelledby="me-linhas-t" *ngIf="vm.temDrop">
       <h2 id="me-linhas-t" class="me-t">{{ 'me.linhas.t' | flaT }}</h2>
       <div class="linhas">
-        <a *ngFor="let l of vm.linhas" class="linha" [routerLink]="['/mengo-estudio/drop', vm.drop.code]" [queryParams]="{ linha: l.code }">
+        <a *ngFor="let l of vm.linhas; trackBy: tb" class="linha" [routerLink]="['/mengo-estudio/drop', vm.drop.code]" [queryParams]="{ linha: l.code }">
           <span class="qtd">{{ 'me.nAVenda' | flaT: { n: l.qtd } }}</span>
           <span class="dados">
             <span class="kick">{{ 'me.linha' | flaT }}</span>
@@ -84,17 +84,17 @@
           <p role="status">{{ vm.contagem }}</p>
         </div>
         <div role="group" class="chips" [attr.aria-label]="'me.filtrarLinha' | flaT">
-          <button *ngFor="let ch of vm.chips" type="button" class="me-chip" [attr.aria-pressed]="(linha$ | async) === ch.code" (click)="filtrar(ch.code)">{{ ch.nome }}</button>
+          <button *ngFor="let ch of vm.chips; trackBy: tb" type="button" class="me-chip" [attr.aria-pressed]="(linha$ | async) === ch.code" (click)="filtrar(ch.code)">{{ ch.nome }}</button>
         </div>
       </div>
       <div class="me-grade">
-        <a *ngFor="let x of vm.lista" class="me-card" [routerLink]="['/mengo-estudio/drop', x.e.drop]" [queryParams]="{ estampa: x.e.code }">
+        <a *ngFor="let x of vm.lista; trackBy: tb" class="me-card" [routerLink]="['/mengo-estudio/drop', x.e.drop]" [queryParams]="{ estampa: x.e.code }">
           <div class="me-quadro">
             <fla-me-arte [estampa]="x.e"></fla-me-arte>
             <span *ngIf="x.sit !== 'A_VENDA'" class="me-badge" [ngClass]="x.sit">{{ 'me.sit.' + x.sit | flaT }}</span>
           </div>
           <span class="nome">{{ x.e.nome }}</span>
-          <span class="linha">{{ 'me.linhaDe' | flaT: { l: x.e.linha | meLinha: vm.c.linhas } }}</span>
+          <span class="me-linha">{{ 'me.linhaDe' | flaT: { l: x.e.linha | meLinha: vm.c.linhas } }}</span>
           <span class="preco">{{ 'me.aPartir' | flaT: { v: vm.aPartir } }}</span>
           <span class="me-prazo" [class.urgente]="x.urgente">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ x.prazo }}
@@ -112,7 +112,7 @@
           <a class="me-btn" routerLink="/mengo-estudio/acervo">{{ 'me.verAcervo' | flaT }}</a>
         </div>
         <div class="acervo-grid">
-          <a *ngFor="let a of vm.acervo" routerLink="/mengo-estudio/acervo">
+          <a *ngFor="let a of vm.acervo; trackBy: tb" routerLink="/mengo-estudio/acervo">
             <div class="q cinza"><fla-me-arte [estampa]="a"></fla-me-arte></div>
             <span>{{ a.nome }}</span>
           </a>

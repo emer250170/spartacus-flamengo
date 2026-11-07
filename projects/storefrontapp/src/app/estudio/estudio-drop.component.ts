@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { EstudioService, MeCatalogo, MeEstampa, MeVersao } from './estudio.service';
+import { EstudioService, MeCatalogo, MeEstampa, MeVersao, meTrack } from './estudio.service';
 
 /** Filtros do drop: linha, faixas de disponibilidade e faixa de preço (preço inicial de cada versão) */
 export interface MeFiltros {
@@ -29,6 +29,7 @@ type Ordem = 'fim' | 'menor' | 'maior' | 'nome';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EstudioDropComponent {
+  readonly tb = meTrack;
   @ViewChild('painelRef') painelRef?: ElementRef<HTMLElement>;
   readonly ap$ = new BehaviorSubject<MeFiltros>({ ...F0 });
   readonly ordem$ = new BehaviorSubject<Ordem>('fim');

@@ -17,7 +17,7 @@
         <a class="me-btn" routerLink="/mengo-estudio">{{ 'me.verEstampas' | flaT }}</a>
       </div>
       <div class="me-grade">
-        <div *ngFor="let x of vm.lista" class="item">
+        <div *ngFor="let x of vm.lista; trackBy: tb" class="item">
           <div class="q">
             <fla-me-arte [estampa]="x.e"></fla-me-arte>
             <span class="me-badge ENCERRADA">{{ 'me.nav.acervo' | flaT }}</span>

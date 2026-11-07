@@ -38,7 +38,7 @@
 
       <div *ngIf="vm.chips.length" class="aplicados" role="group" [attr.aria-label]="'me.filtrosAplicados' | flaT">
         <span>{{ 'me.filtrosAplicados' | flaT }}:</span>
-        <button *ngFor="let ch of vm.chips" type="button" class="chip-x" (click)="remover(ch.mud)" [attr.aria-label]="'me.removerFiltro' | flaT: { f: ch.txt }">
+        <button *ngFor="let ch of vm.chips; trackBy: tb" type="button" class="chip-x" (click)="remover(ch.mud)" [attr.aria-label]="'me.removerFiltro' | flaT: { f: ch.txt }">
           {{ ch.txt }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
         </button>
         <button type="button" class="limpar" (click)="limpar()">{{ 'me.limparFiltros' | flaT }}</button>
@@ -53,7 +53,7 @@
         </div>
       </div>
 
-      <section *ngFor="let g of vm.grupos" class="grupo" [attr.aria-label]="('me.linha' | flaT) + ' ' + g.nome">
+      <section *ngFor="let g of vm.grupos; trackBy: tb" class="grupo" [attr.aria-label]="('me.linha' | flaT) + ' ' + g.nome">
         <div class="g-top">
           <div>
             <h2><span class="fino">{{ 'me.linha' | flaT | uppercase }} </span><span class="me-t">{{ g.nome }}</span></h2>
@@ -70,18 +70,18 @@
           </div>
         </div>
         <div class="abas" role="tablist" [attr.aria-label]="'me.estampasDaLinha' | flaT: { l: g.nome }">
-          <button *ngFor="let t of g.tabs; let j = index" type="button" role="tab" [attr.aria-selected]="j === g.i" (click)="ir(g.code, j)">{{ t.nome }}</button>
+          <button *ngFor="let t of g.tabs; let j = index; trackBy: tb" type="button" role="tab" [attr.aria-selected]="j === g.i" (click)="ir(g.code, j)">{{ t.nome }}</button>
         </div>
         <div class="linha-cards" role="tabpanel">
           <div class="destaque">
-            <fla-me-arte [estampa]="g.e"></fla-me-arte>
+            <fla-me-arte [estampa]="g.e" [semNome]="true"></fla-me-arte>
             <span *ngIf="g.sit !== 'A_VENDA'" class="me-badge" [ngClass]="g.sit">{{ 'me.sit.' + g.sit | flaT }}</span>
             <div class="legenda">
               <strong class="me-t">{{ g.e.nome }}</strong>
               <span class="me-prazo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ g.prazo }}</span>
             </div>
           </div>
-          <div *ngFor="let v of g.versoes" class="versao">
+          <div *ngFor="let v of g.versoes; trackBy: tb" class="versao">
             <div class="foto"><fla-me-camiseta [estampa]="g.e" [cor]="g.cor"></fla-me-camiseta></div>
             <span class="modelo">{{ 'me.modelo.' + v.modelo | flaT }}</span>
             <span class="nome">{{ 'me.camisetaDe' | flaT: { n: g.e.nome } }}</span>
@@ -104,11 +104,11 @@
         <div class="p-corpo">
           <fieldset>
             <legend>{{ 'me.linha' | flaT }}</legend>
-            <label *ngFor="let o of vm.fLinhas"><input type="radio" name="me-f-linha" [checked]="ra.linha === o.code" (change)="mudar({ linha: o.code })" /> {{ o.nome }} ({{ o.n }})</label>
+            <label *ngFor="let o of vm.fLinhas; trackBy: tb"><input type="radio" name="me-f-linha" [checked]="ra.linha === o.code" (change)="mudar({ linha: o.code })" /> {{ o.nome }} ({{ o.n }})</label>
           </fieldset>
           <fieldset>
             <legend>{{ 'me.disponibilidade' | flaT }}</legend>
-            <label *ngFor="let o of vm.fDisp"><input type="checkbox" [checked]="$any(ra)[o.k]" (change)="alternar(o.k)" /> {{ 'me.f.' + o.k | flaT }} ({{ o.n }})</label>
+            <label *ngFor="let o of vm.fDisp; trackBy: tb"><input type="checkbox" [checked]="$any(ra)[o.k]" (change)="alternar(o.k)" /> {{ 'me.f.' + o.k | flaT }} ({{ o.n }})</label>
           </fieldset>
           <fieldset>
             <legend>{{ 'me.faixaPreco' | flaT }}</legend>

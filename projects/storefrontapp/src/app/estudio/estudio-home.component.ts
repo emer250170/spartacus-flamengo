@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { EstudioService, MeCatalogo, MeEstampa, MeSituacao } from './estudio.service';
+import { EstudioService, MeCatalogo, MeEstampa, MeSituacao, meTrack } from './estudio.service';
 
 export interface MeCardVm {
   e: MeEstampa;
@@ -22,6 +22,7 @@ export interface MeCardVm {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EstudioHomeComponent {
+  readonly tb = meTrack;
   readonly linha$ = new BehaviorSubject<string>('');
   readonly qtd$ = new BehaviorSubject<number>(8);
 

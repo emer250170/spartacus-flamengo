@@ -35,6 +35,9 @@
     min-height: 64px;
     overflow-x: auto;
     white-space: nowrap;
+    > * {
+      flex-shrink: 0;
+    }
   }
   .me-marca {
     display: flex;
@@ -64,6 +67,34 @@
   }
   .me-sp {
     flex: 1 1 auto;
+  }
+}
+@media (max-width: 600px) {
+  /* celular: marca numa linha, abas e atalhos na de baixo (sem rolagem lateral) */
+  .me-subnav {
+    nav {
+      flex-wrap: wrap;
+      gap: 0 16px;
+      min-height: 0;
+      overflow: visible;
+    }
+    .me-marca {
+      flex: 1 0 100%;
+      gap: 8px;
+      padding: 12px 0;
+      border-right: 0;
+      border-bottom: 1px solid #e2e2e2;
+      svg {
+        width: 40px;
+      }
+      strong {
+        font-size: 15px;
+      }
+    }
+    a.me-aba {
+      font-size: 15px;
+      padding: 12px 0 9px;
+    }
   }
 }
 .me-crumb {
@@ -213,7 +244,7 @@
     font-size: 17px;
     margin-top: 4px;
   }
-  .linha {
+  .me-linha {
     font-size: 14px;
     color: #555;
   }
