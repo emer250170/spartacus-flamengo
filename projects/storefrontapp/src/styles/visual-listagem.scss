@@ -165,3 +165,9 @@ cx-product-grid-item {
     opacity: 1;
   }
 }
+
+// foto deitada (experiências, ingressos): área 4:3 em vez de 3:4, sem ampliar a foto além do
+// tamanho dela (FlaListingImagesService marca o card e troca a foto pela de 515 px)
+cx-product-grid-item .cx-product-image-container.fla-landscape {
+  aspect-ratio: 4 / 3 !important;
+}

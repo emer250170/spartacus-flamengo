@@ -23,6 +23,7 @@ import {
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { FlaCheckoutStepService } from '../visual/fla-checkout-header.component';
 import { FlaDomLabelsService } from './fla-dom-labels.service';
+import { FlaListingImagesService } from '../listagem/fla-listing-images.service';
 import { FAQ_URL } from './fla-faq.component';
 import {
   ACCOUNT_LEADS,
@@ -271,6 +272,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
     protected i18n: FlaI18nService,
     protected renderer: Renderer2,
     protected domLabels: FlaDomLabelsService,
+    protected listingImages: FlaListingImagesService,
     protected http: HttpClient,
     protected occ: OccEndpointsService,
     @Inject(DOCUMENT) protected document: Document
@@ -279,6 +281,7 @@ export class FlaAccountBandComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // paginação em português e cor do selo nas listas do Spartacus (todas as páginas)
     this.domLabels.start(this.document);
+    this.listingImages.start(this.document);
     // "Ver todas as lojas" navega dentro da página (a rota do ContaModule só vale ao abrir o
     // endereço direto): as lojas da demo são todas do Brasil, vai direto à lista
     this.subscription.add(
