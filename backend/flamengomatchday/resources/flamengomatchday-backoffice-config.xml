@@ -1285,4 +1285,88 @@
 		</explorer-tree:explorer-tree>
 	</context>
 
+	<!-- ============ Loja Flamengo (07/11) ============ -->
+	<!-- Menu da perspectiva "Loja Flamengo" (flamengomatchday-backoffice-widgets.xml, lojaPerspective).
+	     Os tipos abrem a lista e a ficha padrão do SAP Commerce; Vitrine, Vouchers e Relatório abrem
+	     as mesmas telas da Gestão de experiências (instâncias lojaExp*). -->
+	<context component="loja-explorer-tree">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="loja.tree.products">
+				<explorer-tree:type-node id="loja.tree.product" code="Product"/>
+				<explorer-tree:type-node id="loja.tree.categories" code="Category"/>
+				<explorer-tree:type-node id="loja.tree.prices" code="PriceRow"/>
+				<explorer-tree:type-node id="loja.tree.stock" code="StockLevel"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.orders">
+				<explorer-tree:type-node id="loja.tree.order" code="Order"/>
+				<explorer-tree:type-node id="loja.tree.returns" code="ReturnRequest"/>
+				<explorer-tree:type-node id="loja.tree.consignments" code="Consignment"/>
+				<explorer-tree:type-node id="loja.tree.adyen" code="AdyenNotification"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.customers">
+				<explorer-tree:type-node id="loja.tree.customer" code="Customer"/>
+				<explorer-tree:type-node id="loja.tree.tickets" code="CsTicket"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.promotions">
+				<explorer-tree:type-node id="loja.tree.rules" code="PromotionSourceRule"/>
+				<explorer-tree:type-node id="loja.tree.singleCoupons" code="SingleCodeCoupon"/>
+				<explorer-tree:type-node id="loja.tree.multiCoupons" code="MultiCodeCoupon"/>
+				<explorer-tree:type-node id="loja.tree.couponRedemptions" code="CouponRedemption"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.experiences">
+				<explorer-tree:navigation-node id="loja.tree.expShowcase"/>
+				<explorer-tree:navigation-node id="loja.tree.expVouchers"/>
+				<explorer-tree:navigation-node id="loja.tree.expReport"/>
+				<explorer-tree:type-node id="loja.tree.expRecords" code="SocioExperience"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
+	<!-- Cockpit de administração do gestor da loja: sem merge-by, substitui a árvore inteira (como os
+	     outros gestores). Só os tipos: as telas de experiências ficam na perspectiva Loja Flamengo.
+	     Não interfere nos cockpits Atendimento ao cliente (cs-explorer-tree) e Atendimento do pedido
+	     (warehousingbackoffice-explorer-tree), que têm menu próprio. -->
+	<context component="explorer-tree" principal="lojamanagerrole">
+		<explorer-tree:explorer-tree>
+			<explorer-tree:navigation-node id="loja.tree.products">
+				<explorer-tree:type-node id="loja.tree.product" code="Product"/>
+				<explorer-tree:type-node id="loja.tree.categories" code="Category"/>
+				<explorer-tree:type-node id="loja.tree.prices" code="PriceRow"/>
+				<explorer-tree:type-node id="loja.tree.stock" code="StockLevel"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.orders">
+				<explorer-tree:type-node id="loja.tree.order" code="Order"/>
+				<explorer-tree:type-node id="loja.tree.returns" code="ReturnRequest"/>
+				<explorer-tree:type-node id="loja.tree.consignments" code="Consignment"/>
+				<explorer-tree:type-node id="loja.tree.adyen" code="AdyenNotification"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.customers">
+				<explorer-tree:type-node id="loja.tree.customer" code="Customer"/>
+				<explorer-tree:type-node id="loja.tree.tickets" code="CsTicket"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.promotions">
+				<explorer-tree:type-node id="loja.tree.rules" code="PromotionSourceRule"/>
+				<explorer-tree:type-node id="loja.tree.singleCoupons" code="SingleCodeCoupon"/>
+				<explorer-tree:type-node id="loja.tree.multiCoupons" code="MultiCodeCoupon"/>
+				<explorer-tree:type-node id="loja.tree.couponRedemptions" code="CouponRedemption"/>
+			</explorer-tree:navigation-node>
+			<explorer-tree:navigation-node id="loja.tree.experiences">
+				<explorer-tree:type-node id="loja.tree.expRecords" code="SocioExperience"/>
+				<explorer-tree:type-node id="loja.tree.expRedemptions" code="SocioRedemption"/>
+			</explorer-tree:navigation-node>
+		</explorer-tree:explorer-tree>
+	</context>
+
+	<!-- Painel inicial do Cockpit de administração do gestor da loja: o Resumo de vendas (o mesmo do admin) -->
+	<context component="dashboard" principal="lojamanagerrole">
+		<dsb:dashboard xmlns:dsb="http://www.hybris.com/cockpitng/config/dashboard" defaultGridId="regular">
+			<dsb:grid id="small" minScreenWidth="1" maxScreenWidth="700" unassigned="exclude">
+				<dsb:placement widgetId="flaAdminDashboard" height="3"/>
+			</dsb:grid>
+			<dsb:grid id="regular" minScreenWidth="701" unassigned="exclude">
+				<dsb:placement widgetId="flaAdminDashboard" width="2" height="3"/>
+			</dsb:grid>
+		</dsb:dashboard>
+	</context>
+
 </config>
