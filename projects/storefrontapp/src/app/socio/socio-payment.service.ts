@@ -41,6 +41,8 @@ export interface SocioPayment {
   summary?: string;
   /** Formas que passam pela Adyen (05/11): hoje Pix e boleto; o boleto pede o CPF */
   adyenMethods: SocioPaymentMethod[];
+  /** CPF do cadastro do torcedor, mascarado (07/11): com ele o checkout não pede o CPF */
+  payerCpf?: string;
   /** Pedido pago pela Adyen: pspReference, imagem do QR Code do Pix e PDF do boleto */
   provider?: 'adyen';
   pspReference?: string;
@@ -121,7 +123,10 @@ export class SocioPaymentService {
   placeOrder(cartId: string): Observable<SocioPayment> {
     const cpf = this.payerCpfOf(cartId);
     return this.http
-      .post<OccSocioPayment>(`${this.cartUrl(cartId)}/order`, cpf ? { cpf } : {})
+      .post<OccSocioPayment>(
+        `${this.cartUrl(cartId)}/order`,
+        cpf ? { cpf } : {}
+      )
       .pipe(
         map(toPayment),
         tap(() => {
@@ -162,7 +167,9 @@ export class SocioPaymentService {
   }
 
   isUpfront(method?: SocioPaymentMethod): boolean {
-    return method === 'PIX' || method === 'BOLETO' || method === 'PIX_AUTOMATICO';
+    return (
+      method === 'PIX' || method === 'BOLETO' || method === 'PIX_AUTOMATICO'
+    );
   }
 
   /** Pix à vista ou Pix Automático: QR Code e copia e cola */
@@ -181,6 +188,19 @@ export class SocioPaymentService {
 
   /** Boleto pela Adyen: precisa do CPF de quem paga */
   needsCpf(p?: SocioPayment, method?: SocioPaymentMethod): boolean {
+    // 07/11: com o CPF do cadastro, o servidor usa ele e o checkout não pede de novo
+    return this.adyenNeedsCpf(p, method) && !p?.payerCpf;
+  }
+
+  /** Pix/boleto pela Adyen pago com o CPF do cadastro (mostra o CPF mascarado no lugar do campo) */
+  usesRegisteredCpf(p?: SocioPayment, method?: SocioPaymentMethod): boolean {
+    return this.adyenNeedsCpf(p, method) && !!p?.payerCpf;
+  }
+
+  protected adyenNeedsCpf(
+    p?: SocioPayment,
+    method?: SocioPaymentMethod
+  ): boolean {
     const m = method ?? p?.method;
     // boleto e Pix pela Adyen: o CPF de quem paga (o Pix Automático exige)
     return (
@@ -214,7 +234,9 @@ export class SocioPaymentService {
       return known;
     }
     try {
-      const saved = this.winRef.nativeWindow?.sessionStorage?.getItem(CPF_KEY + cartId) ?? '';
+      const saved =
+        this.winRef.nativeWindow?.sessionStorage?.getItem(CPF_KEY + cartId) ??
+        '';
       if (saved) {
         this.payerCpf.set(cartId, saved);
       }
@@ -258,6 +280,7 @@ interface OccSocioPayment {
   awaiting?: boolean;
   summary?: string;
   adyenMethods?: SocioPaymentMethod[];
+  payerCpf?: string;
   provider?: string;
   pspReference?: string;
   qrImageUrl?: string;
@@ -290,6 +313,7 @@ function toPayment(r: OccSocioPayment): SocioPayment {
     awaiting: !!r?.awaiting,
     summary: r?.summary ?? undefined,
     adyenMethods: r?.adyenMethods ?? [],
+    payerCpf: r?.payerCpf || undefined,
     provider: r?.provider === 'adyen' ? 'adyen' : undefined,
     pspReference: r?.pspReference ?? undefined,
     qrImageUrl: safeUrl(r?.qrImageUrl),
