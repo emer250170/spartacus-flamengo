@@ -58,6 +58,11 @@ import {
   TicketHoldersService,
 } from './ticket-holders.service';
 import { SocioService } from '../socio/socio.service';
+import {
+  FlaPersonalizationService,
+  cleanPersonalizationName,
+  cleanPersonalizationNumber,
+} from '../visual/fla-personalization.service';
 import { MATCHES_CATEGORY, MatchdayDataService } from './matchday-data.service';
 import { MatchdayHoldWatcherService } from './matchday-hold-watcher.service';
 import {
@@ -223,6 +228,12 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   protected cartEntries: OrderEntry[] = [];
   /** Estacionamento, comidas e camisa já lidos do carrinho nesta visita */
   protected extrasRestored = false;
+  /**
+   * Nome e número gravados na linha da camisa (API de personalização): o servidor oferece para a
+   * camisa do dia de jogo o mesmo produto de preço da jornada (FLA-PERSONALIZACAO). Sem isso, a
+   * jornada põe a linha de preço avulsa, como antes, e o nome e o número ficam só no navegador.
+   */
+  persOnEntry = false;
 
   private subscription = new Subscription();
 
@@ -241,7 +252,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     protected holdWatcher: MatchdayHoldWatcherService,
     protected socioAccount: SocioAccountService,
     protected socioGuests: SocioGuestsService,
-    protected ticketHolders: TicketHoldersService
+    protected ticketHolders: TicketHoldersService,
+    protected personalization: FlaPersonalizationService
   ) {}
 
   ngOnInit(): void {
@@ -1863,6 +1875,7 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
    */
   protected applyCatalog(catalog: MatchdayCatalog): void {
     this.catalog = catalog;
+    this.checkPersonalizationMode(catalog);
     // troca de idioma: o jogo aberto passa a ser o do catálogo novo
     if (this.match) {
       const code = this.match.code;
@@ -2040,7 +2053,60 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         this.shirtName = saved.shirtName ?? '';
         this.shirtNumber = saved.shirtNumber ?? '';
       }
+      if (this.persOnEntry && this.loggedIn) {
+        this.restoreShirtPersonalization(size.code);
+      }
     }
+  }
+
+  /** Modo de gravação do nome e número (ver persOnEntry), pelo que o servidor oferece */
+  protected checkPersonalizationMode(catalog: MatchdayCatalog): void {
+    const shirt = catalog.shirt;
+    const probe = shirt?.sizes[0]?.code;
+    if (!shirt?.personalization || !probe) {
+      this.persOnEntry = false;
+      return;
+    }
+    this.subscription.add(
+      this.personalization
+        .options(probe)
+        .pipe(take(1))
+        .subscribe((o) => {
+          this.persOnEntry =
+            !!o?.available &&
+            o.nameNumber?.code === shirt.personalization?.code;
+          // a resposta pode chegar depois de a camisa do carrinho ter sido retomada
+          const variant = this.addShirt ? this.shirtVariantCode : undefined;
+          if (this.persOnEntry && this.loggedIn && variant) {
+            this.restoreShirtPersonalization(variant);
+          }
+          this.cd.markForCheck();
+        })
+    );
+  }
+
+  /** Nome e número que já estão na linha da camisa do carrinho */
+  protected restoreShirtPersonalization(variantCode: string): void {
+    this.subscription.add(
+      this.activeCart
+        .getActive()
+        .pipe(
+          take(1),
+          switchMap((cart) =>
+            cart?.code
+              ? this.personalization.forCart('current', cart.code)
+              : of([])
+          )
+        )
+        .subscribe((items) => {
+          const p = items.find((i) => i.productCode === variantCode);
+          if (p) {
+            this.shirtName = p.name ?? '';
+            this.shirtNumber = p.number ?? '';
+            this.cd.markForCheck();
+          }
+        })
+    );
   }
 
   /** Quantidade de cada produto no carrinho (soma das linhas do mesmo produto) */
@@ -2184,8 +2250,9 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
   }
 
   normalizeShirt(): void {
-    this.shirtName = this.shirtName.toUpperCase().slice(0, 12);
-    this.shirtNumber = this.shirtNumber.replace(/\D/g, '').slice(0, 2);
+    // as mesmas regras do servidor (sem acento, só letras; número de 0 a 99); 12 letras cabem na arte
+    this.shirtName = cleanPersonalizationName(this.shirtName).slice(0, 12);
+    this.shirtNumber = cleanPersonalizationNumber(this.shirtNumber);
   }
 
   get shirtVariantCode(): string | undefined {
@@ -2279,7 +2346,10 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
         lines.push({
           label: this.i18n.t('md.line.personalization'),
           detail: [this.shirtName, this.shirtNumber].filter(Boolean).join(' '),
-          price: shirt.personalization.price,
+          // gravada na camisa: uma por camisa, como o servidor cobra
+          price:
+            shirt.personalization.price *
+            (this.persOnEntry ? this.shirtQty : 1),
         });
       }
     }
@@ -2334,7 +2404,8 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     foodLines.forEach((f) => desired.set(f.code, this.qty(f.code)));
     if (shirtCode) {
       desired.set(shirtCode, this.shirtQty);
-      if (this.hasPersonalization && pers) {
+      // gravada na camisa: a linha de preço é do servidor (sai daqui e volta pela gravação)
+      if (this.hasPersonalization && pers && !this.persOnEntry) {
         desired.set(pers.code, 1);
       }
     }
@@ -2367,18 +2438,49 @@ export class MatchdayJourneyComponent implements OnInit, OnDestroy {
     this.holdWatcher.paused = true;
     // espera o carrinho processar as alterações antes de seguir para o checkout
     this.subscription.add(
-      this.syncCart(desired).subscribe({
-        complete: () => this.routing.go({ cxRoute: 'checkout' }),
-        error: () => {
-          this.submitting = false;
-          this.holdWatcher.paused = false;
-          this.globalMessages.add(
-            this.i18n.t('md.orderError'),
-            GlobalMessageType.MSG_TYPE_ERROR
-          );
-          this.cd.markForCheck();
-        },
-      })
+      concat(this.syncCart(desired), this.saveShirtPersonalization(shirtCode))
+        .pipe(last(undefined, undefined))
+        .subscribe({
+          complete: () => this.routing.go({ cxRoute: 'checkout' }),
+          error: (e: Error) => {
+            this.submitting = false;
+            this.holdWatcher.paused = false;
+            // recusa da personalização vem com a mensagem do servidor (ex.: nome inválido)
+            this.globalMessages.add(
+              e?.message || this.i18n.t('md.orderError'),
+              GlobalMessageType.MSG_TYPE_ERROR
+            );
+            this.cd.markForCheck();
+          },
+        })
+    );
+  }
+
+  /**
+   * Grava o nome e o número na linha da camisa (vazio = sem personalização); o servidor ajusta a
+   * linha de preço e o carrinho é relido. Sem camisa ou no modo antigo, não faz nada.
+   */
+  protected saveShirtPersonalization(
+    shirtCode: string | undefined
+  ): Observable<unknown> {
+    if (!this.persOnEntry || !shirtCode) {
+      return of(undefined);
+    }
+    const name = this.addShirt ? this.shirtName.trim() : '';
+    const number = this.addShirt ? this.shirtNumber.trim() : '';
+    return this.activeCart.getActive().pipe(
+      take(1),
+      switchMap((cart) =>
+        this.personalization.save('current', cart.code ?? '', shirtCode, {
+          name,
+          number,
+          sponsor: false,
+          patchCode: '',
+        })
+      ),
+      switchMap(() =>
+        defer(() => (this.activeCart.reloadActiveCart(), this.cartSettled()))
+      )
     );
   }
 

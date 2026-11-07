@@ -1,8 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Order, OrderFacade } from '@spartacus/order/root';
-import { Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
+import {
+  FlaPersonalizationService,
+  PersonalizationInfo,
+} from '../visual/fla-personalization.service';
 import { MatchdayDataService } from './matchday-data.service';
 import { MatchdaySelection } from './matchday.model';
 
@@ -29,29 +33,51 @@ export class MatchdayOrderConfirmationComponent {
   confirmation$: Observable<MatchdayConfirmation | undefined> =
     this.i18n.lang$.pipe(
       switchMap(() => this.orderFacade.getOrderDetails()),
-      map((order) => this.build(order))
+      switchMap((order) =>
+        this.shirtPersonalization(order).pipe(
+          map((items) => this.build(order, items))
+        )
+      )
     );
 
   constructor(
     protected orderFacade: OrderFacade,
     protected data: MatchdayDataService,
-    protected i18n: FlaI18nService
+    protected i18n: FlaI18nService,
+    protected personalization: FlaPersonalizationService
   ) {}
+
+  /** Nome e número gravados no pedido (só busca quando há camisa do dia de jogo) */
+  protected shirtPersonalization(
+    order: Order | undefined
+  ): Observable<PersonalizationInfo[]> {
+    const hasShirt = (order?.entries ?? []).some((e) =>
+      e.product?.code?.startsWith('FLA-CAMISA-J2-')
+    );
+    return order?.code && hasShirt
+      ? this.personalization
+          .forOrder('current', order.code)
+          .pipe(catchError(() => of([])))
+      : of([]);
+  }
 
   foodTotal(selection: MatchdaySelection): number {
     return selection.food.reduce((sum, f) => sum + f.quantity, 0);
   }
 
-  protected build(order: Order | undefined): MatchdayConfirmation | undefined {
+  protected build(
+    order: Order | undefined,
+    personalized: PersonalizationInfo[] = []
+  ): MatchdayConfirmation | undefined {
     const selection = this.data.readSelection();
     const codes = (order?.entries ?? []).map((e) => e.product?.code);
     const ticket = selection?.ticketCode ?? selection?.sectorCode;
     if (!order || !selection || !ticket || !codes.includes(ticket)) {
       return undefined;
     }
-    // vaga, comida e camisa vêm dos itens do pedido (fonte da verdade);
-    // do navegador só os detalhes que a linha de pedido não guarda
-    // (placa, forma de entrega, nome e número da camisa)
+    // vaga, comida e camisa vêm dos itens do pedido (fonte da verdade), e o
+    // nome e o número da camisa, da linha dela; do navegador só os detalhes que
+    // o pedido não guarda (placa, forma de entrega)
     const entries = order.entries ?? [];
     const parking = entries.find((e) =>
       e.product?.code?.startsWith('FLA-EST-')
@@ -59,6 +85,11 @@ export class MatchdayOrderConfirmationComponent {
     const shirt = entries.find((e) =>
       e.product?.code?.startsWith('FLA-CAMISA-J2-')
     );
+    // nome e número: os gravados no pedido; sem eles, os do navegador (pedidos antigos)
+    const onOrder = personalized.find(
+      (p) => p.productCode === shirt?.product?.code
+    );
+    const sameShirt = !!shirt && shirt.product?.code === selection.shirtCode;
     const merged: MatchdaySelection = {
       ...selection,
       parkingCode: parking?.product?.code,
@@ -76,12 +107,14 @@ export class MatchdayOrderConfirmationComponent {
         })),
       shirtCode: shirt?.product?.code,
       shirtSize: shirt?.product?.code?.split('-').pop(),
-      shirtName:
-        shirt && shirt.product?.code === selection.shirtCode
+      shirtName: onOrder
+        ? onOrder.name
+        : sameShirt
           ? selection.shirtName
           : undefined,
-      shirtNumber:
-        shirt && shirt.product?.code === selection.shirtCode
+      shirtNumber: onOrder
+        ? onOrder.number
+        : sameShirt
           ? selection.shirtNumber
           : undefined,
     };

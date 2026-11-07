@@ -59,12 +59,16 @@ public class PersonalizationController
 		body.put("available", Boolean.valueOf(available));
 		if (available)
 		{
-			body.put("nameNumber", option(personalizationService.nameNumberOption()));
-			body.put("sponsor", option(personalizationService.sponsorOption()));
+			body.put("nameNumber", option(personalizationService.nameNumberOption(productCode)));
 			final List<Map<String, Object>> patches = new ArrayList<>();
-			for (final PersonalizationOption o : personalizationService.patchOptions())
+			// camisa do dia de jogo: só nome e número
+			if (!personalizationService.isMatchdayShirt(productCode))
 			{
-				patches.add(option(o));
+				body.put("sponsor", option(personalizationService.sponsorOption()));
+				for (final PersonalizationOption o : personalizationService.patchOptions())
+				{
+					patches.add(option(o));
+				}
 			}
 			body.put("patches", patches);
 		}

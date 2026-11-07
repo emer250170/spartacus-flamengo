@@ -23,6 +23,12 @@ public interface PersonalizationService
 	String NAME_NUMBER = "flamengo.personalizacao.nomeNumero";
 	String SPONSOR = "flamengo.personalizacao.patrocinio";
 	String PATCHES = "flamengo.personalizacao.patches";
+	/**
+	 * Camisa do dia de jogo (07/11): produtos destas categorias usam outro produto de preço para nome e
+	 * número (FLA-PERSONALIZACAO, R$ 40,00, o da jornada de matchday). Vazio = o de sempre.
+	 */
+	String MATCHDAY_CATEGORIES = "flamengo.personalizacao.matchday.categorias";
+	String MATCHDAY_NAME_NUMBER = "flamengo.personalizacao.matchday.nomeNumero";
 
 	String ENTRY_NAME = "flaPersName";
 	String ENTRY_NUMBER = "flaPersNumber";
@@ -37,6 +43,12 @@ public interface PersonalizationService
 
 	/** Opções com preço: nome e número, patrocínio e a lista de patches */
 	PersonalizationOption nameNumberOption();
+
+	/** Camisa do dia de jogo: só nome e número, com o produto de preço do matchday */
+	boolean isMatchdayShirt(String productCode);
+
+	/** Nome e número do produto: o da camisa do dia de jogo quando configurado, senão o de sempre */
+	PersonalizationOption nameNumberOption(String productCode);
 
 	PersonalizationOption sponsorOption();
 
