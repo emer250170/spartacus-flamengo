@@ -18,6 +18,7 @@ import {
 } from '@spartacus/storefront';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { FlaAccountBandComponent } from './fla-account-band.component';
+import { FlaFaqComponent } from './fla-faq.component';
 import { FlaAccountMenuComponent } from './fla-account-menu.component';
 import { FlaAccountOrderComponent } from './fla-account-order.component';
 import { FlaEmailCurrentComponent } from './fla-email-current.component';
@@ -64,6 +65,7 @@ import {
     FlaOrderHistoryComponent,
     FlaAccountOrderComponent,
     FlaEmailCurrentComponent,
+    FlaFaqComponent,
   ],
   providers: [
     // avisos flutuantes (07/11): erro some em 6s, sucesso e informação em 4s (dá para fechar no X)
@@ -95,6 +97,12 @@ import {
       id: 'UpdateEmailComponent',
       position: OutletPosition.BEFORE,
       component: FlaEmailCurrentComponent,
+    }),
+    // perguntas frequentes (/faq) no lugar do texto de exemplo do CMS (07/11)
+    provideOutlet({
+      id: 'ContentPage1Template',
+      position: OutletPosition.BEFORE,
+      component: FlaFaqComponent,
     }),
     provideOutlet({
       id: 'BottomHeaderSlot',

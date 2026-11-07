@@ -1,0 +1,211 @@
+// Perguntas frequentes (/faq) no visual do mockup (07/11, quadro 41). FlaFaqComponent entra no
+// ContentPage1Template; a classe fla-faq no <html> (FlaAccountBandComponent) põe a faixa escura,
+// o fundo cinza e esconde o texto de exemplo do CMS (em inglês).
+
+html.fla-faq main cx-page-layout.ContentPage1Template {
+  display: block !important;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--cx-page-width-max, 1140px) !important;
+  margin: 0 auto !important;
+  padding: 40px 0 64px !important;
+
+  > cx-page-slot {
+    display: none !important;
+  }
+}
+
+.ffq {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  color: #111;
+}
+
+.ffq-nav {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  border-radius: 4px;
+  background: #fff;
+
+  button {
+    padding: 10px 0;
+    border: 0;
+    border-bottom: 1px solid #eee;
+    background: none;
+    color: #111;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    &:hover {
+      color: var(--fla-vermelho, #d70000);
+    }
+  }
+}
+
+.ffq-nav-title {
+  margin-bottom: 4px;
+  color: #555;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ffq-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.ffq-card {
+  padding: 28px;
+  border-radius: 4px;
+  background: #fff;
+  scroll-margin-top: 16px;
+
+  .ffq-h2 {
+    margin-bottom: 12px;
+  }
+}
+
+.ffq-h2 {
+  margin: 0;
+  color: inherit;
+  font-family: var(--fla-fonte-titulo, inherit);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.ffq-item {
+  border-top: 1px solid #e2e2e2;
+
+  &:last-child {
+    border-bottom: 1px solid #e2e2e2;
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    font-size: 16px;
+    font-weight: 700;
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  .ffq-sign::before {
+    content: '+';
+    color: var(--fla-vermelho, #d70000);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  &[open] .ffq-sign::before {
+    content: '–';
+  }
+
+  p {
+    margin: 0;
+    padding: 0 0 16px;
+    color: #333;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+}
+
+.ffq-help {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+
+  p {
+    margin: 6px 0 0;
+    color: #d6d6d6;
+    font-size: 16px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 22px;
+    text-transform: none !important;
+  }
+}
+
+.ffq-help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ffq-ghost {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 22px;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  color: #fff !important;
+  font-weight: 700;
+  text-decoration: none !important;
+
+  &:hover {
+    background: #fff;
+    color: #111 !important;
+  }
+}
+
+@media (max-width: 1171.98px) {
+  html.fla-faq main cx-page-layout.ContentPage1Template {
+    padding-inline: 16px !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .ffq {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ffq-nav {
+    position: static;
+  }
+}
+
+@media (max-width: 575.98px) {
+  html.fla-faq main cx-page-layout.ContentPage1Template {
+    padding-top: 24px !important;
+  }
+
+  .ffq-card,
+  .ffq-help {
+    padding: 20px;
+  }
+}

@@ -966,6 +966,87 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.band.title': 'Termo do',
     'st.band.titleRed': 'Nação',
     'st.band.lead': 'Regras do programa de sócio-torcedor Nação Maraca.',
+    'faq.band.crumb': 'Perguntas frequentes',
+    'faq.band.title': 'Perguntas',
+    'faq.band.titleRed': 'frequentes',
+    'faq.band.lead':
+      'Trocas, entrega, pagamento, sócio-torcedor e ingressos: as respostas para as dúvidas mais comuns.',
+    'faq.topics': 'Temas',
+    'faq.help.title': 'Não encontrou a sua resposta?',
+    'faq.help.text': 'Fale com o atendimento da loja oficial pela sua conta.',
+    'faq.help.ticket': 'Abrir um chamado',
+    'faq.help.stores': 'Encontre uma loja',
+    'faq.s.trocas': 'Trocas e devoluções',
+    'faq.q.trocas.0': 'Qual é o prazo para trocar ou devolver?',
+    'faq.a.trocas.0':
+      'Até 30 dias depois de receber o pedido, com o produto sem uso e com a etiqueta.',
+    'faq.q.trocas.1': 'Produtos personalizados podem ser trocados?',
+    'faq.a.trocas.1':
+      'Não. Produtos com nome, número, patrocínio ou patch personalizados não podem ser trocados, devolvidos ou cancelados.',
+    'faq.q.trocas.2': 'Como peço a troca ou a devolução?',
+    'faq.a.trocas.2':
+      'Em Minha conta › Meus pedidos, abra o pedido e escolha os itens para devolver. Se preferir, abra um chamado em Minha conta › Atendimento.',
+    'faq.s.entrega': 'Entrega',
+    'faq.q.entrega.0': 'Para onde vocês entregam?',
+    'faq.a.entrega.0':
+      'Para todo o Brasil. O prazo e o valor do frete aparecem no carrinho depois que você informa o CEP; na página do produto, use "Calcule o frete".',
+    'faq.q.entrega.1': 'Como acompanho o meu pedido?',
+    'faq.a.entrega.1':
+      'Enviamos pelos Correios ou por transportadora, com o código de rastreio por e-mail. A situação do pedido também aparece em Minha conta › Meus pedidos.',
+    'faq.q.entrega.2': 'Sócio-torcedor paga frete?',
+    'faq.a.entrega.2':
+      'Não. O sócio-torcedor Nação Maraca tem frete grátis nas compras da loja oficial.',
+    'faq.s.retirada': 'Retirada na loja',
+    'faq.q.retirada.0': 'Como funciona a retirada na loja?',
+    'faq.a.retirada.0':
+      'Escolha "Retirar grátis na loja" na página do produto ou na entrega do checkout. Avisamos por e-mail quando o pedido estiver pronto para retirar.',
+    'faq.q.retirada.1': 'Onde ficam as lojas oficiais?',
+    'faq.a.retirada.1':
+      'Na Barra da Tijuca, em Copacabana e no Maracanã. Endereços, horários e "Como chegar" estão em Encontre uma loja.',
+    'faq.s.pagamento': 'Pagamento',
+    'faq.q.pagamento.0': 'Quais são as formas de pagamento?',
+    'faq.a.pagamento.0':
+      'Cartão de crédito em até 10 vezes sem juros (parcela mínima de R$ 40), Pix e boleto.',
+    'faq.q.pagamento.1': 'Como pago com Pix?',
+    'faq.a.pagamento.1':
+      'Na confirmação do pedido aparecem o QR Code e o código copia e cola. O pedido segue assim que o pagamento é confirmado.',
+    'faq.q.pagamento.2': 'Onde encontro o boleto?',
+    'faq.a.pagamento.2':
+      'A linha digitável e o PDF aparecem na confirmação do pedido e no detalhe do pedido, em Minha conta › Meus pedidos.',
+    'faq.s.personalizacao': 'Personalização',
+    'faq.q.personalizacao.0': 'Quais produtos podem ser personalizados?',
+    'faq.a.personalizacao.0':
+      'Os mantos com o selo "Personalização disponível". Escolha nome e número, patrocínio e patch na página do produto (é preciso entrar na sua conta).',
+    'faq.q.personalizacao.1': 'Quais são as regras do nome e do número?',
+    'faq.a.personalizacao.1':
+      'Até 13 caracteres, sem acentos nem caracteres especiais, e número de 0 a 99. A fonte é a mesma da linha oficial de jogo.',
+    'faq.s.socio': 'Sócio-torcedor Nação Maraca',
+    'faq.q.socio.0': 'Quais são os benefícios do sócio-torcedor?',
+    'faq.a.socio.0':
+      'Desconto na loja oficial, desconto e prioridade na compra de ingressos, frete grátis e pontos para trocar por experiências. Conheça os planos em Sócio-torcedor.',
+    'faq.q.socio.1': 'Onde vejo a minha carteirinha e os meus pontos?',
+    'faq.a.socio.1':
+      'Em Minha conta › Meu sócio-torcedor: carteirinha com QR Code, pontos, convidados, pagamentos e renovação.',
+    'faq.q.socio.2': 'Como cancelo o meu plano?',
+    'faq.a.socio.2':
+      'Em Minha conta › Meu sócio-torcedor, use "Cancelar plano". O pedido vira um chamado de atendimento e o plano termina quando o chamado é concluído.',
+    'faq.s.ingressos': 'Ingressos e dia de jogo',
+    'faq.q.ingressos.0': 'Como compro ingresso?',
+    'faq.a.ingressos.0':
+      'Em Ingressos, escolha o jogo, o setor e a poltrona. Em "Monte o seu dia de jogo" você também inclui estacionamento, comidas e bebidas, a camisa e experiências no mesmo pedido.',
+    'faq.q.ingressos.1': 'Por quanto tempo a poltrona fica reservada?',
+    'faq.a.ingressos.1':
+      'Por 15 minutos a partir da escolha, já no seu carrinho. Depois disso ela volta a ficar livre.',
+    'faq.q.ingressos.2': 'O que são as ondas de venda?',
+    'faq.a.ingressos.2':
+      'Os sócios compram antes, em ondas por plano; depois abre a venda geral. A sua onda aparece no topo de "Monte o seu dia de jogo".',
+    'faq.s.conta': 'Minha conta e privacidade',
+    'faq.q.conta.0': 'Esqueci a minha senha. E agora?',
+    'faq.a.conta.0':
+      'Em Entrar, use "Esqueceu a senha?" e siga o link que enviamos por e-mail.',
+    'faq.q.conta.1': 'Como cuido dos meus dados?',
+    'faq.a.conta.1':
+      'Em Minha conta › Consentimentos você escolhe o que autoriza; em Preferências de notificação, como quer receber avisos; e em Encerrar conta, pode pedir o encerramento.',
     'sf.band.crumb': 'Lojas oficiais',
     'sf.band.title': 'Encontre uma',
     'sf.band.titleRed': 'loja',
@@ -2116,6 +2197,88 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'st.band.title': 'Nação',
     'st.band.titleRed': 'terms',
     'st.band.lead': 'Rules of the Nação Maraca membership program.',
+    'faq.band.crumb': 'Frequently asked questions',
+    'faq.band.title': 'Frequently asked',
+    'faq.band.titleRed': 'questions',
+    'faq.band.lead':
+      'Returns, delivery, payment, membership and tickets: answers to the most common questions.',
+    'faq.topics': 'Topics',
+    'faq.help.title': 'Did not find your answer?',
+    'faq.help.text':
+      'Contact the official store customer service from your account.',
+    'faq.help.ticket': 'Open a ticket',
+    'faq.help.stores': 'Find a store',
+    'faq.s.trocas': 'Returns and exchanges',
+    'faq.q.trocas.0': 'What is the deadline to return or exchange?',
+    'faq.a.trocas.0':
+      'Up to 30 days after you receive the order, with the product unused and with its tag.',
+    'faq.q.trocas.1': 'Can personalized products be exchanged?',
+    'faq.a.trocas.1':
+      'No. Products personalized with name, number, sponsor or patch cannot be exchanged, returned or cancelled.',
+    'faq.q.trocas.2': 'How do I request a return?',
+    'faq.a.trocas.2':
+      'In My account › My orders, open the order and choose the items to return. You can also open a ticket in My account › Customer service.',
+    'faq.s.entrega': 'Delivery',
+    'faq.q.entrega.0': 'Where do you deliver?',
+    'faq.a.entrega.0':
+      'All over Brazil. Delivery time and cost show in the cart once you enter your ZIP code; on the product page, use "Calculate shipping".',
+    'faq.q.entrega.1': 'How do I track my order?',
+    'faq.a.entrega.1':
+      'We ship by mail or carrier and send the tracking code by e-mail. The order status also shows in My account › My orders.',
+    'faq.q.entrega.2': 'Do members pay shipping?',
+    'faq.a.entrega.2':
+      'No. Nação Maraca members get free shipping on official store purchases.',
+    'faq.s.retirada': 'Store pickup',
+    'faq.q.retirada.0': 'How does store pickup work?',
+    'faq.a.retirada.0':
+      'Choose "Free store pickup" on the product page or in the checkout delivery step. We e-mail you when the order is ready.',
+    'faq.q.retirada.1': 'Where are the official stores?',
+    'faq.a.retirada.1':
+      'In Barra da Tijuca, Copacabana and Maracanã. Addresses, opening hours and directions are in Find a store.',
+    'faq.s.pagamento': 'Payment',
+    'faq.q.pagamento.0': 'Which payment methods do you accept?',
+    'faq.a.pagamento.0':
+      'Credit card in up to 10 interest-free installments (minimum R$ 40 each), Pix and bank slip (boleto).',
+    'faq.q.pagamento.1': 'How do I pay with Pix?',
+    'faq.a.pagamento.1':
+      'The order confirmation shows the QR code and the copy-and-paste code. The order moves on as soon as the payment is confirmed.',
+    'faq.q.pagamento.2': 'Where do I find the bank slip?',
+    'faq.a.pagamento.2':
+      'The slip number and PDF show on the order confirmation and in the order details, in My account › My orders.',
+    'faq.s.personalizacao': 'Personalization',
+    'faq.q.personalizacao.0': 'Which products can be personalized?',
+    'faq.a.personalizacao.0':
+      'Jerseys with the "Personalization available" badge. Choose name and number, sponsor and patch on the product page (you need to sign in).',
+    'faq.q.personalizacao.1': 'What are the name and number rules?',
+    'faq.a.personalizacao.1':
+      'Up to 13 characters, no accents or special characters, and a number from 0 to 99. The font is the official match font.',
+    'faq.s.socio': 'Nação Maraca membership',
+    'faq.q.socio.0': 'What are the member benefits?',
+    'faq.a.socio.0':
+      'Discounts in the official store, discounts and priority on tickets, free shipping and points to redeem for experiences. See the plans in Membership.',
+    'faq.q.socio.1': 'Where do I see my card and points?',
+    'faq.a.socio.1':
+      'In My account › My membership: card with QR code, points, guests, payments and renewal.',
+    'faq.q.socio.2': 'How do I cancel my plan?',
+    'faq.a.socio.2':
+      'In My account › My membership, use "Cancel plan". The request becomes a customer service ticket and the plan ends when the ticket is closed.',
+    'faq.s.ingressos': 'Tickets and matchday',
+    'faq.q.ingressos.0': 'How do I buy a ticket?',
+    'faq.a.ingressos.0':
+      'In Tickets, choose the match, sector and seat. In "Build your matchday" you can also add parking, food and drinks, the jersey and experiences to the same order.',
+    'faq.q.ingressos.1': 'How long is the seat held?',
+    'faq.a.ingressos.1':
+      'For 15 minutes from when you choose it, already in your cart. After that it is released.',
+    'faq.q.ingressos.2': 'What are the sales waves?',
+    'faq.a.ingressos.2':
+      'Members buy first, in waves by plan; then general sale opens. Your wave shows at the top of "Build your matchday".',
+    'faq.s.conta': 'My account and privacy',
+    'faq.q.conta.0': 'I forgot my password.',
+    'faq.a.conta.0':
+      'On Sign in, use "Forgot password?" and follow the link we e-mail you.',
+    'faq.q.conta.1': 'How do I manage my data?',
+    'faq.a.conta.1':
+      'In My account › Consents you choose what you allow; in Notification preferences, how to receive messages; and in Close account, you can ask to close your account.',
     'sf.band.crumb': 'Official stores',
     'sf.band.title': 'Find a',
     'sf.band.titleRed': 'store',
