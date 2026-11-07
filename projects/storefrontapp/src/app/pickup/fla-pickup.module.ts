@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { CmsConfig, I18nModule, provideConfig } from '@spartacus/core';
+import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { StoreModule as PickupStoreModule } from '@spartacus/pickup-in-store/components';
 import { OrderOutlets } from '@spartacus/order/root';
 import {
@@ -23,6 +24,7 @@ import { FlaMyPreferredStoreComponent } from './fla-my-preferred-store.component
   imports: [
     CommonModule,
     I18nModule,
+    FlaI18nModule,
     CardModule,
     IconModule,
     PickupStoreModule,

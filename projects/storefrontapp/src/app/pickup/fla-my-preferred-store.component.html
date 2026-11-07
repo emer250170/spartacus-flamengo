@@ -30,12 +30,16 @@
         (editCard)="changeStore()"
       >
         <div label_container_bottom>
+          <!-- sem loja escolhida: só o aviso e "Trocar loja" (07/11) -->
+          <p class="fla-no-store" *ngIf="!pointOfService">
+            {{ 'pk.noStore' | flaT }}
+          </p>
           <div class="info-location">
             <cx-store-address
               [storeDetails]="preferredStore$ | async"
             ></cx-store-address>
           </div>
-          <div *ngIf="!isStoreFinder">
+          <div *ngIf="!isStoreFinder && pointOfService">
             <button
               (click)="toggleOpenHours()"
               [attr.aria-expanded]="openHoursOpen"
@@ -52,7 +56,7 @@
               ></span>
             </button>
           </div>
-          <div class="store-hours" *ngIf="!isStoreFinder">
+          <div class="store-hours" *ngIf="!isStoreFinder && pointOfService">
             <cx-store-schedule
               *ngIf="openHoursOpen"
               [storeDetails]="preferredStore$ | async"
