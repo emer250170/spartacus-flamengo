@@ -259,3 +259,78 @@ cx-storefront:is(
     padding-inline: 0 !important;
   }
 }
+
+// ---------------------------------------------------------------------------------------------
+// Alinhamento (07/11, regra do CLAUDE.md): logo e carrinho nas bordas do conteúdo em todas as
+// larguras. Acima de 1172px o container tem 1140px e não tem recuo; entre 992 e 1171px header e
+// páginas ficam a 16px da borda da tela (antes o logo colava na borda e o conteúdo variava de 0 a
+// 24px conforme a página, com 3px de rolagem lateral do header).
+// ---------------------------------------------------------------------------------------------
+@media (min-width: 992px) and (max-width: 1171.98px) {
+  html header cx-page-layout.header {
+    padding-inline: 16px !important;
+  }
+
+  // listagem e outras páginas com o .container do Bootstrap (960px nessa faixa, 23px da borda)
+  main .container {
+    max-width: none !important;
+    width: auto !important;
+    margin-inline: 16px !important;
+  }
+}
+
+// Listagem: fotos, "Filtrar/Ordenar" e título na borda do conteúdo (a coluna em volta da grade
+// somava 15px aos 15px das colunas: as fotos ficavam 15px para dentro do logo)
+@media (min-width: 992px) {
+  main cx-product-list .container > .row > [class*='col-'] {
+    padding-inline: 0 !important;
+  }
+
+  main cx-product-list .fla-list-bar {
+    margin-inline: 0 !important;
+  }
+
+  html
+    cx-storefront:is(
+      .ProductListPageTemplate,
+      .ProductGridPageTemplate,
+      .SearchResultsListPageTemplate,
+      .SearchResultsGridPageTemplate
+    )
+    cx-page-slot.BottomHeaderSlot
+    cx-breadcrumb {
+    padding-inline: 0 !important;
+  }
+
+  // produto: foto e informações na borda do conteúdo (o slot tinha 15px de recuo)
+  main cx-page-layout.ProductDetailsPageTemplate > cx-page-slot.Summary {
+    padding-inline: 0 !important;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1171.98px) {
+  html
+    cx-storefront:is(
+      .ProductListPageTemplate,
+      .ProductGridPageTemplate,
+      .SearchResultsListPageTemplate,
+      .SearchResultsGridPageTemplate
+    )
+    cx-page-slot.BottomHeaderSlot
+    cx-breadcrumb,
+  main cx-page-layout.ProductDetailsPageTemplate > cx-page-slot.Summary {
+    padding-inline: 16px !important;
+  }
+}
+
+// Minha conta (Meu sócio-torcedor, pedidos, endereços...): o layout do Spartacus tinha 24px de
+// recuo em qualquer largura; agora na borda do conteúdo (16px abaixo de 1172px)
+cx-page-layout.AccountPageTemplate > cx-page-slot.BodyContent {
+  padding-inline: 0 !important;
+}
+
+@media (max-width: 1171.98px) {
+  cx-page-layout.AccountPageTemplate > cx-page-slot.BodyContent {
+    padding-inline: 16px !important;
+  }
+}
