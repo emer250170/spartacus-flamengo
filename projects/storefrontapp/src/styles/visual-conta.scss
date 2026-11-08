@@ -2630,9 +2630,14 @@ html.fla-login cx-global-message .alert-danger {
 
   // detalhe: o bloco do Estúdio logo depois do cabeçalho
   &:has(.fao-head) {
+    // largura toda da coluna (08/11): a partir de ~1700px o bloco do Estúdio ficava com a largura do
+    // conteúdo e centrado (50px de recuo de cada lado), fora da linha do cabeçalho e de Entrega/Resumo
     > fla-account-order > .fao-me,
     > fla-account-order > .fao-tl {
       order: 2;
+      align-self: stretch;
+      box-sizing: border-box;
+      width: 100%;
     }
 
     // pedido com camiseta do Estúdio: o cancelamento é o do Estúdio (fala com a estamparia); "Cancelar
