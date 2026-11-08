@@ -41,6 +41,19 @@ public interface SeatHoldService
 	 */
 	void revertSale(AbstractOrderModel order);
 
+	/**
+	 * Prazo da reserva da poltrona para este carrinho (08/11): o vencimento quando a reserva é dele (ou do
+	 * mesmo torcedor) e ainda vale; null quando venceu, foi liberada ou é de outra pessoa.
+	 */
+	java.util.Date activeHoldExpiry(ProductModel seat, AbstractOrderModel cart);
+
+	/**
+	 * Reserva vencida trava o pedido (08/11, chave flamengo.matchday.reservaVencida.bloqueia, padrão true):
+	 * a poltrona fica no carrinho, a validação não a reserva de novo em silêncio e o fechamento é recusado até o
+	 * torcedor retirá-la e reservar outra vez. false = comportamento anterior (reserva de novo se estiver livre).
+	 */
+	boolean expiredHoldBlocks();
+
 	/** Solta as reservas vencidas; devolve quantas. */
 	int releaseExpired();
 

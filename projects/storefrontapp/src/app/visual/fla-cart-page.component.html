@@ -1,6 +1,14 @@
 <div class="fla-cp" *ngIf="view$ | async as v">
   <section class="fla-co-box fla-cp-list" aria-labelledby="fla-cp-title">
     <h1 id="fla-cp-title" class="fla-co-title">{{ 'cp.title' | flaT }}</h1>
+    <!-- reserva de poltrona vencida (08/11): não dá para pagar; retirar e reservar de novo -->
+    <div class="fla-hold-vencida" *ngIf="v.reservaVencida" role="alert">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M12 3l10 18H2z" /><path d="M12 10v5M12 18v.5" /></svg>
+      <div>
+        <strong>{{ 'cp.holdExpiredTitle' | flaT }}</strong>
+        <span>{{ 'cp.holdExpiredMsg' | flaT }}</span>
+      </div>
+    </div>
     <div class="fla-cp-head" aria-hidden="true">
       <span>{{ 'cp.product' | flaT }}</span>
       <span class="fla-cp-r">{{ 'cp.value' | flaT }}</span>
@@ -27,6 +35,13 @@
             <span class="fla-cp-details" *ngIf="e.details">{{ e.details }}</span>
             <span class="fla-cp-pers" *ngIf="e.personalization">{{ 'pz.cartLine' | flaT: { v: e.personalization } }}</span>
             <span class="fla-cp-warn" *ngIf="e.seat && v.holdLeft">{{ 'cp.hold' | flaT: { t: v.holdLeft } }}</span>
+            <ng-container *ngIf="e.reservaVencida">
+              <span class="fla-me-alerta">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M12 3l10 18H2z" /><path d="M12 10v5M12 18v.5" /></svg>
+                {{ 'cp.holdExpired' | flaT }}
+              </span>
+              <button type="button" class="fla-hold-retirar" [attr.aria-label]="'cp.removeSeatOf' | flaT: { name: e.name }" (click)="remove(e)">{{ 'cp.removeSeat' | flaT }}</button>
+            </ng-container>
             <ng-container *ngIf="e.estudio as me">
               <span class="fla-me-prazo" [class.urgente]="me.urgente">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
@@ -97,7 +112,7 @@
     <div class="fla-cp-line fla-cp-discount" *ngIf="v.discount"><span>{{ v.discountLabel }}</span><span>− {{ v.discount }}</span></div>
     <div class="fla-cp-line"><span>{{ 'cp.shipping' | flaT }}</span><span>{{ 'cp.shippingLater' | flaT }}</span></div>
     <div class="fla-cp-line fla-cp-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ v.total }}</span></div>
-    <a *ngIf="!v.bloqueio; else travado" class="fla-co-primary" [routerLink]="{ cxRoute: 'checkout' } | cxUrl">
+    <a *ngIf="!v.bloqueio && !v.reservaVencida; else travado" class="fla-co-primary" [routerLink]="{ cxRoute: 'checkout' } | cxUrl">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
         <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
       </svg>
@@ -105,7 +120,7 @@
     </a>
     <ng-template #travado>
       <button type="button" class="fla-co-primary" disabled aria-describedby="fla-me-bloqueio">{{ 'cd.checkout' | flaT }}</button>
-      <p class="fla-me-bloqueio" id="fla-me-bloqueio" role="alert">{{ 'me.c.bloqueio' | flaT }}</p>
+      <p class="fla-me-bloqueio" id="fla-me-bloqueio" role="alert">{{ (v.reservaVencida ? 'cp.holdExpiredBlock' : 'me.c.bloqueio') | flaT }}</p>
     </ng-template>
     <a class="fla-co-secondary" routerLink="/">{{ 'cd.continue' | flaT }}</a>
   </aside>

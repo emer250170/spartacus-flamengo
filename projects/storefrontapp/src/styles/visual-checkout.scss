@@ -2120,6 +2120,61 @@ a.fla-oc-back {
   font-weight: 700;
 }
 
+// reserva de poltrona vencida (08/11): aviso no topo do carrinho e "Retirar poltrona" na linha
+.fla-hold-vencida {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #d70000;
+  border-radius: 4px;
+  background: #fdecec;
+  color: #111;
+  font-size: 15px;
+
+  svg {
+    flex: none;
+    margin-top: 2px;
+    color: #b00000;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  strong {
+    font-size: 16px;
+  }
+}
+
+.fla-hold-retirar {
+  align-self: flex-start;
+  min-height: 40px;
+  margin-top: 4px;
+  padding: 0 14px;
+  border: 1px solid #111;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: #111;
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #d70000;
+    outline-offset: 2px;
+  }
+}
+
 .fla-me-bloqueio {
   margin: 8px 0 0;
   color: #b00000;

@@ -31,9 +31,18 @@ public class SeatHoldPlaceOrderMethodHook implements CommercePlaceOrderMethodHoo
 		{
 			return;
 		}
+		final boolean bloqueia = seatHoldService.expiredHoldBlocks();
 		for (final AbstractOrderEntryModel entry : cart.getEntries())
 		{
 			final ProductModel product = entry.getProduct();
+			// 08/11: reserva vencida não é refeita aqui; o torcedor retira a poltrona e reserva de novo
+			if (bloqueia && product != null && seatHoldService.isSeat(product)
+					&& seatHoldService.activeHoldExpiry(product, cart) == null)
+			{
+				LOG.info("Pedido recusado no carrinho {}: reserva da poltrona {} vencida", cart.getCode(), product.getCode());
+				throw new InvalidCartException("A reserva da poltrona " + product.getCode()
+						+ " venceu e não é possível pagar com ela. Retire a poltrona do carrinho e faça uma nova reserva.");
+			}
 			if (product != null && seatHoldService.isSeat(product) && !seatHoldService.hold(product, cart, false))
 			{
 				throw new InvalidCartException("A poltrona " + product.getCode()

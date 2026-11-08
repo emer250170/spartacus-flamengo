@@ -49,6 +49,9 @@ public class DefaultSeatHoldService implements SeatHoldService
 
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultSeatHoldService.class);
 
+	/** Reserva vencida trava o pedido (08/11) */
+	public static final String EXPIRED_BLOCKS = "flamengo.matchday.reservaVencida.bloqueia";
+
 	private static final String FIND_BY_PRODUCT = "SELECT {" + SeatHoldModel.PK + "} FROM {" + SeatHoldModel._TYPECODE
 			+ "} WHERE {" + SeatHoldModel.PRODUCT + "} = ?product";
 	private static final String FIND_EXPIRED = "SELECT {" + SeatHoldModel.PK + "} FROM {" + SeatHoldModel._TYPECODE
@@ -286,6 +289,28 @@ public class DefaultSeatHoldService implements SeatHoldService
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public Date activeHoldExpiry(final ProductModel seat, final AbstractOrderModel cart)
+	{
+		if (seat == null || cart == null)
+		{
+			return null;
+		}
+		final SeatHoldModel existing = findHold(seat);
+		if (existing == null || !isOwner(existing, cart) || existing.getExpiresAt() == null
+				|| !existing.getExpiresAt().after(new Date()))
+		{
+			return null;
+		}
+		return existing.getExpiresAt();
+	}
+
+	@Override
+	public boolean expiredHoldBlocks()
+	{
+		return configurationService.getConfiguration().getBoolean(EXPIRED_BLOCKS, true);
 	}
 
 	@Override

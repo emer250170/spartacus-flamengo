@@ -1,12 +1,15 @@
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { OccEndpointsService } from '@spartacus/core';
 import {
   ActiveCartFacade,
   Cart,
   CartVoucherFacade,
   OrderEntry,
 } from '@spartacus/cart/base/root';
-import { Observable, combineLatest, interval, of } from 'rxjs';
+import { Observable, combineLatest, interval, of, timer } from 'rxjs';
 import {
+  catchError,
   distinctUntilChanged,
   map,
   shareReplay,
@@ -50,6 +53,17 @@ export interface DrawerEntry {
   addOn?: boolean;
   /** Camiseta do Mengo Estúdio (estampa + configuração) */
   estudio?: DrawerEstudio;
+  /** Poltrona com a reserva vencida (08/11): não dá para pagar; o torcedor retira e reserva de novo */
+  reservaVencida?: boolean;
+}
+
+/** Situação das reservas de poltrona do carrinho (GET …/poltronas-reservadas) */
+interface ReservasCarrinho {
+  agora: number;
+  bloqueia: boolean;
+  poltronas: { codigo: string; expiraEm: number | null; vencida: boolean }[];
+  /** Hora do aparelho em que a resposta chegou (para contar o prazo sem depender do relógio dele) */
+  recebidaEm: number;
 }
 
 /** Linha do Mengo Estúdio no carrinho (08/11, PR 3) */
@@ -89,6 +103,8 @@ export interface DrawerView {
   bloqueio?: boolean;
   /** Há camiseta do Mengo Estúdio no carrinho */
   temEstudio?: boolean;
+  /** Há poltrona com a reserva vencida: "Finalizar compra" fica travado até ela sair do carrinho */
+  reservaVencida?: boolean;
 }
 
 /**
@@ -160,6 +176,23 @@ export class FlaCartViewService {
       ),
       startWith([undefined, undefined] as [MeCarrinho | undefined, MeCatalogo | undefined])
     );
+    // reservas de poltrona (08/11): só busca com poltrona no carrinho do torcedor logado; relê a cada 30 s
+    const res$ = this.activeCart.getActive().pipe(
+      map((cart) =>
+        cart?.code &&
+        cart.user?.uid !== 'anonymous' &&
+        (cart.entries ?? []).some((e) => !!this.matchday.matchCodeOfSeat(e.product?.code ?? ''))
+          ? `${cart.code}|${(cart.entries ?? []).map((e) => e.product?.code).join(',')}`
+          : ''
+      ),
+      distinctUntilChanged(),
+      switchMap((key) =>
+        key
+          ? timer(0, 30_000).pipe(switchMap(() => this.reservas(key.split('|')[0])))
+          : of(null)
+      ),
+      startWith(null as ReservasCarrinho | null)
+    );
     this.view$ = combineLatest([
       this.activeCart.getActive(),
       member$,
@@ -167,8 +200,9 @@ export class FlaCartViewService {
       this.i18n.lang$,
       pers$,
       est$,
+      res$,
     ]).pipe(
-      map(([cart, plan, , , pers, est]) => this.toView(cart, plan, pers, est)),
+      map(([cart, plan, , , pers, est, res]) => this.toView(cart, plan, pers, est, res)),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
@@ -190,7 +224,40 @@ export class FlaCartViewService {
   }
 
   remove(e: DrawerEntry): void {
+    // poltrona com a reserva vencida: o contador da jornada sai junto (sem o aviso de "poltrona perdida")
+    if (e.seat && this.matchday.readHold()?.code === e.entry.product?.code) {
+      this.matchday.clearHold();
+    }
     this.activeCart.removeEntry(e.entry);
+  }
+
+  protected readonly http = inject(HttpClient);
+  protected readonly occ = inject(OccEndpointsService);
+
+  protected reservas(cartCode: string): Observable<ReservasCarrinho | null> {
+    return this.http
+      .get<Omit<ReservasCarrinho, 'recebidaEm'>>(
+        `${this.occ.getBaseUrl()}/users/current/carts/${encodeURIComponent(cartCode)}/poltronas-reservadas`
+      )
+      .pipe(
+        map((r) => ({ ...r, recebidaEm: Date.now() })),
+        catchError(() => of(null))
+      );
+  }
+
+  /** Poltronas cuja reserva venceu (pela resposta do servidor e pelo prazo que corre desde então) */
+  protected vencidas(res: ReservasCarrinho | null): Set<string> {
+    const out = new Set<string>();
+    if (!res?.bloqueia) {
+      return out;
+    }
+    const agora = res.agora + (Date.now() - res.recebidaEm);
+    for (const p of res.poltronas ?? []) {
+      if (p.vencida || (p.expiraEm !== null && p.expiraEm <= agora)) {
+        out.add(p.codigo);
+      }
+    }
+    return out;
   }
 
   applyCoupon(input: HTMLInputElement): void {
@@ -209,8 +276,10 @@ export class FlaCartViewService {
     cart: Cart,
     plan: string | undefined,
     pers: PersonalizationInfo[] = [],
-    est: [MeCarrinho | undefined, MeCatalogo | undefined] = [undefined, undefined]
+    est: [MeCarrinho | undefined, MeCatalogo | undefined] = [undefined, undefined],
+    res: ReservasCarrinho | null = null
   ): DrawerView | null {
+    const vencidas = this.vencidas(res);
     const entries = cart?.entries ?? [];
     if (!entries.length) {
       return null;
@@ -237,7 +306,12 @@ export class FlaCartViewService {
         personalization: this.personalizationOf(entry, pers),
         addOn: PERSONALIZATION_ADDON.test(entry.product?.code ?? ''),
       };
-    }).map((d) => this.withEstudio(d, est));
+    })
+      .map((d) => this.withEstudio(d, est))
+      .map((d) =>
+        d.seat && vencidas.has(d.entry.product?.code ?? '') ? { ...d, reservaVencida: true } : d
+      );
+    const reservaVencida = items.some((i) => i.reservaVencida);
     // subTotal = itens já com o desconto de cada item; orderDiscounts = desconto no pedido
     const orderDiscount = cart.orderDiscounts?.value ?? 0;
     const total = (cart.subTotal?.value ?? 0) - orderDiscount;
@@ -253,13 +327,14 @@ export class FlaCartViewService {
       memberPlan: discount > 0.004 ? plan : undefined,
       delivery: delivery !== undefined && delivery !== null ? money(delivery) : undefined,
       total: money(delivery ? total + delivery : total),
-      holdLeft: this.holdLeft(entries),
+      holdLeft: reservaVencida ? undefined : this.holdLeft(entries),
       vouchers: (cart.appliedVouchers ?? []).map((v) => ({
         code: v.code ?? v.voucherCode ?? '',
         name: v.name ?? v.voucherCode ?? v.code ?? '',
       })),
       bloqueio: items.some((i) => i.estudio?.encerrada),
       temEstudio: items.some((i) => !!i.estudio),
+      reservaVencida,
     };
   }
 

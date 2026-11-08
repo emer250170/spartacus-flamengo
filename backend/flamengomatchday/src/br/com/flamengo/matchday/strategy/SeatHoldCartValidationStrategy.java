@@ -24,7 +24,11 @@ public class SeatHoldCartValidationStrategy extends DefaultB2BCartValidationStra
 	protected CommerceCartModification validateCartEntry(final CartModel cartModel, final CartEntryModel cartEntryModel)
 	{
 		final ProductModel product = cartEntryModel.getProduct();
-		if (product != null && seatHoldService.isSeat(product) && seatHoldService.hold(product, cartModel, false))
+		// 08/11: com a reserva vencida a poltrona fica no carrinho como está (sem reservar de novo em silêncio);
+		// o carrinho avisa e o fechamento do pedido recusa até o torcedor retirá-la
+		final boolean vencida = product != null && seatHoldService.isSeat(product) && seatHoldService.expiredHoldBlocks()
+				&& seatHoldService.activeHoldExpiry(product, cartModel) == null;
+		if (vencida || product != null && seatHoldService.isSeat(product) && seatHoldService.hold(product, cartModel, false))
 		{
 			final long quantity = cartEntryModel.getQuantity() == null ? 0L : cartEntryModel.getQuantity().longValue();
 			final CommerceCartModification modification = new CommerceCartModification();

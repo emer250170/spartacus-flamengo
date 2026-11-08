@@ -121,6 +121,13 @@
 	</bean>
 
 	<!-- Mengo Estúdio no carrinho (08/11, PR 3): /users/{userId}/carts/{cartId}/mengo-estudio -->
+	<!-- Situação das reservas de poltrona do carrinho (08/11): aviso de reserva vencida -->
+	<bean id="flamengoSeatHoldStatusController" class="br.com.flamengo.matchday.occ.SeatHoldStatusController">
+		<property name="seatHoldService" ref="seatHoldService"/>
+		<property name="commerceCartService" ref="commerceCartService"/>
+		<property name="baseSiteService" ref="baseSiteService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
 	<bean id="flamengoMengoEstudioCartController" class="br.com.flamengo.matchday.occ.MengoEstudioCartController">
 		<property name="mengoEstudioService" ref="mengoEstudioService"/>
 		<property name="mengoEstudioCartService" ref="mengoEstudioCartService"/>

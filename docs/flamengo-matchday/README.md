@@ -204,6 +204,18 @@ Para remover: tirar a linha do `localextensions.xml`, `ant all`, reiniciar e
 desativar o gatilho do `seatHoldExpiryCronJob`; a reserva volta a acontecer só na
 conclusão do pedido.
 
+### Reserva vencida trava o pagamento (08/11)
+
+- Com a reserva vencida (passou o prazo de `flamengomatchday.seathold.minutes` ou a rotina já a liberou), a poltrona
+  fica no carrinho, mas não dá para pagar: a validação do carrinho não a reserva de novo em silêncio e o fechamento do
+  pedido recusa ("A reserva da poltrona … venceu … retire a poltrona do carrinho e faça uma nova reserva").
+- `GET /users/current/carts/{cartId}/poltronas-reservadas` → `{agora, bloqueia, poltronas:[{codigo, expiraEm, vencida}]}`
+  (`SeatHoldStatusController`; só o carrinho do torcedor logado).
+- Loja: carrinho e box lateral mostram "A reserva da sua poltrona venceu", "Reserva vencida" na linha, o botão
+  "Retirar poltrona" e travam "Finalizar compra"; o contador "Poltrona reservada por mais…" some.
+- Chave: `flamengo.matchday.reservaVencida.bloqueia` (padrão `true`; `false` = como antes, a poltrona é reservada de
+  novo se ainda estiver livre).
+
 ## Tela "Jogos" no Backoffice (cadastro de jogo sem script)
 
 Menu **Matchday Flamengo › Jogos** (Backoffice em português: Configurações › Idioma › UI Locale = Portuguese).
