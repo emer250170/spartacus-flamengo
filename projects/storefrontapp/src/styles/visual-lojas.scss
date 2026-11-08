@@ -15,8 +15,9 @@ $fla-sf-pin-white: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/
   margin: 0;
   color: $fla-sf-ink;
   font-family: var(--fla-fonte-titulo, inherit);
+  letter-spacing: 0.04em;
   font-size: $size;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.15;
   text-transform: uppercase;
 }

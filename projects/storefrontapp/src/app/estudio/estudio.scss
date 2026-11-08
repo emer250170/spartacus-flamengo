@@ -17,7 +17,8 @@
 }
 .me-t {
   font-family: var(--fla-fonte-titulo);
-  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-weight: 600;
   text-transform: uppercase;
   margin: 0;
 }
@@ -49,6 +50,7 @@
     text-decoration: none;
     strong {
       font-family: var(--fla-fonte-titulo);
+      letter-spacing: 0.04em;
       font-size: 17px;
       text-transform: uppercase;
     }

@@ -78,8 +78,9 @@ cx-page-slot.Summary {
 .fla-pdp-name {
   margin: 0;
   font-family: var(--fla-fonte-titulo) !important;
+  letter-spacing: 0.04em !important;
   font-size: 30px;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   line-height: 1.1;
   text-transform: uppercase !important;
   color: var(--fla-preto, #1b1b1b);
@@ -93,6 +94,7 @@ cx-page-slot.Summary {
 
   strong {
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 26px;
     color: var(--fla-vermelho, #d70000);
   }
@@ -192,8 +194,9 @@ cx-storefront.ProductDetailsPageTemplate
 .fla-pz-title {
   margin: 0;
   font-family: var(--fla-fonte-titulo) !important;
+  letter-spacing: 0.04em !important;
   font-size: 18px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   text-transform: uppercase;
 }
 

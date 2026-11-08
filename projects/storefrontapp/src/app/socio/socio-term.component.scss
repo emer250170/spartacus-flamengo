@@ -184,8 +184,9 @@
 .stp-title {
   margin: 0;
   font-family: var(--fla-fonte-titulo, inherit);
+  letter-spacing: 0.04em;
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -291,8 +292,9 @@
 
   strong {
     font-family: var(--fla-fonte-titulo, inherit);
+    letter-spacing: 0.04em;
     font-size: 20px;
-    font-weight: 800;
+    font-weight: 600;
     text-transform: uppercase;
   }
 

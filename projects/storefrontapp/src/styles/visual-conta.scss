@@ -218,8 +218,9 @@ html.fla-account main cx-page-layout.AccountPageTemplate {
   background: $fla-acc-red;
   color: #fff;
   font-family: var(--fla-fonte-titulo, inherit);
+  letter-spacing: 0.04em;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .fam-me-text {
@@ -322,7 +323,8 @@ html.fla-account
   .cx-wish-list-header,
   .cx-my-interests-header {
     font-family: var(--fla-fonte-titulo, inherit);
-    font-weight: 800;
+    letter-spacing: 0.04em;
+    font-weight: 600;
     text-transform: uppercase;
   }
 
@@ -657,8 +659,9 @@ html.fla-login main cx-page-layout.LoginPageTemplate {
       padding: 36px 36px 0;
       color: #fff;
       font-family: var(--fla-fonte-titulo, inherit);
+      letter-spacing: 0.04em;
       font-size: 24px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
@@ -687,8 +690,9 @@ html.fla-login main cx-page-layout.LoginPageTemplate {
 .flg-have {
   margin: 0;
   font-family: var(--fla-fonte-titulo, inherit);
+  letter-spacing: 0.04em;
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -914,8 +918,9 @@ html.fla-register main cx-page-layout.AccountPageTemplate {
 .frg-title {
   margin: 0;
   font-family: var(--fla-fonte-titulo, inherit);
+  letter-spacing: 0.04em;
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -1604,8 +1609,9 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
     &::before {
       content: 'Endereços de entrega';
       font-family: var(--fla-fonte-titulo, inherit);
+      letter-spacing: 0.04em;
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
@@ -1865,8 +1871,9 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
     .pref-header {
       margin: 0 0 4px;
       font-family: var(--fla-fonte-titulo, inherit);
+      letter-spacing: 0.04em;
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
