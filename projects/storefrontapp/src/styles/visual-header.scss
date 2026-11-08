@@ -196,9 +196,9 @@
     flex-wrap: nowrap !important;
   }
 
-  // telas de 992 a 1199 px: com o item Mengo Estúdio a faixa passava da tela e a página inteira rolava para o
+  // telas de 992 a 1279 px (até 1199 antes da largura nova, 08/11): com o item Mengo Estúdio a faixa passava da tela e a página inteira rolava para o
   // lado; menos espaço entre os itens mantém tudo numa linha, dentro das bordas do conteúdo
-  @media (max-width: 1199.98px) {
+  @media (max-width: 1279.98px) {
     header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul > li {
       padding: 0 4px !important;
     }
@@ -208,9 +208,25 @@
     }
   }
 
-  @media (max-width: 1023.98px) {
+  // 992 a 1119 px (08/11): com 64px de margem de cada lado (largura do site oficial) sobram ~850 a 960px e a
+  // faixa passava 84px da borda em 1024 (a página rolava para o lado). Itens mais juntos, setinha mais estreita e
+  // letra 13px: a faixa toda (Loja Oficial + 11 itens) cabe em ~840px.
+  @media (max-width: 1119.98px) {
     header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul > li {
-      padding: 0 2px !important;
+      padding: 0 1px !important;
+    }
+
+    header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul > li > button {
+      padding-left: 2px !important;
+      padding-right: 2px !important;
+      margin-left: 0 !important;
+    }
+
+    header cx-navigation-ui.flyout > nav > ul > li > cx-generic-link > a,
+    header cx-navigation-ui.flyout > nav > ul > li > span,
+    header cx-navigation-ui.flyout > nav > ul > li > button,
+    header .fla-store-home {
+      font-size: 13px !important;
     }
   }
 
