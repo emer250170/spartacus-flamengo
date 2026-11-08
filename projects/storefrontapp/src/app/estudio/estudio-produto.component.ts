@@ -289,7 +289,7 @@ export class EstudioProdutoComponent implements OnInit, OnDestroy {
   irTamanho(): void {
     this.erroTamanho = this.i18n.t('me.p.erroTamanho');
     this.tamanhoRef?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    (this.tamanhoRef?.nativeElement.querySelector('button') as HTMLElement | null)?.focus();
+    (this.tamanhoRef?.nativeElement.querySelector('.opcoes.tam button') as HTMLElement | null)?.focus();
     this.cd.markForCheck();
   }
 
