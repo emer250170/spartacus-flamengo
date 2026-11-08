@@ -219,7 +219,8 @@ function paragraphsOf(html: string): string[] {
           </ng-template>
         </div>
       </ng-container>
-      <ng-template #campTitle let-c let-s="s"><ng-container *ngFor="let l of c.lines; let last = last">{{ l }}<ng-container *ngIf="!last"><br /></ng-container></ng-container> <span>{{ s.accent }}</span></ng-template>
+      <!-- o espaço antes da palavra em vermelho vem da interpolação: o Angular tira o espaço solto do modelo -->
+      <ng-template #campTitle let-c let-s="s"><ng-container *ngFor="let l of c.lines; let last = last">{{ l }}<ng-container *ngIf="!last"><br /></ng-container>{{ last && l ? ' ' : '' }}</ng-container><span>{{ s.accent }}</span></ng-template>
       <ng-container *ngIf="slides.length > 1">
         <button type="button" class="fh-arrow is-prev" (click)="go(current - 1, slides.length)" [attr.aria-label]="'home.prev' | flaT">‹</button>
         <button type="button" class="fh-arrow is-next" (click)="go(current + 1, slides.length)" [attr.aria-label]="'home.next' | flaT">›</button>
