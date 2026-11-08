@@ -14,6 +14,14 @@
 #  O carrossel é o 1º componente do slot Section1 da home (desenhado pelo FlaHomeHeroComponent,
 #  no visual do mockup; no SmartEdit, clicar no destaque abre o carrossel e os banners).
 #  Staged e Online.
+#
+#  08/11: modelo "campanha" (foto recortada sobre o fundo rubro-negro). O carrossel passou a ter o
+#  FlaHomeHeroEstudio (Mengo Estúdio, no lugar do FlaHomeHeroManto3, que continua cadastrado) e o
+#  FlaHomeHeroColecao refeito (Manto Sagrado): scripts/home-campanhas.groovy. O conteúdo do banner campanha
+#  tem um parágrafo por campo ("Layout: campanha", "Selo: …", "Ao vivo: …" ou "Destaque: …", "Texto: …",
+#  "Botão: …", "Botão 2: texto | /link", "Nota: …", "Fundo: PALAVRA / PALAVRA", "Carimbo: linha / linha",
+#  "Etiqueta: linha / linha", "Listras: horizontais"); no título, "/" quebra a linha. Os valores abaixo
+#  são os de antes (para voltar).
 # =====================================================================
 
 $contentCatalog=electronics-spaContentCatalog

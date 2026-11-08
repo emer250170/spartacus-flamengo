@@ -70,6 +70,61 @@ interface HeroSlide {
   img?: string;
   /** link de produto: nome, preço e parcelas */
   product?: FlaHomeProduct;
+  /** banner no modelo "campanha" (foto recortada sobre o fundo rubro-negro) */
+  camp?: HeroCampaign;
+}
+
+/**
+ * Modelo "campanha" (08/11, banners do Mengo Estúdio e do Manto Sagrado). Vem do conteúdo do banner no
+ * CMS, um parágrafo por campo no formato "Campo: valor" (o parágrafo "Layout: campanha" liga o modelo):
+ * Selo, Destaque (ou "Ao vivo", com o ponto pulsando), Texto, Botão, Botão 2 ("texto | /link"), Nota,
+ * Fundo ("PALAVRA / PALAVRA"), Carimbo ("linha / linha"), Etiqueta ("linha / linha") e Listras
+ * ("horizontais" ou "diagonais"). No título (headline), "/" quebra a linha; a última palavra sai em vermelho.
+ */
+export interface HeroCampaign {
+  /** linhas do título antes da palavra em vermelho */
+  lines: string[];
+  live?: string;
+  highlight?: string;
+  cta?: string;
+  cta2?: { label: string; link: string };
+  note?: string;
+  words: string[];
+  seal: string[];
+  tag: string[];
+  stripes: 'diagonal' | 'horizontal';
+}
+
+/** Tira acentos e caixa (para reconhecer o nome do campo) */
+function campoKey(t: string): string {
+  return t
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+/** "a / b" em partes */
+function partes(v: string | undefined): string[] {
+  return (v ?? '')
+    .split('/')
+    .map((t) => t.trim())
+    .filter((t) => !!t);
+}
+
+/** Campos "Campo: valor" do conteúdo do banner; undefined se não for o modelo campanha */
+export function campaignOf(paragraphs: string[]): { fields: Record<string, string>; free: string[] } | undefined {
+  const fields: Record<string, string> = {};
+  const free: string[] = [];
+  for (const p of paragraphs) {
+    const m = /^([^:|]{2,20}):\s*(.*)$/.exec(p);
+    if (m) {
+      fields[campoKey(m[1])] = m[2].trim();
+    } else {
+      free.push(p);
+    }
+  }
+  return campoKey(fields['layout'] ?? '') === 'campanha' ? { fields, free } : undefined;
 }
 
 /** Código do produto num link da loja (/product/<código> ou .../p/<código>) */
@@ -113,6 +168,36 @@ function paragraphsOf(html: string): string[] {
       <ng-container *ngFor="let s of slides; let i = index">
         <div class="fh-slide" [class.is-active]="i === current" [attr.aria-hidden]="i !== current"
           role="group" [attr.aria-roledescription]="'home.slide' | flaT" [attr.aria-label]="(i + 1) + ' / ' + slides.length">
+          <div class="fhc" *ngIf="s.camp as c; else promo" [class.is-horizontal]="c.stripes === 'horizontal'">
+            <div class="fhc-in">
+              <div class="fhc-txt">
+                <div class="fhc-kick" *ngIf="s.badge || c.live || c.highlight">
+                  <span class="fhc-pill" *ngIf="s.badge">{{ s.badge }}</span>
+                  <span class="fhc-live" *ngIf="c.live"><i aria-hidden="true"></i>{{ c.live }}</span>
+                  <span class="fhc-hl" *ngIf="c.highlight">{{ c.highlight }}</span>
+                </div>
+                <h1 *ngIf="i === 0; else campH2" class="fhc-t"><ng-container *ngTemplateOutlet="campTitle; context: { $implicit: c, s: s }"></ng-container></h1>
+                <ng-template #campH2><h2 class="fhc-t"><ng-container *ngTemplateOutlet="campTitle; context: { $implicit: c, s: s }"></ng-container></h2></ng-template>
+                <p class="fhc-lead" *ngIf="s.text">{{ s.text }}</p>
+                <div class="fhc-ctas">
+                  <a class="fhc-btn" [routerLink]="s.link" [attr.tabindex]="i === current ? null : -1">
+                    {{ c.cta || ('home.buyNow' | flaT) }}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                  </a>
+                  <a class="fhc-btn2" *ngIf="c.cta2 as c2" [routerLink]="c2.link" [attr.tabindex]="i === current ? null : -1">{{ c2.label }}</a>
+                </div>
+                <p class="fhc-note" *ngIf="c.note">{{ c.note }}</p>
+              </div>
+              <div class="fhc-vis" aria-hidden="true">
+                <span class="fhc-word" *ngIf="c.words[0]">{{ c.words[0] }}</span>
+                <span class="fhc-word is-b" *ngIf="c.words[1]">{{ c.words[1] }}</span>
+                <img *ngIf="s.img" class="fhc-img" [src]="s.img" alt="" />
+                <span class="fhc-seal" *ngIf="c.seal.length"><span>{{ c.seal[0] }}<b *ngIf="c.seal[1]">{{ c.seal[1] }}</b></span></span>
+                <span class="fhc-tag" *ngIf="c.tag.length"><span>{{ c.tag[0] }}</span><b *ngIf="c.tag[1]">{{ c.tag[1] }}</b></span>
+              </div>
+            </div>
+          </div>
+          <ng-template #promo>
           <div class="fh-promo" [class.is-stacked]="!s.product">
             <div class="fh-promo-text">
               <span class="fh-badge" *ngIf="s.badge">{{ s.badge }}</span>
@@ -131,8 +216,10 @@ function paragraphsOf(html: string): string[] {
             </div>
             <img *ngIf="s.img" class="fh-promo-img" [src]="s.img" alt="" />
           </div>
+          </ng-template>
         </div>
       </ng-container>
+      <ng-template #campTitle let-c let-s="s"><ng-container *ngFor="let l of c.lines; let last = last">{{ l }}<ng-container *ngIf="!last"><br /></ng-container></ng-container> <span>{{ s.accent }}</span></ng-template>
       <ng-container *ngIf="slides.length > 1">
         <button type="button" class="fh-arrow is-prev" (click)="go(current - 1, slides.length)" [attr.aria-label]="'home.prev' | flaT">‹</button>
         <button type="button" class="fh-arrow is-next" (click)="go(current + 1, slides.length)" [attr.aria-label]="'home.next' | flaT">›</button>
@@ -212,9 +299,41 @@ export class FlaHomeHeroComponent implements OnInit, OnDestroy {
   protected fromBanner(b: any): Observable<HeroSlide | null> {
     const words = String(b.headline ?? '').trim().split(/\s+/).filter((w) => !!w);
     const accent = words.length > 1 ? (words.pop() as string) : '';
-    const [badge = '', ...rest] = paragraphsOf(b.content ?? '');
+    const paragraphs = paragraphsOf(b.content ?? '');
     const link: string = b.urlLink || '/';
     const media = b.media?.url ?? b.media?.desktop?.url ?? b.media?.widescreen?.url;
+    const campaign = campaignOf(paragraphs);
+    if (campaign) {
+      const f = campaign.fields;
+      // título: "/" quebra a linha; a última palavra em vermelho
+      const lines = String(b.headline ?? '')
+        .split('/')
+        .map((l) => l.trim().split(/\s+/).filter((w) => !!w));
+      const last = lines[lines.length - 1] ?? [];
+      const accentWord = last.length ? (last.pop() as string) : '';
+      const [cta2Label, cta2Link] = (f['botao 2'] ?? '').split('|').map((t) => t.trim());
+      return of({
+        badge: f['selo'] ?? '',
+        title: lines.map((l) => l.join(' ')).filter((l) => !!l).join(' '),
+        accent: accentWord,
+        text: f['texto'] ?? campaign.free.join(' '),
+        link,
+        img: this.home.mediaUrl(media),
+        camp: {
+          lines: lines.map((l) => l.join(' ')),
+          live: f['ao vivo'] || undefined,
+          highlight: f['destaque'] || undefined,
+          cta: f['botao'] || undefined,
+          cta2: cta2Label && cta2Link ? { label: cta2Label, link: cta2Link } : undefined,
+          note: f['nota'] || undefined,
+          words: partes(f['fundo']).slice(0, 2),
+          seal: partes(f['carimbo']).slice(0, 2),
+          tag: partes(f['etiqueta']).slice(0, 2),
+          stripes: /horiz/i.test(f['listras'] ?? '') ? 'horizontal' : 'diagonal',
+        },
+      });
+    }
+    const [badge = '', ...rest] = paragraphs;
     const base: HeroSlide = {
       badge,
       title: words.join(' '),
