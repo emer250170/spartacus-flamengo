@@ -457,9 +457,9 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'cdl.person': 'Dados pessoais',
     'cdl.change': 'Alterar',
     'cdl.digitalMixed':
-      'Ingresso, estacionamento e comida são digitais: ficam em Minha conta e não têm frete. A entrega abaixo vale para os outros produtos.',
+      'Ingresso, estacionamento, comida, plano e experiências são digitais: ficam em Minha conta e não têm frete. A entrega abaixo vale para os outros produtos.',
     'cdl.digitalOnly':
-      'Ingresso, estacionamento e comida são digitais: ficam em Minha conta e não têm frete.',
+      'Ingresso, estacionamento, comida, plano e experiências são digitais: ficam em Minha conta e não têm frete.',
     'cdl.how': 'Como receber',
     'cdl.home': 'Receber em casa',
     'cdl.homeFrom': 'A partir de R$ 19,90',
@@ -2132,9 +2132,9 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'cdl.person': 'Personal details',
     'cdl.change': 'Change',
     'cdl.digitalMixed':
-      'Tickets, parking and food are digital: they stay in My account with no shipping. The delivery below applies to the other products.',
+      'Tickets, parking, food, plans and experiences are digital: they stay in My account with no shipping. The delivery below applies to the other products.',
     'cdl.digitalOnly':
-      'Tickets, parking and food are digital: they stay in My account with no shipping.',
+      'Tickets, parking, food, plans and experiences are digital: they stay in My account with no shipping.',
     'cdl.how': 'How to receive',
     'cdl.home': 'Home delivery',
     'cdl.homeFrom': 'From R$ 19.90',
