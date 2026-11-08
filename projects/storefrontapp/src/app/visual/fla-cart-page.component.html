@@ -10,14 +10,34 @@
     <ul class="fla-cp-items" [class.is-busy]="loading$ | async">
       <li class="fla-cp-item" *ngFor="let e of v.entries; trackBy: trackEntry">
         <div class="fla-cp-product">
-          <a class="fla-cp-thumb" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl" tabindex="-1" aria-hidden="true">
-            <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="''"></cx-media>
+          <a *ngIf="e.estudio as me; else stdThumb" class="fla-cp-thumb fla-cp-thumb-me" [routerLink]="me.link" [queryParams]="me.query" tabindex="-1" aria-hidden="true">
+            <fla-me-camiseta [estampa]="me.estampa" [cor]="me.cor"></fla-me-camiseta>
           </a>
+          <ng-template #stdThumb>
+            <a class="fla-cp-thumb" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl" tabindex="-1" aria-hidden="true">
+              <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="''"></cx-media>
+            </a>
+          </ng-template>
           <div class="fla-cp-info">
-            <a class="fla-cp-name" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl">{{ e.name }}</a>
+            <span class="fla-me-selo" *ngIf="e.estudio">{{ 'me.nome' | flaT }}</span>
+            <a *ngIf="e.estudio as me; else stdName" class="fla-cp-name" [routerLink]="me.link" [queryParams]="me.query">{{ e.name }}</a>
+            <ng-template #stdName>
+              <a class="fla-cp-name" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl">{{ e.name }}</a>
+            </ng-template>
             <span class="fla-cp-details" *ngIf="e.details">{{ e.details }}</span>
             <span class="fla-cp-pers" *ngIf="e.personalization">{{ 'pz.cartLine' | flaT: { v: e.personalization } }}</span>
             <span class="fla-cp-warn" *ngIf="e.seat && v.holdLeft">{{ 'cp.hold' | flaT: { t: v.holdLeft } }}</span>
+            <ng-container *ngIf="e.estudio as me">
+              <span class="fla-me-prazo" [class.urgente]="me.urgente">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                {{ me.prazo }}
+              </span>
+              <span class="fla-me-alerta" *ngIf="me.encerrada" role="alert">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M12 3l10 18H2z" /><path d="M12 10v5M12 18v.5" /></svg>
+                {{ 'me.c.saiu' | flaT }}
+              </span>
+              <a class="fla-me-editar" [routerLink]="me.link" [queryParams]="me.query" [attr.aria-label]="'me.c.editarDe' | flaT: { n: e.name }">{{ 'me.c.editar' | flaT }}</a>
+            </ng-container>
           </div>
         </div>
         <div class="fla-cp-price fla-cp-r">
@@ -48,6 +68,7 @@
         </div>
       </li>
     </ul>
+    <p class="fla-me-nota" *ngIf="v.temEstudio">{{ 'me.c.nota' | flaT }}</p>
   </section>
 
   <aside class="fla-co-box fla-cp-summary" aria-labelledby="fla-cp-summary-title">
@@ -76,12 +97,16 @@
     <div class="fla-cp-line fla-cp-discount" *ngIf="v.discount"><span>{{ v.discountLabel }}</span><span>− {{ v.discount }}</span></div>
     <div class="fla-cp-line"><span>{{ 'cp.shipping' | flaT }}</span><span>{{ 'cp.shippingLater' | flaT }}</span></div>
     <div class="fla-cp-line fla-cp-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ v.total }}</span></div>
-    <a class="fla-co-primary" [routerLink]="{ cxRoute: 'checkout' } | cxUrl">
+    <a *ngIf="!v.bloqueio; else travado" class="fla-co-primary" [routerLink]="{ cxRoute: 'checkout' } | cxUrl">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
         <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
       </svg>
       {{ 'cd.checkout' | flaT }}
     </a>
+    <ng-template #travado>
+      <button type="button" class="fla-co-primary" disabled aria-describedby="fla-me-bloqueio">{{ 'cd.checkout' | flaT }}</button>
+      <p class="fla-me-bloqueio" id="fla-me-bloqueio" role="alert">{{ 'me.c.bloqueio' | flaT }}</p>
+    </ng-template>
     <a class="fla-co-secondary" routerLink="/">{{ 'cd.continue' | flaT }}</a>
   </aside>
 </div>

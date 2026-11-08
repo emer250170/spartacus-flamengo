@@ -119,4 +119,11 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Mengo Estúdio no carrinho (08/11, PR 3): /users/{userId}/carts/{cartId}/mengo-estudio -->
+	<bean id="flamengoMengoEstudioCartController" class="br.com.flamengo.matchday.occ.MengoEstudioCartController">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="mengoEstudioCartService" ref="mengoEstudioCartService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 </beans>

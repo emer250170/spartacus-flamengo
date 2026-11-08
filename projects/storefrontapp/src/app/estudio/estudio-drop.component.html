@@ -73,21 +73,21 @@
           <button *ngFor="let t of g.tabs; let j = index; trackBy: tb" type="button" role="tab" [attr.aria-selected]="j === g.i" (click)="ir(g.code, j)">{{ t.nome }}</button>
         </div>
         <div class="linha-cards" role="tabpanel">
-          <div class="destaque">
+          <a class="destaque" [routerLink]="['/mengo-estudio/estampa', g.e.code]">
             <fla-me-arte [estampa]="g.e" [semNome]="true"></fla-me-arte>
             <span *ngIf="g.sit !== 'A_VENDA'" class="me-badge" [ngClass]="g.sit">{{ 'me.sit.' + g.sit | flaT }}</span>
             <div class="legenda">
               <strong class="me-t">{{ g.e.nome }}</strong>
               <span class="me-prazo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ g.prazo }}</span>
             </div>
-          </div>
-          <div *ngFor="let v of g.versoes; trackBy: tb" class="versao">
+          </a>
+          <a *ngFor="let v of g.versoes; trackBy: tb" class="versao" [routerLink]="['/mengo-estudio/estampa', g.e.code]" [queryParams]="{ modelo: v.modelo, cor: g.cor }">
             <div class="foto"><fla-me-camiseta [estampa]="g.e" [cor]="g.cor"></fla-me-camiseta></div>
             <span class="modelo">{{ 'me.modelo.' + v.modelo | flaT }}</span>
             <span class="nome">{{ 'me.camisetaDe' | flaT: { n: g.e.nome } }}</span>
             <strong>{{ 'me.aPartir' | flaT: { v: v.precoTxt } }}</strong>
             <span class="parc">{{ v.parc }}</span>
-          </div>
+          </a>
         </div>
       </section>
     </main>

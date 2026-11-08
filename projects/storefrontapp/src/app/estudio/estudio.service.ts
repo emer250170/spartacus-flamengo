@@ -64,6 +64,48 @@ export interface MeCatalogo {
   camisetas: MeCamiseta[];
 }
 
+/** Linha do Estúdio no carrinho ou no pedido (API /users/{u}/carts/{c}/mengo-estudio) */
+export interface MeCarrinhoItem {
+  entryNumber: number;
+  estampa: MeEstampa;
+  camiseta: string;
+  modelo: 'MAS' | 'FEM' | 'INF';
+  tecido: 'ALG' | 'POL' | 'OVS';
+  cor: 'PRT' | 'BRA' | 'CIN';
+  tamanho: string;
+  quantidade: number;
+  encerrada: boolean;
+  numeroSerie?: string;
+}
+
+export interface MeCarrinho {
+  cartCode?: string;
+  itens: MeCarrinhoItem[];
+  /** Mensagem do servidor quando há estampa que saiu de linha (não fecha o pedido) */
+  bloqueio?: string | null;
+  /** Linha incluída ou somada (resposta do POST) */
+  entryNumber?: number;
+  quantidade?: number;
+}
+
+/** O que o configurador manda para o carrinho */
+export interface MePedidoItem {
+  estampa: string;
+  camiseta: string;
+  cor: string;
+  tamanho: string;
+  quantidade: number;
+  /** Linha do carrinho que está sendo editada */
+  substituir?: number;
+}
+
+export type MeCor = 'PRT' | 'BRA' | 'CIN';
+export const ME_CORES: MeCor[] = ['PRT', 'BRA', 'CIN'];
+export const ME_MODELOS: ('MAS' | 'FEM' | 'INF')[] = ['MAS', 'FEM', 'INF'];
+export const ME_TECIDOS: ('ALG' | 'POL' | 'OVS')[] = ['ALG', 'POL', 'OVS'];
+/** Cor da bolinha de cada cor de camiseta */
+export const ME_COR_HEX: Record<MeCor, string> = { PRT: '#1b1b1b', BRA: '#ffffff', CIN: '#9a9a9a' };
+
 /** Uma versão da estampa na vitrine (camiseta masculina, feminina ou infantil) */
 export interface MeVersao {
   modelo: 'MAS' | 'FEM' | 'INF';
@@ -258,6 +300,72 @@ export class EstudioService {
   /** Cor da camiseta para a vitrine: preta, ou a primeira que a arte permite */
   corVitrine(e: MeEstampa): 'PRT' | 'BRA' | 'CIN' {
     return (['PRT', 'BRA', 'CIN'] as const).find((c) => !e.coresIndisponiveis[c]) ?? 'PRT';
+  }
+
+  /** Camiseta (produto) do modelo e tecido */
+  camiseta(c: MeCatalogo, modelo?: string, tecido?: string): MeCamiseta | undefined {
+    return c.camisetas.find((x) => x.modelo === modelo && x.tecido === tecido);
+  }
+
+  /** Tecidos vendidos para o modelo (Infantil não tem Oversized) */
+  tecidos(c: MeCatalogo, modelo?: string): MeCamiseta[] {
+    return ME_TECIDOS.map((t) => this.camiseta(c, modelo, t)).filter(
+      (x): x is MeCamiseta => !!x && !!x.preco && x.tamanhos.length > 0
+    );
+  }
+
+  /** "Camiseta Masculina · Algodão · Preta · M" */
+  configuracao(i: { modelo?: string; tecido?: string; cor?: string; tamanho?: string }): string {
+    return [
+      this.i18n.t('me.camisetaDe', { n: this.i18n.t('me.modelo.' + i.modelo) }),
+      i.tecido ? this.i18n.t('me.tecido.' + i.tecido) : '',
+      i.cor ? this.i18n.t('me.cor.' + i.cor) : '',
+      i.tamanho ?? '',
+    ]
+      .filter((x) => !!x)
+      .join(' · ');
+  }
+
+  /** Linhas do Estúdio no carrinho */
+  carrinho(cartCode: string): Observable<MeCarrinho> {
+    return this.http
+      .get<any>(`${this.occEndpoints.getBaseUrl()}/users/current/carts/${encodeURIComponent(cartCode)}/mengo-estudio`)
+      .pipe(
+        map((r) => this.convertCarrinho(r)),
+        catchError(() => of({ itens: [] } as MeCarrinho))
+      );
+  }
+
+  /** Inclui a camiseta com a estampa no carrinho (ou soma a quantidade da mesma combinação) */
+  adicionar(cartCode: string, item: MePedidoItem): Observable<MeCarrinho> {
+    return this.http
+      .post<any>(
+        `${this.occEndpoints.getBaseUrl()}/users/current/carts/${encodeURIComponent(cartCode)}/mengo-estudio`,
+        item
+      )
+      .pipe(
+        map((r) => this.convertCarrinho(r)),
+        catchError((e: HttpErrorResponse) =>
+          throwError(() => new Error(e?.error?.errors?.[0]?.message ?? ''))
+        )
+      );
+  }
+
+  protected convertCarrinho(r: any): MeCarrinho {
+    return {
+      cartCode: r?.cartCode,
+      entryNumber: r?.entryNumber,
+      quantidade: r?.quantidade,
+      bloqueio: r?.bloqueio ?? null,
+      itens: (r?.itens ?? []).map((i: any) => ({
+        ...i,
+        estampa: {
+          ...i.estampa,
+          arte: this.media.url(i.estampa?.arte) ?? undefined,
+          coresIndisponiveis: i.estampa?.coresIndisponiveis ?? {},
+        },
+      })),
+    };
   }
 
   /** Avise-me se voltar */

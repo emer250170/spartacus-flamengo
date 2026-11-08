@@ -1,0 +1,317 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <ng-container *ngIf="vm.c.ativo">
+    <fla-me-subnav ativo="estampas"></fla-me-subnav>
+
+    <main class="me-wrap pg">
+      <nav class="me-crumb" [attr.aria-label]="'me.crumbs' | flaT">
+        <a routerLink="/">{{ 'me.lojaOficial' | flaT }}</a>
+        <span class="sep" aria-hidden="true">—</span>
+        <a routerLink="/mengo-estudio">{{ 'me.nome' | flaT }}</a>
+        <ng-container *ngIf="vm.e">
+          <span class="sep" aria-hidden="true">—</span>
+          <a [routerLink]="['/mengo-estudio/drop', vm.e.drop]">{{ vm.dropNome }}</a>
+        </ng-container>
+        <span class="sep" aria-hidden="true">—</span>
+        <span class="atual" aria-current="page">{{ vm.e ? vm.titulo : ('me.p.camiseta' | flaT) }}</span>
+      </nav>
+
+      <div class="cols">
+        <div class="col-g">
+          <fla-me-galeria
+            [estampa]="vm.e"
+            [cor]="escolha.cor"
+            [modelo]="escolha.modelo"
+            (escolher)="abrir('outras')"
+          ></fla-me-galeria>
+        </div>
+
+        <div class="col-i">
+          <div class="selos">
+            <span class="selo">{{ 'me.nome' | flaT }}</span>
+            <span *ngIf="vm.encerrada" class="selo cinza">{{ 'me.sit.ENCERRADA' | flaT }}</span>
+          </div>
+          <h1 class="me-t titulo">{{ vm.titulo }}</h1>
+          <p class="sub">{{ vm.subtitulo }}</p>
+          <p class="preco">
+            <strong>{{ vm.precoTxt }}</strong>
+            <span>{{ vm.parcelas }}</span>
+          </p>
+
+          <section class="bloco" aria-labelledby="me-p-estampa">
+            <h2 id="me-p-estampa" class="me-t">{{ 'me.p.estampa' | flaT }}</h2>
+            <p class="desc">{{ 'me.p.desc' | flaT }}</p>
+
+            <ng-container *ngIf="vm.e as e; else semEstampa">
+              <div class="prazo" [class.fim]="vm.encerrada" role="status">
+                <ng-container *ngIf="!vm.encerrada; else saiu">
+                  <span class="ate">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                    <strong>{{ vm.ate }}</strong>
+                  </span>
+                  <span *ngIf="vm.contador" class="cont">{{ 'me.p.saiEm' | flaT }} <strong>{{ vm.contador }}</strong></span>
+                </ng-container>
+                <ng-template #saiu>
+                  <span class="ate">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                    <strong>{{ vm.saiuEm }}</strong>
+                  </span>
+                  <a class="acervo" routerLink="/mengo-estudio/acervo">{{ 'me.nav.acervo' | flaT }}</a>
+                </ng-template>
+              </div>
+
+              <div class="escolhida">
+                <div class="mini"><fla-me-arte [estampa]="e" [semNome]="true"></fla-me-arte></div>
+                <div class="txt">
+                  <strong>{{ e.nome }}</strong>
+                  <span>{{ vm.dropNome }} · {{ 'me.linhaDe' | flaT: { l: vm.linhaNome } }}</span>
+                </div>
+                <button type="button" class="outras" (click)="abrir('outras')" aria-haspopup="dialog">
+                  {{ 'me.p.outras' | flaT }}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+                </button>
+              </div>
+            </ng-container>
+            <ng-template #semEstampa>
+              <button type="button" class="escolher" (click)="abrir('outras')" aria-haspopup="dialog">
+                {{ 'me.p.escolherA' | flaT }}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+              </button>
+            </ng-template>
+          </section>
+
+          <div class="campo" role="group" aria-labelledby="me-p-modelo">
+            <span id="me-p-modelo" class="rot"><strong>{{ 'me.p.modelo' | flaT }}</strong> {{ 'me.modelo.' + escolha.modelo | flaT }}</span>
+            <div class="opcoes">
+              <button
+                *ngFor="let m of vm.modelos; trackBy: tb"
+                type="button"
+                class="op"
+                [attr.aria-pressed]="m.code === escolha.modelo"
+                [disabled]="!m.ok"
+                (click)="modelo(vm.c, m.code)"
+              >{{ 'me.modelo.' + m.code | flaT }}</button>
+            </div>
+          </div>
+
+          <div class="campo" role="group" aria-labelledby="me-p-tecido">
+            <span id="me-p-tecido" class="rot"><strong>{{ 'me.p.tecido' | flaT }}</strong> {{ 'me.tecido.' + escolha.tecido | flaT }}</span>
+            <div class="opcoes">
+              <button
+                *ngFor="let t of vm.tecidos; trackBy: tb"
+                type="button"
+                class="op"
+                [attr.aria-pressed]="t.code === escolha.tecido"
+                (click)="tecido(vm.c, t.code)"
+              ><strong>{{ 'me.tecido.' + t.code | flaT }}</strong> {{ t.precoTxt }}</button>
+            </div>
+            <p class="aviso" *ngIf="avisoTecido" role="status">{{ avisoTecido }}</p>
+            <p class="nota">{{ 'me.tecido.' + escolha.tecido + '.d' | flaT }}</p>
+          </div>
+
+          <div class="campo" role="group" aria-labelledby="me-p-cor">
+            <span id="me-p-cor" class="rot"><strong>{{ 'me.p.cor' | flaT }}</strong> {{ 'me.cor.' + escolha.cor | flaT }}</span>
+            <div class="cores">
+              <button
+                *ngFor="let k of vm.cores; trackBy: tb"
+                type="button"
+                class="cor"
+                [style.--cor]="k.hex"
+                [attr.aria-pressed]="k.code === escolha.cor"
+                [attr.aria-disabled]="k.motivo !== undefined ? true : null"
+                [attr.aria-label]="('me.cor.' + k.code | flaT) + (k.motivo !== undefined ? ' — ' + ('me.p.corIndisponivel' | flaT) : '')"
+                [title]="k.motivo !== undefined ? (k.motivo || ('me.p.corIndisponivel' | flaT)) : ('me.cor.' + k.code | flaT)"
+                (click)="cor(k.code, k.motivo)"
+              ><span></span></button>
+            </div>
+            <ng-container *ngFor="let k of vm.cores; trackBy: tb">
+              <p class="nota" *ngIf="k.motivo !== undefined">{{ 'me.p.corMotivo' | flaT: { c: ('me.cor.' + k.code | flaT), m: k.motivo || ('me.p.corIndisponivel' | flaT) } }}</p>
+            </ng-container>
+            <p class="aviso" *ngIf="avisoCor" role="status">{{ avisoCor }}</p>
+          </div>
+
+          <div class="campo" role="group" aria-labelledby="me-p-tam" #tamanhoRef>
+            <div class="rot-linha">
+              <span id="me-p-tam" class="rot"><strong>{{ 'me.p.tamanho' | flaT }}</strong> {{ escolha.tamanho || ('me.p.escolhaUm' | flaT) }}</span>
+              <button type="button" class="medidas" (click)="abrir('medidas')" aria-haspopup="dialog">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 17l14-14 4 4L7 21H3z" /><path d="M7 13l2 2M10 10l2 2M13 7l2 2" /></svg>
+                {{ 'me.p.tabela' | flaT }}
+              </button>
+            </div>
+            <div class="opcoes tam" [attr.aria-describedby]="erroTamanho ? 'me-p-erro-tam' : null">
+              <button
+                *ngFor="let t of vm.tamanhos"
+                type="button"
+                class="op t"
+                [attr.aria-pressed]="t === escolha.tamanho"
+                (click)="tamanho(t)"
+              >{{ t }}</button>
+            </div>
+            <p class="aviso" *ngIf="avisoTamanho" role="status">{{ avisoTamanho }}</p>
+            <p class="erro" id="me-p-erro-tam" *ngIf="erroTamanho" role="alert">{{ erroTamanho }}</p>
+          </div>
+
+          <div class="campo qtd-linha">
+            <span class="rot" id="me-p-qtd"><strong>{{ 'me.p.qtd' | flaT }}</strong></span>
+            <div class="qtd" role="group" aria-labelledby="me-p-qtd">
+              <button type="button" [disabled]="escolha.qtd <= 1" (click)="qtd(-1, vm.max)" [attr.aria-label]="'cd.less' | flaT">−</button>
+              <span aria-live="polite">{{ escolha.qtd }}</span>
+              <button type="button" [disabled]="escolha.qtd >= vm.max" (click)="qtd(1, vm.max)" [attr.aria-label]="'cd.more' | flaT">+</button>
+            </div>
+            <span class="nota">{{ 'me.p.qtdDica' | flaT: { n: vm.max } }}</span>
+          </div>
+
+          <div class="resumo">
+            <strong>{{ 'me.p.resumo' | flaT }}</strong>
+            <span class="r-conf">{{ vm.resumo }}</span>
+            <div class="r-l"><span>{{ 'me.p.unitario' | flaT }}</span><span>{{ vm.precoTxt }}</span></div>
+            <div class="r-l"><span>{{ 'me.p.qtd' | flaT }}</span><span>{{ escolha.qtd }}</span></div>
+            <div class="r-l r-total"><span>{{ 'cd.total' | flaT }}</span><span>{{ vm.totalTxt }}</span></div>
+            <span class="r-parc">{{ vm.totalParcelas }} · {{ 'me.p.demonstrativo' | flaT }}</span>
+          </div>
+
+          <p class="erro" *ngIf="erro" role="alert">{{ erro }}</p>
+
+          <ng-container *ngIf="vm.e; else ctaEscolher">
+            <ng-container *ngIf="!vm.encerrada; else ctaFim">
+              <button #addBtn type="button" class="me-btn cta" [disabled]="salvando" (click)="adicionar(vm)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2" /><circle cx="9" cy="19" r="1.5" /><circle cx="17" cy="19" r="1.5" /></svg>
+                {{ (editar !== undefined ? 'me.p.salvar' : 'me.p.adicionar') | flaT }}
+              </button>
+            </ng-container>
+            <ng-template #ctaFim>
+              <button type="button" class="me-btn cta" disabled>{{ 'me.p.bloqueada' | flaT }}</button>
+              <a class="me-btn sec cta" routerLink="/mengo-estudio/acervo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4" /></svg>
+                {{ 'me.aviso.botao' | flaT }}
+              </a>
+            </ng-template>
+          </ng-container>
+          <ng-template #ctaEscolher>
+            <button type="button" class="me-btn cta" (click)="abrir('outras')">{{ 'me.p.escolherA' | flaT }}</button>
+          </ng-template>
+
+          <div class="garantias">
+            <div>
+              <strong>{{ 'me.como.3.t' | flaT }}</strong>
+              <span>{{ 'me.como.3.d' | flaT }}</span>
+            </div>
+            <div>
+              <strong>{{ 'me.como.4.t' | flaT }}</strong>
+              <span>{{ 'me.como.4.d' | flaT }}</span>
+            </div>
+          </div>
+
+          <fla-pdp-shipping [sempre]="true"></fla-pdp-shipping>
+        </div>
+      </div>
+    </main>
+
+    <section class="sobre" aria-labelledby="me-p-sobre">
+      <div class="me-wrap">
+        <h2 id="me-p-sobre" class="me-t">{{ 'me.p.sobre' | flaT }}</h2>
+        <h3 class="me-t">{{ vm.resumo }}</h3>
+        <ul>
+          <li *ngIf="vm.e"><strong>{{ 'me.p.sobre.arte' | flaT }}</strong> {{ 'me.p.sobre.arteD' | flaT: { n: vm.e.nome, l: vm.linhaNome, d: vm.dropNome } }}</li>
+          <li><strong>{{ 'me.p.sobre.tecido' | flaT }}</strong> {{ 'me.tecido.' + escolha.tecido + '.d' | flaT }}</li>
+          <li><strong>{{ 'me.p.sobre.demanda' | flaT }}</strong> {{ 'me.p.sobre.demandaD' | flaT }}</li>
+          <li><strong>{{ 'me.p.sobre.selo' | flaT }}</strong> {{ 'me.p.sobre.seloD' | flaT }}</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="me-wrap mais" *ngIf="vm.maisLinha.length" aria-labelledby="me-p-mais">
+      <div class="mais-top">
+        <h2 id="me-p-mais" class="me-t">{{ 'me.p.maisDa' | flaT: { l: vm.linhaNome } }}</h2>
+        <a class="me-btn sec" [routerLink]="['/mengo-estudio/drop', vm.e?.drop]" [queryParams]="{ linha: vm.e?.linha }">{{ 'me.p.verLinha' | flaT: { l: vm.linhaNome } }}</a>
+      </div>
+      <ng-container *ngTemplateOutlet="grade; context: { $implicit: vm.maisLinha, c: vm.c }"></ng-container>
+    </section>
+
+    <section class="me-wrap mais" *ngIf="vm.deOutras.length" aria-labelledby="me-p-outras-l">
+      <h2 id="me-p-outras-l" class="me-t">{{ 'me.p.deOutras' | flaT }}</h2>
+      <ng-container *ngTemplateOutlet="grade; context: { $implicit: vm.deOutras, c: vm.c }"></ng-container>
+    </section>
+
+    <ng-template #grade let-lista let-c="c">
+      <div class="me-grade">
+        <a *ngFor="let x of lista; trackBy: tb" class="me-card" [routerLink]="['/mengo-estudio/estampa', x.e.code]" [queryParams]="queryParams()">
+          <div class="me-quadro">
+            <fla-me-arte [estampa]="x.e"></fla-me-arte>
+            <span *ngIf="x.sit !== 'A_VENDA'" class="me-badge" [ngClass]="x.sit">{{ 'me.sit.' + x.sit | flaT }}</span>
+          </div>
+          <span class="nome">{{ x.e.nome }}</span>
+          <span class="me-linha">{{ 'me.linhaDe' | flaT: { l: x.e.linha | meLinha: c.linhas } }}</span>
+          <span class="me-prazo" [class.urgente]="x.urgente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ x.prazo }}
+          </span>
+        </a>
+      </div>
+    </ng-template>
+
+    <!-- barra fixa do celular -->
+    <div class="barra" *ngIf="vm.e && !vm.encerrada">
+      <div class="b-preco">
+        <strong>{{ vm.totalTxt }}</strong>
+        <span>{{ escolha.tamanho ? (vm.resumo) : ('me.p.escolhaTamanho' | flaT) }}</span>
+      </div>
+      <button type="button" class="me-btn" [disabled]="salvando" (click)="escolha.tamanho ? adicionar(vm) : irTamanho()">
+        {{ (editar !== undefined ? 'me.p.salvarCurto' : 'me.p.adicionarCurto') | flaT }}
+      </button>
+    </div>
+
+    <!-- painéis -->
+    <div *ngIf="painel" class="fundo">
+      <button type="button" class="fundo-x" (click)="fechar()" [attr.aria-label]="'me.fechar' | flaT"></button>
+      <aside
+        class="painel"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-labelledby]="'me-painel-' + painel"
+        [cxFocus]="focusConfig"
+        (esc)="fechar()"
+      >
+        <div class="p-top">
+          <h2 [id]="'me-painel-' + painel" class="me-t">{{ (painel === 'outras' ? 'me.p.verOutras' : 'me.p.tabela') | flaT }}</h2>
+          <button type="button" class="p-fechar" (click)="fechar()" [attr.aria-label]="'me.fechar' | flaT">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+
+        <ng-container *ngIf="painel === 'outras'">
+          <div class="p-chips" role="group" [attr.aria-label]="'me.filtrarLinha' | flaT">
+            <button *ngFor="let f of vm.filtros; trackBy: tb" type="button" class="me-chip" [attr.aria-pressed]="filtroOutras === f.code" (click)="filtrarOutras(f.code)">{{ f.nome }}</button>
+          </div>
+          <div class="p-grade">
+            <button *ngFor="let x of vm.outras; trackBy: tb" type="button" class="p-card" (click)="trocar(x.e)">
+              <div class="p-q"><fla-me-arte [estampa]="x.e"></fla-me-arte></div>
+              <strong>{{ x.e.nome }}</strong>
+              <span [class.urgente]="x.urgente">{{ x.prazo }}</span>
+            </button>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="painel === 'medidas'">
+          <p class="p-txt" [innerHTML]="'me.p.medidasDe' | flaT: { c: ('me.modelo.' + escolha.modelo | flaT) + ' · ' + ('me.tecido.' + escolha.tecido | flaT) }"></p>
+          <table class="p-tab">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'me.p.tamanho' | flaT }}</th>
+                <th scope="col">{{ 'me.p.largura' | flaT }}</th>
+                <th scope="col">{{ 'me.p.comprimento' | flaT }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let m of vm.medidas" [class.sel]="m.tamanho === escolha.tamanho">
+                <th scope="row">{{ m.tamanho }}</th>
+                <td>{{ m.largura }} cm</td>
+                <td>{{ m.comprimento }} cm</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="p-txt"><strong>{{ 'me.p.comoMedir' | flaT }}</strong> {{ 'me.p.comoMedirD' | flaT }}</p>
+          <p class="p-nota">{{ 'me.p.medidasNota' | flaT }}</p>
+        </ng-container>
+      </aside>
+    </div>
+  </ng-container>
+</ng-container>

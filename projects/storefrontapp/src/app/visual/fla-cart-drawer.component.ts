@@ -9,7 +9,7 @@ import {
 import { RoutingService } from '@spartacus/core';
 import { FocusConfig, LaunchDialogService } from '@spartacus/storefront';
 import { Observable, Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import {
   DrawerEntry,
   DrawerView,
@@ -41,6 +41,10 @@ export class FlaCartDrawerComponent implements OnInit, OnDestroy {
 
   readonly view$: Observable<DrawerView | null> = this.cartView.view$;
   readonly loading$: Observable<boolean> = this.cartView.loading$;
+  /** Aberto pelo configurador do Mengo Estúdio: "Camiseta adicionada" */
+  readonly estudioAdded$: Observable<boolean> = this.launchDialog.data$.pipe(
+    map((d: any) => !!d?.estudio)
+  );
 
   protected subscription = new Subscription();
 
