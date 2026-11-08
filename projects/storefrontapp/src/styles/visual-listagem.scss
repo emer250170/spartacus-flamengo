@@ -202,7 +202,7 @@ fla-search-band {
 
 .fsb-in {
   box-sizing: border-box;
-  max-width: 1140px;
+  max-width: var(--cx-page-width-max, 1140px);
   margin: 0 auto;
   padding: 20px 0 36px;
   display: flex;
@@ -210,7 +210,7 @@ fla-search-band {
   gap: 20px;
 }
 
-@media (max-width: 1171.98px) {
+@media (max-width: 991.98px) {
   .fsb-in {
     padding-inline: 16px;
   }
@@ -376,7 +376,7 @@ cx-product-grid-item .search-results-highlight {
 // busca sem resultado
 .fla-bv {
   box-sizing: border-box;
-  max-width: 1140px;
+  max-width: var(--cx-page-width-max, 1140px);
   margin: 0 auto;
   padding: 40px 0 64px;
   display: flex;
@@ -384,7 +384,7 @@ cx-product-grid-item .search-results-highlight {
   gap: 48px;
 }
 
-@media (max-width: 1171.98px) {
+@media (max-width: 991.98px) {
   .fla-bv {
     padding-inline: 16px;
   }

@@ -7,13 +7,15 @@ import {
   FlaCheckoutAcceptModule,
 } from './fla-checkout-accept';
 import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { startFlaLargura } from './fla-largura';
 import { RouterModule } from '@angular/router';
 import {
   CmsConfig,
   I18nModule,
   OccConfig,
   UrlModule,
+  WindowRef,
   provideConfig,
 } from '@spartacus/core';
 import {
@@ -125,6 +127,13 @@ import { EstudioSharedModule } from '../estudio/estudio-shared.module';
   // "Calcule o frete" também no configurador do Mengo Estúdio
   exports: [FlaPdpShippingComponent],
   providers: [
+    // largura útil da janela (--fla-vw) para a largura do conteúdo como no site oficial (08/11)
+    {
+      provide: APP_INITIALIZER,
+      useFactory: startFlaLargura,
+      deps: [WindowRef],
+      multi: true,
+    },
     // "Personalizado: JUNIOR · 9" nas listas de itens padrão (detalhe do pedido em Meus pedidos,
     // itens da entrega no checkout)
     provideOutlet({

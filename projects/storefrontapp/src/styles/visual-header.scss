@@ -280,20 +280,14 @@ cx-storefront:is(
 
 // ---------------------------------------------------------------------------------------------
 // Alinhamento (07/11, regra do CLAUDE.md): logo e carrinho nas bordas do conteúdo em todas as
-// larguras. Acima de 1172px o container tem 1140px e não tem recuo; entre 992 e 1171px header e
-// páginas ficam a 16px da borda da tela (antes o logo colava na borda e o conteúdo variava de 0 a
-// 24px conforme a página, com 3px de rolagem lateral do header).
+// larguras. 08/11 (largura do site oficial): a partir de 992px o conteúdo tem a tela menos 64px de
+// cada lado, até 1472px (--cx-page-width-max, calculado no tema com a largura útil da janela);
+// abaixo de 992px, 16px da borda da tela.
 // ---------------------------------------------------------------------------------------------
-@media (min-width: 992px) and (max-width: 1171.98px) {
-  html header cx-page-layout.header {
-    padding-inline: 16px !important;
-  }
-
-  // listagem e outras páginas com o .container do Bootstrap (960px nessa faixa, 23px da borda)
+@media (min-width: 992px) {
+  // listagem e outras páginas com o .container do Bootstrap (largura fixa por faixa de tela)
   main .container {
-    max-width: none !important;
-    width: auto !important;
-    margin-inline: 16px !important;
+    max-width: var(--cx-page-width-max) !important;
   }
 }
 
@@ -326,20 +320,6 @@ cx-storefront:is(
   }
 }
 
-@media (min-width: 992px) and (max-width: 1171.98px) {
-  html
-    cx-storefront:is(
-      .ProductListPageTemplate,
-      .ProductGridPageTemplate,
-      .SearchResultsListPageTemplate,
-      .SearchResultsGridPageTemplate
-    )
-    cx-page-slot.BottomHeaderSlot
-    cx-breadcrumb,
-  main cx-page-layout.ProductDetailsPageTemplate > cx-page-slot.Summary {
-    padding-inline: 16px !important;
-  }
-}
 
 // Minha conta (Meu sócio-torcedor, pedidos, endereços...): o layout do Spartacus tinha 24px de
 // recuo em qualquer largura; agora na borda do conteúdo (16px abaixo de 1172px)
@@ -347,7 +327,7 @@ cx-page-layout.AccountPageTemplate > cx-page-slot.BodyContent {
   padding-inline: 0 !important;
 }
 
-@media (max-width: 1171.98px) {
+@media (max-width: 991.98px) {
   cx-page-layout.AccountPageTemplate > cx-page-slot.BodyContent {
     padding-inline: 16px !important;
   }
