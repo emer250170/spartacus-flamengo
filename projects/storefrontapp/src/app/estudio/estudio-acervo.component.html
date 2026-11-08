@@ -1,6 +1,5 @@
 <ng-container *ngIf="vm$ | async as vm">
   <ng-container *ngIf="vm.ativo">
-    <fla-me-subnav ativo="acervo"></fla-me-subnav>
     <main class="me-wrap pg">
       <nav class="me-crumb" [attr.aria-label]="'me.crumbs' | flaT">
         <a routerLink="/">{{ 'me.lojaOficial' | flaT }}</a><span class="sep" aria-hidden="true">—</span>

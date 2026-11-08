@@ -10,9 +10,11 @@ import {
   PipeTransform,
   Renderer2,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { Observable, Subscription, of } from 'rxjs';
+import { distinctUntilChanged, filter, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
-import { ME_POSICAO, MeEstampa } from './estudio.service';
+import { EstudioService, ME_POSICAO, MeEstampa } from './estudio.service';
 
 /**
  * Arte da estampa (imagem do Commerce). Sem arte cadastrada (ex.: estampas com fotos de jogadores, que esperam
@@ -119,47 +121,78 @@ export class FlaMeCamisetaComponent {
   styleUrls: ['./estudio.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlaMeSubnavComponent implements OnInit, OnDestroy {
-  /** Subnavs na tela (na troca de rota a nova pode nascer antes de a antiga sair) */
-  protected static abertas = 0;
-
+export class FlaMeSubnavComponent {
   @Input() ativo: 'estampas' | 'acervo' | '' = 'estampas';
-
-  constructor(
-    protected renderer: Renderer2,
-    @Inject(DOCUMENT) protected document: Document,
-    protected router: Router
-  ) {}
-
-  /**
-   * Páginas do Estúdio (início, drop, acervo, estampa) começam na barra branca, como no mockup: o <html>
-   * ganha fla-estudio, que tira a faixa cinza "Início / Mengo Estúdio" e solta o layout da página do CMS
-   * (no início, a barra e o hero ficavam presos em 1140px e 30px abaixo das outras páginas). 08/11, Emerson.
-   */
-  ngOnInit(): void {
-    FlaMeSubnavComponent.abertas++;
-    this.renderer.addClass(this.document.documentElement, ESTUDIO_CLASS);
-  }
-
-  ngOnDestroy(): void {
-    FlaMeSubnavComponent.abertas = Math.max(0, FlaMeSubnavComponent.abertas - 1);
-    // Indo para outra página com a barra (ex.: acervo -> início, que vem do CMS e nasce depois), a
-    // classe fica: sem isso a faixa cinza aparecia por um instante e a barra "saltava" (08/11)
-    const destino =
-      this.router.getCurrentNavigation()?.finalUrl?.toString() ??
-      this.router.getCurrentNavigation()?.extractedUrl?.toString() ??
-      '';
-    if (!FlaMeSubnavComponent.abertas && !COM_BARRA.test(destino)) {
-      this.renderer.removeClass(this.document.documentElement, ESTUDIO_CLASS);
-    }
-  }
 }
 
 /** Classe no <html> das páginas com a barra do Estúdio (tema: sem a faixa cinza, layout de borda a borda) */
 export const ESTUDIO_CLASS = 'fla-estudio';
 
 /** Páginas com a barra do Estúdio: início, drop, acervo, estampa e camiseta (não devolução nem painel) */
-const COM_BARRA = /\/mengo-estudio(?:\/(?:drop|acervo|estampa|camiseta)(?:[/?#]|$)|\/?(?:[?#]|$))/;
+export const COM_BARRA =
+  /\/mengo-estudio(?:\/(?:drop|acervo|estampa|camiseta)(?:[/?#]|$)|\/?(?:[?#]|$))/;
+
+type Aba = 'estampas' | 'acervo';
+
+const ACERVO = /\/mengo-estudio\/acervo(?:[/?#]|$)/;
+
+/**
+ * Barra do Estúdio fixa no topo das páginas do Estúdio (08/11, Emerson): fica no slot de baixo do header
+ * (outlet do BottomHeaderSlot), que não é refeito na troca entre início, drop, acervo e estampa. Antes cada
+ * página tinha a sua barra: na troca, a barra sumia por alguns quadros enquanto a página nova carregava e o
+ * header "saltava". Também marca o <html> com fla-estudio (sem a faixa cinza "Início / Mengo Estúdio" e
+ * com o layout da página do CMS solto, como no mockup). Com o Estúdio desligado, nada aparece.
+ */
+@Component({
+  selector: 'fla-me-barra',
+  template: `<fla-me-subnav *ngIf="aba$ | async as aba" [ativo]="aba"></fla-me-subnav>`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class FlaMeBarraComponent implements OnInit, OnDestroy {
+  protected readonly url$: Observable<string> = this.router.events.pipe(
+    filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+    map((e) => e.urlAfterRedirects),
+    startWith(this.router.url),
+    distinctUntilChanged(),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  /** Aba ativa ('estampas' | 'acervo') nas páginas com a barra; null nas outras */
+  readonly aba$: Observable<Aba | null> = this.url$.pipe(
+    map((url): Aba | null => (COM_BARRA.test(url) ? (ACERVO.test(url) ? 'acervo' : 'estampas') : null)),
+    distinctUntilChanged(),
+    switchMap((aba) =>
+      aba
+        ? this.estudio.catalogo$.pipe(
+            map((c): Aba | null => (c.ativo ? aba : null)),
+            startWith(aba)
+          )
+        : of(null)
+    )
+  );
+
+  protected sub?: Subscription;
+
+  constructor(
+    protected router: Router,
+    protected estudio: EstudioService,
+    protected renderer: Renderer2,
+    @Inject(DOCUMENT) protected document: Document
+  ) {}
+
+  ngOnInit(): void {
+    this.sub = this.aba$.subscribe((aba) =>
+      aba
+        ? this.renderer.addClass(this.document.documentElement, ESTUDIO_CLASS)
+        : this.renderer.removeClass(this.document.documentElement, ESTUDIO_CLASS)
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+    this.renderer.removeClass(this.document.documentElement, ESTUDIO_CLASS);
+  }
+}
 
 /** Nome da linha pelo código: {{ e.linha | meLinha: c.linhas }} */
 @Pipe({ name: 'meLinha' })
