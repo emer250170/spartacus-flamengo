@@ -17,7 +17,7 @@
           </div>
         </div>
         <div class="hero-cards">
-          <a *ngFor="let d of vm.destaques; trackBy: tb" class="hero-card" [routerLink]="['/mengo-estudio/drop', d.e.drop]">
+          <a *ngFor="let d of vm.destaques; trackBy: tb" class="hero-card" [routerLink]="['/mengo-estudio/estampa', d.e.code]">
             <div class="q"><fla-me-arte [estampa]="d.e"></fla-me-arte></div>
             <strong class="me-t">{{ d.e.nome }}</strong>
             <span>{{ d.prazo }}</span>
@@ -88,7 +88,7 @@
         </div>
       </div>
       <div class="me-grade">
-        <a *ngFor="let x of vm.lista; trackBy: tb" class="me-card" [routerLink]="['/mengo-estudio/drop', x.e.drop]" [queryParams]="{ estampa: x.e.code }">
+        <a *ngFor="let x of vm.lista; trackBy: tb" class="me-card" [routerLink]="['/mengo-estudio/estampa', x.e.code]">
           <div class="me-quadro">
             <fla-me-arte [estampa]="x.e"></fla-me-arte>
             <span *ngIf="x.sit !== 'A_VENDA'" class="me-badge" [ngClass]="x.sit">{{ 'me.sit.' + x.sit | flaT }}</span>

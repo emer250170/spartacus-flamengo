@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from '@angular/core';
 import { OccEndpointsService, Product } from '@spartacus/core';
 import { CurrentProductService } from '@spartacus/storefront';
 import { Observable, forkJoin, of } from 'rxjs';
@@ -31,7 +31,7 @@ const NO_SHIPPING = /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS)/;
 @Component({
   selector: 'fla-pdp-shipping',
   template: `
-    <div class="fla-ship" *ngIf="show$ | async">
+    <div class="fla-ship" *ngIf="sempre || (show$ | async)">
       <form class="fla-ship-form" (submit)="calc($event, cepInput.value)">
         <label for="fla-ship-cep" class="fla-ship-label">{{ 'sh.title' | flaT }}</label>
         <div class="fla-ship-field">
@@ -69,6 +69,8 @@ const NO_SHIPPING = /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS)/;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlaPdpShippingComponent {
+  /** Fora da página de produto (configurador do Mengo Estúdio): mostra sempre */
+  @Input() sempre = false;
   quote?: Quote;
   error = '';
   loading = false;

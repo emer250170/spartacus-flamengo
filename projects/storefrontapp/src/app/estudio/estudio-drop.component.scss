@@ -216,6 +216,13 @@
     overflow: hidden;
     background: #111;
     scroll-snap-align: start;
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    &:focus-visible {
+      outline: 3px solid #d70000;
+      outline-offset: 2px;
+    }
     .legenda {
       position: absolute;
       left: 0;
@@ -244,6 +251,15 @@
     flex-direction: column;
     gap: 4px;
     scroll-snap-align: start;
+    color: #111;
+    text-decoration: none;
+    &:hover .nome {
+      text-decoration: underline;
+    }
+    &:focus-visible {
+      outline: 3px solid #d70000;
+      outline-offset: 2px;
+    }
     .foto {
       background: #efefef;
       border-radius: 4px;

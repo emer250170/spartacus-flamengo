@@ -69,6 +69,7 @@ import {
 } from './fla-order-confirmation.component';
 import { FlaItemPersonalizationComponent } from './fla-item-personalization.component';
 import { CartOutlets } from '@spartacus/cart/base/root';
+import { EstudioSharedModule } from '../estudio/estudio-shared.module';
 
 /**
  * Visual da loja oficial (flamengo.com.br/loja, mockup aprovado em 05/11): header em três
@@ -90,6 +91,7 @@ import { CartOutlets } from '@spartacus/cart/base/root';
     OutletModule,
     PageComponentModule,
     TabModule,
+    EstudioSharedModule,
   ],
   declarations: [
     FlaPortalLinksComponent,
@@ -120,6 +122,8 @@ import { CartOutlets } from '@spartacus/cart/base/root';
     FlaOcBodyComponent,
     FlaItemPersonalizationComponent,
   ],
+  // "Calcule o frete" também no configurador do Mengo Estúdio
+  exports: [FlaPdpShippingComponent],
   providers: [
     // "Personalizado: JUNIOR · 9" nas listas de itens padrão (detalhe do pedido em Meus pedidos,
     // itens da entrega no checkout)

@@ -21,6 +21,10 @@
   </div>
 
   <ng-container *ngIf="view$ | async as v; else empty">
+    <p class="fla-cd-added" *ngIf="estudioAdded$ | async" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10" /></svg>
+      {{ 'me.c.adicionada' | flaT }}
+    </p>
     <p class="fla-cd-hold" *ngIf="v.holdLeft" role="status">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
         <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
@@ -30,10 +34,16 @@
 
     <ul class="fla-cd-items" [class.is-busy]="loading$ | async">
       <li *ngFor="let e of v.entries; trackBy: trackEntry" class="fla-cd-item">
-        <a class="fla-cd-thumb" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl">
-          <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="e.name"></cx-media>
+        <a *ngIf="e.estudio as me; else stdThumb" class="fla-cd-thumb fla-cd-thumb-me" [routerLink]="me.link" [queryParams]="me.query" tabindex="-1" aria-hidden="true">
+          <fla-me-camiseta [estampa]="me.estampa" [cor]="me.cor"></fla-me-camiseta>
         </a>
+        <ng-template #stdThumb>
+          <a class="fla-cd-thumb" [routerLink]="{ cxRoute: 'product', params: e.entry.product } | cxUrl">
+            <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="e.name"></cx-media>
+          </a>
+        </ng-template>
         <div class="fla-cd-info">
+          <span class="fla-me-selo" *ngIf="e.estudio">{{ 'me.nome' | flaT }}</span>
           <div class="fla-cd-row">
             <strong class="fla-cd-name">{{ e.name }}</strong>
             <button
@@ -52,6 +62,16 @@
           <span class="fla-cd-pers" *ngIf="e.personalization">
             {{ 'pz.cartLine' | flaT: { v: e.personalization } }}
           </span>
+          <ng-container *ngIf="e.estudio as me">
+            <span class="fla-me-prazo" [class.urgente]="me.urgente">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+              {{ me.prazo }}
+            </span>
+            <span class="fla-me-alerta" *ngIf="me.encerrada" role="alert">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M12 3l10 18H2z" /><path d="M12 10v5M12 18v.5" /></svg>
+              {{ 'me.c.saiu' | flaT }}
+            </span>
+          </ng-container>
           <div class="fla-cd-row fla-cd-bottom">
             <div class="fla-cd-qty" *ngIf="!e.seat && !e.addOn && e.entry.updateable !== false; else fixedQty">
               <button type="button" [attr.aria-label]="'cd.less' | flaT" (click)="decrease(e)">−</button>
@@ -61,6 +81,7 @@
             <ng-template #fixedQty>
               <span class="fla-cd-fixed">{{ 'cd.qty' | flaT: { n: e.entry.quantity } }}</span>
             </ng-template>
+            <a *ngIf="e.estudio as me" class="fla-me-editar" [routerLink]="me.link" [queryParams]="me.query" [attr.aria-label]="'me.c.editarDe' | flaT: { n: e.name }">{{ 'me.c.editar' | flaT }}</a>
             <span class="fla-cd-price">
               <s *ngIf="e.fullPrice">{{ e.fullPrice }}</s>
               <strong>{{ e.price }}</strong>
@@ -91,6 +112,7 @@
         </svg>
         {{ 'cd.checkout' | flaT }}
       </a>
+      <p class="fla-me-bloqueio" *ngIf="v.bloqueio" role="alert">{{ 'me.c.bloqueio' | flaT }}</p>
       <button type="button" class="fla-cd-continue" (click)="close('continue')">
         {{ 'cd.continue' | flaT }}
       </button>

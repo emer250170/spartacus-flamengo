@@ -688,4 +688,27 @@
 		<property name="mengoEstudioService" ref="mengoEstudioService"/>
 	</bean>
 
+	<!-- Mengo Estúdio no carrinho (08/11, PR 3): configurador, linhas por combinação, bloqueio do pedido -->
+	<bean id="mengoEstudioCartService" class="br.com.flamengo.matchday.estudio.impl.DefaultMengoEstudioCartService">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="commerceCartService" ref="commerceCartService"/>
+		<property name="cartService" ref="cartService"/>
+		<property name="baseSiteService" ref="baseSiteService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+	</bean>
+	<bean id="mengoEstudioCartHooks" class="br.com.flamengo.matchday.estudio.MengoEstudioCartHooks">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="mengoEstudioCartService" ref="mengoEstudioCartService"/>
+	</bean>
+	<bean id="mengoEstudioAddToCartHookMergeDirective" depends-on="commerceAddToCartMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="mengoEstudioCartHooks"/>
+	</bean>
+	<bean id="mengoEstudioUpdateCartEntryHookMergeDirective" depends-on="commerceUpdateCartEntryMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="mengoEstudioCartHooks"/>
+	</bean>
+	<bean id="mengoEstudioPlaceOrderHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
+		<property name="add" ref="mengoEstudioCartHooks"/>
+	</bean>
+
 </beans>

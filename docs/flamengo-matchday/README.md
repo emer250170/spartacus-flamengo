@@ -1179,3 +1179,31 @@ importar `15-mengo-estudio.impex`; rodar `scripts/estudio-artes.groovy` (gerado 
 Artes: 27 estampas têm arte (linhas História e Urubu, em `estudio/artes/`, WebP). As 29 com fotos ou retratos de
 jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória até a arte ser enviada pelo Backoffice
 (mídia em `MengoEstampa.art`).
+
+## Mengo Estúdio — vitrine e Backoffice (07–08/11, PRs #250 a #253)
+
+- Loja: sub-home `/mengo-estudio` (CMS), drop `/mengo-estudio/drop/:code` (abas por linha, filtros que só valem no
+  "Aplicar", ordenação) e acervo `/mengo-estudio/acervo` com "Avise-me se voltar"
+  (`POST /{site}/mengo-estudio/estampas/{code}/aviso`, grava `MengoAvisoRetorno` com o texto do consentimento).
+- Backoffice do gestor da loja: menu Mengo Estúdio (Estampas com a situação calculada, Drops, Linhas, Avisos, Simulações
+  da demo) e aba Mengo Estúdio no produto (modelo, tecido, tamanhos e medidas; vazio = propriedades). Depois de mudar
+  o `flamengomatchday-backoffice-config.xml`: F4 › ☰ › Show cockpit-config.xml › Reset to Defaults (como admin).
+- Grupos de API do MCP (`lojaapigroup`, `socioapigroup`, `jogosapigroup`): só `+` ou vazio; `-` vence o papel e deixava
+  o Backoffice do gestor só leitura (PR #253).
+
+## Mengo Estúdio — configurador e carrinho (08/11, PR estudio-configurador)
+
+- Loja: `/mengo-estudio/estampa/:code` (configurador) e `/mengo-estudio/camiseta` (sem estampa: "Escolher a estampa").
+  Galeria 360° (frente, lado, costas; arrastar, setas ← →, "Girar"), arte, foto no modelo e detalhe; modelo, tecido,
+  cor (a arte pode bloquear cores), tamanho por modelo e tecido (trocar limpa o tamanho que deixou de existir e avisa),
+  quantidade de 1 a 10, resumo, painéis "Outras estampas" e "Tabela de medidas", barra fixa no celular. Parâmetros:
+  `modelo`, `tecido`, `cor`, `tamanho`, `qtd` e `editar` (linha do carrinho em edição). Comprar exige login.
+- API (torcedor logado): `GET|POST /{site}/users/current/carts/{code}/mengo-estudio`. O POST
+  (`{estampa, camiseta, cor, tamanho, quantidade, substituir}`) cria uma linha por combinação de estampa, camiseta, cor e
+  tamanho (a mesma combinação soma, até `flamengo.estudio.quantidade.max`); o GET devolve as linhas do Estúdio e o
+  bloqueio quando uma estampa saiu de linha.
+- Ganchos (`MengoEstudioCartHooks`): a camiseta só entra pelo configurador (a inclusão comum é recusada), a quantidade
+  é limitada por linha e o fechamento do pedido é recusado com estampa encerrada.
+- Carrinho (box lateral, página do carrinho e resumos do checkout): "Estampa X", configuração, prazo da estampa,
+  miniatura da camiseta, "Editar", alerta de estampa encerrada e "Finalizar compra" travado.
+- Instalação: `ant all` e publicar a loja (sem Update: o modelo não mudou).

@@ -13,6 +13,13 @@ import {
   startWith,
   switchMap,
 } from 'rxjs/operators';
+import {
+  EstudioService,
+  MeCarrinho,
+  MeCatalogo,
+  MeCor,
+  MeEstampa,
+} from '../estudio/estudio.service';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { MatchdayDataService } from '../matchday/matchday-data.service';
 import { Membership } from '../socio/socio.model';
@@ -41,7 +48,26 @@ export interface DrawerEntry {
   personalization?: string;
   /** Linha de preço da personalização: a quantidade segue a do manto */
   addOn?: boolean;
+  /** Camiseta do Mengo Estúdio (estampa + configuração) */
+  estudio?: DrawerEstudio;
 }
+
+/** Linha do Mengo Estúdio no carrinho (08/11, PR 3) */
+export interface DrawerEstudio {
+  estampa: MeEstampa;
+  cor: MeCor;
+  /** "À venda até 01/12, 23h59 · produção sob demanda" ou o contador */
+  prazo: string;
+  urgente: boolean;
+  /** A estampa saiu de linha: o item trava o fechamento do pedido */
+  encerrada: boolean;
+  /** "Editar": volta para a página da estampa com a configuração */
+  link: string[];
+  query: Record<string, string | number>;
+}
+
+/** Camisetas do Mengo Estúdio (produto por modelo e tecido) */
+export const ESTUDIO_CAMISETA = /^ME-CAM-/;
 
 export interface DrawerView {
   cartCode?: string;
@@ -59,6 +85,10 @@ export interface DrawerView {
   holdLeft?: string;
   /** Cupons aplicados */
   vouchers: { code: string; name: string }[];
+  /** Há estampa do Mengo Estúdio que saiu de linha: "Finalizar compra" fica travado */
+  bloqueio?: boolean;
+  /** Há camiseta do Mengo Estúdio no carrinho */
+  temEstudio?: boolean;
 }
 
 /**
@@ -77,7 +107,8 @@ export class FlaCartViewService {
     protected i18n: FlaI18nService,
     protected matchday: MatchdayDataService,
     protected socio: SocioService,
-    protected personalization: FlaPersonalizationService
+    protected personalization: FlaPersonalizationService,
+    protected estudio: EstudioService
   ) {
     this.loading$ = this.activeCart.isStable().pipe(map((stable) => !stable));
     const member$ = this.socio.getMembership().pipe(
@@ -105,14 +136,39 @@ export class FlaCartViewService {
       ),
       startWith([] as PersonalizationInfo[])
     );
+    // Mengo Estúdio: só busca quando há camiseta do Estúdio (ME-CAM-*) no carrinho
+    const est$ = this.activeCart.getActive().pipe(
+      map((cart) =>
+        cart?.code &&
+        cart.user?.uid !== 'anonymous' &&
+        (cart.entries ?? []).some((e) =>
+          ESTUDIO_CAMISETA.test(e.product?.code ?? '')
+        )
+          ? `${cart.code}|${(cart.entries ?? [])
+              .map((e) => `${e.entryNumber}:${e.product?.code}:${e.quantity}`)
+              .join(',')}`
+          : ''
+      ),
+      distinctUntilChanged(),
+      switchMap((key) =>
+        key
+          ? combineLatest([
+              this.estudio.carrinho(key.split('|')[0]),
+              this.estudio.catalogo$,
+            ])
+          : of([undefined, undefined] as [MeCarrinho | undefined, MeCatalogo | undefined])
+      ),
+      startWith([undefined, undefined] as [MeCarrinho | undefined, MeCatalogo | undefined])
+    );
     this.view$ = combineLatest([
       this.activeCart.getActive(),
       member$,
       tick$,
       this.i18n.lang$,
       pers$,
+      est$,
     ]).pipe(
-      map(([cart, plan, , , pers]) => this.toView(cart, plan, pers)),
+      map(([cart, plan, , , pers, est]) => this.toView(cart, plan, pers, est)),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
@@ -152,7 +208,8 @@ export class FlaCartViewService {
   protected toView(
     cart: Cart,
     plan: string | undefined,
-    pers: PersonalizationInfo[] = []
+    pers: PersonalizationInfo[] = [],
+    est: [MeCarrinho | undefined, MeCatalogo | undefined] = [undefined, undefined]
   ): DrawerView | null {
     const entries = cart?.entries ?? [];
     if (!entries.length) {
@@ -180,7 +237,7 @@ export class FlaCartViewService {
         personalization: this.personalizationOf(entry, pers),
         addOn: PERSONALIZATION_ADDON.test(entry.product?.code ?? ''),
       };
-    });
+    }).map((d) => this.withEstudio(d, est));
     // subTotal = itens já com o desconto de cada item; orderDiscounts = desconto no pedido
     const orderDiscount = cart.orderDiscounts?.value ?? 0;
     const total = (cart.subTotal?.value ?? 0) - orderDiscount;
@@ -201,6 +258,43 @@ export class FlaCartViewService {
         code: v.code ?? v.voucherCode ?? '',
         name: v.name ?? v.voucherCode ?? v.code ?? '',
       })),
+      bloqueio: items.some((i) => i.estudio?.encerrada),
+      temEstudio: items.some((i) => !!i.estudio),
+    };
+  }
+
+  /** Camiseta do Mengo Estúdio: "Estampa Elenco", configuração, prazo da estampa e o link para editar */
+  protected withEstudio(
+    d: DrawerEntry,
+    [carrinho, c]: [MeCarrinho | undefined, MeCatalogo | undefined]
+  ): DrawerEntry {
+    const i = carrinho?.itens.find((x) => x.entryNumber === d.entry.entryNumber);
+    if (!i || !c) {
+      return d;
+    }
+    const now = this.estudio.now(c);
+    const sit = this.estudio.situacao(i.estampa, c, now);
+    const encerrada = i.encerrada || sit === 'ENCERRADA';
+    return {
+      ...d,
+      name: this.i18n.t('me.c.nome', { n: i.estampa.nome }),
+      details: this.estudio.configuracao(i),
+      estudio: {
+        estampa: i.estampa,
+        cor: i.cor,
+        prazo: `${this.estudio.prazo(i.estampa, c, now)} · ${this.i18n.t('me.c.sobDemanda')}`,
+        urgente: sit === 'ULTIMAS_48H',
+        encerrada,
+        link: ['/mengo-estudio/estampa', i.estampa.code],
+        query: {
+          modelo: i.modelo,
+          tecido: i.tecido,
+          cor: i.cor,
+          tamanho: i.tamanho,
+          qtd: i.quantidade,
+          editar: i.entryNumber,
+        },
+      },
     };
   }
 
