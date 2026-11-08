@@ -74,17 +74,20 @@
 #macro(flaTituloBloco $texto)
 <tr><td colspan="3" style="padding:28px 0 6px 0;border-bottom:2px solid ${preto};font-family:${fonte};font-size:12px;line-height:16px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:${vermelho};">$texto</td></tr>
 #end
-## Lista de itens (OrderEntryData) separada em Ingressos (JOGO-), Dia de jogo (estacionamento e comida) e Loja.
+## Lista de itens (OrderEntryData) separada em Ingressos (JOGO-), Dia de jogo (estacionamento e comida),
+## Experiências (EXP-, 08/11) e Loja.
 ## Item que é variante (poltrona ou tamanho, sem agrupamento) mostra o produto base como título.
 #macro(flaListaItens $lista)
 #set($ingressos = [])
 #set($diaDeJogo = [])
 #set($lojaItens = [])
+#set($experiencias = [])
 #foreach($e in $lista)
 #set($cod = $e.product.code)
 #if($e.product.baseProduct)#set($cod = $e.product.baseProduct)#end
 #if($cod.startsWith("JOGO-"))#set($ok = $ingressos.add($e))
 #elseif($cod.startsWith("FLA-EST-") || $cod.startsWith("FLA-FOOD-"))#set($ok = $diaDeJogo.add($e))
+#elseif($cod.startsWith("EXP-"))#set($ok = $experiencias.add($e))
 #else#set($ok = $lojaItens.add($e))#end
 #end
 <tr><td class="miolo" style="padding:8px 40px 0 40px;">
@@ -100,6 +103,12 @@
 #if($diaDeJogo.size() > 0)
   #flaTituloBloco("Dia de jogo")
 #foreach($e in $diaDeJogo)
+  #flaLinhaItem($e $e.product.name "" $e.quantity $e.totalPrice.formattedValue)
+#end
+#end
+#if($experiencias.size() > 0)
+  #flaTituloBloco("Experiências")
+#foreach($e in $experiencias)
   #flaLinhaItem($e $e.product.name "" $e.quantity $e.totalPrice.formattedValue)
 #end
 #end
@@ -141,6 +150,24 @@
     </td>
   </tr></table>
 </td></tr>
+#end
+## Vouchers das experiências do pedido (OrderData.flaVouchers, 08/11): um bloco preto por voucher com o nome
+## da experiência e o código grande. Sem a lista (servidor sem o populador ou pedido sem experiência), nada aparece.
+#macro(flaVouchers $lista)
+#if($lista && $lista.size() > 0)
+<tr><td class="miolo" style="padding:28px 40px 0 40px;font-family:${fonte};font-size:12px;line-height:16px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:${vermelho};">#if($lista.size() > 1)Seus vouchers#{else}Seu voucher#end</td></tr>
+#foreach($v in $lista)
+<tr><td class="miolo" style="padding:10px 40px 0 40px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td bgcolor="${preto}" style="background:${preto};padding:18px 20px;font-family:${fonte};">
+      <span style="font-size:13px;line-height:19px;font-weight:bold;color:#ffffff;">$!{v.experienceName}</span>
+      <br/><span style="font-family:'Courier New',Courier,monospace;font-size:24px;line-height:34px;font-weight:bold;letter-spacing:3px;color:#ffffff;">$!{v.voucher}</span>
+    </td>
+  </tr></table>
+</td></tr>
+#end
+<tr><td class="miolo" style="padding:12px 40px 0 40px;font-family:${fonte};font-size:13px;line-height:19px;color:${corTexto};">Apresente o código no dia da experiência, no celular ou impresso. Cada código vale uma vez e passa a valer quando o pagamento é confirmado. Guarde este e-mail.</td></tr>
+#end
 #end
 ## caixa cinza com borda vermelha à esquerda: rótulo, título e texto (título ou texto podem ser "")
 #macro(flaCaixa $rotulo $titulo $corpo)

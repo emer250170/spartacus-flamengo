@@ -1062,7 +1062,7 @@ originais `electronics_Email_*` continuam no banco (modo `restaurar`).
 
 | E-mail | Quando sai | Modelo (`modelos/`) |
 |---|---|---|
-| Confirmação de pedido | ao finalizar a compra | `pedido-confirmacao.vm` |
+| Confirmação de pedido | ao finalizar a compra; com experiência, traz o voucher `NACAO-…` de cada uma (08/11) | `pedido-confirmacao.vm` |
 | Boas-vindas | ao criar conta na loja | `cadastro.vm` |
 | Esqueci minha senha | "esqueci a senha" no login (link para `/login/pw/change?token=` do Spartacus) | `senha.vm` |
 | Pedido enviado | remessa marcada como enviada | `pedido-enviado.vm` |
@@ -1077,6 +1077,13 @@ originais `electronics_Email_*` continuam no banco (modo `restaurar`).
 | De volta ao estoque | produto com aviso volta ao estoque | `estoque.vm` |
 | Código de acesso | login com código de uso único | `codigo.vm` |
 
+- **Voucher no e-mail (08/11):** sócio vê o voucher de experiência comprada em Meus resgates, mas quem não é sócio não
+  tinha onde ver. O `FlaOrderVoucherPopulator` (no `orderConverter`) põe os vouchers válidos do pedido em
+  `OrderData.flaVouchers` (`flamengomatchday-beans.xml`), e a confirmação do pedido mostra um bloco "Seu voucher" com a
+  experiência e o código, para todos (sócio, não sócio e compra sem cadastro). A lista de itens ganhou o grupo
+  "Experiências" e, sem nada que vá ao estádio, "Como você recebe" diz "Entrega digital". Chave
+  `flamengo.pedido.vouchers.ativo` (false = lista vazia, e-mail como antes). Sem o `ant all`, o modelo novo funciona e só
+  não mostra o bloco.
 - **Montagem:** cada e-mail = `modelos/_base.vm` (cores, topo com escudo, listas de itens separadas em Ingressos /
   Dia de jogo / Loja, botão, caixas, rodapé) + o arquivo do e-mail. A lista (página, códigos, assunto, processo
   usado na prévia) está em `emails.json`. Os macros têm prefixo `fla` e são idênticos em todos (o Velocity guarda

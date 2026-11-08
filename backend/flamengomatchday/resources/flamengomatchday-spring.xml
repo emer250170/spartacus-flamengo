@@ -622,6 +622,18 @@
 		<property name="list" ref="cartRaoConverter"/>
 		<property name="add" ref="flaPaymentModeRaoPopulator"/>
 	</bean>
+	<!-- 08/11: vouchers das experiências compradas no OrderData (flaVouchers), para o e-mail de confirmação
+	     do pedido mostrar o código a todos (sócio ou não). Chave flamengo.pedido.vouchers.ativo. -->
+	<bean id="flaOrderVoucherPopulator" class="br.com.flamengo.matchday.email.FlaOrderVoucherPopulator">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+	</bean>
+	<bean parent="modifyPopulatorList">
+		<property name="list" ref="orderConverter"/>
+		<property name="add" ref="flaOrderVoucherPopulator"/>
+	</bean>
 	<bean id="flaPaymentMethodConditionTranslator" class="br.com.flamengo.matchday.promotion.FlaPaymentMethodConditionTranslator"/>
 
 	<!--

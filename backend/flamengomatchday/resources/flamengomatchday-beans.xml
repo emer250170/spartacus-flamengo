@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  Beans de dados da extensão flamengomatchday.
+  08/11: vouchers das experiências compradas no pedido (OrderData.flaVouchers), usados no e-mail
+  de confirmação do pedido (pedido-confirmacao.vm). Só acrescenta: nada do padrão muda.
+-->
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="beans.xsd">
+
+	<bean class="br.com.flamengo.matchday.email.FlaVoucherData">
+		<description>Voucher de experiência de um pedido (código NACAO-..., experiência e origem)</description>
+		<property name="voucher" type="String"/>
+		<property name="experienceCode" type="String"/>
+		<property name="experienceName" type="String"/>
+		<property name="origin" type="String"/>
+	</bean>
+
+	<bean class="de.hybris.platform.commercefacades.order.data.AbstractOrderData">
+		<property name="flaVouchers" type="java.util.List&lt;br.com.flamengo.matchday.email.FlaVoucherData>">
+			<description>Vouchers das experiências do pedido (vazio fora de pedido com experiência)</description>
+		</property>
+	</bean>
+
+</beans>
