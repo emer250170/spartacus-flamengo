@@ -1,0 +1,134 @@
+<!-- Devolução do Mengo Estúdio (mockup E21–E24). Etapa conforme o que está gravado no pedido. -->
+<ng-container *ngIf="vm$ | async as vm">
+  <main class="me-wrap pg dv">
+    <nav class="me-crumb" [attr.aria-label]="'me.crumbs' | flaT">
+      <a routerLink="/">{{ 'me.lojaOficial' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+      <a routerLink="/my-account/orders">{{ 'me.nav.pedidos' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+      <a [routerLink]="['/my-account/order', vm.code]">{{ 'me.d.pedido' | flaT: { code: vm.code } }}</a
+      ><span class="sep" aria-hidden="true">—</span>
+      <span class="atual" aria-current="page">{{ 'me.d.titulo' | flaT }}</span>
+    </nav>
+    <h1 class="me-t">{{ 'me.d.titulo' | flaT }}</h1>
+
+    <div *ngIf="!vm.p?.temEstudio" class="me-vazio" role="status">
+      <strong>{{ 'me.d.semPedido' | flaT }}</strong>
+      <a class="me-btn sec" routerLink="/my-account/orders">{{ 'me.nav.pedidos' | flaT }}</a>
+    </div>
+
+    <ng-container *ngIf="vm.p?.temEstudio && vm.p as p">
+      <ol class="dv-passos" [attr.aria-label]="'me.d.etapas' | flaT">
+        <li
+          *ngFor="let s of vm.passos; trackBy: tb"
+          [attr.data-estado]="s.estado"
+          [attr.aria-current]="s.estado === 'atual' ? 'step' : null"
+        >
+          <span class="dv-n" aria-hidden="true">
+            <svg *ngIf="s.estado === 'feito'; else num" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 12l5 5 9-10"></path></svg>
+            <ng-template #num>{{ s.n }}</ng-template>
+          </span>
+          <span class="dv-nome">{{ s.nome }}<span class="cx-visually-hidden" *ngIf="s.estado === 'feito'"> · {{ 'me.o.feito' | flaT }}</span></span>
+        </li>
+      </ol>
+
+      <ul class="dv-itens">
+        <li *ngFor="let i of p.itens">
+          <span class="dv-mini"><fla-me-camiseta [estampa]="i.estampa" [cor]="i.cor"></fla-me-camiseta></span>
+          <span class="dv-info">
+            <strong>{{ 'me.c.nome' | flaT: { n: i.estampa.nome } }}</strong>
+            <span>{{ estudio.configuracao(i) }} · {{ 'ci.units' | flaT: { n: i.quantidade } }}</span>
+          </span>
+        </li>
+      </ul>
+
+      <p *ngIf="erro" class="dv-falha" role="alert" tabindex="-1">{{ erro }}</p>
+
+      <!-- 1. Motivo -->
+      <ng-container *ngIf="vm.etapa === 1">
+        <div *ngIf="!p.podeDevolver; else form" class="dv-card" role="status">
+          <h2 class="dv-h" tabindex="-1">{{ 'me.d.indisponivel.t' | flaT }}</h2>
+          <p>{{ 'me.d.indisponivel.x' | flaT }}</p>
+          <a class="me-btn sec" [routerLink]="['/my-account/order', vm.code]">{{ 'me.d.voltarPedido' | flaT }}</a>
+        </div>
+        <ng-template #form>
+          <form class="dv-form" (submit)="continuar($event, vm.code)" novalidate>
+            <fieldset class="dv-grupo">
+              <legend><h2 class="dv-h" tabindex="-1">{{ 'me.d.qualMotivo' | flaT }}</h2></legend>
+              <label *ngFor="let m of motivos" class="dv-op" [class.on]="motivo === m">
+                <input type="radio" name="motivo" [value]="m" [checked]="motivo === m" (change)="escolherMotivo(m)" [attr.aria-describedby]="'dv-m-' + m" />
+                <span><strong>{{ 'me.d.m.' + m | flaT }}</strong><span [id]="'dv-m-' + m">{{ 'me.d.md.' + m | flaT }}</span></span>
+              </label>
+            </fieldset>
+            <fieldset class="dv-grupo" *ngIf="temSolucao">
+              <legend><span class="dv-h3">{{ 'me.d.prefere' | flaT }}</span></legend>
+              <label *ngFor="let s of solucoes" class="dv-op" [class.on]="solucao === s">
+                <input type="radio" name="solucao" [value]="s" [checked]="solucao === s" (change)="solucao = s" [attr.aria-describedby]="'dv-s-' + s" />
+                <span><strong>{{ 'me.d.s.' + s | flaT }}</strong><span [id]="'dv-s-' + s">{{ 'me.d.sd.' + s | flaT }}</span></span>
+              </label>
+            </fieldset>
+            <p class="dv-nota" *ngIf="motivo === 'ARREPENDIMENTO'">{{ 'me.d.arrependimento' | flaT }}</p>
+            <p class="dv-erro" *ngIf="erroForm" role="alert" tabindex="-1">{{ erroForm }}</p>
+            <label class="dv-campo">
+              {{ 'me.d.conte' | flaT }}
+              <textarea name="comentario" rows="4" maxlength="500" [(ngModel)]="comentario"></textarea>
+            </label>
+            <button type="submit" class="me-btn dv-cta" [disabled]="enviando">
+              {{ (enviando ? 'me.d.enviando' : 'me.d.continuar') | flaT }}
+            </button>
+          </form>
+        </ng-template>
+      </ng-container>
+
+      <!-- 2. Envio -->
+      <div *ngIf="vm.etapa === 2 && vm.d as d" class="dv-card">
+        <h2 class="dv-h" tabindex="-1">{{ 'me.d.comoEnviar' | flaT }}</h2>
+        <div class="dv-codigo">
+          <span>{{ 'me.d.codigo' | flaT }}</span>
+          <strong>{{ d.codigoPostagem }}</strong>
+        </div>
+        <ol class="dv-instr">
+          <li>{{ 'me.d.i1' | flaT }}</li>
+          <li>{{ 'me.d.i2' | flaT }}</li>
+          <li>{{ 'me.d.i3' | flaT }}</li>
+        </ol>
+        <p class="dv-resumo">
+          {{ 'me.d.resumo' | flaT: { m: ('me.d.m.' + d.motivo | flaT), s: ('me.d.s.' + d.solucao | flaT) } }}
+        </p>
+        <div class="dv-acts">
+          <button type="button" class="me-btn" [disabled]="enviando" (click)="enviei(vm.code)">
+            {{ (enviando ? 'me.d.enviando' : 'me.d.enviei') | flaT }}
+          </button>
+          <a class="me-btn sec" [routerLink]="['/my-account/order', vm.code]">{{ 'me.d.voltarPedido' | flaT }}</a>
+        </div>
+      </div>
+
+      <!-- 3. Acompanhamento e 4. Resultado -->
+      <div *ngIf="vm.etapa >= 3 && vm.d as d" class="dv-card">
+        <ng-container *ngIf="vm.etapa === 3; else resultado">
+          <h2 class="dv-h" tabindex="-1">{{ 'me.d.passo.acomp' | flaT }}</h2>
+        </ng-container>
+        <ng-template #resultado>
+          <span class="dv-ok" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"></path></svg>
+          </span>
+          <h2 class="dv-h" tabindex="-1">{{ (d.solucao === 'REIMPRESSAO' ? 'me.d.r.reimpressao' : 'me.d.r.reembolso') | flaT }}</h2>
+          <p>
+            {{ (d.solucao === 'REIMPRESSAO' ? 'me.d.r.reimpressaoX' : 'me.d.r.reembolsoX') | flaT: { v: d.valorTexto ?? '' } }}
+          </p>
+        </ng-template>
+        <ol class="dv-acomp">
+          <li *ngFor="let a of vm.acomp" [attr.data-feito]="a.feito">
+            <span class="dv-dot" aria-hidden="true"></span>
+            <span><strong>{{ a.nome }}<span class="cx-visually-hidden"> · {{ (a.feito ? 'me.o.feito' : 'me.o.pendente') | flaT }}</span></strong><span>{{ a.quando }}</span></span>
+          </li>
+        </ol>
+        <p *ngIf="vm.etapa === 3" class="dv-espera" role="status">
+          <strong>{{ 'me.d.aguardando' | flaT }}</strong> {{ 'me.d.aguardandoX' | flaT }}
+        </p>
+        <a *ngIf="d.pedidoReimpressao" class="dv-link" [routerLink]="['/my-account/order', d.pedidoReimpressao]">
+          {{ 'me.d.verReimpressao' | flaT: { code: d.pedidoReimpressao } }}
+        </a>
+        <a class="me-btn dv-cta" [routerLink]="['/my-account/order', vm.code]">{{ 'me.d.voltarPedido' | flaT }}</a>
+      </div>
+    </ng-container>
+  </main>
+</ng-container>

@@ -128,6 +128,36 @@ export interface MePedido {
   itens: MeCarrinhoItem[];
   podeCancelar: boolean;
   valorEstudioTexto?: string;
+  /** Devolução (PR 5): null = sem devolução */
+  devolucao?: MeDevolucao | null;
+  podeDevolver?: boolean;
+}
+
+/** Devolução da parte Mengo Estúdio do pedido (PR 5) */
+export interface MeDevolucao {
+  motivo: 'DEFEITO' | 'ERRO' | 'ARREPENDIMENTO';
+  solucao: 'REEMBOLSO' | 'REIMPRESSAO';
+  comentario?: string | null;
+  etapa: 'SOLICITADA' | 'ENVIADA' | 'RESOLVIDA';
+  codigoPostagem: string;
+  solicitadaEm?: number;
+  enviadaEm?: number;
+  recebidaEm?: number;
+  valor?: number;
+  valorTexto?: string;
+  pedidoReimpressao?: string;
+}
+
+/** Estado do painel da demonstração (PR 5) */
+export interface MeDemo {
+  agora: number;
+  relogioMinutos: number;
+  pagamento: 'APROVAR' | 'RECUSAR_UMA_VEZ' | 'RECUSAR';
+  cancelamento: 'ACEITO' | 'RECUSADO' | 'FALHA';
+  estampas: { code: string; nome: string; situacao: string; fim: number; simulado: boolean }[];
+  pedidos: { code: string; situacao: MeSituacaoPedido; devolucao?: string | null; proximo?: string | null }[];
+  avisos: number;
+  avisosPendentes: number;
 }
 
 /** Resposta da estamparia ao cancelamento */
@@ -481,7 +511,67 @@ export class EstudioService {
       itens: this.convertCarrinho(r).itens,
       podeCancelar: !!r.podeCancelar,
       valorEstudioTexto: r.valorEstudioTexto,
+      devolucao: r.devolucao ?? null,
+      podeDevolver: !!r.podeDevolver,
     };
+  }
+
+  /** Pede a devolução da parte do Estúdio (PR 5) */
+  pedirDevolucao(
+    code: string,
+    body: { motivo: string; solucao: string; comentario?: string }
+  ): Observable<MePedido | null> {
+    return this.http
+      .post<any>(
+        `${this.occEndpoints.getBaseUrl()}/users/current/orders/${encodeURIComponent(code)}/mengo-estudio/devolucao`,
+        body
+      )
+      .pipe(
+        map((r) => this.convertPedido(r)),
+        catchError((e: HttpErrorResponse) =>
+          throwError(() => new Error(e?.error?.errors?.[0]?.message ?? ''))
+        )
+      );
+  }
+
+  /** O torcedor informa que postou a peça */
+  enviarDevolucao(code: string): Observable<MePedido | null> {
+    return this.http
+      .post<any>(
+        `${this.occEndpoints.getBaseUrl()}/users/current/orders/${encodeURIComponent(code)}/mengo-estudio/devolucao/envio`,
+        {}
+      )
+      .pipe(
+        map((r) => this.convertPedido(r)),
+        catchError((e: HttpErrorResponse) =>
+          throwError(() => new Error(e?.error?.errors?.[0]?.message ?? ''))
+        )
+      );
+  }
+
+  /** Painel da demonstração: estado (403 = não é usuário de teste) */
+  demo(): Observable<MeDemo> {
+    return this.http
+      .get<MeDemo>(`${this.occEndpoints.getBaseUrl()}/users/current/mengo-estudio/demo`)
+      .pipe(
+        catchError((e: HttpErrorResponse) =>
+          throwError(() => Object.assign(new Error(e?.error?.errors?.[0]?.message ?? ''), { status: e?.status }))
+        )
+      );
+  }
+
+  /** Painel da demonstração: uma ação ({acao, ...}); devolve a mensagem e o estado novo */
+  demoAcao(body: Record<string, unknown>): Observable<{ mensagem: string; estado: MeDemo }> {
+    return this.http
+      .post<{ mensagem: string; estado: MeDemo }>(
+        `${this.occEndpoints.getBaseUrl()}/users/current/mengo-estudio/demo`,
+        body
+      )
+      .pipe(
+        catchError((e: HttpErrorResponse) =>
+          throwError(() => new Error(e?.error?.errors?.[0]?.message ?? ''))
+        )
+      );
   }
 
   /** Avise-me se voltar */

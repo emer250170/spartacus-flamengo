@@ -1,0 +1,139 @@
+:host {
+  display: block;
+  background: #f6f6f4;
+}
+.dm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 56px;
+}
+.intro p {
+  margin: 4px 0 0;
+  color: #555;
+  font-size: 16px;
+}
+.dm-aviso {
+  margin: 0;
+  padding: 10px 14px;
+  background: #fff4d6;
+  border: 1px solid #e0a100;
+  border-radius: 4px;
+  font-size: 15px;
+}
+.dm-msg,
+.dm-erro {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 15px;
+}
+.dm-msg {
+  background: #eaf5ea;
+  border-left: 3px solid #1d6b21;
+}
+.dm-erro {
+  background: #fde3e3;
+  border-left: 3px solid #9e0000;
+  color: #9e0000;
+  font-weight: 700;
+}
+.dm-grade {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.dm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+  h2 {
+    margin: 0;
+    font-size: 19px;
+  }
+  p {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+.dm-largo {
+  grid-column: 1 / -1;
+}
+.dm-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dm-op {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #111;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  &[aria-pressed='true'] {
+    background: #111;
+    color: #fff;
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  &:focus-visible {
+    outline: 3px solid #d70000;
+    outline-offset: 2px;
+  }
+}
+.dm-nota {
+  color: #555;
+  font-size: 14px !important;
+}
+.dm-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  font-weight: 700;
+  select {
+    min-height: 42px;
+    padding: 0 10px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    font: inherit;
+    font-weight: 400;
+  }
+}
+.dm-tab {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  th,
+  td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: middle;
+  }
+  thead th {
+    background: #f1f1f1;
+  }
+  a {
+    color: #111;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+}
+@media (max-width: 991px) {
+  .dm-grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

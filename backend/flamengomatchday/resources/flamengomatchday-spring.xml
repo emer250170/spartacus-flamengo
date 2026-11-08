@@ -726,7 +726,17 @@
 		<property name="modelService" ref="modelService"/>
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>
 		<property name="enumerationService" ref="enumerationService"/>
+		<property name="cloneAbstractOrderStrategy" ref="cloneAbstractOrderStrategy"/>
+		<property name="orderCodeGenerator" ref="orderCodeGenerator"/>
 	</bean>
+	<!-- Painel da demonstração do Mengo Estúdio (08/11, PR 5): só usuários de teste (flamengo.estudio.demo.usuarios) -->
+	<bean id="mengoEstudioDemoService" class="br.com.flamengo.matchday.estudio.impl.MengoEstudioDemoService">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="configurationService" ref="configurationService"/>
+</bean>
 	<!-- Mudou a situação do Estúdio no pedido (loja, estamparia ou Backoffice): evento, número de série e rastreio -->
 	<bean id="mengoPedidoSituacaoInterceptor" class="br.com.flamengo.matchday.estudio.MengoPedidoSituacaoInterceptor">
 		<property name="mengoEstudioService" ref="mengoEstudioService"/>

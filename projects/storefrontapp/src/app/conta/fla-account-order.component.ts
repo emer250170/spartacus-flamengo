@@ -292,7 +292,13 @@ export class FlaAccountOrderComponent extends FlaOcBodyComponent {
       semCancelar: p.podeCancelar
         ? undefined
         : this.i18n.t(
-            sit === 'CANCELADO' ? 'me.o.jaCancelado' : 'me.o.naoCancela'
+            sit === 'CANCELADO'
+              ? 'me.o.jaCancelado'
+              : p.devolucao
+                ? 'me.o.comDevolucao'
+                : sit === 'ENTREGUE'
+                  ? 'me.o.entregue'
+                  : 'me.o.naoCancela'
           ),
     };
   }

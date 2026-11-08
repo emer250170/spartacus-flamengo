@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,7 +29,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * <li>GET /{baseSiteId}/users/{userId}/orders/{code}/mengo-estudio: situação, linha do tempo, rastreio, camisetas com
  * número de série e se ainda dá para cancelar;</li>
  * <li>POST /{baseSiteId}/users/{userId}/orders/{code}/mengo-estudio/cancelamento: pede o cancelamento à estamparia;
- * devolve "resultado" (ACEITO, RECUSADO ou FALHA), "mensagem" e o pedido atualizado.</li>
+ * devolve "resultado" (ACEITO, RECUSADO ou FALHA), "mensagem" e o pedido atualizado;</li>
+ * <li>POST …/mengo-estudio/devolucao ({motivo, solucao, comentario}) e …/devolucao/envio (PR 5): pede a devolução e
+ * informa que a peça foi postada; devolvem o pedido atualizado.</li>
  * </ul>
  * Recusas voltam com 400 e {"errors":[{"type":"MengoEstudioError","message":"..."}]}.
  */
@@ -87,6 +90,61 @@ public class MengoEstudioOrderController
 		{
 			return MengoEstudioController.error(HttpStatus.BAD_REQUEST, e.getMessage());
 		}
+	}
+
+	/** Pede a devolução: {"motivo": DEFEITO | ERRO | ARREPENDIMENTO, "solucao": REEMBOLSO | REIMPRESSAO, "comentario"} */
+	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
+	@RequestMapping(value = "/orders/{code}/mengo-estudio/devolucao", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Object> devolucao(@PathVariable final String baseSiteId, @PathVariable final String userId,
+			@PathVariable final String code, @RequestBody(required = false) final Map<String, Object> req)
+	{
+		final CustomerModel customer = currentCustomer();
+		final OrderModel order = mengoEstudioOrderService.pedido(customer, code);
+		if (order == null)
+		{
+			return MengoEstudioController.error(HttpStatus.NOT_FOUND, "Pedido não encontrado.");
+		}
+		try
+		{
+			final Map<String, Object> r = req == null ? new LinkedHashMap<>() : req;
+			mengoEstudioOrderService.pedirDevolucao(order, text(r.get("motivo")), text(r.get("solucao")),
+					text(r.get("comentario")), customer.getUid());
+			return ResponseEntity.ok(mengoEstudioOrderService.detalhe(order));
+		}
+		catch (final IllegalArgumentException e)
+		{
+			return MengoEstudioController.error(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	/** O torcedor informa que postou a peça */
+	@Secured({ "ROLE_CUSTOMERGROUP", "ROLE_CUSTOMERMANAGERGROUP" })
+	@RequestMapping(value = "/orders/{code}/mengo-estudio/devolucao/envio", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Object> envio(@PathVariable final String baseSiteId, @PathVariable final String userId,
+			@PathVariable final String code)
+	{
+		final CustomerModel customer = currentCustomer();
+		final OrderModel order = mengoEstudioOrderService.pedido(customer, code);
+		if (order == null)
+		{
+			return MengoEstudioController.error(HttpStatus.NOT_FOUND, "Pedido não encontrado.");
+		}
+		try
+		{
+			mengoEstudioOrderService.enviarDevolucao(order, customer.getUid());
+			return ResponseEntity.ok(mengoEstudioOrderService.detalhe(order));
+		}
+		catch (final IllegalArgumentException e)
+		{
+			return MengoEstudioController.error(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	protected static String text(final Object v)
+	{
+		return v == null ? null : String.valueOf(v);
 	}
 
 	protected CustomerModel currentCustomer()

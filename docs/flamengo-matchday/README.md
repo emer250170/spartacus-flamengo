@@ -1241,3 +1241,26 @@ jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória at
   08/11; sem ela o pagamento recusado e as respostas ao cancelamento não podem ser ligados).
 - Ajuste junto (PR estudio-pedidos-ajustes): Meus pedidos estava vazio desde 07/11 porque a regra da página do produto
   (só "Sobre o produto", em sanfona) valia para todo contêiner de abas; agora vale só para o da página do produto.
+
+## Mengo Estúdio — devolução e painel da demonstração (08/11, PR estudio-devolucao-demo)
+
+- Devolução da parte do Estúdio, gravada no pedido (`mengoDevolucao`, JSON): motivo (defeito, erro de produção,
+  arrependimento), solução (reembolso ou reimpressão; arrependimento só reembolso), comentário, etapa (SOLICITADA,
+  ENVIADA, RESOLVIDA), código de postagem demonstrativo `ME-DEV-<pedido>` e as datas. Só pedido Entregue, uma vez.
+  - Pedir: situação Em devolução. "Já enviei a peça": etapa ENVIADA.
+  - Estamparia recebe (painel da demo): reembolso → situação Reembolsado (estorno simulado na linha do tempo);
+    reimpressão → pedido novo sem custo (cópia das camisetas do Estúdio com preço zero, `cloneAbstractOrderStrategy`,
+    situação Recebido, sem série nem rastreio) e o original volta a Entregue.
+- API (torcedor logado): `POST /users/current/orders/{code}/mengo-estudio/devolucao` (`{motivo, solucao, comentario}`)
+  e `…/devolucao/envio`. O `GET …/mengo-estudio` passa a trazer `devolucao` e `podeDevolver`.
+- Loja: `/mengo-estudio/devolucao/{pedido}` em 4 etapas (Motivo, Envio, Acompanhamento, Resultado); no detalhe do
+  pedido, "Pedir devolução" (Entregue) e "Acompanhar a devolução".
+- Painel da demonstração: `/mengo-estudio/demo`, fora dos menus, só para os usuários de teste
+  (`flamengo.estudio.demo.usuarios`, padrão `torcedor\d+@example\.com`). Relógio (+1 h, +1 dia, +7 dias, hora real),
+  prazo de uma estampa (cadastrado, faltam 47 h, encerrar agora), próximo pagamento, resposta ao cancelamento,
+  pedidos do Estúdio do usuário com o próximo passo da estamparia (produzir, enviar, entregar, peça postada, peça
+  recebida), avisos (simular relançamento: marca os pendentes como avisados) e "Restaurar" (relógio, prazos,
+  pagamento e cancelamento; os pedidos ficam). API: `GET|POST /users/current/mengo-estudio/demo`.
+- Backoffice: a devolução aparece (só leitura) na aba Mengo Estúdio do pedido; cada passo entra em Andamento dos
+  pedidos.
+- Instalação: `ant all` e publicar a loja (sem Update).
