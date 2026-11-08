@@ -59,6 +59,13 @@
             </button>
           </div>
           <span class="fla-cd-details" *ngIf="e.details">{{ e.details }}</span>
+          <ng-container *ngIf="e.reservaVencida">
+            <span class="fla-me-alerta" role="alert">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M12 3l10 18H2z" /><path d="M12 10v5M12 18v.5" /></svg>
+              {{ 'cp.holdExpired' | flaT }}
+            </span>
+            <button type="button" class="fla-hold-retirar" [attr.aria-label]="'cp.removeSeatOf' | flaT: { name: e.name }" (click)="remove(e)">{{ 'cp.removeSeat' | flaT }}</button>
+          </ng-container>
           <span class="fla-cd-pers" *ngIf="e.personalization">
             {{ 'pz.cartLine' | flaT: { v: e.personalization } }}
           </span>
@@ -112,6 +119,7 @@
         </svg>
         {{ 'cd.checkout' | flaT }}
       </a>
+      <p class="fla-me-bloqueio" *ngIf="v.reservaVencida" role="alert">{{ 'cp.holdExpiredBlock' | flaT }}</p>
       <p class="fla-me-bloqueio" *ngIf="v.bloqueio" role="alert">{{ 'me.c.bloqueio' | flaT }}</p>
       <button type="button" class="fla-cd-continue" (click)="close('continue')">
         {{ 'cd.continue' | flaT }}
