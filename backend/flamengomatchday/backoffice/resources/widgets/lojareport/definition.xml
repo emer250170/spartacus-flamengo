@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Relatório de vendas da perspectiva "Loja Flamengo" (gestor da loja, 08/11): indicadores do período, vendas por
+  dia ou mês, receita por tipo, produtos mais vendidos, formas de pagamento, como o torcedor recebe, promoções e
+  cupons. É a página inicial da perspectiva.
+-->
+<widget-definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/widget-definition.xsd"
+		id="br.com.flamengo.matchday.widgets.lojareport">
+	<name>Loja Flamengo - Relatório de vendas</name>
+	<description>Relatório de vendas da loja para o gestor da loja</description>
+	<defaultTitle>Relatório de vendas</defaultTitle>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<view src="lojareport.zul"/>
+	<controller class="br.com.flamengo.matchday.backoffice.widgets.lojareport.LojaReportController"/>
+	<sockets>
+		<!-- recarrega os números (clique em "Relatório de vendas" na árvore) -->
+		<input id="refresh" type="java.lang.Object"/>
+	</sockets>
+	<keywords>
+		<keyword>Flamengo</keyword>
+		<keyword>Report</keyword>
+	</keywords>
+</widget-definition>

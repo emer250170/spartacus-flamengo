@@ -585,6 +585,15 @@
 		<property name="searchRestrictionService" ref="searchRestrictionService"/>
 	</bean>
 
+	<!-- Relatório de vendas da perspectiva Loja Flamengo (gestor da loja, 08/11): página inicial da perspectiva -->
+	<bean id="lojaReportService" class="br.com.flamengo.matchday.report.loja.impl.DefaultLojaReportService">
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="mengoEstudioCartService" ref="mengoEstudioCartService"/>
+	</bean>
+
 	<!-- Painel inicial do gestor de merchandising (Backoffice > Cockpit de administração) -->
 	<bean id="merchDashboardService" class="br.com.flamengo.matchday.report.merch.impl.DefaultMerchDashboardService">
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>

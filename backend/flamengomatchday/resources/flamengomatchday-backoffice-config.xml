@@ -59,10 +59,11 @@
 	<context component="matchday-explorer-tree">
 		<explorer-tree:explorer-tree>
 			<explorer-tree:navigation-node id="matchday.tree.root">
+				<!-- 08/11: o relatório é a página inicial da perspectiva e o primeiro item do menu -->
+				<explorer-tree:navigation-node id="matchday.tree.reports"/>
 				<explorer-tree:type-node id="matchday.tree.games" code="MatchdayGame"/>
 				<explorer-tree:type-node id="matchday.tree.seatholds" code="SeatHold"/>
 				<explorer-tree:navigation-node id="matchday.tree.tickets"/>
-				<explorer-tree:navigation-node id="matchday.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
 	</context>
@@ -446,6 +447,8 @@
 	<context component="socio-explorer-tree">
 		<explorer-tree:explorer-tree>
 			<explorer-tree:navigation-node id="socio.tree.root">
+				<!-- 08/11: o relatório é a página inicial da perspectiva e o primeiro item do menu -->
+				<explorer-tree:navigation-node id="socio.tree.reports"/>
 				<explorer-tree:type-node id="socio.tree.plans" code="SocioPlan"/>
 				<explorer-tree:navigation-node id="socio.tree.members"/>
 				<explorer-tree:type-node id="socio.tree.events" code="SocioEvent"/>
@@ -456,7 +459,6 @@
 				<explorer-tree:type-node id="socio.tree.contracts" code="SocioContract"/>
 				<explorer-tree:type-node id="socio.tree.experiences" code="SocioExperience"/>
 				<explorer-tree:type-node id="socio.tree.redemptions" code="SocioRedemption"/>
-				<explorer-tree:navigation-node id="socio.tree.reports"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
 	</context>
@@ -1326,6 +1328,8 @@
 	     as mesmas telas da Gestão de experiências (instâncias lojaExp*). -->
 	<context component="loja-explorer-tree">
 		<explorer-tree:explorer-tree>
+			<!-- 08/11: relatório de vendas da loja, página inicial da perspectiva -->
+			<explorer-tree:navigation-node id="loja.tree.salesReport"/>
 			<explorer-tree:navigation-node id="loja.tree.products">
 				<explorer-tree:type-node id="loja.tree.product" code="Product"/>
 				<explorer-tree:type-node id="loja.tree.categories" code="Category"/>
