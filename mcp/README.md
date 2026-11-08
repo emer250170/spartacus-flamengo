@@ -77,6 +77,24 @@ Relatório nas três personas de gestor (sócio, jogos e loja); cupom pessoal s�
 
 Objetos de integração em `docs/flamengo-matchday/mcp/integracao-relatorio-cupom.impex` (tipos `FlaReportMail` e `FlaCouponGrant` da extensão). No cupom da loja, o desconto acumula com o desconto de sócio na loja.
 
+## Análise de pedidos (08/11)
+
+Ferramenta `analise_pedidos` nas três personas de gestor: totais e agrupamentos (até 2 de uma vez) com filtros nos mesmos campos.
+
+| Campo | De onde vem |
+|---|---|
+| forma de pagamento, parcelas, bandeira, gateway | método escolhido no checkout (sócio), método da Adyen, dados do cartão |
+| entrega, cidade, UF | modo de entrega; cidade e UF do endereço (UF pela faixa do CEP quando falta); retirada = cidade da loja |
+| promoção (com o desconto de cada uma), cupom, com/sem desconto | promoções que valeram no pedido (nome em português da regra) |
+| antifraude | ClearSale: aprovado, recusado por suspeita de fraude, recusado por política, em análise, não analisado |
+| situação, categoria, produto, perfil do cliente (plano atual), primeira compra ou recorrente, faixa de valor, dia, semana, mês, dia da semana, hora | pedido |
+
+Totais: pedidos, receita, ticket médio, descontos, % com desconto, desconto por promoção, aguardando pagamento e o resumo do antifraude (% recusados dos analisados e por suspeita de fraude). Recorte por gestor: loja = todos os pedidos; jogos = pedidos com ingresso, estacionamento ou alimentação (receita = esses itens); sócio = pedidos com plano e compras de quem é sócio hoje. **Sem dados pessoais**: do endereço só cidade e UF.
+
+No Commerce: objeto de integração `FlamengoAnalisePedido` com o atributo virtual `analise` (Script `flaAnalisePedido`, mesmo texto de `docs/flamengo-matchday/mcp/analise-pedido.groovy`), em `integracao-analise-pedidos.impex`. Não precisa de `ant all`; o objeto `FlamengoPedido` das outras ferramentas não mudou.
+
+Perguntas de exemplo: "Receita por forma de pagamento nos últimos 30 dias", "Quantos pedidos tiveram os 5% no Pix e quanto demos de desconto?", "Qual o percentual de pedidos recusados por suspeita de fraude?", "Vendas por cidade e tipo de entrega", "Sócios ou não sócios: quem tem o maior ticket médio?", "Que dia da semana e hora vendem mais?".
+
 ## Segurança (bom para mostrar ao cliente)
 
 - **Cada persona usa o próprio login do Commerce**; quem bloqueia é o Commerce, não o MCP: o gestor do sócio-torcedor recebe *"o Commerce negou"* se tentar ver jogos, e o gestor de jogos não enxerga planos nem chamados. O gestor da loja não vê sócios nem jogos (só os resgates de experiência e os pedidos). Permissões por tipo nos grupos `socioapigroup`, `jogosapigroup` e `lojaapigroup`; o `lojaapigroup` não lê catálogo nenhum, então o Backoffice do gestor.loja continua só com o catálogo do Flamengo.
@@ -126,6 +144,11 @@ Objetos de integração em `docs/flamengo-matchday/mcp/integracao-relatorio-cupo
 - "Quais promoções estão valendo?" (`promocoes`, só leitura: ativar ou criar regra é no Backoffice, que republica o motor de promoções) / "Desativa o cupom mengao" (`atualizar_cupom`).
 - "Como está a vitrine de experiências? Quem resgatou o tour?" / "Cria a experiência Visita ao museu por 300 pontos ou R$ 60, 20 vagas" → o Commerce cria o produto `EXP-VISITA-AO-MUSEU` na loja (`experiencias`, `resgates_experiencias`, `criar_experiencia`, `atualizar_experiencia`). Objetos em `docs/flamengo-matchday/mcp/integracao-loja.impex`.
 - Mostre o bloqueio: "Suspende o torcedor21" → ele não tem essa ferramenta nem acesso.
+
+**4b. Análise de pedidos (qualquer gestor)**
+- Gestor da loja: "Quanto vendemos por forma de pagamento nos últimos 30 dias? E quantos pedidos tiveram os 5% no Pix?" (`analise_pedidos`).
+- "Qual o percentual de pedidos recusados por suspeita de fraude?" → resumo do antifraude da ClearSale.
+- "Me manda isso por e-mail" → o relatório sai com esses números (`enviar_relatorio`).
 
 **5. Relatório (qualquer gestor) e cupom (gestor da loja)**
 - "Me manda por e-mail o resumo de vendas de outubro, só ingressos e experiências, com os 5 mais vendidos" → o Claude puxa os dados, mostra o que vai no e-mail, você confirma e o relatório chega no seu e-mail (com CSV) (`enviar_relatorio`).
