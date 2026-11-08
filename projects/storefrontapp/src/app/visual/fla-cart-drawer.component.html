@@ -47,7 +47,7 @@
           <div class="fla-cd-row">
             <strong class="fla-cd-name">{{ e.name }}</strong>
             <button
-              *ngIf="!e.seat"
+              *ngIf="!e.reservaVencida"
               type="button"
               class="fla-cd-remove"
               [attr.aria-label]="'cd.remove' | flaT: { name: e.name }"

@@ -45,7 +45,7 @@ export interface DrawerEntry {
   price: string;
   /** Preço de uma unidade (página do carrinho) */
   unitPrice: string;
-  /** Poltrona de jogo: sem quantidade e sem remover aqui (a jornada cuida) */
+  /** Poltrona de jogo: sem quantidade; remover libera a reserva e o estoque (08/11: antes só pela jornada) */
   seat: boolean;
   /** "Nome EMERSON · 10 · Kit de patrocínio" (manto personalizado) */
   personalization?: string;
@@ -224,7 +224,8 @@ export class FlaCartViewService {
   }
 
   remove(e: DrawerEntry): void {
-    // poltrona com a reserva vencida: o contador da jornada sai junto (sem o aviso de "poltrona perdida")
+    // poltrona (reserva valendo ou vencida): o contador da jornada sai junto (sem o aviso de "poltrona perdida");
+    // o Commerce libera a reserva e o estoque ao tirar a linha do carrinho
     if (e.seat && this.matchday.readHold()?.code === e.entry.product?.code) {
       this.matchday.clearHold();
     }
