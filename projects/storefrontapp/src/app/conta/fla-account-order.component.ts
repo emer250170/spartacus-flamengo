@@ -44,6 +44,8 @@ interface MePasso {
   quando?: string;
   nota?: string;
   estado: 'feito' | 'pendente' | 'cancelado';
+  /** Passo da linha do tempo geral (texto do que falta: acc.od.tl.pend.<chave>) */
+  chave?: string;
 }
 
 /** Parte Mengo Estúdio do detalhe do pedido (PR 4) */
@@ -86,6 +88,16 @@ interface AccountOrderView {
   saved?: string;
   /** Pedido com camiseta do Mengo Estúdio */
   me?: MeConta;
+  /** Linha do tempo do pedido (os itens que não são do Mengo Estúdio) */
+  andamento?: { passos: MePasso[]; rastreio?: string };
+}
+
+/** Remessa como vem no detalhe do pedido (OCC, fields=FULL) */
+interface OccConsignment {
+  status?: string;
+  statusDate?: string | Date;
+  trackingID?: string;
+  deliveryPointOfService?: unknown;
 }
 
 /**
@@ -247,7 +259,65 @@ export class FlaAccountOrderComponent extends FlaOcBodyComponent {
       body,
       saved: saved > 0.004 ? money(saved) : undefined,
       me: me?.temEstudio ? this.toMe(me) : undefined,
+      andamento: me?.temEstudio && me.soEstudio ? undefined : this.toAndamento(order, groups),
     };
+  }
+
+  /**
+   * Linha do tempo de qualquer pedido (08/11; antes só o do Mengo Estúdio tinha): recebido, pagamento e,
+   * conforme o que o pedido leva, separação e envio (entrega em casa), pronto e retirado (retirada na loja)
+   * ou ingressos e benefícios liberados (só itens digitais). Sai do status do pedido e das remessas.
+   */
+  protected toAndamento(order: Order, groups: OrderGroup[]): { passos: MePasso[]; rastreio?: string } {
+    const t = (k: string, p?: Record<string, unknown>) => this.i18n.t('acc.od.tl.' + k, p);
+    const st = String(order.status ?? '').toUpperCase();
+    const cons = ((order as { consignments?: OccConsignment[] }).consignments ?? []).map((c) => ({
+      ...c,
+      st: String(c.status ?? '').toUpperCase(),
+    }));
+    const quando = (d?: string | Date) => (d ? this.quando(new Date(d).getTime()) : undefined);
+    const recebido: MePasso = { nome: t('recebido'), quando: quando(order.created), estado: 'feito' };
+    if (/CANCEL/.test(st)) {
+      return { passos: [recebido, { nome: t('cancelado'), estado: 'cancelado' }] };
+    }
+    const passos: MePasso[] = [recebido];
+    const pago = ['PAYMENT_CAPTURED', 'READY', 'COMPLETED'].includes(st) || cons.length > 0;
+    passos.push({
+      nome: t('pago'),
+      estado: pago ? 'feito' : 'pendente',
+      nota: pago ? undefined : t(st === 'PAYMENT_NOT_CAPTURED' ? 'pend.aguardando' : 'pend.pago'),
+    });
+    const casa = cons.filter((c) => !c.deliveryPointOfService);
+    const loja = cons.filter((c) => !!c.deliveryPointOfService);
+    const passo = (k: string, feito: boolean, data?: string | Date): MePasso => ({
+      chave: k,
+      nome: t(k),
+      estado: feito ? 'feito' : 'pendente',
+      quando: feito ? quando(data) : undefined,
+    });
+    // linhas que viajam (ingresso, plano, experiência, estacionamento e comida não têm remessa)
+    const fisicas = (key: string) =>
+      groups.some((g) => g.key === key && g.lines.some((l) => !DIGITAL.test(l.code)));
+    if (fisicas('ship')) {
+      const enviada = casa.find((c) => /SHIPPED|DELIVERY_COMPLETED/.test(c.st));
+      passos.push(passo('separacao', casa.length > 0 || !!enviada));
+      passos.push(passo('enviado', !!enviada || order.statusDisplay === 'shipped', enviada?.statusDate));
+    }
+    if (fisicas('pickup')) {
+      const retirada = loja.find((c) => c.st === 'PICKUP_COMPLETE');
+      const pronta = loja.find((c) => c.st === 'READY_FOR_PICKUP') ?? retirada;
+      passos.push(passo('pronto', !!pronta, pronta === retirada ? undefined : pronta?.statusDate));
+      passos.push(passo('retirado', !!retirada, retirada?.statusDate));
+    }
+    if (!fisicas('ship') && !fisicas('pickup')) {
+      passos.push(passo('liberado', st === 'COMPLETED'));
+    }
+    // o primeiro passo que falta diz o que acontece agora
+    const prox = passos.find((p) => p.estado === 'pendente');
+    if (prox && !prox.nota && prox.chave) {
+      prox.nota = t('pend.' + prox.chave);
+    }
+    return { passos, rastreio: casa.find((c) => !!c.trackingID)?.trackingID };
   }
 
   /** Andamento, série, rastreio e cancelamento da parte Mengo Estúdio */

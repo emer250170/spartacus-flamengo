@@ -2630,7 +2630,8 @@ html.fla-login cx-global-message .alert-danger {
 
   // detalhe: o bloco do Estúdio logo depois do cabeçalho
   &:has(.fao-head) {
-    > fla-account-order > .fao-me {
+    > fla-account-order > .fao-me,
+    > fla-account-order > .fao-tl {
       order: 2;
     }
 
@@ -2726,6 +2727,36 @@ html.fla-login cx-global-message .alert-danger {
 
     strong {
       font-size: 16px;
+    }
+  }
+
+  // andamento de qualquer pedido (08/11): no desktop os passos em linha, da esquerda para a direita
+  .fao-tl-ras {
+    margin: 16px 0 0;
+    font-size: 15px;
+  }
+
+  @media (min-width: 768px) {
+    .fao-tl .fao-steps {
+      display: flex;
+      gap: 12px;
+
+      li {
+        flex: 1 1 0;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+        padding-bottom: 0;
+
+        &:not(:last-child)::before {
+          top: 7px;
+          right: -12px;
+          bottom: auto;
+          left: 22px;
+          width: auto;
+          height: 2px;
+        }
+      }
     }
   }
 
