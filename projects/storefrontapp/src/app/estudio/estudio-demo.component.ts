@@ -55,8 +55,16 @@ export class EstudioDemoComponent {
           )
     ),
     map((vm) => {
-      if (vm.estado && !this.estampa) {
-        this.estampa = vm.estado.estampas[0]?.code ?? '';
+      if (vm.estado) {
+        // à venda primeiro (as do acervo, encerradas, no fim da lista)
+        vm.estado.estampas = [...vm.estado.estampas].sort(
+          (a, b) =>
+            Number(a.situacao === 'ENCERRADA') - Number(b.situacao === 'ENCERRADA') ||
+            a.fim - b.fim
+        );
+        if (!this.estampa) {
+          this.estampa = vm.estado.estampas[0]?.code ?? '';
+        }
       }
       return vm;
     })

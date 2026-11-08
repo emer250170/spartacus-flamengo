@@ -119,7 +119,12 @@
           *ngIf="me.pedido.devolucao"
           class="btn btn-secondary btn-block fao-me-cancel"
           [routerLink]="['/mengo-estudio/devolucao', v.order.code]"
-          >{{ 'me.o.verDevolucao' | flaT }}</a
+          >{{
+            (me.pedido.devolucao.etapa === 'RESOLVIDA'
+              ? 'me.o.verResultado'
+              : 'me.o.verDevolucao'
+            ) | flaT
+          }}</a
         >
         <a class="fao-me-link" routerLink="/my-account/support-tickets">{{
           'me.o.falar' | flaT

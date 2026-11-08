@@ -295,10 +295,14 @@ export class FlaAccountOrderComponent extends FlaOcBodyComponent {
             sit === 'CANCELADO'
               ? 'me.o.jaCancelado'
               : p.devolucao
-                ? 'me.o.comDevolucao'
+                ? p.devolucao.etapa === 'RESOLVIDA'
+                  ? 'me.o.devolucaoConcluida'
+                  : 'me.o.comDevolucao'
                 : sit === 'ENTREGUE'
                   ? 'me.o.entregue'
-                  : 'me.o.naoCancela'
+                  : sit === 'RECEBIDO'
+                    ? 'me.o.reimpressao'
+                    : 'me.o.naoCancela'
           ),
     };
   }

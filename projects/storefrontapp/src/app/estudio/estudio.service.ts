@@ -127,6 +127,7 @@ export interface MePedido {
   rastreio?: string | null;
   itens: MeCarrinhoItem[];
   podeCancelar: boolean;
+  valorEstudio?: number;
   valorEstudioTexto?: string;
   /** Devolução (PR 5): null = sem devolução */
   devolucao?: MeDevolucao | null;
@@ -509,7 +510,9 @@ export class EstudioService {
       eventos: r.eventos ?? [],
       rastreio: r.rastreio ?? null,
       itens: this.convertCarrinho(r).itens,
-      podeCancelar: !!r.podeCancelar,
+      // reimpressão (sem custo) não tem o que cancelar nem estornar
+      podeCancelar: !!r.podeCancelar && (r.valorEstudio ?? 1) > 0,
+      valorEstudio: r.valorEstudio,
       valorEstudioTexto: r.valorEstudioTexto,
       devolucao: r.devolucao ?? null,
       podeDevolver: !!r.podeDevolver,
