@@ -1700,6 +1700,56 @@
 						</columntype>
 					</persistence>
 				</attribute>
+				<attribute qualifier="mengoDevMotivo" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, motivo (defeito, erro de produção, arrependimento) (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevMotivoHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevSolucao" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, solução (reembolso ou reimpressão) (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevSolucaoHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevEtapa" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, etapa (solicitada, peça enviada, concluída) (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevEtapaHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevCodigoPostagem" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, código de postagem (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevCodigoPostagemHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevComentario" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, comentário do torcedor (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevComentarioHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevSolicitadaEm" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, data da solicitação (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevSolicitadaEmHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevEnviadaEm" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, data do envio da peça (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevEnviadaEmHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevRecebidaEm" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, data do recebimento pela estamparia (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevRecebidaEmHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevValor" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, valor da parte do Estúdio (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevValorHandler"/>
+				</attribute>
+				<attribute qualifier="mengoDevReimpressao" type="java.lang.String">
+					<description>Mengo Estúdio: devolução, número do pedido da reimpressão (lido do JSON de mengoDevolucao; só leitura)</description>
+					<modifiers write="false"/>
+					<persistence type="dynamic" attributeHandler="mengoDevReimpressaoHandler"/>
+				</attribute>
 			</attributes>
 		</itemtype>
 

@@ -688,6 +688,48 @@
 		<property name="mengoEstudioService" ref="mengoEstudioService"/>
 	</bean>
 
+	<!-- Devolução do Mengo Estúdio em campos legíveis no Backoffice (08/11): um handler por campo do JSON -->
+	<bean id="mengoDevMotivoHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="motivo"/>
+	</bean>
+	<bean id="mengoDevSolucaoHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="solucao"/>
+	</bean>
+	<bean id="mengoDevEtapaHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="etapa"/>
+	</bean>
+	<bean id="mengoDevCodigoPostagemHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="codigoPostagem"/>
+	</bean>
+	<bean id="mengoDevComentarioHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="comentario"/>
+	</bean>
+	<bean id="mengoDevSolicitadaEmHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="solicitadaEm"/>
+	</bean>
+	<bean id="mengoDevEnviadaEmHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="enviadaEm"/>
+	</bean>
+	<bean id="mengoDevRecebidaEmHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="recebidaEm"/>
+	</bean>
+	<bean id="mengoDevValorHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="valor"/>
+	</bean>
+	<bean id="mengoDevReimpressaoHandler" class="br.com.flamengo.matchday.estudio.MengoDevolucaoCampoHandler">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="campo" value="reimpressao"/>
+	</bean>
+
 	<!-- Mengo Estúdio no carrinho (08/11, PR 3): configurador, linhas por combinação, bloqueio do pedido -->
 	<bean id="mengoEstudioCartService" class="br.com.flamengo.matchday.estudio.impl.DefaultMengoEstudioCartService">
 		<property name="mengoEstudioService" ref="mengoEstudioService"/>
