@@ -3,10 +3,26 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { OccEndpointsService } from '@spartacus/core';
 import { OrderHistoryComponent } from '@spartacus/order/components';
 import { Order } from '@spartacus/order/root';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
+import {
+  EstudioService,
+  ME_SITUACAO_TOM,
+  MePedidoResumo,
+} from '../estudio/estudio.service';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { statusTone } from './conta-pages';
+
+/** Filtro por origem em Meus pedidos (PR 4 do Mengo Estúdio) */
+export type FlaOrigem = 'todos' | 'loja' | 'estudio';
+
+/** Origem e situação do Estúdio de cada pedido, por código */
+interface MeIndice {
+  /** O torcedor tem pedido do Mengo Estúdio: mostra os selos e o filtro */
+  ativo: boolean;
+  porCodigo: Map<string, MePedidoResumo>;
+  lista: MePedidoResumo[];
+}
 
 /** Linha de personalização (vai junto da camisa, não aparece no resumo dos itens) */
 const ADDON = /^FLA-PERS(-|ONALIZACAO$)/;
@@ -35,6 +51,68 @@ export class FlaOrderHistoryComponent extends OrderHistoryComponent {
   protected readonly http = inject(HttpClient);
   protected readonly occ = inject(OccEndpointsService);
   protected readonly i18n = inject(FlaI18nService);
+  protected readonly estudio = inject(EstudioService);
+
+  /** Origem (loja, Mengo Estúdio) e situação do Estúdio dos pedidos do torcedor */
+  readonly me$: Observable<MeIndice> = this.estudio.pedidos().pipe(
+    map((lista) => ({
+      ativo: lista.some((p) => p.origem.includes('estudio')),
+      porCodigo: new Map(lista.map((p) => [p.code, p])),
+      lista,
+    })),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  readonly origem$ = new BehaviorSubject<FlaOrigem>('todos');
+  readonly origens: FlaOrigem[] = ['todos', 'loja', 'estudio'];
+
+  /** Pedidos de uma origem (todos de uma vez, mais novos primeiro), no formato da lista do Spartacus */
+  readonly filtrados$: Observable<Order[]> = combineLatest([
+    this.me$,
+    this.origem$,
+  ]).pipe(
+    map(([me, o]) =>
+      o === 'todos'
+        ? []
+        : me.lista
+            .filter((p) => p.origem.includes(o))
+            .map(
+              (p) =>
+                ({
+                  code: p.code,
+                  placed: p.data ? new Date(p.data) : undefined,
+                  status: p.status,
+                  statusDisplay: p.statusDisplay,
+                  total: { formattedValue: this.i18n.money(p.total ?? 0) },
+                }) as Order
+            )
+    )
+  );
+
+  escolherOrigem(o: FlaOrigem): void {
+    this.origem$.next(o);
+  }
+
+  /** Selos de origem do pedido ("Loja", "Mengo Estúdio") */
+  origemDe(order: Order, me: MeIndice): string[] {
+    return me.porCodigo.get(order.code ?? '')?.origem ?? ['loja'];
+  }
+
+  /** Situação do Estúdio para o selo (pedido só do Estúdio troca a do Commerce; misto mostra as duas) */
+  meSituacao(
+    order: Order,
+    me: MeIndice
+  ): { txt: string; tom: string; so: boolean } | null {
+    const p = me.porCodigo.get(order.code ?? '');
+    if (!p?.situacao) {
+      return null;
+    }
+    return {
+      txt: this.i18n.t('me.sit.' + p.situacao),
+      tom: ME_SITUACAO_TOM[p.situacao] ?? 'grey',
+      so: !p.origem.includes('loja'),
+    };
+  }
 
   /** "Ingresso Bahia · Camisa Jogo 2 · Manto" (cache por pedido) */
   items(order: Order): Observable<string> {

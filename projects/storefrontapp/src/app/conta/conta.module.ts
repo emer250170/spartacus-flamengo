@@ -11,11 +11,13 @@ import {
   provideConfig,
 } from '@spartacus/core';
 import {
+  KeyboardFocusModule,
   ListNavigationModule,
   MediaModule,
   OutletPosition,
   provideOutlet,
 } from '@spartacus/storefront';
+import { EstudioSharedModule } from '../estudio/estudio-shared.module';
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { FlaAccountBandComponent } from './fla-account-band.component';
 import { FlaFaqComponent } from './fla-faq.component';
@@ -60,6 +62,8 @@ import {
     ListNavigationModule,
     MediaModule,
     FlaI18nModule,
+    KeyboardFocusModule,
+    EstudioSharedModule,
   ],
   declarations: [
     FlaAccountBandComponent,

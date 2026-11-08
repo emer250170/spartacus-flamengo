@@ -11,11 +11,154 @@
     </div>
     <div class="fao-kv">
       <span>{{ 'acc.od.status' | flaT }}</span>
-      <span class="fla-badge" [attr.data-tone]="v.tone">{{
-        'orderDetails.statusDisplay_' + v.order.statusDisplay | cxTranslate
-      }}</span>
+      <!-- pedido só do Mengo Estúdio: a situação do Estúdio (a do Commerce fica "em processamento") -->
+      <span
+        *ngIf="v.me?.pedido?.soEstudio; else stdStatus"
+        class="fla-badge"
+        [attr.data-tone]="v.me?.tom"
+        >{{ v.me?.situacao }}</span
+      >
+      <ng-template #stdStatus>
+        <span class="fla-badge" [attr.data-tone]="v.tone">{{
+          'orderDetails.statusDisplay_' + v.order.statusDisplay | cxTranslate
+        }}</span>
+      </ng-template>
+    </div>
+    <div class="fao-kv" *ngIf="v.me as me">
+      <span>{{ 'me.nome' | flaT }}</span>
+      <span class="fao-me-kv">
+        <span class="fla-me-selo">{{ 'me.nome' | flaT }}</span>
+        <span
+          *ngIf="!me.pedido.soEstudio"
+          class="fla-badge"
+          [attr.data-tone]="me.tom"
+          >{{ me.situacao }}</span
+        >
+      </span>
     </div>
   </section>
+
+  <!-- Mengo Estúdio (08/11, PR 4): andamento, rastreio, selo de autenticidade e cancelamento -->
+  <div class="fao-me" *ngIf="v.me as me">
+    <section class="fao fao-card" aria-labelledby="fao-me-and">
+      <h2 id="fao-me-and" class="fao-h3">{{ 'me.o.andamento' | flaT }}</h2>
+      <ol class="fao-steps">
+        <li *ngFor="let p of me.passos" [attr.data-estado]="p.estado">
+          <span class="fao-dot" aria-hidden="true"></span>
+          <span class="fao-step">
+            <strong
+              >{{ p.nome
+              }}<span class="cx-visually-hidden">
+                · {{ 'me.o.' + p.estado | flaT }}</span
+              ></strong
+            >
+            <span class="fao-muted" *ngIf="p.quando">{{ p.quando }}</span>
+            <span class="fao-muted" *ngIf="p.nota">{{ p.nota }}</span>
+          </span>
+        </li>
+      </ol>
+    </section>
+    <div class="fao-me-side">
+      <section
+        class="fao fao-card"
+        *ngIf="me.pedido.rastreio"
+        aria-labelledby="fao-me-ras"
+      >
+        <h2 id="fao-me-ras" class="fao-h3">{{ 'me.o.rastreio' | flaT }}</h2>
+        <strong class="fao-mono">{{ me.pedido.rastreio }}</strong>
+        <span class="fao-muted">{{ 'me.o.rastreioNota' | flaT }}</span>
+      </section>
+      <section
+        class="fao fao-card"
+        *ngIf="me.series.length"
+        aria-labelledby="fao-me-selo"
+      >
+        <h2 id="fao-me-selo" class="fao-h3">{{ 'me.o.selo' | flaT }}</h2>
+        <span class="fao-muted">{{ 'me.o.seloNota' | flaT }}</span>
+        <span *ngFor="let x of me.series" class="fao-serie">
+          <strong class="fao-mono">{{ x.serie }}</strong>
+          <span class="fao-muted">{{ x.nome }} · {{ x.det }}</span>
+        </span>
+      </section>
+      <section class="fao fao-card" aria-labelledby="fao-me-acoes">
+        <h2 id="fao-me-acoes" class="fao-h3">{{ 'me.o.acoes' | flaT }}</h2>
+        <p
+          *ngIf="resultado"
+          class="fao-me-msg"
+          tabindex="-1"
+          role="status"
+          [attr.data-tom]="resultado.tom"
+        >
+          {{ resultado.texto }}
+        </p>
+        <ng-container *ngIf="me.pedido.podeCancelar">
+          <button
+            type="button"
+            class="btn btn-secondary btn-block fao-me-cancel"
+            aria-haspopup="dialog"
+            (click)="abrirCancelar($event)"
+          >
+            {{ 'me.o.cancelar' | flaT }}
+          </button>
+          <span class="fao-muted">{{ 'me.o.cancelarDica' | flaT }}</span>
+        </ng-container>
+        <span class="fao-muted" *ngIf="me.semCancelar && !resultado">{{
+          me.semCancelar
+        }}</span>
+        <a class="fao-me-link" routerLink="/my-account/support-tickets">{{
+          'me.o.falar' | flaT
+        }}</a>
+      </section>
+    </div>
+
+    <div *ngIf="modal" class="fao-modal">
+      <button
+        type="button"
+        class="fao-modal-x"
+        tabindex="-1"
+        [attr.aria-label]="'me.fechar' | flaT"
+        (click)="fecharCancelar()"
+      ></button>
+      <div
+        class="fao-modal-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="fao-me-mt"
+        aria-describedby="fao-me-mx"
+        [cxFocus]="{ trap: true, block: true, autofocus: true }"
+      >
+        <h2 id="fao-me-mt">{{ 'me.o.m.' + modal + '.t' | flaT }}</h2>
+        <p
+          id="fao-me-mx"
+          [attr.role]="modal === 'falha' ? 'alert' : modal === 'enviando' ? 'status' : null"
+        >
+          {{
+            'me.o.m.' + modal + '.x'
+              | flaT
+                : { code: v.order.code, v: me.pedido.valorEstudioTexto ?? '' }
+          }}
+        </p>
+        <div class="fao-modal-acts">
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="modal === 'enviando'"
+            (click)="confirmarCancelar(v.order.code ?? '')"
+          >
+            {{ 'me.o.m.' + modal + '.b' | flaT }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="modal === 'enviando'"
+            (click)="fecharCancelar()"
+          >
+            {{ 'me.o.manter' | flaT }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <section
     *ngFor="let g of v.groups"
@@ -28,16 +171,24 @@
     <p class="fao-sub" *ngIf="g.sub">{{ g.sub }}</p>
     <ul class="fao-lines">
       <li *ngFor="let l of g.lines" class="fao-line">
-        <span class="fao-thumb">
-          <cx-media
-            [container]="l.entry.product?.images?.PRIMARY"
-            format="thumbnail"
-            [alt]="''"
-          ></cx-media>
+        <span class="fao-thumb" [class.fao-thumb-me]="!!l.me">
+          <fla-me-camiseta
+            *ngIf="l.me as me; else faoThumb"
+            [estampa]="me.estampa"
+            [cor]="me.cor"
+          ></fla-me-camiseta>
+          <ng-template #faoThumb>
+            <cx-media
+              [container]="l.entry.product?.images?.PRIMARY"
+              format="thumbnail"
+              [alt]="''"
+            ></cx-media>
+          </ng-template>
         </span>
         <span class="fao-info">
+          <span class="fla-me-selo" *ngIf="l.me">{{ 'me.nome' | flaT }}</span>
           <strong>{{ l.name }}</strong>
-          <span class="fao-code">{{
+          <span class="fao-code" *ngIf="!l.me">{{
             'acc.od.code' | flaT: { code: l.code }
           }}</span>
           <span class="fao-details" *ngIf="l.details">{{ l.details }}</span>

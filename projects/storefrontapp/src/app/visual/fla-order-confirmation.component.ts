@@ -6,6 +6,7 @@ import {
   OnDestroy,
   OnInit,
   Renderer2,
+  inject,
 } from '@angular/core';
 import { OrderEntry } from '@spartacus/cart/base/root';
 import { RoutingService } from '@spartacus/core';
@@ -19,6 +20,11 @@ import {
   startWith,
   switchMap,
 } from 'rxjs/operators';
+import {
+  EstudioService,
+  MeCarrinhoItem,
+  MePedido,
+} from '../estudio/estudio.service';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { Membership } from '../socio/socio.model';
 import { SocioService } from '../socio/socio.service';
@@ -41,6 +47,8 @@ export const DIGITAL =
   /^(JOGO-|EXP-|NACAO-|FLA-EST-|FLA-FOOD-|FLA-PERS-|FLA-PERSONALIZACAO)/;
 /** Ingresso de jogo (poltrona ou setor) */
 const TICKET = /^JOGO-/;
+/** Camiseta do Mengo Estúdio (produto por modelo e tecido) */
+const ME_CAMISETA = /^ME-CAM-/;
 
 /** Página de confirmação do pedido (rota orderConfirmation) */
 function onConfirmation(routing: RoutingService): Observable<boolean> {
@@ -250,6 +258,8 @@ export interface OcItem {
   name: string;
   details: string[];
   price: string;
+  /** Camiseta do Mengo Estúdio: estampa e configuração (PR 4) */
+  me?: MeCarrinhoItem;
 }
 
 export interface OcCard {
@@ -291,11 +301,18 @@ export interface BodyView {
           <ul class="fla-ci-items">
             <li *ngFor="let i of v.items">
               <span class="fla-ci-thumb">
-                <cx-media
-                  [container]="i.entry.product?.images?.PRIMARY"
-                  format="thumbnail"
-                  [alt]="''"
-                ></cx-media>
+                <fla-me-camiseta
+                  *ngIf="i.me as me; else ocThumb"
+                  [estampa]="me.estampa"
+                  [cor]="me.cor"
+                ></fla-me-camiseta>
+                <ng-template #ocThumb>
+                  <cx-media
+                    [container]="i.entry.product?.images?.PRIMARY"
+                    format="thumbnail"
+                    [alt]="''"
+                  ></cx-media>
+                </ng-template>
               </span>
               <span class="fla-ci-item">
                 <strong>{{ i.name }}</strong>
@@ -379,6 +396,10 @@ export class FlaOcBodyComponent {
 
   readonly view$: Observable<BodyView | null>;
 
+  protected readonly estudio = inject(EstudioService);
+  /** Parte Mengo Estúdio do pedido (só busca quando há camiseta do Estúdio); recarregada pelo cancelamento */
+  protected me$!: Observable<MePedido | null>;
+
   constructor(
     protected routing: RoutingService,
     protected orders: OrderFacade,
@@ -455,6 +476,21 @@ export class FlaOcBodyComponent {
           : of(0)
       )
     );
+    this.me$ = this.order$.pipe(
+      map((o) =>
+        o?.code &&
+        (o.entries ?? []).some((e) => ME_CAMISETA.test(e.product?.code ?? ''))
+          ? o.code
+          : ''
+      ),
+      distinctUntilChanged(),
+      switchMap((code) =>
+        code
+          ? this.estudio.pedido(code).pipe(startWith(null as MePedido | null))
+          : of(null)
+      ),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
     const plan$ = this.socio.getMembership().pipe(
       map((m: Membership) => m?.member?.name ?? undefined),
       startWith(undefined as string | undefined),
@@ -469,10 +505,11 @@ export class FlaOcBodyComponent {
       store$,
       earned$,
       plan$,
+      this.me$,
       this.i18n.lang$,
     ]).pipe(
-      map(([o, pay, pers, holders, store, earned, plan]) =>
-        o ? this.toView(o, pay, pers, holders, store, earned, plan) : null
+      map(([o, pay, pers, holders, store, earned, plan, me]) =>
+        o ? this.toView(o, pay, pers, holders, store, earned, plan, me) : null
       )
     );
   }
@@ -489,11 +526,28 @@ export class FlaOcBodyComponent {
     holders: Map<string, string | undefined>,
     store: string,
     earned: number,
-    plan: string | undefined
+    plan: string | undefined,
+    me?: MePedido | null
   ): BodyView {
     const money = (v: number) => this.i18n.money(v);
     const items: OcItem[] = (o.entries ?? []).map((entry) => {
       const code = entry.product?.code ?? '';
+      // camiseta do Mengo Estúdio: "Estampa Elenco" e a configuração (modelo, tecido, cor, tamanho)
+      const camiseta = me?.itens.find((x) => x.entryNumber === entry.entryNumber);
+      if (camiseta) {
+        return {
+          entry,
+          name: this.i18n.t('me.c.nome', { n: camiseta.estampa.nome }),
+          details: [
+            this.estudio.configuracao(camiseta),
+            this.i18n.t('ci.units', { n: entry.quantity ?? 1 }),
+          ],
+          price:
+            entry.totalPrice?.formattedValue ??
+            money(entry.totalPrice?.value ?? 0),
+          me: camiseta,
+        };
+      }
       const qualifiers =
         entry.product?.baseOptions?.[0]?.selected?.variantOptionQualifiers ??
         [];

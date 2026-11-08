@@ -9,7 +9,9 @@ import de.hybris.platform.commerceservices.service.data.CommerceCartParameter;
 import de.hybris.platform.commerceservices.service.data.CommerceCheckoutParameter;
 import de.hybris.platform.commerceservices.service.data.CommerceOrderResult;
 import de.hybris.platform.core.model.order.AbstractOrderEntryModel;
+import de.hybris.platform.core.model.order.payment.CreditCardPaymentInfoModel;
 import de.hybris.platform.order.InvalidCartException;
+import de.hybris.platform.servicelayer.config.ConfigurationService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,10 @@ import org.slf4j.LoggerFactory;
  * <li>adicionar: a camiseta do Estúdio só entra pelo configurador ({@link MengoEstudioCartService#adicionar}, que pede
  * linha nova); pela inclusão comum (sem estampa) é recusada;</li>
  * <li>alterar a quantidade: no máximo flamengo.estudio.quantidade.max por linha;</li>
- * <li>fechar o pedido: recusa se alguma estampa saiu de linha (proteção final, além do aviso no carrinho).</li>
+ * <li>fechar o pedido: recusa se alguma estampa saiu de linha (proteção final, além do aviso no carrinho);</li>
+ * <li>pagamento recusado (PR 4, Simulações da demo): com cartão fora da Adyen, a recusa vem aqui, antes de criar o
+ * pedido (com a Adyen ligada, vem no /adyen/check, antes de cobrar o cartão);</li>
+ * <li>pedido fechado (PR 4): situação Recebido e o primeiro evento da linha do tempo.</li>
  * </ul>
  * Nada muda com flamengo.estudio.ativo=false.
  */
@@ -32,6 +37,8 @@ public class MengoEstudioCartHooks
 
 	private MengoEstudioService mengoEstudioService;
 	private MengoEstudioCartService mengoEstudioCartService;
+	private MengoEstudioOrderService mengoEstudioOrderService;
+	private ConfigurationService configurationService;
 
 	@Override
 	public void beforeAddToCart(final CommerceCartParameter parameters) throws CommerceCartModificationException
@@ -94,6 +101,15 @@ public class MengoEstudioCartHooks
 			LOG.info("Mengo Estúdio: pedido recusado no carrinho {}: {}", parameter.getCart().getCode(), bloqueio);
 			throw new InvalidCartException(bloqueio);
 		}
+		if (mengoEstudioOrderService != null && parameter.getCart().getPaymentInfo() instanceof CreditCardPaymentInfoModel
+				&& !configurationService.getConfiguration().getBoolean("flamengo.pagamento.adyen.ativo", false))
+		{
+			final String recusa = mengoEstudioOrderService.recusaPagamento(parameter.getCart());
+			if (recusa != null)
+			{
+				throw new InvalidCartException(recusa);
+			}
+		}
 	}
 
 	@Override
@@ -105,7 +121,18 @@ public class MengoEstudioCartHooks
 	@Override
 	public void afterPlaceOrder(final CommerceCheckoutParameter parameter, final CommerceOrderResult result)
 	{
-		// nada
+		try
+		{
+			if (mengoEstudioOrderService != null && result != null && result.getOrder() != null)
+			{
+				mengoEstudioOrderService.iniciar(result.getOrder());
+			}
+		}
+		catch (final RuntimeException e)
+		{
+			// o pedido já está fechado: a situação pode ser criada depois (ao abrir o pedido)
+			LOG.error("Mengo Estúdio: situação inicial do pedido não gravada", e);
+		}
 	}
 
 	public void setMengoEstudioService(final MengoEstudioService mengoEstudioService)
@@ -116,5 +143,15 @@ public class MengoEstudioCartHooks
 	public void setMengoEstudioCartService(final MengoEstudioCartService mengoEstudioCartService)
 	{
 		this.mengoEstudioCartService = mengoEstudioCartService;
+	}
+
+	public void setMengoEstudioOrderService(final MengoEstudioOrderService mengoEstudioOrderService)
+	{
+		this.mengoEstudioOrderService = mengoEstudioOrderService;
+	}
+
+	public void setConfigurationService(final ConfigurationService configurationService)
+	{
+		this.configurationService = configurationService;
 	}
 }

@@ -1207,3 +1207,33 @@ jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória at
 - Carrinho (box lateral, página do carrinho e resumos do checkout): "Estampa X", configuração, prazo da estampa,
   miniatura da camiseta, "Editar", alerta de estampa encerrada e "Finalizar compra" travado.
 - Instalação: `ant all` e publicar a loja (sem Update: o modelo não mudou).
+
+## Mengo Estúdio — pedidos (08/11, PR estudio-pedidos)
+
+- Situação própria da parte sob demanda (`AbstractOrder.mengoSituacao`): Recebido → Em produção → Enviado → Entregue,
+  com Cancelado (só de Recebido). O pedido fecha como Recebido (`MengoEstudioCartHooks.afterPlaceOrder`); pedido feito
+  antes deste PR ganha a situação ao ser aberto.
+- Linha do tempo: cada mudança de situação grava um `MengoPedidoEvento` (`MengoPedidoSituacaoInterceptor`, no tipo
+  Order). Em produção: número de série de cada camiseta (`ME-<linha>-<estampa>-<sequência>`, ex.: `ME-URU-001-000419`;
+  linha com mais de uma unidade: "… a 000420"). Enviado: código de rastreio demonstrativo (`BR#########BR`).
+- Cancelamento (`MengoEstudioOrderService.cancelar`) pergunta à estamparia (`MengoEstampariaGateway`, hoje
+  `SimulatedMengoEstampariaGateway`): aceito (Cancelado + estorno simulado na linha do tempo; pedido só do Estúdio fica
+  com status Cancelado), recusado (vira Em produção: a estamparia já tinha começado) ou falha (nada muda, "Tentar de
+  novo"). A resposta vem de Simulações da demo › Resposta ao cancelamento; RECUSADO e FALHA valem uma vez.
+- Pagamento recusado: Simulações da demo › Próximo pagamento = `RECUSAR_UMA_VEZ` (recusa a próxima tentativa e volta
+  para `APROVAR`) ou `RECUSAR` (sempre), só para carrinho com camiseta do Estúdio. Com a Adyen ligada, a recusa vem no
+  `/adyen/check` (402), antes de cobrar o cartão: nada é cobrado, nenhum pedido é criado e o carrinho continua; com o
+  cartão fora da Adyen, no fechamento do pedido.
+- API (torcedor logado): `GET /{site}/users/current/mengo-estudio/pedidos` (origem loja/estudio e situação de cada
+  pedido), `GET /{site}/users/current/orders/{code}/mengo-estudio` (situação, linha do tempo, rastreio, camisetas com
+  série, se dá para cancelar) e `POST …/mengo-estudio/cancelamento`.
+- Loja: Meus pedidos com selo de origem (Loja, Mengo Estúdio), a situação do Estúdio e o filtro Todos / Loja / Mengo
+  Estúdio (só para quem tem pedido do Estúdio). Detalhe do pedido: "Estampa X" com a configuração e a miniatura,
+  Andamento, Rastreio, Selo de autenticidade e Ações (Cancelar pedido com o diálogo das três respostas, Falar com a
+  loja). Em pedido com camiseta do Estúdio, "Cancelar itens" e "Devolver" do Spartacus somem (devolução: PR 5). A
+  confirmação do pedido também mostra "Estampa X" e a miniatura.
+- Backoffice (gestor da loja): Mengo Estúdio › **Andamento dos pedidos** (a linha do tempo de todos os pedidos); no
+  pedido, aba **Mengo Estúdio** com a situação (mudar faz o papel da estamparia: evento, série e rastreio), o rastreio e
+  a devolução; coluna e busca "Situação Mengo Estúdio" na lista de pedidos.
+- Instalação: `ant all`, reiniciar e publicar a loja (sem Update: o modelo já veio no PR 1). Backoffice: admin, F4 ›
+  "Reset to Defaults" da cockpit-config para aparecer o menu novo.

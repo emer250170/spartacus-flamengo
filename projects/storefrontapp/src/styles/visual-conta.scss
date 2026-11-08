@@ -2517,3 +2517,300 @@ html.fla-login cx-global-message .alert-danger {
     right: 16px !important;
   }
 }
+
+// ---------- Mengo Estúdio em Meus pedidos e no detalhe do pedido (08/11, PR 4) ----------
+.fla-badge[data-tone='red'] {
+  background: #fde3e3;
+  color: #9e0000 !important;
+}
+
+#{$fla-acc-body} {
+  // filtro Todos / Loja / Mengo Estúdio (só para quem tem pedido do Estúdio)
+  .foh-origem {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .foh-chip {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid $fla-acc-line;
+    border-radius: 999px;
+    background: #fff;
+    color: $fla-acc-ink;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &[aria-pressed='true'] {
+      border-color: $fla-acc-ink;
+      background: $fla-acc-ink;
+      color: #fff;
+    }
+
+    &:focus-visible {
+      outline: 3px solid $fla-acc-red;
+      outline-offset: 2px;
+    }
+  }
+
+  .foh-count {
+    margin: 0;
+    color: $fla-acc-muted;
+    font-size: 15px;
+  }
+
+  .foh-selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .foh-selo {
+    display: inline-block;
+    padding: 1px 8px;
+    border: 1px solid $fla-acc-ink;
+    border-radius: 999px;
+    background: #fff;
+    color: $fla-acc-ink;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+
+    &[data-origem='estudio'] {
+      background: $fla-acc-ink;
+      color: #fff;
+    }
+  }
+
+  .foh-status {
+    > .fla-badge + .fla-badge {
+      margin-top: 4px;
+    }
+  }
+
+  // detalhe: o bloco do Estúdio logo depois do cabeçalho
+  &:has(.fao-head) {
+    > fla-account-order > .fao-me {
+      order: 2;
+    }
+
+    // pedido com camiseta do Estúdio: o cancelamento é o do Estúdio (fala com a estamparia); "Cancelar
+    // itens" e "Devolver" do Spartacus somem para não passar por cima dela (devolução: PR 5)
+    &:has(.fao-me) > cx-order-details-actions .cx-nav > [class*='col-']:not(:first-child) {
+      display: none !important;
+    }
+  }
+
+  .fao-me-kv {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .fao-me {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+  }
+
+  .fao-me-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .fao-steps {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      position: relative;
+      display: flex;
+      gap: 14px;
+      padding-bottom: 18px;
+
+      // fio entre as bolinhas
+      &:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 18px;
+        bottom: 0;
+        width: 2px;
+        background: #cfcfcf;
+      }
+
+      &[data-estado='feito']:not(:last-child):has(+ li[data-estado='feito'], + li[data-estado='cancelado'])::before {
+        background: #1d6b21;
+      }
+
+      &:last-child {
+        padding-bottom: 0;
+      }
+    }
+  }
+
+  .fao-dot {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    border: 2px solid #9a9a9a;
+    border-radius: 50%;
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  .fao-steps li[data-estado='feito'] > .fao-dot {
+    border-color: #1d6b21;
+    background: #1d6b21;
+  }
+
+  .fao-steps li[data-estado='cancelado'] > .fao-dot {
+    border-color: #9e0000;
+    background: #9e0000;
+  }
+
+  .fao-steps li[data-estado='pendente'] > .fao-step strong {
+    color: $fla-acc-muted;
+  }
+
+  .fao-step {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 15px;
+
+    strong {
+      font-size: 16px;
+    }
+  }
+
+  .fao-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    overflow-wrap: anywhere;
+  }
+
+  .fao-serie {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .fao-me-msg {
+    margin: 0;
+    padding: 10px 12px;
+    border-left: 3px solid #8a6a00;
+    background: #fff4d6;
+    font-size: 15px;
+
+    &[data-tom='ok'] {
+      border-left-color: #1d6b21;
+      background: #eaf5ea;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .fao-me-cancel {
+    min-height: 48px;
+    border: 1px solid $fla-acc-ink !important;
+    background: #fff !important;
+    color: $fla-acc-ink !important;
+    font-weight: 700;
+  }
+
+  .fao-me-link {
+    align-self: center;
+    color: $fla-acc-ink !important;
+    font-weight: 700;
+    text-decoration: underline !important;
+  }
+
+  // miniatura da camiseta do Estúdio nas linhas do pedido
+  .fao-thumb-me {
+    background: #f1f1f1;
+
+    fla-me-camiseta {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  // diálogo "Cancelar pedido?"
+  .fao-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .fao-modal-x {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.55);
+    cursor: pointer;
+  }
+
+  .fao-modal-box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(460px, 100%);
+    padding: 24px;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 16px;
+    }
+  }
+
+  .fao-modal-acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    .btn {
+      flex: 1 1 160px;
+      min-height: 48px;
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  #{$fla-acc-body} {
+    .fao-me {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .foh-status {
+      grid-column: 1;
+    }
+  }
+}

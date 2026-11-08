@@ -1,5 +1,6 @@
 package br.com.flamengo.matchday.occ;
 
+import br.com.flamengo.matchday.estudio.MengoEstudioOrderService;
 import br.com.flamengo.matchday.payment.adyen.AdyenException;
 import br.com.flamengo.matchday.payment.adyen.AdyenPaymentService;
 import br.com.flamengo.matchday.payment.adyen.AdyenSession;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(value = "/{baseSiteId}")
 public class AdyenController
 {
+	private MengoEstudioOrderService mengoEstudioOrderService;
 	private static final String ERROR_TYPE = "AdyenError";
 
 	private AdyenPaymentService adyenPaymentService;
@@ -133,6 +135,12 @@ public class AdyenController
 		if (cart == null)
 		{
 			return error(HttpStatus.NOT_FOUND, "Carrinho não encontrado.");
+		}
+		// Mengo Estúdio (08/11, PR 4): recusa simulada do cartão (Simulações da demo), antes de cobrar
+		final String recusa = mengoEstudioOrderService == null ? null : mengoEstudioOrderService.recusaPagamento(cart);
+		if (recusa != null)
+		{
+			return error(HttpStatus.PAYMENT_REQUIRED, recusa);
 		}
 		try
 		{
@@ -264,6 +272,11 @@ public class AdyenController
 		final Map<String, Object> body = new LinkedHashMap<>();
 		body.put("errors", Collections.singletonList(error));
 		return ResponseEntity.status(status).body(body);
+	}
+
+	public void setMengoEstudioOrderService(final MengoEstudioOrderService mengoEstudioOrderService)
+	{
+		this.mengoEstudioOrderService = mengoEstudioOrderService;
 	}
 
 	public void setAdyenPaymentService(final AdyenPaymentService adyenPaymentService)

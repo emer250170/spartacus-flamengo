@@ -76,6 +76,7 @@
 	<!-- Pagamento pela Adyen (05/11): /users/current/adyen/config, /carts/{cartId}/adyen/sessions e /order,
 	     /orders/{code}/adyen e o webhook /{baseSiteId}/adyen/notifications -->
 	<bean id="flamengoAdyenController" class="br.com.flamengo.matchday.occ.AdyenController">
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
 		<property name="adyenPaymentService" ref="adyenPaymentService"/>
 		<property name="userService" ref="userService"/>
 		<property name="cartService" ref="cartService"/>
@@ -123,6 +124,14 @@
 	<bean id="flamengoMengoEstudioCartController" class="br.com.flamengo.matchday.occ.MengoEstudioCartController">
 		<property name="mengoEstudioService" ref="mengoEstudioService"/>
 		<property name="mengoEstudioCartService" ref="mengoEstudioCartService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
+	<!-- Mengo Estúdio nos pedidos (08/11, PR 4): /users/{userId}/mengo-estudio/pedidos e
+	     /users/{userId}/orders/{code}/mengo-estudio (+ /cancelamento) -->
+	<bean id="flamengoMengoEstudioOrderController" class="br.com.flamengo.matchday.occ.MengoEstudioOrderController">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
 		<property name="userService" ref="userService"/>
 	</bean>
 
