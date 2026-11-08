@@ -802,6 +802,8 @@
 		<property name="sessionService" ref="sessionService"/>
 		<property name="configurationService" ref="configurationService"/>
 		<property name="emailService" ref="emailService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
 	</bean>
 	<bean id="flaReportMailInterceptor" class="br.com.flamengo.matchday.mcp.FlaReportMailInterceptor">
 		<property name="mcpSupport" ref="mcpSupport"/>
