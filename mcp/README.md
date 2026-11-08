@@ -97,7 +97,7 @@ Perguntas de exemplo: "Receita por forma de pagamento nos últimos 30 dias", "Qu
 
 ## Base de sócios em lote (08/11)
 
-Persona gestor do sócio: `inadimplencia_socios` responde "quantos inadimplentes temos" numa consulta só (planos com membros, torcedores com grupos e eventos de uma vez, nunca sócio por sócio): sócios ativos e suspensos por mensalidade em atraso, % de inadimplência por plano, mensalidade em risco, tempo de suspensão em faixas (até 7, 8 a 30, 31 a 60, mais de 60 dias), lista dos suspensos (desde quando, motivo) e adesões com Pix/boleto aguardando pagamento. `socios_do_plano` passou a trazer a situação de cada sócio. As instruções da persona mandam usar essas ferramentas para perguntas sobre a base.
+Persona gestor do sócio: `inadimplencia_socios` responde "quantos inadimplentes temos" numa consulta só (planos com membros, torcedores com grupos e eventos de uma vez, nunca sócio por sócio): sócios ativos e suspensos por mensalidade em atraso, % de inadimplência por plano, receita mensal (mensalidades), receita em dia e receita em risco (total, % e anualizada), tempo de suspensão em faixas (até 7, 8 a 30, 31 a 60, mais de 60 dias), lista dos suspensos (desde quando, motivo) e adesões com Pix/boleto aguardando pagamento. `socios_do_plano` passou a trazer a situação de cada sócio. As instruções da persona mandam usar essas ferramentas para perguntas sobre a base.
 
 ## Segurança (bom para mostrar ao cliente)
 

@@ -951,7 +951,7 @@ function socioTools(cfg, http) {
     },
     {
       name: 'inadimplencia_socios',
-      description: 'Inadimplência da base de sócios numa consulta só (sem olhar sócio por sócio): quantos sócios ativos e suspensos por mensalidade em atraso, % de inadimplência, por plano, mensalidade em risco, há quanto tempo estão suspensos (faixas de dias) e a lista dos suspensos; também as adesões com Pix/boleto aguardando pagamento. Use para "quantos inadimplentes temos", "% de inadimplência por plano", "quem está suspenso há mais de 30 dias".',
+      description: 'Inadimplência e receita recorrente da base de sócios numa consulta só (sem olhar sócio por sócio): quantos sócios ativos e suspensos por mensalidade em atraso, % de inadimplência, receita mensal (mensalidades), receita em dia e receita em risco (total e por plano), há quanto tempo estão suspensos (faixas de dias) e a lista dos suspensos; também as adesões com Pix/boleto aguardando pagamento. Use para "quantos inadimplentes temos", "% de inadimplência por plano", "receita mensal e receita em risco", "quem está suspenso há mais de 30 dias".',
       inputSchema: obj({
         plano: S.str('Código do plano (opcional)'),
         minDias: S.int('Só suspensos há pelo menos N dias (opcional)'),
@@ -968,22 +968,29 @@ function socioTools(cfg, http) {
         const porPlano = base.plans.filter((p) => !a.plano || p.code === a.plano).map((p) => {
           const pm = ms.filter((m) => m.planoCodigo === p.code);
           const ps = pm.filter((m) => m._suspenso);
-          return { plano: p.nome, socios: pm.length, ativos: pm.length - ps.length, suspensos: ps.length, inadimplencia: pct(ps.length, pm.length), mensalidadeEmRisco: brl(ps.reduce((x, m) => x + (m.mensalidade ?? 0), 0)) };
+          const mrr = pm.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+          const risco = ps.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+          return { plano: p.nome, mensalidade: p.mensalidade, socios: pm.length, ativos: pm.length - ps.length, suspensos: ps.length, inadimplencia: pct(ps.length, pm.length),
+            receitaMensal: brl(mrr), receitaMensalEmDia: brl(mrr - risco), receitaEmRisco: brl(risco), pctReceitaEmRisco: pct(risco, mrr) };
         }).filter((p) => p.socios > 0);
         const aguard = base.aguardando.filter((x) => !a.plano || x.plano === base.plans.find((p) => p.code === a.plano)?.nome);
         const totalSus = ms.filter((m) => m._suspenso);
+        const mrr = ms.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+        const risco = totalSus.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+        const mensalAguardando = aguard.reduce((x, g) => x + (num(String(base.plans.find((p) => p.nome === g.plano)?.mensalidade ?? '').replace(/[^\d,]/g, '').replace(',', '.')) ?? 0), 0);
         return {
           resumo: {
             socios: ms.length, ativos: ms.length - totalSus.length, suspensosPorAtraso: totalSus.length, inadimplencia: pct(totalSus.length, ms.length),
-            mensalidadeEmRisco: brl(totalSus.reduce((x, m) => x + (m.mensalidade ?? 0), 0)), tempoSuspenso: faixas,
-            adesoesAguardandoPagamento: aguard.length,
+            receitaMensal: brl(mrr), receitaMensalEmDia: brl(mrr - risco), receitaEmRisco: brl(risco), pctReceitaEmRisco: pct(risco, mrr),
+            receitaAnualizadaEmRisco: brl(risco * 12), tempoSuspenso: faixas,
+            adesoesAguardandoPagamento: aguard.length, receitaMensalDasAdesoesPendentes: brl(mensalAguardando),
           },
           porPlano,
           ...(a.listar === false ? {} : {
             suspensos: sus.sort((x, y) => (y.diasSuspenso ?? 0) - (x.diasSuspenso ?? 0)).slice(0, 200).map(({ _suspenso, planoCodigo, mensalidade, situacao, ...m }) => m),
             aguardandoPagamento: aguard.slice(0, 100),
           }),
-          observacao: 'Inadimplente = sócio com benefícios suspensos por mensalidade em atraso (perde a onda e os descontos, mantém a vaga). Adesão aguardando pagamento = Pix/boleto do plano ainda não pago (a pessoa ainda não é sócia). Consulta feita em lote: planos, torcedores e eventos de uma vez.',
+          observacao: 'Receita mensal = soma da mensalidade de tabela do plano de cada sócio da loja (não inclui a base simulada da demo nem descontos ou pagamento anual adiantado); receita em risco = a dos suspensos. Inadimplente = sócio com benefícios suspensos por mensalidade em atraso (perde a onda e os descontos, mantém a vaga). Adesão aguardando pagamento = Pix/boleto do plano ainda não pago (a pessoa ainda não é sócia). Consulta feita em lote: planos, torcedores e eventos de uma vez.',
         };
       },
     },
