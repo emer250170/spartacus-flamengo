@@ -56,21 +56,24 @@ INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true
 ; FlamengoIngresso ; BASIC
 ; FlamengoIngressoEvento ; BASIC
 
+# Só '+' (conceder) ou vazio: nunca '-' (negar). A negação no grupo de API vence a permissão do papel do
+# Backoffice e deixava o gestor sem editar (ex.: produtos do gestor.loja). Vazio = sem regra; fora do Backoffice o
+# papel não vale, então a API continua sem acesso ao que não está com '+'.
 $START_USERRIGHTS
 Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
 UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
-;;;;MatchdayGame;+;+;+;-;-
-;;;;MatchdayGameStatus;+;-;-;-;-
-;;;;Order;+;-;-;-;-
-;;;;OrderEntry;+;-;-;-;-
-;;;;Product;+;-;-;-;-
-;;;;CatalogVersion;+;-;-;-;-
-;;;;Catalog;+;-;-;-;-
-;;;;OrderStatus;+;-;-;-;-
-;;;;User;+;-;-;-;-
-;;;;Customer;+;-;-;-;-
-;;;;MatchdayTicket;+;-;-;-;-
-;;;;MatchdayTicketStatus;+;-;-;-;-
-;;;;MatchdayTicketEvent;+;-;+;-;-
-;;;;MatchdayTicketEventType;+;-;-;-;-
+;;;;MatchdayGame;+;+;+;;
+;;;;MatchdayGameStatus;+;;;;
+;;;;Order;+;;;;
+;;;;OrderEntry;+;;;;
+;;;;Product;+;;;;
+;;;;CatalogVersion;+;;;;
+;;;;Catalog;+;;;;
+;;;;OrderStatus;+;;;;
+;;;;User;+;;;;
+;;;;Customer;+;;;;
+;;;;MatchdayTicket;+;;;;
+;;;;MatchdayTicketStatus;+;;;;
+;;;;MatchdayTicketEvent;+;;+;;
+;;;;MatchdayTicketEventType;+;;;;
 $END_USERRIGHTS
