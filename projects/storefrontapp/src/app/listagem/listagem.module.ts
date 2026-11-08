@@ -14,6 +14,7 @@ import {
 import { FlaI18nModule } from '../i18n/fla-i18n.service';
 import { FlaProductCardPriceComponent } from './fla-product-card-price.component';
 import { FlaProductListComponent } from './fla-product-list.component';
+import { FlaSearchBandComponent } from './fla-search-band.component';
 
 /**
  * Listagem de produtos no layout da loja oficial (04/11): grade sempre, "Filtrar" em painel,
@@ -30,7 +31,7 @@ import { FlaProductListComponent } from './fla-product-list.component';
     FacetListModule,
     ListNavigationModule,
   ],
-  declarations: [FlaProductListComponent, FlaProductCardPriceComponent],
+  declarations: [FlaProductListComponent, FlaProductCardPriceComponent, FlaSearchBandComponent],
   providers: [
     provideConfig(<CmsConfig>{
       cmsComponents: {
@@ -43,6 +44,12 @@ import { FlaProductListComponent } from './fla-product-list.component';
       view: {
         infiniteScroll: { active: true, productLimit: 0, showMoreButton: true },
       },
+    }),
+    // resultado da busca (mockup 2a/2b, 08/11): faixa escura no lugar da trilha cinza
+    provideOutlet({
+      id: 'BottomHeaderSlot',
+      position: OutletPosition.BEFORE,
+      component: FlaSearchBandComponent,
     }),
     provideOutlet({
       id: ProductListOutlets.ITEM_DETAILS,

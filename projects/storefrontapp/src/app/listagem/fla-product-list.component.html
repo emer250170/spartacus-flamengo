@@ -1,4 +1,42 @@
 <div class="cx-page" *ngIf="model$ | async as model">
+  <!-- busca sem resultado (mockup 2b, 08/11): no lugar da barra vazia "Ordenar por" -->
+  <section
+    *ngIf="busca && model.pagination?.totalResults === 0; else lista"
+    class="fla-bv"
+    [attr.aria-label]="'bs.kickerNone' | flaT"
+  >
+    <div class="fla-bv-cols">
+      <div class="fla-bv-bloco">
+        <h2 class="fla-bv-h">{{ 'bs.tipsTitle' | flaT }}</h2>
+        <ul class="fla-bv-dicas">
+          <li>{{ 'bs.tip1' | flaT }}</li>
+          <li>{{ 'bs.tip2' | flaT }}</li>
+          <li>{{ 'bs.tip3' | flaT }}</li>
+        </ul>
+      </div>
+      <div class="fla-bv-bloco">
+        <h2 class="fla-bv-h">{{ 'bs.browse' | flaT }}</h2>
+        <div class="fla-bv-chips">
+          <a *ngFor="let a of atalhos" [routerLink]="a.link">{{ a.key | flaT }}</a>
+        </div>
+      </div>
+    </div>
+    <div class="fla-bv-mantos" *ngIf="mantos$ | async as ps">
+      <div class="fla-bv-topo" *ngIf="ps.length">
+        <h2 class="fla-bv-h2">{{ 'bs.cat.mantos' | flaT }}</h2>
+        <a [routerLink]="mantosLink">{{ 'bs.seeAll' | flaT }}</a>
+      </div>
+      <div class="fla-bv-grade">
+        <a class="fla-bv-card" *ngFor="let p of ps" [routerLink]="p.link">
+          <span class="fla-bv-img"><img *ngIf="p.img" [src]="p.img" alt="" loading="lazy" /></span>
+          <span class="fla-bv-nome">{{ p.name }}</span>
+          <strong>{{ p.price }}</strong>
+          <span class="fla-bv-parc" *ngIf="p.installments">{{ p.installments }}</span>
+        </a>
+      </div>
+    </div>
+  </section>
+  <ng-template #lista>
   <section
     tabindex="-1"
     class="cx-page-section"
@@ -58,6 +96,7 @@
       </div>
     </div>
   </section>
+  </ng-template>
 
   <!-- painel de filtros (como o "Filtrar" da loja oficial) -->
   <ng-container *ngIf="filtersOpen">

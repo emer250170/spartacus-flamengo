@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { GlobalMessageService } from '@spartacus/core';
 import {
   PageLayoutService,
@@ -7,7 +8,19 @@ import {
   ViewConfig,
   ViewModes,
 } from '@spartacus/storefront';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { FlaHomeProduct, FlaHomeService } from '../vitrine/fla-home.service';
+import { BUSCA_URL } from './fla-search-band.component';
+
+/** Atalhos da busca sem resultado (categorias do catálogo; nomes em fla-texts: bs.cat.*) */
+const ATALHOS = [
+  { key: 'mantos', code: 'flamengo_c115' },
+  { key: 'adidas', code: 'flamengo_c11' },
+  { key: 'treino', code: 'flamengo_c145' },
+  { key: 'personalizaveis', code: 'flamengo_c110' },
+  { key: 'acessorios', code: 'flamengo_c52' },
+  { key: 'bones', code: 'flamengo_c60' },
+];
 
 /** Modo de exibição que fica sempre em grade (o modelo de página pede lista nas categorias) */
 class GridOnlySubject extends BehaviorSubject<ViewModes> {
@@ -35,6 +48,19 @@ export class FlaProductListComponent extends ProductListComponent {
 
   /** Painel de filtros aberto */
   filtersOpen = false;
+
+  protected readonly router = inject(Router);
+  protected readonly home = inject(FlaHomeService);
+
+  /** Busca sem resultado (mockup 2b, 08/11): dicas, atalhos para as categorias e os mantos */
+  readonly atalhos = ATALHOS.map((a) => ({ key: 'bs.cat.' + a.key, link: '/c/' + a.code }));
+  readonly mantosLink = '/c/' + ATALHOS[0].code;
+  readonly mantos$: Observable<FlaHomeProduct[]> = this.home.byCategory(ATALHOS[0].code, 4);
+
+  /** Página de resultado da busca (/search/{termo}) */
+  get busca(): boolean {
+    return BUSCA_URL.test(this.router.url);
+  }
 
   constructor(
     pageLayoutService: PageLayoutService,

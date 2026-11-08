@@ -171,3 +171,350 @@ cx-product-grid-item {
 cx-product-grid-item .cx-product-image-container.fla-landscape {
   aspect-ratio: 4 / 3 !important;
 }
+
+// ---------------------------------------------------------------------------------------------
+// Resultado da busca (mockup 2a/2b, 08/11). FlaSearchBandComponent marca o <html> com fla-busca:
+// a faixa escura própria (termo, total, "Você quis dizer", busca de novo, "Ver em:") fica no lugar
+// da trilha cinza do Spartacus, e o banner do CMS (Section2, sobra do site de exemplo) sai.
+// ---------------------------------------------------------------------------------------------
+html.fla-busca {
+  cx-page-slot.BottomHeaderSlot > :not(fla-search-band),
+  cx-page-slot.Section2 {
+    display: none !important;
+  }
+
+  cx-page-slot.BottomHeaderSlot {
+    display: block !important;
+    padding: 0 !important;
+  }
+}
+
+fla-search-band {
+  display: block;
+  width: 100%;
+}
+
+.fsb {
+  background: #1b1b1b;
+  color: #fff;
+}
+
+.fsb-in {
+  box-sizing: border-box;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 20px 0 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 1171.98px) {
+  .fsb-in {
+    padding-inline: 16px;
+  }
+}
+
+.fsb-crumbs {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  color: #cfcfcf;
+
+  a {
+    color: #fff !important;
+    text-decoration: none;
+  }
+}
+
+.fsb-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px 40px;
+}
+
+.fsb-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fsb-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ff6b6b;
+}
+
+.fsb-h {
+  margin: 0 !important;
+  color: #fff !important;
+  font-family: var(--fla-fonte-titulo) !important;
+  font-size: 44px !important;
+  font-weight: 800 !important;
+  line-height: 1.05;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.fsb-sub,
+.fsb-sug {
+  font-size: 16px;
+  color: #cfcfcf;
+}
+
+.fsb-sug a {
+  color: #fff !important;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.fsb-form {
+  display: flex;
+  flex: 0 1 420px;
+  min-width: 280px;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px 0 0 4px;
+    font: inherit;
+    font-size: 16px;
+    color: #111;
+  }
+
+  button {
+    width: 52px;
+    height: 48px;
+    border: 0;
+    border-radius: 0 4px 4px 0;
+    background: #d70000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  input:focus-visible,
+  button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+  }
+}
+
+.fsb-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.fsb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  > span {
+    margin-right: 4px;
+    font-size: 14px;
+    color: #cfcfcf;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid #4a4a4a;
+    border-radius: 999px;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-size: 14px;
+
+    &:hover {
+      border-color: #fff;
+    }
+  }
+}
+
+.fsb-n {
+  color: #9a9a9a;
+}
+
+@media (max-width: 767.98px) {
+  .fsb-h {
+    font-size: 30px !important;
+  }
+
+  .fsb-form {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+
+// termo encontrado no nome do produto: em negrito, sem itálico
+cx-product-list .search-results-highlight,
+cx-product-grid-item .search-results-highlight {
+  font-style: normal;
+  font-weight: 700;
+}
+
+// busca sem resultado
+.fla-bv {
+  box-sizing: border-box;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 40px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+@media (max-width: 1171.98px) {
+  .fla-bv {
+    padding-inline: 16px;
+  }
+}
+
+.fla-bv-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.fla-bv-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fla-bv-h,
+.fla-bv-h2 {
+  margin: 0 !important;
+  font-family: var(--fla-fonte-titulo) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+}
+
+.fla-bv-h {
+  font-size: 22px !important;
+}
+
+.fla-bv-h2 {
+  font-size: 32px !important;
+}
+
+.fla-bv-dicas {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+.fla-bv-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid #cfcfcf;
+    border-radius: 999px;
+    color: #111 !important;
+    text-decoration: none !important;
+    font-size: 15px;
+    font-weight: 600;
+
+    &:hover {
+      border-color: #111;
+    }
+  }
+}
+
+.fla-bv-mantos {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fla-bv-topo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+
+  a {
+    color: #d70000 !important;
+    font-weight: 700;
+    font-size: 15px;
+  }
+}
+
+.fla-bv-grade {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px 16px;
+}
+
+@media (max-width: 991.98px) {
+  .fla-bv-grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.fla-bv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #111 !important;
+  text-decoration: none !important;
+
+  strong {
+    font-size: 17px;
+  }
+}
+
+.fla-bv-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  border-radius: 4px;
+  background: #f2f2f2;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.fla-bv-nome {
+  margin-top: 6px;
+  font-size: 16px;
+}
+
+.fla-bv-parc {
+  font-size: 13px;
+  color: #555;
+}
