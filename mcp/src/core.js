@@ -1043,32 +1043,50 @@ function socioTools(cfg, http) {
         for (const uid of uids) {
           const l = base.evByUid.get(uid) ?? [];
           const k = kByUid.get(uid);
-          const startEv = l.find((e) => e.tipo === 'ADESAO' || (e.tipo === 'PAGAMENTO_CONFIRMADO' && e.planoCodigo));
-          const endEv = [...l].reverse().find((e) => e.tipo === 'CANCELAMENTO' || e.tipo === 'FIM_VIGENCIA');
-          let plan = currentPlan.get(uid) ?? k?.plan?.code ?? startEv?.planoCodigo ?? planByName.get(startEv?.plano);
-          let start = startEv?.data ?? (k ? toDate(k.start) : null);
-          let end = null;
-          if (!currentPlan.has(uid)) end = (k?.endedAt && toDate(k.endedAt)) || endEv?.data || null;
-          if (!start && currentPlan.has(uid)) start = created.get(uid) ?? null;
-          if (!start || !plan || (!currentPlan.has(uid) && !end)) continue;
-          // suspensões: pares Suspensão → Regularização (ou até hoje, se ainda suspenso)
-          const susp = [];
+          // períodos de sócio pela linha do tempo: Adesão abre (ou troca o plano), Cancelamento/Fim de vigência fecha
+          const periods = [];
           let open = null;
           for (const e of l) {
-            if (e.tipo === 'SUSPENSAO' && !open) open = e.data;
-            if ((e.tipo === 'REGULARIZACAO' || e.tipo === 'CANCELAMENTO' || e.tipo === 'FIM_VIGENCIA') && open) { susp.push([open.getTime(), e.data.getTime()]); open = null; }
+            const code = e.planoCodigo ?? planByName.get(e.plano);
+            if (e.tipo === 'ADESAO' || (e.tipo === 'PAGAMENTO_CONFIRMADO' && code)) {
+              if (!open) open = { start: e.data, plan: code };
+              else if (code) open.plan = code;
+            } else if ((e.tipo === 'CANCELAMENTO' || e.tipo === 'FIM_VIGENCIA') && open) {
+              periods.push({ start: open.start, end: e.data, plan: open.plan ?? code });
+              open = null;
+            }
+          }
+          if (currentPlan.has(uid)) {
+            if (open) periods.push({ start: open.start, end: null, plan: currentPlan.get(uid) });
+            else if (!periods.length || periods[periods.length - 1].end) {
+              // sócio hoje sem adesão aberta na linha do tempo: contrato ou, sem ele, cadastro do torcedor
+              const st = (k && !k.endedAt ? toDate(k.start) : null) ?? (periods.length ? periods[periods.length - 1].end : created.get(uid) ?? null);
+              if (st) periods.push({ start: st, end: null, plan: currentPlan.get(uid) });
+            }
+          } else if (!periods.length && k?.endedAt && k.start) {
+            periods.push({ start: toDate(k.start), end: toDate(k.endedAt), plan: k.plan?.code });
+          }
+          // suspensões: pares Suspensão → Regularização (ou até hoje, se ainda suspenso)
+          const susp = [];
+          let so = null;
+          for (const e of l) {
+            if (e.tipo === 'SUSPENSAO' && !so) so = e.data;
+            if ((e.tipo === 'REGULARIZACAO' || e.tipo === 'CANCELAMENTO' || e.tipo === 'FIM_VIGENCIA') && so) { susp.push([so.getTime(), e.data.getTime()]); so = null; }
           }
           const hojeSuspenso = base.members.some((m) => m.email === uid && m._suspenso);
-          if (open) susp.push([open.getTime(), Infinity]);
-          else if (hojeSuspenso && !susp.some(([, f]) => f === Infinity)) susp.push([now.getTime() - 1, Infinity]);
-          intervals.push({ uid, plan, start: start.getTime(), end: end ? end.getTime() : Infinity, susp, evs: l });
+          if (so) susp.push([so.getTime(), Infinity]);
+          else if (hojeSuspenso) susp.push([now.getTime() - 1, Infinity]);
+          for (const pr of periods) {
+            if (!pr.start || !pr.plan) continue;
+            intervals.push({ uid, plan: pr.plan, start: pr.start.getTime(), end: pr.end ? pr.end.getTime() : Infinity, susp, evs: l });
+          }
         }
         const sel = intervals.filter((x) => !a.plano || x.plan === a.plano);
         const pct = (x, y) => (y ? `${(Math.round((x / y) * 1000) / 10).toString().replace('.', ',')}%` : null);
         const label = ([y, m]) => new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m, 15)));
         const rows = months.map((mo) => {
           const T = monthEnd(mo), S0 = monthStart(mo);
-          const ativosNoFim = sel.filter((x) => x.start <= T && x.end > T);
+          const ativosNoFim = [...new Map(sel.filter((x) => x.start <= T && x.end > T).map((x) => [x.uid, x])).values()];
           const susp = ativosNoFim.filter((x) => x.susp.some(([i, f]) => i <= T && f > T));
           const mrr = ativosNoFim.reduce((s, x) => s + price(x.plan), 0);
           const risco = susp.reduce((s, x) => s + price(x.plan), 0);
@@ -1078,15 +1096,15 @@ function socioTools(cfg, http) {
             socios: ativosNoFim.length, ativos: ativosNoFim.length - susp.length, suspensos: susp.length, inadimplencia: pct(susp.length, ativosNoFim.length),
             receitaMensal: brl(mrr), receitaEmRisco: brl(risco), pctReceitaEmRisco: pct(risco, mrr), receitaAnualizada: brl(mrr * 12), receitaAnualizadaEmRisco: brl(risco * 12),
             adesoes: sel.filter((x) => x.start >= S0 && x.start <= T).length, saidas: sel.filter((x) => x.end >= S0 && x.end <= T).length,
-            novasSuspensoes: sel.reduce((s, x) => s + x.evs.filter((e) => e.tipo === 'SUSPENSAO' && inMonth(e.data)).length, 0),
-            regularizacoes: sel.reduce((s, x) => s + x.evs.filter((e) => e.tipo === 'REGULARIZACAO' && inMonth(e.data)).length, 0),
+            novasSuspensoes: [...new Map(sel.map((x) => [x.uid, x])).values()].reduce((s, x) => s + x.evs.filter((e) => e.tipo === 'SUSPENSAO' && inMonth(e.data)).length, 0),
+            regularizacoes: [...new Map(sel.map((x) => [x.uid, x])).values()].reduce((s, x) => s + x.evs.filter((e) => e.tipo === 'REGULARIZACAO' && inMonth(e.data)).length, 0),
           };
         });
         const semData = base.members.filter((m) => !sel.some((x) => x.uid === m.email) && (!a.plano || m.planoCodigo === a.plano)).length;
         return {
           ...(a.plano ? { plano: base.plans.find((p) => p.code === a.plano)?.nome ?? a.plano } : {}),
           meses: rows,
-          observacao: 'Posição no fim de cada mês (mês atual: até hoje), com a mensalidade de tabela de hoje de cada plano e o plano atual de cada sócio. Início do sócio = adesão registrada ou início do contrato; sem nenhum dos dois, a data de cadastro do torcedor. Saída = cancelamento ou fim de vigência. Só sócios da loja (sem a base simulada da demo).'
+          observacao: 'Posição no fim de cada mês (mês atual: até hoje), com a mensalidade de tabela de hoje de cada plano e o plano atual de cada sócio. Períodos de sócio pela linha do tempo (adesão até cancelamento ou fim de vigência; quem saiu e voltou conta as duas vezes); sócio de hoje sem adesão registrada: início do contrato ou, sem ele, cadastro do torcedor. Saída = cancelamento ou fim de vigência. Só sócios da loja (sem a base simulada da demo).'
             + (semData ? ` ${semData} sócio(s) de hoje ficaram de fora por falta de data de início.` : ''),
         };
       },
