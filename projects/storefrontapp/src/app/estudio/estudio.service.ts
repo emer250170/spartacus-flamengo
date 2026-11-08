@@ -88,6 +88,66 @@ export interface MeCarrinho {
   quantidade?: number;
 }
 
+/** Situação da parte Mengo Estúdio do pedido (PR 4) */
+export type MeSituacaoPedido =
+  | 'RECEBIDO'
+  | 'EM_PRODUCAO'
+  | 'ENVIADO'
+  | 'ENTREGUE'
+  | 'CANCELADO'
+  | 'EM_DEVOLUCAO'
+  | 'REEMBOLSADO';
+
+/** Um pedido do torcedor em Meus pedidos (API /users/{u}/mengo-estudio/pedidos) */
+export interface MePedidoResumo {
+  code: string;
+  data?: number;
+  total: number;
+  status?: string;
+  statusDisplay?: string;
+  origem: ('loja' | 'estudio')[];
+  /** Situação do Estúdio (null = pedido só da loja) */
+  situacao?: MeSituacaoPedido | null;
+}
+
+/** Evento da linha do tempo do pedido */
+export interface MeEvento {
+  situacao: MeSituacaoPedido;
+  data?: number;
+  nota?: string;
+}
+
+/** Parte Mengo Estúdio de um pedido (API /users/{u}/orders/{code}/mengo-estudio) */
+export interface MePedido {
+  code: string;
+  temEstudio: boolean;
+  soEstudio: boolean;
+  situacao?: MeSituacaoPedido | null;
+  eventos: MeEvento[];
+  rastreio?: string | null;
+  itens: MeCarrinhoItem[];
+  podeCancelar: boolean;
+  valorEstudioTexto?: string;
+}
+
+/** Resposta da estamparia ao cancelamento */
+export interface MeCancelamento {
+  resultado: 'ACEITO' | 'RECUSADO' | 'FALHA';
+  mensagem: string;
+  pedido?: MePedido;
+}
+
+/** Cor do selo de cada situação do pedido (classes fla-badge) */
+export const ME_SITUACAO_TOM: Record<MeSituacaoPedido, string> = {
+  RECEBIDO: 'grey',
+  EM_PRODUCAO: 'amber',
+  ENVIADO: 'blue',
+  ENTREGUE: 'green',
+  CANCELADO: 'red',
+  EM_DEVOLUCAO: 'amber',
+  REEMBOLSADO: 'grey',
+};
+
 /** O que o configurador manda para o carrinho */
 export interface MePedidoItem {
   estampa: string;
@@ -365,6 +425,62 @@ export class EstudioService {
           coresIndisponiveis: i.estampa?.coresIndisponiveis ?? {},
         },
       })),
+    };
+  }
+
+  /** Pedidos do torcedor com a origem (loja, Mengo Estúdio) e a situação do Estúdio (PR 4) */
+  pedidos(): Observable<MePedidoResumo[]> {
+    return this.http
+      .get<any>(`${this.occEndpoints.getBaseUrl()}/users/current/mengo-estudio/pedidos`)
+      .pipe(
+        map((r) => (r?.ativo ? ((r?.pedidos ?? []) as MePedidoResumo[]) : [])),
+        catchError(() => of([] as MePedidoResumo[]))
+      );
+  }
+
+  /** Parte Mengo Estúdio do pedido: situação, linha do tempo, rastreio, série e se ainda dá para cancelar */
+  pedido(code: string): Observable<MePedido | null> {
+    return this.http
+      .get<any>(`${this.occEndpoints.getBaseUrl()}/users/current/orders/${encodeURIComponent(code)}/mengo-estudio`)
+      .pipe(
+        map((r) => this.convertPedido(r)),
+        catchError(() => of(null))
+      );
+  }
+
+  /** Pede o cancelamento à estamparia (só em Recebido) */
+  cancelar(code: string): Observable<MeCancelamento> {
+    return this.http
+      .post<any>(
+        `${this.occEndpoints.getBaseUrl()}/users/current/orders/${encodeURIComponent(code)}/mengo-estudio/cancelamento`,
+        {}
+      )
+      .pipe(
+        map((r) => ({
+          resultado: r?.resultado,
+          mensagem: r?.mensagem ?? '',
+          pedido: this.convertPedido(r?.pedido) ?? undefined,
+        })),
+        catchError((e: HttpErrorResponse) =>
+          throwError(() => new Error(e?.error?.errors?.[0]?.message ?? ''))
+        )
+      );
+  }
+
+  protected convertPedido(r: any): MePedido | null {
+    if (!r?.code) {
+      return null;
+    }
+    return {
+      code: r.code,
+      temEstudio: !!r.temEstudio,
+      soEstudio: !!r.soEstudio,
+      situacao: r.situacao ?? null,
+      eventos: r.eventos ?? [],
+      rastreio: r.rastreio ?? null,
+      itens: this.convertCarrinho(r).itens,
+      podeCancelar: !!r.podeCancelar,
+      valorEstudioTexto: r.valorEstudioTexto,
     };
   }
 

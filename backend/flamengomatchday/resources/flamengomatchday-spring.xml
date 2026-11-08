@@ -700,6 +700,8 @@
 	<bean id="mengoEstudioCartHooks" class="br.com.flamengo.matchday.estudio.MengoEstudioCartHooks">
 		<property name="mengoEstudioService" ref="mengoEstudioService"/>
 		<property name="mengoEstudioCartService" ref="mengoEstudioCartService"/>
+		<property name="mengoEstudioOrderService" ref="mengoEstudioOrderService"/>
+		<property name="configurationService" ref="configurationService"/>
 	</bean>
 	<bean id="mengoEstudioAddToCartHookMergeDirective" depends-on="commerceAddToCartMethodHooks" parent="listMergeDirective">
 		<property name="add" ref="mengoEstudioCartHooks"/>
@@ -709,6 +711,31 @@
 	</bean>
 	<bean id="mengoEstudioPlaceOrderHookMergeDirective" depends-on="commercePlaceOrderMethodHooks" parent="listMergeDirective">
 		<property name="add" ref="mengoEstudioCartHooks"/>
+	</bean>
+
+	<!-- Mengo Estúdio nos pedidos (08/11, PR 4): situação, linha do tempo, cancelamento com a estamparia (simulada)
+	     e recusa simulada do pagamento. A estamparia real entra trocando o bean mengoEstampariaGateway. -->
+	<bean id="mengoEstampariaGateway" class="br.com.flamengo.matchday.estudio.impl.SimulatedMengoEstampariaGateway">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="modelService" ref="modelService"/>
+	</bean>
+	<bean id="mengoEstudioOrderService" class="br.com.flamengo.matchday.estudio.impl.DefaultMengoEstudioOrderService">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="mengoEstudioCartService" ref="mengoEstudioCartService"/>
+		<property name="mengoEstampariaGateway" ref="mengoEstampariaGateway"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="enumerationService" ref="enumerationService"/>
+	</bean>
+	<!-- Mudou a situação do Estúdio no pedido (loja, estamparia ou Backoffice): evento, número de série e rastreio -->
+	<bean id="mengoPedidoSituacaoInterceptor" class="br.com.flamengo.matchday.estudio.MengoPedidoSituacaoInterceptor">
+		<property name="mengoEstudioService" ref="mengoEstudioService"/>
+		<property name="userService" ref="userService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+	</bean>
+	<bean id="mengoPedidoSituacaoInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="mengoPedidoSituacaoInterceptor"/>
+		<property name="typeCode" value="Order"/>
 	</bean>
 
 </beans>

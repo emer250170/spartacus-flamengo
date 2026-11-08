@@ -1,117 +1,185 @@
-<!-- Meus pedidos no visual do mockup (07/11). Ordenação, paginação e navegação do Spartacus. -->
+<!-- Meus pedidos no visual do mockup (07/11). Ordenação, paginação e navegação do Spartacus.
+     Mengo Estúdio (08/11, PR 4): selo de origem, situação do Estúdio e filtro Todos / Loja / Mengo Estúdio
+     (o filtro só aparece para quem tem pedido do Estúdio; "Loja" e "Mengo Estúdio" listam todos de uma vez). -->
 <ng-container *ngIf="orders$ | async as list">
-  <div class="foh">
-    <ng-container *ngIf="list.pagination?.totalResults; else noOrder">
-      <div class="foh-bar">
-        <label class="foh-sort">
-          <span>{{ 'orderHistory.sortBy' | cxTranslate }}</span>
-          <cx-sorting
-            [sortOptions]="list.sorts"
-            [sortLabels]="getSortLabels() | async"
-            (sortListEvent)="changeSortCode($event)"
-            [selectedOption]="list.pagination?.sort"
-            placeholder="{{ 'orderHistory.sortBy' | cxTranslate }}"
-            [ariaLabel]="'orderHistory.sortOrders' | cxTranslate"
-            ariaControls="foh-table"
-          ></cx-sorting>
-        </label>
-        <cx-pagination
-          *ngIf="(list.pagination?.totalPages ?? 0) > 1"
-          [pagination]="list.pagination"
-          (viewPageEvent)="pageChange($event)"
-        ></cx-pagination>
-      </div>
+  <ng-container
+    *ngIf="{
+      me: me$ | async,
+      origem: origem$ | async,
+      filtrados: filtrados$ | async
+    } as x"
+  >
+    <div class="foh">
+      <ng-container *ngIf="list.pagination?.totalResults; else noOrder">
+        <div
+          class="foh-origem"
+          *ngIf="x.me?.ativo"
+          role="group"
+          [attr.aria-label]="'me.o.filtro' | flaT"
+        >
+          <button
+            *ngFor="let o of origens"
+            type="button"
+            class="foh-chip"
+            [attr.aria-pressed]="x.origem === o"
+            (click)="escolherOrigem(o)"
+          >
+            {{ 'me.o.origem.' + o | flaT }}
+          </button>
+        </div>
 
-      <div class="foh-scroll">
-        <table id="foh-table" class="foh-table">
-          <caption class="cx-visually-hidden">
-            {{
-              'orderHistory.orderHistory' | cxTranslate
-            }}
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">{{ 'orderHistory.orderId' | cxTranslate }}</th>
-              <th scope="col">{{ 'orderHistory.date' | cxTranslate }}</th>
-              <th scope="col">{{ 'acc.oh.items' | flaT }}</th>
-              <th scope="col">{{ 'orderHistory.status' | cxTranslate }}</th>
-              <th scope="col" class="foh-num">
-                {{ 'orderHistory.total' | cxTranslate }}
-              </th>
-              <th scope="col">
-                <span class="cx-visually-hidden">{{
-                  'acc.oh.actions' | flaT
-                }}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let order of list.orders">
-              <td
-                class="foh-code"
-                [attr.data-label]="'orderHistory.orderId' | cxTranslate"
-              >
-                <a
-                  [routerLink]="
-                    { cxRoute: 'orderDetails', params: order } | cxUrl
-                  "
-                  [queryParams]="getQueryParams(order)"
-                  >{{ order.code }}</a
-                >
-              </td>
-              <td [attr.data-label]="'orderHistory.date' | cxTranslate">
-                {{ order.placed | cxDate: 'd MMM y' }}
-              </td>
-              <td class="foh-items" [attr.data-label]="'acc.oh.items' | flaT">
-                {{ items(order) | async }}
-              </td>
-              <td [attr.data-label]="'orderHistory.status' | cxTranslate">
-                <span class="fla-badge" [attr.data-tone]="tone(order)">{{
-                  'orderDetails.statusDisplay_' + order.statusDisplay
-                    | cxTranslate
-                }}</span>
-              </td>
-              <td
-                class="foh-num foh-total"
-                [attr.data-label]="'orderHistory.total' | cxTranslate"
-              >
-                {{ order.total?.formattedValue }}
-              </td>
-              <td class="foh-go">
-                <a
-                  [routerLink]="
-                    { cxRoute: 'orderDetails', params: order } | cxUrl
-                  "
-                  [queryParams]="getQueryParams(order)"
-                  [attr.aria-label]="
-                    'acc.oh.viewOf' | flaT: { code: order.code }
-                  "
-                  >{{ 'acc.oh.view' | flaT }}</a
-                >
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <div class="foh-bar" *ngIf="x.origem === 'todos'">
+          <label class="foh-sort">
+            <span>{{ 'orderHistory.sortBy' | cxTranslate }}</span>
+            <cx-sorting
+              [sortOptions]="list.sorts"
+              [sortLabels]="getSortLabels() | async"
+              (sortListEvent)="changeSortCode($event)"
+              [selectedOption]="list.pagination?.sort"
+              placeholder="{{ 'orderHistory.sortBy' | cxTranslate }}"
+              [ariaLabel]="'orderHistory.sortOrders' | cxTranslate"
+              ariaControls="foh-table"
+            ></cx-sorting>
+          </label>
+          <cx-pagination
+            *ngIf="(list.pagination?.totalPages ?? 0) > 1"
+            [pagination]="list.pagination"
+            (viewPageEvent)="pageChange($event)"
+          ></cx-pagination>
+        </div>
+        <p class="foh-count" *ngIf="x.origem !== 'todos'" role="status">
+          {{
+            ((x.filtrados?.length ?? 0) === 1 ? 'me.o.contagem1' : 'me.o.contagem')
+              | flaT: { n: x.filtrados?.length ?? 0 }
+          }}
+        </p>
 
-      <div
-        class="foh-bar foh-bottom"
-        *ngIf="(list.pagination?.totalPages ?? 0) > 1"
+        <div class="foh-scroll">
+          <table id="foh-table" class="foh-table">
+            <caption class="cx-visually-hidden">
+              {{
+                'orderHistory.orderHistory' | cxTranslate
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ 'orderHistory.orderId' | cxTranslate }}</th>
+                <th scope="col">{{ 'orderHistory.date' | cxTranslate }}</th>
+                <th scope="col">{{ 'acc.oh.items' | flaT }}</th>
+                <th scope="col">{{ 'orderHistory.status' | cxTranslate }}</th>
+                <th scope="col" class="foh-num">
+                  {{ 'orderHistory.total' | cxTranslate }}
+                </th>
+                <th scope="col">
+                  <span class="cx-visually-hidden">{{
+                    'acc.oh.actions' | flaT
+                  }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container
+                *ngFor="
+                  let order of x.origem === 'todos'
+                    ? list.orders
+                    : x.filtrados
+                "
+              >
+                <ng-container
+                  *ngTemplateOutlet="row; context: { order: order, me: x.me }"
+                ></ng-container>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+
+        <div
+          class="foh-bar foh-bottom"
+          *ngIf="x.origem === 'todos' && (list.pagination?.totalPages ?? 0) > 1"
+        >
+          <cx-pagination
+            [pagination]="list.pagination"
+            (viewPageEvent)="pageChange($event)"
+          ></cx-pagination>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+
+  <ng-template #row let-order="order" let-me="me">
+    <tr>
+      <td
+        class="foh-code"
+        [attr.data-label]="'orderHistory.orderId' | cxTranslate"
       >
-        <cx-pagination
-          [pagination]="list.pagination"
-          (viewPageEvent)="pageChange($event)"
-        ></cx-pagination>
-      </div>
-    </ng-container>
+        <a
+          [routerLink]="{ cxRoute: 'orderDetails', params: order } | cxUrl"
+          [queryParams]="getQueryParams(order)"
+          >{{ order.code }}</a
+        >
+        <span class="foh-selos" *ngIf="me?.ativo">
+          <span
+            *ngFor="let o of origemDe(order, me)"
+            class="foh-selo"
+            [attr.data-origem]="o"
+            >{{ 'me.o.origem.' + o | flaT }}</span
+          >
+        </span>
+      </td>
+      <td [attr.data-label]="'orderHistory.date' | cxTranslate">
+        {{ order.placed | cxDate: 'd MMM y' }}
+      </td>
+      <td class="foh-items" [attr.data-label]="'acc.oh.items' | flaT">
+        {{ items(order) | async }}
+      </td>
+      <td
+        class="foh-status"
+        [attr.data-label]="'orderHistory.status' | cxTranslate"
+      >
+        <ng-container *ngIf="me && meSituacao(order, me) as ms; else stdSt">
+          <span
+            *ngIf="!ms.so"
+            class="fla-badge"
+            [attr.data-tone]="tone(order)"
+            >{{
+              'orderDetails.statusDisplay_' + order.statusDisplay | cxTranslate
+            }}</span
+          >
+          <span class="fla-badge" [attr.data-tone]="ms.tom"
+            ><span class="cx-visually-hidden" *ngIf="!ms.so"
+              >{{ 'me.nome' | flaT }}: </span
+            >{{ ms.txt }}</span
+          >
+        </ng-container>
+        <ng-template #stdSt>
+          <span class="fla-badge" [attr.data-tone]="tone(order)">{{
+            'orderDetails.statusDisplay_' + order.statusDisplay | cxTranslate
+          }}</span>
+        </ng-template>
+      </td>
+      <td
+        class="foh-num foh-total"
+        [attr.data-label]="'orderHistory.total' | cxTranslate"
+      >
+        {{ order.total?.formattedValue }}
+      </td>
+      <td class="foh-go">
+        <a
+          [routerLink]="{ cxRoute: 'orderDetails', params: order } | cxUrl"
+          [queryParams]="getQueryParams(order)"
+          [attr.aria-label]="'acc.oh.viewOf' | flaT: { code: order.code }"
+          >{{ 'acc.oh.view' | flaT }}</a
+        >
+      </td>
+    </tr>
+  </ng-template>
 
-    <ng-template #noOrder>
-      <div class="foh-empty">
-        <p>{{ 'orderHistory.noOrders' | cxTranslate }}</p>
-        <a class="btn btn-primary" [routerLink]="{ cxRoute: 'home' } | cxUrl">{{
-          'orderHistory.startShopping' | cxTranslate
-        }}</a>
-      </div>
-    </ng-template>
-  </div>
+  <ng-template #noOrder>
+    <div class="foh-empty">
+      <p>{{ 'orderHistory.noOrders' | cxTranslate }}</p>
+      <a class="btn btn-primary" [routerLink]="{ cxRoute: 'home' } | cxUrl">{{
+        'orderHistory.startShopping' | cxTranslate
+      }}</a>
+    </div>
+  </ng-template>
 </ng-container>

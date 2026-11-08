@@ -369,7 +369,30 @@
 					<editorArea:attribute qualifier="clearSaleMessage" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
+			<!-- Mengo Estúdio (08/11, PR 4): mudar a situação aqui faz o papel da estamparia (grava o evento da
+			     linha do tempo; em produção, o número de série; no envio, o rastreio). Fica neste context: dois
+			     contexts Order/editor-area no mesmo módulo viram um só e o segundo some. -->
+			<editorArea:tab name="estudio.pedido.tab">
+				<editorArea:section name="estudio.pedido.situacao">
+					<editorArea:attribute qualifier="mengoSituacao"/>
+					<editorArea:attribute qualifier="mengoRastreio"/>
+					<editorArea:attribute qualifier="mengoDevolucao" readonly="true"/>
+				</editorArea:section>
+			</editorArea:tab>
 		</editorArea:editorArea>
+	</context>
+	<!-- Mengo Estúdio na lista de pedidos: coluna e busca pela situação do Estúdio (vazio = pedido sem camiseta) -->
+	<context merge-by="type" type="Order" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="mengoSituacao"/>
+		</list-view:list-view>
+	</context>
+	<context merge-by="type" type="Order" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="mengoSituacao"/>
+			</advanced-search:field-list>
+		</advanced-search:advanced-search>
 	</context>
 	<!-- Avisos do webhook: "AUTHORISATION · pedido 00031000 · aplicado" -->
 	<context merge-by="type" parent="GenericItem" type="AdyenNotification" component="base">
@@ -1324,6 +1347,7 @@
 				<explorer-tree:type-node id="loja.tree.estudioDrops" code="MengoDrop"/>
 				<explorer-tree:type-node id="loja.tree.estudioLinhas" code="MengoLinha"/>
 				<explorer-tree:type-node id="loja.tree.estudioAvisos" code="MengoAvisoRetorno"/>
+				<explorer-tree:type-node id="loja.tree.estudioPedidos" code="MengoPedidoEvento"/>
 				<explorer-tree:type-node id="loja.tree.estudioDemo" code="MengoDemoConfig"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -1366,6 +1390,7 @@
 				<explorer-tree:type-node id="loja.tree.estudioDrops" code="MengoDrop"/>
 				<explorer-tree:type-node id="loja.tree.estudioLinhas" code="MengoLinha"/>
 				<explorer-tree:type-node id="loja.tree.estudioAvisos" code="MengoAvisoRetorno"/>
+				<explorer-tree:type-node id="loja.tree.estudioPedidos" code="MengoPedidoEvento"/>
 				<explorer-tree:type-node id="loja.tree.estudioDemo" code="MengoDemoConfig"/>
 			</explorer-tree:navigation-node>
 		</explorer-tree:explorer-tree>
@@ -2313,6 +2338,52 @@
 					<editorArea:attribute qualifier="consentText" readonly="true"/>
 					<editorArea:attribute qualifier="consentDate" readonly="true"/>
 					<editorArea:attribute qualifier="notifiedDate"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<!-- Andamento dos pedidos (08/11, PR 4): a linha do tempo de todos os pedidos do Estúdio, mais novo primeiro.
+	     Só leitura: para avançar um pedido, abra-o (coluna Pedido) e mude a situação na aba Mengo Estúdio. -->
+	<context merge-by="type" parent="GenericItem" type="MengoPedidoEvento" component="base">
+		<y:base>
+			<y:labels>
+				<y:label>(order == null ? '-' : order.code) + ' · ' + (situacao == null ? '-' : situacao.code)</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoPedidoEvento" component="listview">
+		<list-view:list-view>
+			<list-view:column qualifier="date"/>
+			<list-view:column qualifier="order"/>
+			<list-view:column qualifier="situacao"/>
+			<list-view:column qualifier="note"/>
+			<list-view:column qualifier="author"/>
+		</list-view:list-view>
+	</context>
+	<context merge-by="type" parent="GenericItem" type="MengoPedidoEvento" component="advanced-search">
+		<advanced-search:advanced-search>
+			<advanced-search:field-list>
+				<advanced-search:field name="order" selected="true"/>
+				<advanced-search:field name="situacao" selected="true"/>
+				<advanced-search:field name="author"/>
+			</advanced-search:field-list>
+			<advanced-search:sort-field name="date" asc="false"/>
+		</advanced-search:advanced-search>
+	</context>
+	<context type="MengoPedidoEvento" component="editor-area">
+		<editorArea:editorArea>
+			<editorArea:essentials>
+				<editorArea:essentialSection name="estudio.evento.essentials">
+					<editorArea:attribute qualifier="order" readonly="true"/>
+					<editorArea:attribute qualifier="situacao" readonly="true"/>
+					<editorArea:attribute qualifier="date" readonly="true"/>
+				</editorArea:essentialSection>
+			</editorArea:essentials>
+			<editorArea:tab name="estudio.evento.tab">
+				<editorArea:section name="estudio.evento.detalhe">
+					<editorArea:attribute qualifier="note" readonly="true"/>
+					<editorArea:attribute qualifier="author" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>
