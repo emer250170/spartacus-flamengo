@@ -876,6 +876,22 @@ Fora do papel: o atendimento assistido na loja (ASM), que pede o grupo `asagents
 
 Deploy: `ant all`, reiniciar, importar a ImpEx do papel à parte (base64 + `ImportConfig`) e, no Backoffice do admin, F4 › Reset to Defaults (widgets e configuração).
 
+### Cadastro simples de produto: assistente "Novo produto" e aba "Cadastro" (08/11)
+
+Para a reunião com o gestor da loja: o `gestor.loja` cadastra um produto inteiro numa tela só, sem procurar nas abas do editor padrão. Esboço aprovado pelo Emerson no Claude Design ("Assistente Novo produto — Loja Flamengo").
+
+| Parte | Como funciona |
+|---|---|
+| Onde | Cockpit **Loja Flamengo** › Produtos › Produtos › **+**. Contexto `create-wizard` do `Product` só para o `lojamanagerrole`; o menu e o editor completo continuam como estavam. |
+| Passos | 1 **Dados**: código, nome e descrição curta em português e inglês. 2 **Categoria**: lista só as categorias da loja pelo caminho inteiro ("Mantos › Jogo 1 › Masculino") com o código, sem as técnicas (tamanho, ingressos, sócio, setor, experiências, Mengo Estúdio). 3 **Preço e estoque**: preço em R$ e quantidade no `warehouse_s`. 4 **Fotos**: principal e até 3 detalhes, um arquivo por foto. |
+| Ao concluir | O produto nasce no `flamengoProductCatalog:Online`, aprovado, com unidade `pieces` (interceptor `ProdutoCadastroInterceptor`, só para quem está no `lojamanagerrole`). Preço, estoque e fotos ficam pendentes no produto (`flaPrecoNovo`, `flaEstoqueNovo`, `flaFotoNova0..3`) e, logo depois da gravação, numa linha de execução própria (`ProdutoCadastroService.aplicarDepoisDeGravar`): linha de preço em BRL (atualiza a que existe ou cria uma), estoque no depósito, um conjunto de mídias por foto (`<código>-fla-foto0..3`, tamanhos de `flamengo.produtos.imagem.formatos`; a 0 vira Imagem, Miniatura e primeira da galeria) e a busca do produto (Solr). Os pendentes voltam a vazio. As fotos aparecem na ficha depois de Atualizar. |
+| Aba "Cadastro" | Primeira aba da ficha do produto para o gestor da loja, com os mesmos campos. Campos dinâmicos (`flaNomePt/En`, `flaResumoPt/En`, `flaCategoriaLoja`, `flaPreco`, `flaEstoque`, `flaFoto0..3`, `ProdutoCadastroCampoHandler`) mostram o que a loja usa (nome, resumo, categoria da loja, preço BRL atual, estoque atual, fotos atuais) e gravam onde a loja lê. Trocar a categoria mantém as técnicas (tamanho). A descrição curta também vira a descrição quando ela está vazia ou era igual. Tirar foto do produto continua na aba Multimídia. |
+| Tradução com IA | Botão **Traduzir com IA** nos campos em inglês (editor `br.com.flamengo.matchday.editor.traducao`): traduz o campo em português pelo Claude (API da Anthropic, `AnthropicTraducaoService`, modelo `flamengo.ia.traducao.modelo`, padrão `claude-haiku-5-5`) e põe o texto no campo para o gestor revisar. Só aparece com a chave `flamengo.ia.traducao.chave` configurada **no servidor** (local.properties, ou HAC › Platform › Configuration até o próximo reinício); nunca no repositório. O servidor chega em `api.anthropic.com` (conferido em 08/11). |
+| Chaves | `flamengo.loja.cadastro.ativo` (padrão true; desligada, o assistente grava só os dados do produto), `.grupos`, `.catalogo`, `.versao`, `.deposito`, `.moeda`, `.unidade`, `.categorias.ocultas`; `flamengo.ia.traducao.ativo` (padrão true), `.url`, `.modelo`, `.timeoutSegundos`, `.chave` (só no servidor). |
+| Editores | `br.com.flamengo.matchday.editor.categoria` (`FlaCategoriaEditor`) e `.traducao` (`FlaTraducaoEditor`); o de imagem ganhou os parâmetros `ratio` (1/1 para foto de produto), `hint` e `remove`. |
+
+Deploy: `ant all`; HAC › Update (tipos novos no `Product`); reiniciar; no Backoffice do admin, F4 › Reset to Defaults. Conferir a compilação antes: `compilar.py` (núcleo) e `compilar.py --backoffice` (editores, com o ZK do Backoffice na frente).
+
 ### Promoção pela forma de pagamento (05/11)
 
 Condição nova no construtor de promoções: **Forma de pagamento** (`fla_forma_pagamento`, categoria Carrinho). Exemplo: "Forma de pagamento é Pix" + "Desconto percentual no pedido" 5% = 5% no Pix à vista da loja.

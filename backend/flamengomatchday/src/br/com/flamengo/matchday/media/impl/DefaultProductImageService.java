@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -208,6 +209,143 @@ public class DefaultProductImageService implements ProductImageService
 		modelService.save(product);
 		refreshSearch(product);
 		return "Imagem retirada do produto " + product.getCode() + ".";
+	}
+
+	// ------------------------------------------------------------ fotos do cadastro de produto (08/11)
+
+	@Override
+	public String setProductPhotos(final ProductModel product, final List<MediaModel> photos)
+	{
+		if (product == null || photos == null || photos.stream().allMatch(java.util.Objects::isNull))
+		{
+			return null;
+		}
+		final CatalogVersionModel catalogVersion = product.getCatalogVersion();
+		final String pictureFormat = config("flamengo.produtos.imagem.formato.principal", "300Wx300H");
+		final String thumbnailFormat = config("flamengo.produtos.imagem.formato.miniatura", "96Wx96H");
+		int count = 0;
+		for (int position = 0; position < Math.min(4, photos.size()); position++)
+		{
+			final MediaModel image = photos.get(position);
+			if (image == null)
+			{
+				continue;
+			}
+			final Map<String, MediaModel> byFormat = fillContainer(image, product, product.getCode() + PHOTO_CONTAINER_SUFFIX + position);
+			count++;
+			if (position == 0)
+			{
+				if (byFormat.get(pictureFormat) != null)
+				{
+					product.setPicture(byFormat.get(pictureFormat));
+				}
+				if (byFormat.get(thumbnailFormat) != null)
+				{
+					product.setThumbnail(byFormat.get(thumbnailFormat));
+				}
+			}
+		}
+		// galeria: as fotos do cadastro (0 a 3) na frente, na ordem, e depois as que o produto já tinha
+		final List<MediaContainerModel> gallery = new ArrayList<>();
+		for (int position = 0; position < 4; position++)
+		{
+			final MediaContainerModel container = findContainer(product.getCode() + PHOTO_CONTAINER_SUFFIX + position, catalogVersion);
+			if (container != null)
+			{
+				gallery.add(container);
+			}
+		}
+		for (final MediaContainerModel other : safe(product.getGalleryImages()))
+		{
+			if (!gallery.contains(other))
+			{
+				gallery.add(other);
+			}
+		}
+		product.setGalleryImages(gallery);
+		modelService.save(product);
+		refreshSearch(product);
+		LOG.info("{} foto(s) do cadastro gravada(s) no produto {} ({})", count, product.getCode(), catalogVersion.getVersion());
+		return count + (count == 1 ? " foto" : " fotos") + " no produto " + product.getCode() + ".";
+	}
+
+	@Override
+	public MediaModel productPhoto(final ProductModel product, final int position)
+	{
+		if (product == null || product.getCatalogVersion() == null || product.getPk() == null)
+		{
+			return null;
+		}
+		if (position == 0 && product.getPicture() != null)
+		{
+			return product.getPicture();
+		}
+		final List<MediaContainerModel> gallery = new ArrayList<>(safe(product.getGalleryImages()));
+		if (position >= gallery.size())
+		{
+			return null;
+		}
+		final String pictureFormat = config("flamengo.produtos.imagem.formato.principal", "300Wx300H");
+		MediaModel first = null;
+		for (final MediaModel media : safe(gallery.get(position).getMedias()))
+		{
+			if (media.getMediaFormat() != null && pictureFormat.equals(media.getMediaFormat().getQualifier()))
+			{
+				return media;
+			}
+			first = first == null ? media : first;
+		}
+		return first;
+	}
+
+	/** Um conjunto de mídias com a foto em cada tamanho da loja; devolve formato → mídia */
+	protected Map<String, MediaModel> fillContainer(final MediaModel image, final ProductModel product, final String containerCode)
+	{
+		final CatalogVersionModel catalogVersion = product.getCatalogVersion();
+		final byte[] original = mediaService.getDataFromMedia(image);
+		final BufferedImage source = read(original);
+		MediaContainerModel container = findContainer(containerCode, catalogVersion);
+		if (container == null)
+		{
+			container = modelService.create(MediaContainerModel.class);
+			container.setQualifier(containerCode);
+			container.setCatalogVersion(catalogVersion);
+			modelService.save(container);
+		}
+		final MediaFolderModel folder = folder();
+		final boolean png = "image/png".equalsIgnoreCase(image.getMime());
+		final Map<String, MediaModel> byFormat = new java.util.HashMap<>();
+		for (final String qualifier : formats())
+		{
+			final MediaFormatModel format = format(qualifier);
+			if (format == null)
+			{
+				continue;
+			}
+			final String code = containerCode + "-" + qualifier;
+			MediaModel media = findMedia(code, catalogVersion);
+			if (media == null)
+			{
+				media = modelService.create(MediaModel.class);
+				media.setCode(code);
+				media.setCatalogVersion(catalogVersion);
+			}
+			final byte[] data = source == null ? original : resize(source, size(qualifier), png, quality());
+			media.setMediaFormat(format);
+			media.setMediaContainer(container);
+			media.setMime(source == null ? image.getMime() : png ? "image/png" : "image/jpeg");
+			media.setRealFileName(code + (source == null ? extension(image.getMime()) : png ? ".png" : ".jpg"));
+			media.setAltText(product.getName(new Locale("pt")));
+			if (folder != null)
+			{
+				media.setFolder(folder);
+			}
+			modelService.save(media);
+			mediaService.setDataForMedia(media, data);
+			byFormat.put(qualifier, media);
+		}
+		modelService.refresh(container);
+		return byFormat;
 	}
 
 	/** Foto nova ou retirada: a busca (vitrine da home) passa a ter o endereço novo em segundos */

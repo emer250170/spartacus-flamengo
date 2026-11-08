@@ -23,6 +23,15 @@ def src = new File(base, 'src'); def out = new File(base, 'out'); out.mkdirs()
 def sources = []
 files.each { path, b64 -> def f = new File(src, path); f.parentFile.mkdirs(); f.bytes = b64.decodeBase64(); sources << f }
 def cp = new LinkedHashSet()
+if (%s) {
+  // classes do Backoffice: o ZK e o cockpitng da aplicação backoffice vêm primeiro (fora deles há um ZK antigo)
+  new File('/opt/sap/hybris/bin/modules/backoffice-framework/backoffice/web/webroot/WEB-INF').eachFileRecurse { f ->
+    if ((f.isFile() && f.name.endsWith('.jar')) || (f.isDirectory() && f.name == 'classes')) cp << f.path
+  }
+  new File('/opt/sap/hybris/bin').eachFileRecurse { f ->
+    if (f.isDirectory() && f.name == 'classes' && f.path.contains('/backoffice/') && !f.path.contains('/testclasses')) cp << f.path
+  }
+}
 new File('/opt/sap/hybris/bin').eachFileRecurse { f ->
   def p = f.path
   if (p.contains('/node_modules/') || p.contains('/web/webroot/') || p.contains('/testclasses') || p.contains('/hmc/')) return
@@ -45,6 +54,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('arquivos', nargs='+', help='arquivos .java (caminho com /src/ para achar o pacote)')
     ap.add_argument('--saida', required=True, help='arquivo .groovy gerado')
+    ap.add_argument('--backoffice', action='store_true',
+                    help='classes do Backoffice (pasta backoffice/src): põe o ZK e o cockpitng do Backoffice na frente')
     a = ap.parse_args()
     entries = []
     for path in a.arquivos:
@@ -52,7 +63,7 @@ def main():
         with open(path, 'rb') as f:
             entries.append("'%s':'%s'" % (rel, base64.b64encode(f.read()).decode()))
     with open(a.saida, 'w', encoding='utf-8') as f:
-        f.write(GROOVY % ',\n'.join(entries))
+        f.write(GROOVY % (',\n'.join(entries), 'true' if a.backoffice else 'false'))
     print('%s: %d arquivo(s), %d bytes' % (a.saida, len(entries), os.path.getsize(a.saida)))
 
 

@@ -142,7 +142,8 @@ Update no HAC (Platform › Update). Verificar no Backoffice/loja.
 
 Antes do PR, conferir a compilação das classes novas ou alteradas no próprio servidor (não grava nada):
 `python3 backend/hac-deploy/compilar.py <arquivos .java> --saida /tmp/compilar.groovy` e rodar pelo
-`<input type=file>` no HAC. Compila contra o que está instalado: classe que usa modelo de tipo novo só compila
+`<input type=file>` no HAC. Classes do Backoffice (`backoffice/src`): `--backoffice` (põe o ZK do Backoffice na frente; sem
+isso aparecem centenas de erros de ZK antigo), junto com as interfaces novas do núcleo que elas usam. Compila contra o que está instalado: classe que usa modelo de tipo novo só compila
 depois do `ant all` (ler e gravar esses atributos pelo nome, como em `br.com.flamengo.matchday.mcp`).
 
 - Update só com "Update running system" + "Localize types" (sem "Create essential data",
