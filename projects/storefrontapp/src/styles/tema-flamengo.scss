@@ -1548,6 +1548,13 @@ html:is(.fla-wide, .fla-estudio) cx-page-slot.BottomHeaderSlot {
   display: none !important;
 }
 
+// Mengo Estúdio (08/11): o slot do Spartacus anima a margem; ao voltar do acervo para o início a barra
+// descia 30px e subia de novo. Sem animação, a troca entre as páginas do Estúdio fica parada.
+html.fla-estudio cx-page-layout.LandingPage2Template,
+html.fla-estudio cx-page-layout.LandingPage2Template > cx-page-slot.Section1 {
+  transition: none !important;
+}
+
 // Celular (07/11): nas outras páginas do mesmo layout (jornada de matchday, planos do sócio) o
 // slot e o componente dentro dele ficavam com a largura mínima do conteúdo (870px e 811px numa
 // tela de 390px, com rolagem lateral). Encolhem até a tela; as faixas que rolam de lado (passos
