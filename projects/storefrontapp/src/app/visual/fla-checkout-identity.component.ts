@@ -55,8 +55,10 @@ export class FlaCheckoutIdentityIntroComponent {
         </div>
         <ul class="fla-ci-items">
           <li *ngFor="let e of c.entries">
-            <span class="fla-ci-thumb">
-              <cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="''"></cx-media>
+            <span class="fla-ci-thumb" [class.fla-ci-thumb-me]="!!e.estudio">
+              <!-- camiseta do Mengo Estúdio: sem foto no catálogo, a miniatura com a estampa (como no carrinho) -->
+              <fla-me-camiseta *ngIf="e.estudio as me; else foto" [estampa]="me.estampa" [cor]="me.cor"></fla-me-camiseta>
+              <ng-template #foto><cx-media [container]="e.entry.product?.images?.PRIMARY" format="thumbnail" [alt]="''"></cx-media></ng-template>
             </span>
             <span class="fla-ci-item">
               <strong>{{ e.name }}</strong>
