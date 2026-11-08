@@ -202,6 +202,10 @@ async () => {
   Cupom pessoal só do gestor da loja (`flamengo.mcp.cupom.areas=LOJA`; as personas de jogos e sócio não têm a ferramenta).
   A importação de ImpEx numa linha de execução própria fecha a sessão (usuário volta a anônimo): chamar
   `McpSupport.prepareSession()` depois de cada importação antes de buscar produto ou categoria.
+- Análise de pedidos (MCP 1.4.0): objeto `FlamengoAnalisePedido` com atributo **virtual** `analise` (Integration API 2211:
+  `IntegrationObjectVirtualAttributeDescriptor` + Script `model://flaAnalisePedido`, variável `itemModel`), um JSON com
+  pagamento, entrega, cidade/UF, promoções, antifraude e plano atual. Dado novo para a API sem `ant all`: preferir atributo
+  virtual em objeto próprio (não pesar o `FlamengoPedido`). Mudou o Groovy: reimportar `integracao-analise-pedidos.impex`.
 - Promoção por código (ImpEx de PromotionSourceRule): no `y_target_customers` o cliente vai pela **PK** (o motor compara
   `UserRAO.pk`), não pelo e-mail; categorias e produtos vão pelo código. Interceptor de **tipo novo** só passa a valer
   depois do reinício que vem após o Update (na subida do `ant all` o tipo ainda não existia).

@@ -1300,3 +1300,11 @@ Os três gestores (sócio, jogos e loja) pedem pelo Claude (MCP) e o **Commerce*
 | Chaves | `flamengo.mcp.relatorio.ativo`, `flamengo.mcp.relatorio.destinatarios`, `flamengo.mcp.cupom.ativo`, `flamengo.mcp.cupom.areas` (LOJA), `flamengo.mcp.cupom.tetoPercentual` (30), `flamengo.mcp.cupom.tetoValor` (100), `flamengo.mcp.cupom.validadeDias` (30), `flamengo.mcp.cupom.validadeMaxDias` (180), `flamengo.mcp.loja.url`. |
 | Integração | `docs/flamengo-matchday/mcp/integracao-relatorio-cupom.impex`: objetos `FlamengoRelatorioEmail` e `FlamengoCupomCliente`, canal BASIC e leitura/criação nos três grupos de API. |
 
+#### Análise de pedidos pelos gestores (08/11)
+
+| O quê | Como |
+|---|---|
+| Ferramenta | `analise_pedidos` nas personas gestor da loja, de jogos e do sócio: agrupa e filtra por forma de pagamento, parcelas, gateway, bandeira, entrega, cidade, UF, situação, promoção, cupom, com/sem desconto, antifraude, categoria, produto, perfil do cliente, primeira compra, faixa de valor e data (dia, semana, mês, dia da semana, hora). |
+| Dados | Objeto de integração `FlamengoAnalisePedido` (pedido, itens, situação, cliente) com o atributo virtual `analise`: JSON montado pelo Script `flaAnalisePedido` (`mcp/analise-pedido.groovy`). Sem dados pessoais: do endereço só cidade e UF (UF pela faixa do CEP quando o endereço não tem estado). |
+| Instalação | `mcp/integracao-analise-pedidos.impex` pelo HAC (base64 + `ImportConfig`); sem `ant all` e sem Update. Permissões só `+` nos grupos de API. |
+

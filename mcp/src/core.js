@@ -124,9 +124,9 @@ function parseCancelMessage(text) {
 export function buildTools(ctx) {
   const { persona, cfg, http } = ctx;
   if (persona === 'torcedor') return torcedorTools(cfg, http);
-  if (persona === 'socio') return [...socioTools(cfg, http), ...actionTools(cfg, http, persona)];
-  if (persona === 'jogos') return [...jogosTools(cfg, http), ...actionTools(cfg, http, persona)];
-  if (persona === 'loja') return [...lojaTools(cfg, http), ...actionTools(cfg, http, persona)];
+  if (persona === 'socio') return [...socioTools(cfg, http), ...actionTools(cfg, http, persona), ...analysisTools(cfg, http, persona)];
+  if (persona === 'jogos') return [...jogosTools(cfg, http), ...actionTools(cfg, http, persona), ...analysisTools(cfg, http, persona)];
+  if (persona === 'loja') return [...lojaTools(cfg, http), ...actionTools(cfg, http, persona), ...analysisTools(cfg, http, persona)];
   throw new Error(`Persona desconhecida: ${persona} (use torcedor, socio, jogos ou loja)`);
 }
 
@@ -2108,4 +2108,243 @@ function actionTools(cfg, http, persona) {
   return area === 'LOJA' ? tools : tools.filter((t) => t.name === 'enviar_relatorio');
 }
 
-export const _test = { saleCategory, couponCodes, reportHtml, reportCsv, randomCode, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };
+// ================================================================ ANÁLISE DE PEDIDOS (os três gestores, 08/11)
+
+/** Áreas da análise: que pedidos entram e que itens contam na receita */
+const ANALYSIS_AREA = {
+  LOJA: { nome: 'loja (todos os pedidos)', receita: 'total pago do pedido (com frete e descontos)' },
+  JOGOS: { nome: 'jogos (pedidos com ingresso, estacionamento ou alimentação)', categorias: ['Ingressos', 'Estacionamento', 'Alimentação'], receita: 'soma dos itens de ingresso, estacionamento e alimentação' },
+  SOCIO: { nome: 'sócio-torcedor (pedidos com plano e compras de quem é sócio hoje)', receita: 'total pago do pedido (com frete e descontos)' },
+};
+const DELIVERY_NAMES = { 'matchday-digital': 'Digital (ingresso e serviços do jogo)', 'standard-gross': 'Entrega em casa', pickup: 'Retirada na loja', 'frete-gratis': 'Entrega grátis', premium: 'Entrega expressa' };
+const WEEKDAYS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const VALUE_BANDS = [[100, 'até R$ 100'], [300, 'R$ 100 a 300'], [600, 'R$ 300 a 600'], [Infinity, 'acima de R$ 600']];
+const ANALYSIS_DIMENSIONS = {
+  forma_pagamento: 'forma de pagamento (Pix, Pix Automático, Boleto, Cartão de crédito)',
+  parcelas: 'parcelas do cartão (à vista ou N vezes)',
+  gateway: 'quem processou o pagamento (Adyen ou simulado da demo)',
+  bandeira: 'bandeira do cartão',
+  entrega: 'tipo de entrega (digital, em casa, retirada na loja)',
+  cidade: 'cidade da entrega (retirada: cidade da loja)',
+  uf: 'estado (UF) da entrega',
+  situacao: 'situação do pedido',
+  promocao: 'promoção aplicada (um pedido pode ter mais de uma)',
+  cupom: 'cupom usado',
+  com_desconto: 'pedido com ou sem desconto',
+  antifraude: 'resultado da análise antifraude (ClearSale)',
+  categoria: 'categoria do item (ingressos, sócio, loja...)',
+  produto: 'produto',
+  perfil_cliente: 'plano de sócio atual do cliente (ou não sócio)',
+  cliente_novo: 'primeira compra do cliente ou cliente recorrente',
+  faixa_valor: 'faixa de valor do pedido',
+  dia: 'dia', semana: 'semana (começando na segunda)', mes: 'mês', dia_semana: 'dia da semana', hora: 'hora do dia',
+};
+const MULTI_DIMENSIONS = new Set(['promocao', 'cupom', 'categoria', 'produto']);
+
+function antifraudLabel(af) {
+  const st = af?.status;
+  if (!st) return af?.suspeita ? 'Suspeita de fraude (Commerce)' : 'Não analisado';
+  if (['RPA', 'SUS', 'FRD'].includes(st)) return 'Recusado: suspeita de fraude';
+  if (st === 'RPP') return 'Recusado: política da loja';
+  if (st === 'RPM') return 'Recusado sem suspeita';
+  if (st.startsWith('AP')) return 'Aprovado';
+  if (['AMA', 'NVO'].includes(st)) return 'Em análise';
+  return af.resultado ?? st;
+}
+
+function analysisTools(cfg, http, persona) {
+  const odata = odataClient(cfg, http);
+  const area = PERSONA_AREA[persona];
+  const def = ANALYSIS_AREA[area];
+
+  async function fetchOrders() {
+    const out = [];
+    for (let skip = 0; ; skip += 200) {
+      const r = results(await odata('GET', '/FlamengoAnalisePedido/Orders', { query: { $expand: 'status,user,entries/product,appliedCouponCodes', $top: 200, $skip: skip } }));
+      out.push(...r);
+      if (r.length < 200 || out.length >= 5000) break;
+    }
+    const firstByUser = {};
+    const list = out.filter((o) => o.versionID == null).map((o) => {
+      let a = {};
+      try { a = JSON.parse(o.analise ?? '{}'); } catch { a = {}; }
+      const itens = results(o.entries).map((e) => ({ codigo: e.product?.code, produto: e.product?.name ?? e.product?.code, quantidade: num(e.quantity) ?? 0, total: num(e.totalPrice) ?? 0, categoria: saleCategory(e.product?.code) }));
+      const frete = num(o.deliveryCost) ?? 0;
+      const total = num(o.totalPrice) ?? 0;
+      const linhas = itens.reduce((s, i) => s + i.total, 0);
+      const promocoes = (a.promocoes ?? []).map((p) => ({ codigo: p.codigo, nome: p.nome, desconto: num(p.desconto) ?? 0 }));
+      return {
+        pedido: o.code, data: toDate(o.date), cliente: o.user?.uid, situacaoCodigo: o.status?.code, situacao: ORDER_STATUS[o.status?.code] ?? o.status?.code ?? 'sem situação',
+        total, frete, descontos: Math.max(0, Math.round((linhas + frete - total) * 100) / 100), cupons: couponCodes(o.appliedCouponCodes), itens, a, promocoes,
+      };
+    });
+    for (const o of [...list].sort((x, y) => (x.data?.getTime() ?? 0) - (y.data?.getTime() ?? 0))) if (o.cliente && !firstByUser[o.cliente]) firstByUser[o.cliente] = o.pedido;
+    for (const o of list) o.primeiraCompra = firstByUser[o.cliente] === o.pedido;
+    return list;
+  }
+
+  // recorte da área: que pedidos entram e que itens contam
+  const areaItems = (o) => (def.categorias ? o.itens.filter((i) => def.categorias.includes(i.categoria)) : o.itens);
+  const inArea = (o) => (area === 'JOGOS' ? areaItems(o).length > 0 : area === 'SOCIO' ? (o.itens.some((i) => i.categoria === 'Sócio-torcedor') || !!o.a.planoAtualDoCliente) : true);
+  const revenue = (o) => (area === 'JOGOS' ? areaItems(o).reduce((s, i) => s + i.total, 0) : o.total);
+
+  const local = (d, opts) => new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, ...opts }).format(d);
+  function labels(o, dim) {
+    const a = o.a;
+    switch (dim) {
+      case 'forma_pagamento': return [a.formaPagamento ?? 'não informado'];
+      case 'parcelas': return [a.formaPagamento !== 'Cartão de crédito' ? 'não se aplica' : num(a.parcelas) > 1 ? `${a.parcelas} vezes` : a.recorrencia ? `recorrente (${a.recorrencia})` : 'à vista'];
+      case 'gateway': return [a.gateway ?? 'não informado'];
+      case 'bandeira': return [a.bandeira ? String(a.bandeira).toUpperCase() : 'não é cartão'];
+      case 'entrega': return [DELIVERY_NAMES[a.entrega] ?? a.entregaNome ?? (a.entrega || 'sem entrega')];
+      case 'cidade': return [a.cidade ? `${a.cidade}${a.uf ? '/' + a.uf : ''}` : 'não informada'];
+      case 'uf': return [a.uf ?? 'não informado'];
+      case 'situacao': return [o.situacao];
+      case 'promocao': return o.promocoes.length ? o.promocoes.map((p) => p.nome) : ['sem promoção'];
+      case 'cupom': return o.cupons.length ? o.cupons.map((c) => c.toUpperCase()) : ['sem cupom'];
+      case 'com_desconto': return [o.descontos > 0 ? 'com desconto' : 'sem desconto'];
+      case 'antifraude': return [antifraudLabel(a.antifraude)];
+      case 'categoria': return [...new Set(areaItems(o).map((i) => i.categoria))];
+      case 'produto': return [...new Set(areaItems(o).map((i) => i.produto))];
+      case 'perfil_cliente': return [a.planoAtualDoCliente ?? 'não sócio'];
+      case 'cliente_novo': return [o.primeiraCompra ? 'primeira compra' : 'cliente recorrente'];
+      case 'faixa_valor': return [VALUE_BANDS.find(([max]) => revenue(o) <= max)[1]];
+      case 'dia': return [o.data ? local(o.data, { day: '2-digit', month: '2-digit', year: 'numeric' }) : '?'];
+      case 'semana': {
+        if (!o.data) return ['?'];
+        const d = new Date(o.data.getTime() - 3 * 3600000);
+        const monday = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86400000);
+        return [`semana de ${String(monday.getUTCDate()).padStart(2, '0')}/${String(monday.getUTCMonth() + 1).padStart(2, '0')}`];
+      }
+      case 'mes': return [o.data ? local(o.data, { month: 'long', year: 'numeric' }) : '?'];
+      case 'dia_semana': return [o.data ? WEEKDAYS[new Date(o.data.getTime() - 3 * 3600000).getUTCDay()] : '?'];
+      case 'hora': return [o.data ? `${local(o.data, { hour: '2-digit', hourCycle: 'h23' })}h` : '?'];
+      default: throw new UserError(`Agrupamento desconhecido: ${dim}.`);
+    }
+  }
+  // parte do pedido que vai para cada grupo (itens e promoções se dividem; o resto conta o pedido inteiro)
+  function share(o, dim, label) {
+    if (dim === 'categoria') return areaItems(o).filter((i) => i.categoria === label).reduce((s, i) => s + i.total, 0);
+    if (dim === 'produto') return areaItems(o).filter((i) => i.produto === label).reduce((s, i) => s + i.total, 0);
+    return revenue(o);
+  }
+  const promoDiscount = (o, dims, keys) => {
+    const i = dims.indexOf('promocao');
+    const ps = i >= 0 && keys[i] !== 'sem promoção' ? o.promocoes.filter((p) => p.nome === keys[i]) : o.promocoes;
+    return ps.reduce((s, p) => s + p.desconto, 0);
+  };
+  const pct = (a, b) => (b ? `${(Math.round((a / b) * 1000) / 10).toString().replace('.', ',')}%` : null);
+
+  function matches(o, filtros) {
+    for (const [dim, want] of Object.entries(filtros ?? {})) {
+      if (want == null || want === '') continue;
+      if (!ANALYSIS_DIMENSIONS[dim]) throw new UserError(`Filtro desconhecido: ${dim}. Use: ${Object.keys(ANALYSIS_DIMENSIONS).join(', ')}.`);
+      const w = String(want).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      const ls = labels(o, dim).map((l) => String(l).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
+      if (!ls.some((l) => l === w || l.includes(w))) return false;
+    }
+    return true;
+  }
+
+  function showOrderAnalysis(o) {
+    const af = o.a.antifraude ?? {};
+    return {
+      pedido: o.pedido, data: fmtDate(o.data), situacao: o.situacao, valor: brl(revenue(o)), ...(area === 'JOGOS' ? { totalDoPedido: brl(o.total) } : {}),
+      pagamento: [o.a.formaPagamento, num(o.a.parcelas) > 1 ? `${o.a.parcelas}x` : null, o.a.bandeira ? String(o.a.bandeira).toUpperCase() : null, o.a.gateway].filter(Boolean).join(' · '),
+      entrega: labels(o, 'entrega')[0], cidade: labels(o, 'cidade')[0], categorias: labels(o, 'categoria'),
+      ...(o.promocoes.length ? { promocoes: o.promocoes.map((p) => `${p.nome} (${brl(p.desconto)})`) } : {}), ...(o.cupons.length ? { cupons: o.cupons } : {}),
+      antifraude: af.status ? `${af.resultado} (ClearSale ${af.status}${af.score != null ? `, score ${af.score}` : ''})` : af.resultado,
+      perfilCliente: o.a.planoAtualDoCliente ?? 'não sócio', primeiraCompra: o.primeiraCompra,
+    };
+  }
+
+  return [
+    {
+      name: 'analise_pedidos',
+      description: `Análise de pedidos para relatórios e decisões (área: ${def.nome}): totais e agrupamentos por ${Object.keys(ANALYSIS_DIMENSIONS).join(', ')} (até 2 ao mesmo tempo), com filtros nos mesmos campos. `
+        + 'Mostra pedidos, receita, % do total, ticket médio, descontos e desconto dado por promoção; nos totais, o resumo do antifraude (analisados, aprovados, recusados e % recusados por suspeita de fraude). '
+        + `Receita = ${def.receita}. Por padrão só pedidos válidos (sem cancelados e inválidos); agrupando por situação ou antifraude entram todos. `
+        + 'Sem dados pessoais: do endereço só cidade e UF; para ver o cliente de um pedido use a ferramenta de pedido. Exemplos: "quantos pedidos tiveram 5% no Pix" (agruparPor promocao), "% de pedidos recusados por fraude" (agruparPor antifraude), "receita por forma de pagamento e entrega".',
+      inputSchema: obj({
+        agruparPor: { type: 'array', items: { type: 'string', enum: Object.keys(ANALYSIS_DIMENSIONS) }, description: 'Até 2 agrupamentos: ' + Object.entries(ANALYSIS_DIMENSIONS).map(([k, v]) => `${k} = ${v}`).join('; ') },
+        filtros: { type: 'object', additionalProperties: { type: 'string' }, description: 'Filtros pelo nome do grupo (parte do texto basta), ex. {"forma_pagamento":"Pix","uf":"RJ","antifraude":"recusado","promocao":"5%","perfil_cliente":"não sócio"}' },
+        dias: S.int('Últimos N dias (padrão 30)'), inicio: S.str('Início (AAAA-MM-DD), em vez de dias'), fim: S.str('Fim (AAAA-MM-DD), padrão hoje'),
+        incluir: { type: 'string', enum: ['validos', 'todos'], description: 'validos (padrão) = sem cancelados e inválidos; todos = inclui cancelados e recusados' },
+        listar: S.bool('Também listar os pedidos (até 30, mais novos primeiro) com pagamento, entrega, cidade, promoções e antifraude'),
+        pedido: S.str('Código de um pedido: mostra só a análise dele (pagamento, entrega, promoções, antifraude), sem limite de período'),
+      }),
+      handler: async (a) => {
+        if (a.pedido) {
+          const o = (await fetchOrders()).find((x) => x.pedido === String(a.pedido).trim());
+          if (!o || !inArea(o)) throw new UserError(`Pedido ${a.pedido} não encontrado${o ? ' na área deste gestor' : ''}.`);
+          return { area: def.nome, ...showOrderAnalysis(o), ...(o.descontos ? { descontos: brl(o.descontos) } : {}) };
+        }
+        const dims = [...new Set(a.agruparPor ?? [])];
+        if (dims.length > 2) throw new UserError('Use no máximo 2 agrupamentos por vez.');
+        const fim = a.fim ? parseLocal(a.fim.length <= 10 ? a.fim + 'T23:59' : a.fim) : new Date();
+        const inicio = a.inicio ? parseLocal(a.inicio) : new Date(fim.getTime() - (a.dias ?? 30) * 86400000);
+        if (inicio > fim) throw new UserError('O início do período é depois do fim.');
+        const todos = a.incluir === 'todos' || (!a.incluir && dims.some((d) => d === 'situacao' || d === 'antifraude')) || /cancel|inv[aá]lid|recus/i.test(JSON.stringify(a.filtros ?? {}));
+        const period = (await fetchOrders()).filter((o) => o.data && o.data >= inicio && o.data <= fim && inArea(o) && matches(o, a.filtros));
+        const base = todos ? period : period.filter((o) => !EXCLUDED_STATUS.has(o.situacaoCodigo));
+        const receita = base.reduce((s, o) => s + revenue(o), 0);
+        const descontos = base.reduce((s, o) => s + o.descontos, 0);
+        const desc = base.filter((o) => o.descontos > 0);
+
+        const af = period.map((o) => antifraudLabel(o.a.antifraude));
+        const analisados = af.filter((l) => l !== 'Não analisado').length;
+        const recusadosFraude = af.filter((l) => l === 'Recusado: suspeita de fraude').length;
+        const recusados = af.filter((l) => l.startsWith('Recusado')).length;
+
+        const groups = new Map();
+        if (dims.length) for (const o of base) {
+          const combos = dims.reduce((acc, d) => acc.flatMap((c) => labels(o, d).map((l) => [...c, l])), [[]]);
+          for (const keys of combos) {
+            const k = JSON.stringify(keys);
+            const g = groups.get(k) ?? { keys, pedidos: new Set(), receita: 0, descontos: 0, descontoPromocoes: 0, comDesconto: 0 };
+            if (!g.pedidos.has(o.pedido)) {
+              g.pedidos.add(o.pedido);
+              g.descontos += o.descontos; g.descontoPromocoes += promoDiscount(o, dims, keys);
+              if (o.descontos > 0) g.comDesconto += 1;
+            }
+            const mi = dims.findIndex((d) => d === 'categoria' || d === 'produto');
+            g.receita += mi >= 0 ? share(o, dims[mi], keys[mi]) : revenue(o);
+            groups.set(k, g);
+          }
+        }
+        const multi = dims.some((d) => MULTI_DIMENSIONS.has(d));
+        return {
+          area: def.nome, periodo: `${fmtDate(inicio, false)} a ${fmtDate(fim, false)}`,
+          base: todos ? 'todos os pedidos do período (inclui cancelados e recusados)' : 'pedidos válidos (sem cancelados e inválidos)',
+          ...(a.filtros && Object.keys(a.filtros).length ? { filtros: a.filtros } : {}),
+          totais: {
+            pedidos: base.length, receita: brl(receita), ticketMedio: base.length ? brl(receita / base.length) : null,
+            descontos: brl(descontos), pedidosComDesconto: desc.length, pctComDesconto: pct(desc.length, base.length),
+            descontoPorPromocao: brl(base.reduce((s, o) => s + o.promocoes.reduce((x, p) => x + p.desconto, 0), 0)),
+            aguardandoPagamento: base.filter((o) => o.situacaoCodigo === 'PAYMENT_NOT_CAPTURED').length,
+            ...(todos ? {} : { foraDaBase: { cancelados: period.filter((o) => o.situacaoCodigo === 'CANCELLED').length, invalidos: period.filter((o) => o.situacaoCodigo === 'CHECKED_INVALID').length } }),
+            antifraude: {
+              pedidosNoPeriodo: period.length, analisadosPelaClearSale: analisados, aprovados: af.filter((l) => l === 'Aprovado').length,
+              recusados, pctRecusadosDosAnalisados: pct(recusados, analisados), recusadosPorSuspeitaDeFraude: recusadosFraude,
+              pctSuspeitaDosAnalisados: pct(recusadosFraude, analisados), pctSuspeitaDoTotal: pct(recusadosFraude, period.length),
+            },
+          },
+          ...(dims.length ? {
+            agrupadoPor: dims.map((d) => ANALYSIS_DIMENSIONS[d]),
+            grupos: [...groups.values()].sort((x, y) => y.receita - x.receita || y.pedidos.size - x.pedidos.size).slice(0, 60).map((g) => ({
+              ...Object.fromEntries(dims.map((d, i) => [d, g.keys[i]])),
+              pedidos: g.pedidos.size, pctPedidos: pct(g.pedidos.size, base.length), receita: brl(g.receita), pctReceita: pct(g.receita, receita),
+              ticketMedio: brl(g.receita / g.pedidos.size), descontos: brl(g.descontos), ...(g.descontoPromocoes ? { descontoDasPromocoes: brl(g.descontoPromocoes) } : {}),
+              pedidosComDesconto: g.comDesconto,
+            })),
+            ...(multi ? { observacaoGrupos: 'Promoção, cupom, categoria e produto: um pedido pode estar em mais de um grupo, então as porcentagens de pedidos podem somar mais de 100%.' } : {}),
+          } : {}),
+          ...(a.listar ? { lista: [...base].sort((x, y) => (y.data?.getTime() ?? 0) - (x.data?.getTime() ?? 0)).slice(0, 30).map(showOrderAnalysis) } : {}),
+          observacao: `Receita = ${def.receita}. Perfil do cliente = plano de sócio de hoje, não o da data da compra. Antifraude: só os pedidos que passaram pela ClearSale têm resultado (a análise foi ligada em 07/11). Pagamentos "Simulado (demo)" são da carga e dos testes da demo.`,
+        };
+      },
+    },
+  ];
+}
+
+export const _test = { antifraudLabel, saleCategory, couponCodes, reportHtml, reportCsv, randomCode, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };
