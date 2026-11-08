@@ -180,7 +180,8 @@ async () => {
 
 - Cada objeto de integração precisa de `InboundChannelConfiguration` com
   autenticação BASIC; sem ela a resposta é 403 mesmo para administrador.
-- `integrationservices.authorization.accessrights.enabled=true`: permissão por tipo.
+- `integrationservices.authorization.accessrights.enabled=true`: permissão por tipo. Nos grupos de API use só `+`
+  ou vazio, nunca `-`: a negação vence a permissão do papel e trava o Backoffice do gestor (PR do 08/11).
   Dar as permissões em **UserGroups** (`socioapigroup`, `jogosapigroup`), não em
   BackofficeRole (só valem com o papel ativo no Backoffice).
 - `gestor.socio` ∈ sociomanagerrole + socioapigroup; `gestor.jogos` ∈ matchdaygamemanagerrole + jogosapigroup;
