@@ -784,6 +784,63 @@ function socioTools(cfg, http) {
       .map((e) => ({ ...e, data: fmtDate(e.data) }));
   }
 
+  /** Todas as páginas de uma lista OData (poucas chamadas, em vez de uma por torcedor) */
+  async function allPages(path, query = {}, page = 500) {
+    const out = [];
+    for (let skip = 0; ; skip += page) {
+      const r = results(await odata('GET', path, { query: { ...query, $top: page, $skip: skip } }));
+      out.push(...r);
+      if (r.length < page || out.length >= 20000) return out;
+    }
+  }
+
+  /**
+   * Situação de toda a base de sócios em lote: 3 consultas (planos com membros, torcedores com grupos, eventos),
+   * nunca uma por sócio. Suspenso = sócio no grupo socio-suspenso (mensalidade em atraso); aguardando = Pix/boleto
+   * de adesão sem confirmação.
+   */
+  async function memberBase() {
+    const [plans, customers, evs] = await Promise.all([
+      planList(),
+      allPages('/FlamengoTorcedor/Customers', { $expand: 'groups' }),
+      allPages('/FlamengoEventoSocio/SocioEvents', { $expand: 'type,plan,customer' }, 1000),
+    ]);
+    const byUid = new Map(customers.map((c) => [c.uid, c]));
+    const suspendedSet = new Set(customers.filter((c) => results(c.groups).some((g) => g.uid === SUSPENDED_GROUP)).map((c) => c.uid));
+    const evByUid = new Map();
+    for (const e of evs) {
+      const uid = e.customer?.uid;
+      if (!uid) continue;
+      if (!evByUid.has(uid)) evByUid.set(uid, []);
+      evByUid.get(uid).push({ data: toDate(e.date), tipo: e.type?.code, plano: e.plan?.name ?? e.plan?.code ?? null, motivo: e.note, origem: e.origin });
+    }
+    for (const l of evByUid.values()) l.sort((a, b) => (a.data?.getTime() ?? 0) - (b.data?.getTime() ?? 0));
+    const now = Date.now();
+    const members = [];
+    for (const p of plans) for (const uid of p._members) {
+      const l = evByUid.get(uid) ?? [];
+      const suspenso = suspendedSet.has(uid);
+      const ultimaSusp = suspenso ? [...l].reverse().find((e) => e.tipo === 'SUSPENSAO') : null;
+      members.push({
+        nome: byUid.get(uid)?.name ?? uid, email: uid, plano: p.nome, planoCodigo: p.code, mensalidade: num(String(p.mensalidade ?? '').replace(/[^\d,]/g, '').replace(',', '.')),
+        situacao: suspenso ? 'suspenso (mensalidade em atraso)' : 'ativo', _suspenso: suspenso,
+        ...(suspenso ? { suspensoDesde: fmtDate(ultimaSusp?.data, false), diasSuspenso: ultimaSusp?.data ? Math.floor((now - ultimaSusp.data.getTime()) / 86400000) : null, motivo: ultimaSusp?.motivo ?? null } : {}),
+      });
+    }
+    // Pix/boleto de adesão sem confirmação (ainda não é sócio)
+    const aguardando = [];
+    for (const [uid, l] of evByUid) {
+      for (let i = l.length - 1; i >= 0; i--) {
+        if (l[i].tipo === 'PAGAMENTO_CONFIRMADO') break;
+        if (l[i].tipo === 'AGUARDANDO_PAGAMENTO') {
+          if (!members.some((m) => m.email === uid)) aguardando.push({ nome: byUid.get(uid)?.name ?? uid, email: uid, plano: l[i].plano, desde: fmtDate(l[i].data, false), dias: l[i].data ? Math.floor((now - l[i].data.getTime()) / 86400000) : null, pedido: l[i].motivo });
+          break;
+        }
+      }
+    }
+    return { plans, members, aguardando };
+  }
+
   /** Cria Suspensão ou Regularização: o Commerce aplica na hora (SocioEventInterceptor) */
   async function statusEvent(a, type) {
     const c = await customer(a.email);
@@ -882,12 +939,52 @@ function socioTools(cfg, http) {
     },
     {
       name: 'socios_do_plano',
-      description: 'Lista os sócios (torcedores) de um plano.',
-      inputSchema: obj({ plano: S.str('Código do plano') }, ['plano']),
-      handler: async ({ plano }) => {
-        const p = (await planList()).find((x) => x.code === plano);
+      description: 'Lista os sócios de um plano com a situação de cada um (ativo ou suspenso por mensalidade em atraso), numa consulta só. Para contar ou listar inadimplentes da base toda use inadimplencia_socios.',
+      inputSchema: obj({ plano: S.str('Código do plano'), situacao: { type: 'string', enum: ['todos', 'ativos', 'suspensos'], description: 'Padrão: todos' } }, ['plano']),
+      handler: async ({ plano, situacao = 'todos' }) => {
+        const base = await memberBase();
+        const p = base.plans.find((x) => x.code === plano);
         if (!p) throw new UserError('Plano não encontrado.');
-        return { plano: p.nome, socios: p._members };
+        const ms = base.members.filter((m) => m.planoCodigo === plano && (situacao === 'todos' || (situacao === 'suspensos') === m._suspenso));
+        return { plano: p.nome, total: ms.length, socios: ms.map(({ _suspenso, planoCodigo, mensalidade, ...m }) => m) };
+      },
+    },
+    {
+      name: 'inadimplencia_socios',
+      description: 'Inadimplência da base de sócios numa consulta só (sem olhar sócio por sócio): quantos sócios ativos e suspensos por mensalidade em atraso, % de inadimplência, por plano, mensalidade em risco, há quanto tempo estão suspensos (faixas de dias) e a lista dos suspensos; também as adesões com Pix/boleto aguardando pagamento. Use para "quantos inadimplentes temos", "% de inadimplência por plano", "quem está suspenso há mais de 30 dias".',
+      inputSchema: obj({
+        plano: S.str('Código do plano (opcional)'),
+        minDias: S.int('Só suspensos há pelo menos N dias (opcional)'),
+        listar: S.bool('Listar os suspensos (padrão sim, até 200)'),
+      }),
+      handler: async (a) => {
+        const base = await memberBase();
+        const ms = base.members.filter((m) => !a.plano || m.planoCodigo === a.plano);
+        const sus = ms.filter((m) => m._suspenso && (a.minDias == null || (m.diasSuspenso ?? 0) >= a.minDias));
+        const pct = (x, y) => (y ? `${(Math.round((x / y) * 1000) / 10).toString().replace('.', ',')}%` : null);
+        const faixa = (d) => (d == null ? 'sem data' : d <= 7 ? 'até 7 dias' : d <= 30 ? '8 a 30 dias' : d <= 60 ? '31 a 60 dias' : 'mais de 60 dias');
+        const faixas = {};
+        for (const m of ms.filter((x) => x._suspenso)) faixas[faixa(m.diasSuspenso)] = (faixas[faixa(m.diasSuspenso)] ?? 0) + 1;
+        const porPlano = base.plans.filter((p) => !a.plano || p.code === a.plano).map((p) => {
+          const pm = ms.filter((m) => m.planoCodigo === p.code);
+          const ps = pm.filter((m) => m._suspenso);
+          return { plano: p.nome, socios: pm.length, ativos: pm.length - ps.length, suspensos: ps.length, inadimplencia: pct(ps.length, pm.length), mensalidadeEmRisco: brl(ps.reduce((x, m) => x + (m.mensalidade ?? 0), 0)) };
+        }).filter((p) => p.socios > 0);
+        const aguard = base.aguardando.filter((x) => !a.plano || x.plano === base.plans.find((p) => p.code === a.plano)?.nome);
+        const totalSus = ms.filter((m) => m._suspenso);
+        return {
+          resumo: {
+            socios: ms.length, ativos: ms.length - totalSus.length, suspensosPorAtraso: totalSus.length, inadimplencia: pct(totalSus.length, ms.length),
+            mensalidadeEmRisco: brl(totalSus.reduce((x, m) => x + (m.mensalidade ?? 0), 0)), tempoSuspenso: faixas,
+            adesoesAguardandoPagamento: aguard.length,
+          },
+          porPlano,
+          ...(a.listar === false ? {} : {
+            suspensos: sus.sort((x, y) => (y.diasSuspenso ?? 0) - (x.diasSuspenso ?? 0)).slice(0, 200).map(({ _suspenso, planoCodigo, mensalidade, situacao, ...m }) => m),
+            aguardandoPagamento: aguard.slice(0, 100),
+          }),
+          observacao: 'Inadimplente = sócio com benefícios suspensos por mensalidade em atraso (perde a onda e os descontos, mantém a vaga). Adesão aguardando pagamento = Pix/boleto do plano ainda não pago (a pessoa ainda não é sócia). Consulta feita em lote: planos, torcedores e eventos de uma vez.',
+        };
       },
     },
     {
