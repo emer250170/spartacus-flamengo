@@ -4,10 +4,11 @@ import { OccEndpointsService } from '@spartacus/core';
 import { OrderHistoryComponent } from '@spartacus/order/components';
 import { Order } from '@spartacus/order/root';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, shareReplay } from 'rxjs/operators';
+import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
 import {
   EstudioService,
   ME_SITUACAO_TOM,
+  MePedido,
   MePedidoResumo,
 } from '../estudio/estudio.service';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
@@ -31,8 +32,15 @@ const ADDON = /^FLA-PERS(-|ONALIZACAO$)/;
 const MAX_ITEMS = 3;
 
 interface OrderEntries {
-  entries?: { quantity?: number; product?: { code?: string; name?: string } }[];
+  entries?: {
+    entryNumber?: number;
+    quantity?: number;
+    product?: { code?: string; name?: string };
+  }[];
 }
+
+/** Camiseta do Mengo Estúdio (produto por modelo e tecido) */
+const ME_CAMISETA = /^ME-CAM-/;
 
 /**
  * Meus pedidos no visual do mockup (07/11): número, data, os itens do pedido em uma linha,
@@ -89,6 +97,14 @@ export class FlaOrderHistoryComponent extends OrderHistoryComponent {
     )
   );
 
+  /** Nome da linha do Estúdio pelo número da linha do pedido */
+  protected meNome(me: MePedido | null, entryNumber?: number): string | undefined {
+    const i = me?.itens.find((x) => x.entryNumber === entryNumber);
+    return i
+      ? `${this.i18n.t('me.c.nome', { n: i.estampa.nome })} · ${this.estudio.configuracao(i)}`
+      : undefined;
+  }
+
   escolherOrigem(o: FlaOrigem): void {
     this.origem$.next(o);
   }
@@ -127,14 +143,21 @@ export class FlaOrderHistoryComponent extends OrderHistoryComponent {
           `${this.occ.getBaseUrl()}/users/current/orders/${encodeURIComponent(code)}`,
           {
             params: {
-              fields: 'entries(quantity,product(code,name))',
+              fields: 'entries(entryNumber,quantity,product(code,name))',
               lang: this.i18n.lang,
               curr: 'BRL',
             },
           }
         )
         .pipe(
-          map((o) => summary(o)),
+          // camiseta do Mengo Estúdio: "Estampa Elenco · Camiseta Feminina · Algodão · Preta · M" (08/11)
+          switchMap((o) =>
+            (o?.entries ?? []).some((e) => ME_CAMISETA.test(e.product?.code ?? ''))
+              ? this.estudio.pedido(code).pipe(
+                  map((me) => summary(o, (n) => this.meNome(me, n)))
+                )
+              : of(summary(o))
+          ),
           catchError(() => of('')),
           shareReplay({ bufferSize: 1, refCount: false })
         );
@@ -150,14 +173,16 @@ export class FlaOrderHistoryComponent extends OrderHistoryComponent {
 }
 
 /** Nomes dos itens (sem a linha de personalização), "2× Nome" quando há mais de um */
-function summary(o: OrderEntries): string {
+function summary(
+  o: OrderEntries,
+  nome: (entryNumber?: number) => string | undefined = () => undefined
+): string {
   const names = (o?.entries ?? [])
     .filter((e) => !ADDON.test(e.product?.code ?? ''))
-    .map((e) =>
-      (e.quantity ?? 1) > 1
-        ? `${e.quantity}× ${e.product?.name ?? ''}`
-        : (e.product?.name ?? '')
-    )
+    .map((e) => {
+      const n = nome(e.entryNumber) ?? e.product?.name ?? '';
+      return (e.quantity ?? 1) > 1 ? `${e.quantity}× ${n}` : n;
+    })
     .filter((n) => !!n.trim());
   const shown = names.slice(0, MAX_ITEMS).join(' · ');
   return names.length > MAX_ITEMS
