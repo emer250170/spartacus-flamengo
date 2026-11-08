@@ -71,7 +71,7 @@
         </div>
         <div class="fla-cp-remove">
           <button
-            *ngIf="!e.seat"
+            *ngIf="!e.reservaVencida"
             type="button"
             [attr.aria-label]="'cd.remove' | flaT: { name: e.name }"
             (click)="remove(e)"
