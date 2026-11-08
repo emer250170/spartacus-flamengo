@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Categoria da loja (08/11): lista as categorias do catálogo da loja pelo caminho inteiro
+  ("Mantos › Jogo 1 › Masculino"), com o código, sem as técnicas (tamanho, ingressos, sócio).
+  Usado no assistente "Novo produto" e na aba "Cadastro" do produto.
+-->
+<editor-definition id="br.com.flamengo.matchday.editor.categoria"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/editor-definition.xsd">
+	<name>Categoria da loja (Flamengo)</name>
+	<description>Escolha da categoria da loja pelo caminho</description>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<type>Reference(Category)</type>
+	<editorClassName>br.com.flamengo.matchday.backoffice.editors.FlaCategoriaEditor</editorClassName>
+</editor-definition>

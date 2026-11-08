@@ -1658,6 +1658,91 @@
 						</columntype>
 					</persistence>
 				</attribute>
+
+				<!-- Cadastro simples da loja (08/11): assistente "Novo produto" e aba "Cadastro" do gestor da loja.
+				     Pendentes: gravados pelo assistente/aba e aplicados logo depois de salvar (preço, estoque, fotos);
+				     voltam a vazio depois. Vazio = nada a fazer (produto sem cadastro simples não muda). -->
+				<attribute qualifier="flaPrecoNovo" type="java.lang.Double">
+					<description>Cadastro simples: preço de venda em BRL a aplicar (pendente)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaEstoqueNovo" type="java.lang.Integer">
+					<description>Cadastro simples: estoque no depósito da loja a aplicar (pendente)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaFotoNova0" type="Media">
+					<description>Cadastro simples: foto principal enviada, a gerar nos tamanhos da loja (pendente)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaFotoNova1" type="Media">
+					<description>Cadastro simples: foto de detalhe 1 enviada (pendente)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaFotoNova2" type="Media">
+					<description>Cadastro simples: foto de detalhe 2 enviada (pendente)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="flaFotoNova3" type="Media">
+					<description>Cadastro simples: foto de detalhe 3 enviada (pendente)</description>
+					<persistence type="property"/>
+				</attribute>
+
+				<!-- Campos da tela (dinâmicos, sem coluna): mostram o que a loja usa e gravam onde a loja lê -->
+				<attribute qualifier="flaNomePt" type="java.lang.String">
+					<description>Cadastro simples: nome em português</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroNomePtHandler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaNomeEn" type="java.lang.String">
+					<description>Cadastro simples: nome em inglês</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroNomeEnHandler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaResumoPt" type="java.lang.String">
+					<description>Cadastro simples: descrição curta em português (também a descrição, se vazia)</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroResumoPtHandler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaResumoEn" type="java.lang.String">
+					<description>Cadastro simples: descrição curta em inglês (também a descrição, se vazia)</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroResumoEnHandler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaCategoriaLoja" type="Category">
+					<description>Cadastro simples: categoria da loja (as técnicas, como tamanho, são mantidas)</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroCategoriaHandler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaPreco" type="java.lang.Double">
+					<description>Cadastro simples: preço de venda em BRL (mostra o atual; o novo é aplicado ao salvar)</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroPrecoHandler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaEstoque" type="java.lang.Integer">
+					<description>Cadastro simples: estoque no depósito da loja (mostra o atual; o novo é aplicado ao salvar)</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroEstoqueHandler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaFoto0" type="Media">
+					<description>Cadastro simples: foto principal (mostra a atual; a nova é aplicada ao salvar)</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroFoto0Handler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaFoto1" type="Media">
+					<description>Cadastro simples: foto de detalhe 1</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroFoto1Handler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaFoto2" type="Media">
+					<description>Cadastro simples: foto de detalhe 2</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroFoto2Handler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
+				<attribute qualifier="flaFoto3" type="Media">
+					<description>Cadastro simples: foto de detalhe 3</description>
+					<persistence type="dynamic" attributeHandler="produtoCadastroFoto3Handler"/>
+					<modifiers read="true" write="true" search="false" optional="true"/>
+				</attribute>
 			</attributes>
 		</itemtype>
 

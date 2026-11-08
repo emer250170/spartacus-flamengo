@@ -39,14 +39,28 @@ import com.hybris.cockpitng.editors.impl.AbstractCockpitEditorRenderer;
 public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 {
 	private static final Logger LOG = LoggerFactory.getLogger(FlaImageEditor.class);
+	/** Parâmetro "remove" do editor (false esconde o botão Remover), passado ao bloco durante a montagem */
+	private static final ThreadLocal<String> REMOVABLE = new ThreadLocal<>();
 
 	@Override
 	public void render(final Component parent, final EditorContext<Object> context, final EditorListener<Object> listener)
 	{
 		final Object initial = context.getInitialValue();
 		final Object prefix = context.getParameter("prefix");
-		build(parent, initial instanceof MediaModel ? (MediaModel) initial : null, context.isEditable(),
-				prefix == null ? "imagem" : prefix.toString(), media -> listener.onValueChanged(media));
+		final Object ratio = context.getParameter("ratio");
+		final Object hint = context.getParameter("hint");
+		final Object removable = context.getParameter("remove");
+		REMOVABLE.set(removable == null ? null : removable.toString());
+		try
+		{
+			build(parent, initial instanceof MediaModel ? (MediaModel) initial : null, context.isEditable(),
+					prefix == null ? "imagem" : prefix.toString(), ratio == null ? "16/9" : ratio.toString(),
+					hint == null ? null : hint.toString(), media -> listener.onValueChanged(media));
+		}
+		finally
+		{
+			REMOVABLE.remove();
+		}
 	}
 
 	/**
@@ -56,11 +70,24 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 	public static Div build(final Component parent, final MediaModel initial, final boolean editable, final String prefix,
 			final Consumer<MediaModel> onChange)
 	{
+		return build(parent, initial, editable, prefix, "16/9", null, onChange);
+	}
+
+	/**
+	 * Igual ao bloco padrão, com a proporção da moldura (ex.: "1/1" para foto de produto) e a chave do rótulo da dica
+	 * (parâmetros "ratio" e "hint" do editor, 08/11). Sem eles, 16:9 e a dica de jogo/experiência.
+	 */
+	public static Div build(final Component parent, final MediaModel initial, final boolean editable, final String prefix,
+			final String ratio, final String hintKey, final Consumer<MediaModel> onChange)
+	{
+		final boolean square = "1/1".equals(ratio);
+		final String[] removable = { REMOVABLE.get() };
 		final Div box = new Div();
 		box.setSclass("fla-image-editor");
 		box.setStyle("display:flex;flex-direction:column;gap:6px;max-width:360px");
 		final Div frame = new Div();
-		frame.setStyle("width:320px;max-width:100%;aspect-ratio:16/9;border:1px solid #d9dde3;border-radius:8px;background:#f5f6f7;"
+		frame.setStyle("width:" + (square ? "200px" : "320px") + ";max-width:100%;aspect-ratio:" + (ratio == null ? "16/9" : ratio)
+				+ ";border:1px solid #d9dde3;border-radius:8px;background:#f5f6f7;"
 				+ "display:flex;align-items:center;justify-content:center;overflow:hidden");
 		final Label info = new Label();
 		info.setStyle("font-size:11px;color:#556b82");
@@ -79,7 +106,7 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 			{
 				final Image image = new Image();
 				image.setContent(preview);
-				image.setStyle("width:100%;height:100%;object-fit:cover");
+				image.setStyle("width:100%;height:100%;object-fit:" + (square ? "contain" : "cover"));
 				frame.appendChild(image);
 			}
 			else
@@ -91,7 +118,7 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 			info.setValue(media == null ? "" : StringUtils.defaultString(media.getRealFileName(), media.getCode())
 					+ (StringUtils.isBlank(media.getAltText()) ? "" : " · " + media.getAltText()));
 			upload.setLabel(media == null ? text("fla.image.upload", "Enviar imagem") : text("fla.image.change", "Trocar imagem"));
-			remove.setVisible(editable && media != null);
+			remove.setVisible(editable && media != null && !"false".equals(removable[0]));
 		};
 
 		if (editable)
@@ -131,7 +158,8 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 			buttons.appendChild(upload);
 			buttons.appendChild(remove);
 			box.appendChild(buttons);
-			final Label hint = new Label(text("fla.image.hint", "Foto horizontal, 1200 x 675 px (16:9), JPG ou PNG, até 5 MB."));
+			final Label hint = new Label(hintKey != null ? text(hintKey, "JPG ou PNG, até 5 MB.")
+					: text("fla.image.hint", "Foto horizontal, 1200 x 675 px (16:9), JPG ou PNG, até 5 MB."));
 			hint.setStyle("font-size:11px;color:#6a7d8f");
 			box.appendChild(hint);
 		}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Texto em inglês com o botão "Traduzir com IA" (08/11): traduz o mesmo campo em português do produto
+  (parâmetro "source": nome ou resumo). Parâmetro opcional "rows" para várias linhas. Sem a tradução
+  ligada (flamengo.ia.traducao.ativo + chave), é um campo de texto comum.
+-->
+<editor-definition id="br.com.flamengo.matchday.editor.traducao"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://www.hybris.com/schema/cockpitng/editor-definition.xsd">
+	<name>Texto traduzido com IA (Flamengo)</name>
+	<description>Campo em inglês com tradução do português</description>
+	<author>Flamengo Matchday</author>
+	<version>1.0</version>
+	<type>java.lang.String</type>
+	<editorClassName>br.com.flamengo.matchday.backoffice.editors.FlaTraducaoEditor</editorClassName>
+</editor-definition>

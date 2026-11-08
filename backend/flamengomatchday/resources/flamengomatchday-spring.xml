@@ -851,4 +851,100 @@
 		<property name="typeCode" value="FlaCouponGrant"/>
 	</bean>
 
+	<!--
+		Cadastro simples da loja (08/11): assistente "Novo produto" e aba "Cadastro" do gestor da loja.
+		Preço, estoque e fotos ficam pendentes no produto e são aplicados logo depois de salvar.
+		Chave liga/desliga: flamengo.loja.cadastro.ativo. Tradução com IA: flamengo.ia.traducao.*
+	-->
+	<bean id="produtoCadastroService" class="br.com.flamengo.matchday.loja.impl.DefaultProdutoCadastroService">
+		<property name="configurationService" ref="configurationService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
+		<property name="userService" ref="userService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="searchRestrictionService" ref="searchRestrictionService"/>
+		<property name="commonI18NService" ref="commonI18NService"/>
+		<property name="unitService" ref="unitService"/>
+		<property name="warehouseService" ref="warehouseService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="searchIndexRefresher" ref="flamengoProductSearchIndexRefresher"/>
+	</bean>
+	<bean id="produtoCadastroInterceptor" class="br.com.flamengo.matchday.loja.ProdutoCadastroInterceptor">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+	</bean>
+	<bean id="produtoCadastroInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="produtoCadastroInterceptor"/>
+		<property name="typeCode" value="Product"/>
+	</bean>
+	<bean id="produtoCadastroNomePtHandler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="nomePt"/>
+	</bean>
+	<bean id="produtoCadastroNomeEnHandler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="nomeEn"/>
+	</bean>
+	<bean id="produtoCadastroResumoPtHandler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="resumoPt"/>
+	</bean>
+	<bean id="produtoCadastroResumoEnHandler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="resumoEn"/>
+	</bean>
+	<bean id="produtoCadastroCategoriaHandler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="categoria"/>
+	</bean>
+	<bean id="produtoCadastroPrecoHandler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="preco"/>
+	</bean>
+	<bean id="produtoCadastroEstoqueHandler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="estoque"/>
+	</bean>
+	<bean id="produtoCadastroFoto0Handler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="foto0"/>
+	</bean>
+	<bean id="produtoCadastroFoto1Handler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="foto1"/>
+	</bean>
+	<bean id="produtoCadastroFoto2Handler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="foto2"/>
+	</bean>
+	<bean id="produtoCadastroFoto3Handler" class="br.com.flamengo.matchday.loja.ProdutoCadastroCampoHandler">
+		<property name="produtoCadastroService" ref="produtoCadastroService"/>
+		<property name="productImageService" ref="flamengoProductImageService"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="campo" value="foto3"/>
+	</bean>
+	<bean id="flamengoTraducaoService" class="br.com.flamengo.matchday.ia.impl.AnthropicTraducaoService">
+		<property name="configurationService" ref="configurationService"/>
+	</bean>
+
 </beans>

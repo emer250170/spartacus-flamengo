@@ -39,4 +39,22 @@ public interface ProductImageService
 
 	/** Endereço da imagem (/medias/...), ou null */
 	String url(MediaModel image);
+
+	/** Final do código dos conjuntos de mídias das fotos do cadastro de produto (posição 0 a 3 no fim) */
+	String PHOTO_CONTAINER_SUFFIX = "-fla-foto";
+
+	/**
+	 * Fotos do cadastro de produto da loja (assistente "Novo produto", 08/11): cada foto enviada vira um conjunto de
+	 * mídias com os tamanhos da loja ({@code <código>-fla-foto0} a {@code -fla-foto3}). A posição 0 é a principal (Imagem e
+	 * Miniatura do produto e primeira da galeria); 1 a 3 são os detalhes, na ordem, depois dela na galeria. Posição sem foto
+	 * nova não muda. Salva o produto uma vez e atualiza a busca. Não mexe nas fotos de jogos e experiências.
+	 *
+	 * @param photos
+	 *           até 4 fotos, por posição; null numa posição = mantém o que já existe
+	 * @return frase curta (ex.: "4 fotos no produto FLA-X."), ou null quando não fez nada
+	 */
+	String setProductPhotos(ProductModel product, java.util.List<MediaModel> photos);
+
+	/** Foto atual do produto na posição (0 = principal), no tamanho da listagem, ou null */
+	MediaModel productPhoto(ProductModel product, int position);
 }

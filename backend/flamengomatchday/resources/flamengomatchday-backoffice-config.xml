@@ -2462,4 +2462,263 @@
 		</editorArea:editorArea>
 	</context>
 
+	<!--
+	  Cadastro simples da loja (08/11), papel do gestor da loja:
+	  - o "+" de Produtos abre o assistente "Novo produto" em 4 passos (dados, categoria, preço e estoque, fotos);
+	    o produto nasce no catálogo da loja (Online), aprovado; preço, estoque e fotos são aplicados logo depois de salvar;
+	  - a ficha do produto ganha a aba "Cadastro" na frente, com os mesmos campos; as abas completas continuam atrás.
+	  Campos dinâmicos e regras: br.com.flamengo.matchday.loja (chave flamengo.loja.cadastro.ativo).
+	-->
+	<context type="Product" component="create-wizard" principal="lojamanagerrole">
+		<wz:flow id="FlaNovoProdutoWizard" title="fla.cadastro.titulo">
+			<wz:prepare id="flaNovoProdutoPrepare">
+				<wz:initialize property="newProduct" type="ctx.TYPE_CODE"/>
+			</wz:prepare>
+
+			<wz:step id="flaCadastroPasso1" label="fla.cadastro.passo1" sublabel="fla.cadastro.passo1.sub">
+				<wz:content id="flaCadastroPasso1.content">
+					<wz:property-list root="newProduct">
+						<wz:property qualifier="code" type="java.lang.String"/>
+						<wz:property qualifier="flaNomePt" type="java.lang.String"/>
+						<wz:property qualifier="flaNomeEn" type="java.lang.String" editor="br.com.flamengo.matchday.editor.traducao">
+							<wz:editor-parameter>
+								<wz:name>source</wz:name>
+								<wz:value>nome</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+						<wz:property qualifier="flaResumoPt" type="java.lang.String" editor="com.hybris.cockpitng.editor.defaulttext">
+							<wz:editor-parameter>
+								<wz:name>rows</wz:name>
+								<wz:value>3</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+						<wz:property qualifier="flaResumoEn" type="java.lang.String" editor="br.com.flamengo.matchday.editor.traducao">
+							<wz:editor-parameter>
+								<wz:name>source</wz:name>
+								<wz:value>resumo</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>rows</wz:name>
+								<wz:value>3</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="flaCadastroPasso1.navigation">
+					<wz:cancel/>
+					<wz:next visible="!#empty(newProduct.code) AND !#empty(newProduct.flaNomePt)"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="flaCadastroPasso2" label="fla.cadastro.passo2" sublabel="fla.cadastro.passo2.sub">
+				<wz:content id="flaCadastroPasso2.content">
+					<wz:property-list root="newProduct">
+						<wz:property qualifier="flaCategoriaLoja" editor="br.com.flamengo.matchday.editor.categoria"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="flaCadastroPasso2.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:next visible="newProduct.flaCategoriaLoja != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="flaCadastroPasso3" label="fla.cadastro.passo3" sublabel="fla.cadastro.passo3.sub">
+				<wz:content id="flaCadastroPasso3.content">
+					<wz:property-list root="newProduct">
+						<wz:property qualifier="flaPreco" type="java.lang.Double"/>
+						<wz:property qualifier="flaEstoque" type="java.lang.Integer"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="flaCadastroPasso3.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:next visible="newProduct.flaPreco != null AND newProduct.flaEstoque != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="flaCadastroPasso4" label="fla.cadastro.passo4" sublabel="fla.cadastro.passo4.sub">
+				<wz:content id="flaCadastroPasso4.content">
+					<wz:property-list root="newProduct">
+						<wz:property qualifier="flaFoto0" editor="br.com.flamengo.matchday.editor.image">
+							<wz:editor-parameter>
+								<wz:name>prefix</wz:name>
+								<wz:value>produto</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>ratio</wz:name>
+								<wz:value>1/1</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>hint</wz:name>
+								<wz:value>fla.cadastro.foto.dica</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+						<wz:property qualifier="flaFoto1" editor="br.com.flamengo.matchday.editor.image">
+							<wz:editor-parameter>
+								<wz:name>prefix</wz:name>
+								<wz:value>produto</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>ratio</wz:name>
+								<wz:value>1/1</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>hint</wz:name>
+								<wz:value>fla.cadastro.foto.dica</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+						<wz:property qualifier="flaFoto2" editor="br.com.flamengo.matchday.editor.image">
+							<wz:editor-parameter>
+								<wz:name>prefix</wz:name>
+								<wz:value>produto</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>ratio</wz:name>
+								<wz:value>1/1</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>hint</wz:name>
+								<wz:value>fla.cadastro.foto.dica</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+						<wz:property qualifier="flaFoto3" editor="br.com.flamengo.matchday.editor.image">
+							<wz:editor-parameter>
+								<wz:name>prefix</wz:name>
+								<wz:value>produto</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>ratio</wz:name>
+								<wz:value>1/1</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>hint</wz:name>
+								<wz:value>fla.cadastro.foto.dica</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="flaCadastroPasso4.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:done visible="!#empty(newProduct.code) AND !#empty(newProduct.flaNomePt) AND newProduct.flaCategoriaLoja != null AND newProduct.flaPreco != null AND newProduct.flaFoto0 != null">
+						<wz:save property="newProduct"/>
+					</wz:done>
+				</wz:navigation>
+			</wz:step>
+		</wz:flow>
+	</context>
+
+	<context merge-by="principal" type="Product" component="editor-area" principal="lojamanagerrole">
+		<editorArea:editorArea>
+			<editorArea:tab name="fla.cadastro.tab" position="0">
+				<editorArea:section name="fla.cadastro.secao.dados">
+					<editorArea:attribute qualifier="flaNomePt"/>
+					<editorArea:attribute qualifier="flaNomeEn" editor="br.com.flamengo.matchday.editor.traducao">
+						<editorArea:editor-parameter>
+							<editorArea:name>source</editorArea:name>
+							<editorArea:value>nome</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="flaResumoPt" editor="com.hybris.cockpitng.editor.defaulttext">
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>3</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="flaResumoEn" editor="br.com.flamengo.matchday.editor.traducao">
+						<editorArea:editor-parameter>
+							<editorArea:name>source</editorArea:name>
+							<editorArea:value>resumo</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>rows</editorArea:name>
+							<editorArea:value>3</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+				<editorArea:section name="fla.cadastro.secao.loja">
+					<editorArea:attribute qualifier="flaCategoriaLoja" editor="br.com.flamengo.matchday.editor.categoria"/>
+					<editorArea:attribute qualifier="approvalStatus"/>
+					<editorArea:attribute qualifier="flaPreco"/>
+					<editorArea:attribute qualifier="flaEstoque"/>
+				</editorArea:section>
+				<editorArea:section name="fla.cadastro.secao.fotos">
+					<editorArea:attribute qualifier="flaFoto0" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>produto</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>ratio</editorArea:name>
+							<editorArea:value>1/1</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>hint</editorArea:name>
+							<editorArea:value>fla.cadastro.foto.dicaFicha</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>remove</editorArea:name>
+							<editorArea:value>false</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="flaFoto1" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>produto</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>ratio</editorArea:name>
+							<editorArea:value>1/1</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>hint</editorArea:name>
+							<editorArea:value>fla.cadastro.foto.dicaFicha</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>remove</editorArea:name>
+							<editorArea:value>false</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="flaFoto2" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>produto</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>ratio</editorArea:name>
+							<editorArea:value>1/1</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>hint</editorArea:name>
+							<editorArea:value>fla.cadastro.foto.dicaFicha</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>remove</editorArea:name>
+							<editorArea:value>false</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+					<editorArea:attribute qualifier="flaFoto3" editor="br.com.flamengo.matchday.editor.image">
+						<editorArea:editor-parameter>
+							<editorArea:name>prefix</editorArea:name>
+							<editorArea:value>produto</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>ratio</editorArea:name>
+							<editorArea:value>1/1</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>hint</editorArea:name>
+							<editorArea:value>fla.cadastro.foto.dicaFicha</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>remove</editorArea:name>
+							<editorArea:value>false</editorArea:value>
+						</editorArea:editor-parameter>
+					</editorArea:attribute>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
 </config>
