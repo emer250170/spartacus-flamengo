@@ -28,6 +28,23 @@
   --fla-preto: #1b1b1b;
   --fla-fonte: 'Archivo Narrow', 'Open Sans', system-ui, sans-serif;
   --fla-fonte-titulo: 'Zalando Sans Expanded', 'Archivo Narrow', system-ui, sans-serif;
+
+  // largura do conteúdo como no site oficial (08/11): margem de cada lado e limite. Para voltar ao
+  // container fixo de antes, troque --fla-largura-max por 1140px.
+  --fla-margem: 16px;
+  --fla-largura-max: 1472px;
+}
+
+// A partir de 992px: a tela (largura útil, sem a barra de rolagem: --fla-vw, posto por startFlaLargura)
+// menos 64px de cada lado, até 1472px. Header, rodapé e as páginas usam --cx-page-width-max.
+@media (min-width: 992px) {
+  :root {
+    --fla-margem: 64px;
+    --cx-page-width-max: min(
+      var(--fla-largura-max),
+      calc(var(--fla-vw, 100vw) - 2 * var(--fla-margem))
+    ) !important;
+  }
 }
 
 html body, html body cx-storefront {
@@ -270,7 +287,7 @@ html cx-page-layout.footer cx-footer-navigation {
   display: none !important; // (06/11) as colunas do rodapé vêm do FlaFooterInfoComponent
 }
 .fla-footer-info {
-  max-width: 1140px;
+  max-width: var(--cx-page-width-max, 1140px);
   margin: 0 auto;
   padding: 48px 15px 8px;
   display: grid;
@@ -329,7 +346,7 @@ html cx-page-layout.footer cx-footer-navigation {
   border-top: 1px solid #333;
 
   > div {
-    max-width: 1140px;
+    max-width: var(--cx-page-width-max, 1140px);
     margin: 0 auto;
     padding: 20px 15px;
     display: flex;
@@ -361,7 +378,7 @@ cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab {
 }
 cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab > div.tab,
 cx-page-slot.Tabs cx-tab-paragraph-container > cx-tab > cx-tab-panel > div {
-  max-width: 1140px;
+  max-width: var(--cx-page-width-max, 1140px);
   margin-left: auto;
   margin-right: auto;
   padding-left: 15px;

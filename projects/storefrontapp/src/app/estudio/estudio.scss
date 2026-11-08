@@ -5,12 +5,12 @@
   color: #111;
 }
 .me-wrap {
-  max-width: 1140px;
+  max-width: var(--cx-page-width-max, 1140px);
   margin: 0 auto;
   padding: 0 16px;
   box-sizing: border-box;
 }
-@media (min-width: 1172px) {
+@media (min-width: 992px) {
   .me-wrap {
     padding: 0;
   }
