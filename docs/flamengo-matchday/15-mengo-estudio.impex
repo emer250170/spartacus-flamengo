@@ -133,3 +133,8 @@ INSERT_UPDATE StockLevel;productCode[unique=true];warehouse(code)[unique=true,de
 ;ME-CAM-FEM-OVS;;99999;0;0;0;0;notSpecified
 ;ME-CAM-INF-ALG;;99999;0;0;0;0;notSpecified
 ;ME-CAM-INF-POL;;99999;0;0;0;0;notSpecified
+
+# Simulações da demo (08/11, PR 4): a linha "default" que o painel e o Backoffice editam (vazio = sem simulação).
+# INSERT só cria se não existir; reimportar não apaga uma simulação ligada.
+INSERT MengoDemoConfig;code[unique=true]
+;default
