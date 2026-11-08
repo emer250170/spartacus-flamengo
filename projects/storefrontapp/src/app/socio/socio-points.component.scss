@@ -346,6 +346,9 @@
   inset: 10px 12px;
   display: flex;
   flex-direction: column;
+  // sem quebra de coluna (08/11): com o card estreito (992px) o "A partir do Nação Maraca" ia para uma
+  // segunda coluna, à direita dos pontos, e saía cortado do card
+  flex-wrap: nowrap;
   align-items: flex-start;
   justify-content: space-between;
   margin: 0;
