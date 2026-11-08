@@ -10,6 +10,7 @@ import {
   PipeTransform,
   Renderer2,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { ME_POSICAO, MeEstampa } from './estudio.service';
 
@@ -126,7 +127,8 @@ export class FlaMeSubnavComponent implements OnInit, OnDestroy {
 
   constructor(
     protected renderer: Renderer2,
-    @Inject(DOCUMENT) protected document: Document
+    @Inject(DOCUMENT) protected document: Document,
+    protected router: Router
   ) {}
 
   /**
@@ -141,7 +143,13 @@ export class FlaMeSubnavComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     FlaMeSubnavComponent.abertas = Math.max(0, FlaMeSubnavComponent.abertas - 1);
-    if (!FlaMeSubnavComponent.abertas) {
+    // Indo para outra página com a barra (ex.: acervo -> início, que vem do CMS e nasce depois), a
+    // classe fica: sem isso a faixa cinza aparecia por um instante e a barra "saltava" (08/11)
+    const destino =
+      this.router.getCurrentNavigation()?.finalUrl?.toString() ??
+      this.router.getCurrentNavigation()?.extractedUrl?.toString() ??
+      '';
+    if (!FlaMeSubnavComponent.abertas && !COM_BARRA.test(destino)) {
       this.renderer.removeClass(this.document.documentElement, ESTUDIO_CLASS);
     }
   }
@@ -149,6 +157,9 @@ export class FlaMeSubnavComponent implements OnInit, OnDestroy {
 
 /** Classe no <html> das páginas com a barra do Estúdio (tema: sem a faixa cinza, layout de borda a borda) */
 export const ESTUDIO_CLASS = 'fla-estudio';
+
+/** Páginas com a barra do Estúdio: início, drop, acervo, estampa e camiseta (não devolução nem painel) */
+const COM_BARRA = /\/mengo-estudio(?:\/(?:drop|acervo|estampa|camiseta)(?:[/?#]|$)|\/?(?:[?#]|$))/;
 
 /** Nome da linha pelo código: {{ e.linha | meLinha: c.linhas }} */
 @Pipe({ name: 'meLinha' })
