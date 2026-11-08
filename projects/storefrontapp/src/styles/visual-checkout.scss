@@ -1474,6 +1474,16 @@ html.fla-co-pay.fla-co-mode
   }
 }
 
+// Pix e boleto (cx-payment-method escondido pela classe fla-pay-upfront): a escolha da forma é o fim
+// do bloco branco; sem o recuo de baixo, Voltar e Continuar colavam na borda (Emerson, 08/11)
+html.fla-co-pay.fla-co-mode
+  body.fla-pay-upfront
+  cx-page-layout.MultiStepCheckoutSummaryPageTemplate
+  fla-socio-payment-choice {
+  padding-bottom: 30px !important;
+  border-radius: 0 0 4px 4px;
+}
+
 fla-checkout-done {
   display: flex;
   flex-direction: column;
