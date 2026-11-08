@@ -855,6 +855,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.r.boletoNote':
       'Depois de finalizar, você recebe a linha digitável. O plano e os preços de sócio deste pedido valem quando o boleto for pago.',
     'spay.s.awaiting': 'Aguardando pagamento',
+    'spay.s.expired': 'Pagamento não feito',
+    'spay.s.expiredTitle': 'O Pix venceu',
+    'spay.s.expiredTitleBoleto': 'O boleto venceu',
+    'spay.s.expiredAmount': '{amount} · pedido {order} · venceu {due}',
+    'spay.s.expiredNote': 'O {plan} não foi ativado. Para assinar, escolha o plano de novo.',
+    'spay.s.expiredNote.store': 'O pedido não foi pago e os itens não foram liberados. Para comprar, faça um novo pedido.',
+    'spay.s.expiredCta': 'Ver os planos',
+    'spay.s.expiredCta.store': 'Ir para a loja',
     'spay.s.pixTitle': 'Pague o Pix para ativar o {plan}',
     'spay.s.pixAutoTitle':
       'Pague a 1ª mensalidade e autorize o Pix Automático do {plan}',
@@ -2522,6 +2530,14 @@ export const FLA_TEXTS: Record<FlaLang, Record<string, string>> = {
     'spay.r.boletoNote':
       'After placing the order you get the boleto line. The plan and the member prices in this order apply when the boleto is paid.',
     'spay.s.awaiting': 'Awaiting payment',
+    'spay.s.expired': 'Payment not made',
+    'spay.s.expiredTitle': 'The Pix has expired',
+    'spay.s.expiredTitleBoleto': 'The boleto has expired',
+    'spay.s.expiredAmount': '{amount} · order {order} · expired {due}',
+    'spay.s.expiredNote': '{plan} was not activated. To join, choose the plan again.',
+    'spay.s.expiredNote.store': 'The order was not paid and the items were not released. To buy them, place a new order.',
+    'spay.s.expiredCta': 'See the plans',
+    'spay.s.expiredCta.store': 'Go to the store',
     'spay.s.pixTitle': 'Pay the Pix to start {plan}',
     'spay.s.pixAutoTitle':
       'Pay the 1st monthly fee and authorize the Automatic Pix for {plan}',

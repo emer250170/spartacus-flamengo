@@ -48,6 +48,15 @@ export class SocioPaymentStatusComponent implements OnInit, OnDestroy {
     return !!p?.method && !!p.orderCode && p.method !== 'CARTAO_MENSAL';
   }
 
+  /**
+   * Pix ou boleto vencido e não pago (08/11): em vez do QR Code e do código, um aviso curto ("O Pix venceu")
+   * com o caminho para comprar de novo. O pedido continua aguardando no Commerce até ser cancelado.
+   */
+  get expired(): boolean {
+    const p = this.payment;
+    return !!p?.awaiting && !!p.due && p.due.getTime() < Date.now();
+  }
+
   get upfront(): boolean {
     return this.socioPayment.isUpfront(this.payment?.method);
   }
