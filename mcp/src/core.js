@@ -2026,7 +2026,7 @@ function actionTools(cfg, http, persona) {
             ...(csv ? { csv, csvName: `${String(a.assunto).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'relatorio'}.csv` } : {}),
           },
         });
-        const r = await waitFor('/FlamengoRelatorioEmail/FlaReportMails', code, 'ENVIANDO', 30);
+        const r = await waitFor('/FlamengoRelatorioEmail/FlaReportMails', code, 'ENVIANDO', 18);
         return {
           executado: true, pedido: code,
           situacao: r?.status === 'ENVIADO' ? 'enviado' : r?.status === 'ERRO' ? 'erro no envio' : 'enviando (o Commerce ainda não confirmou)',
@@ -2079,12 +2079,14 @@ function actionTools(cfg, http, persona) {
           if (/Customer|customer/.test(e.message) && /not|não|exist|found|encontr/i.test(e.message)) throw new UserError(`Não há conta na loja com o e-mail ${email}.`);
           throw e;
         }
-        const r = await waitFor('/FlamengoCupomCliente/FlaCouponGrants', code, 'PUBLICANDO', 45);
+        // espera curta: publicar a promoção leva de 30 a 45 s e alguns apps (claude.ai, celular) dão erro de tempo
+        // numa chamada longa, embora o Commerce termine; o resto se acompanha com cupons_enviados
+        const r = await waitFor('/FlamengoCupomCliente/FlaCouponGrants', code, 'PUBLICANDO', 18);
         const uses = [];
         return {
           executado: true,
           ...(r ? showGrant(r, uses) : { cupom: code }),
-          ...(r?.status === 'PUBLICANDO' ? { observacao: 'A promoção ainda está sendo publicada; o e-mail sai em seguida. Acompanhe com cupons_enviados.' } : {}),
+          ...(r?.status === 'PUBLICANDO' ? { observacao: 'Pedido aceito pelo Commerce: a promoção está sendo publicada e o e-mail ao cliente sai em até 2 minutos. Não repita o pedido; confira em instantes com cupons_enviados.' } : {}),
         };
       },
     },
