@@ -699,6 +699,8 @@ public class FlaCouponGrantService
 		finally
 		{
 			restore.run();
+			// a importação fecha a sessão no fim: volta a administrador, sem restrições e com os catálogos
+			mcpSupport.prepareSession();
 		}
 		if (!result.isSuccessful())
 		{
