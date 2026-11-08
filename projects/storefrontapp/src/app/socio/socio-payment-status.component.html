@@ -3,8 +3,28 @@
   class="spay spay-status"
   [class.spay-wait]="p.awaiting"
 >
+  <!-- Pix ou boleto vencido sem pagamento: aviso curto, sem o código -->
+  <ng-container *ngIf="p.awaiting && expired">
+    <p class="spay-kind">{{ 'spay.s.expired' | flaT }}</p>
+    <h3 class="spay-title">
+      {{ (p.method === 'BOLETO' ? 'spay.s.expiredTitleBoleto' : 'spay.s.expiredTitle') | flaT }}
+    </h3>
+    <p class="spay-sub">
+      {{
+        'spay.s.expiredAmount'
+          | flaT: { amount: brl(p.total), order: p.orderCode, due: when(p.due) }
+      }}
+    </p>
+    <p class="spay-note">{{ key('spay.s.expiredNote') | flaT: { plan: p.planName } }}</p>
+    <div class="spay-links spay-expired-cta">
+      <a class="btn btn-secondary btn-sm" [routerLink]="p.planCode ? '/socio-torcedor' : '/'">{{
+        key('spay.s.expiredCta') | flaT
+      }}</a>
+    </div>
+  </ng-container>
+
   <!-- Pix ou boleto aguardando pagamento -->
-  <ng-container *ngIf="p.awaiting; else done">
+  <ng-container *ngIf="p.awaiting && !expired; else done">
     <p class="spay-kind">{{ 'spay.s.awaiting' | flaT }}</p>
     <h3 class="spay-title">
       {{
@@ -94,6 +114,7 @@
   </ng-container>
 
   <ng-template #done>
+    <ng-container *ngIf="!p.awaiting">
     <ng-container *ngIf="upfront; else card">
       <p class="spay-kind">{{ 'spay.s.paid' | flaT }}</p>
       <p class="spay-line">
@@ -112,5 +133,6 @@
       <p class="spay-kind">{{ 'spay.r.title' | flaT: { plan: p.planName } }}</p>
       <p class="spay-line">{{ cardLine() }}</p>
     </ng-template>
+    </ng-container>
   </ng-template>
 </section>
