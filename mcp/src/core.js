@@ -1871,7 +1871,7 @@ function lojaTools(cfg, http) {
 
 // ================================================================ AÇÕES DOS GESTORES: relatório por e-mail e cupom pessoal
 
-/** Área de cada persona de gestor (o Commerce confere de novo pelos grupos de API do usuário) */
+/** Área de cada persona de gestor (o Commerce confere de novo pelos grupos de API do usuário). Cupom pessoal: só LOJA */
 const PERSONA_AREA = { loja: 'LOJA', jogos: 'JOGOS', socio: 'SOCIO' };
 /** Onde o cupom pode valer, por área (mesma lista do FlaCouponGrantService no Commerce) */
 const COUPON_SCOPES = {
@@ -1992,7 +1992,7 @@ function actionTools(cfg, http, persona) {
     };
   };
 
-  return [
+  const tools = [
     {
       name: 'enviar_relatorio',
       description: 'Pede ao SAP Commerce para enviar um relatório por e-mail (remetente da Loja Flamengo), com o conteúdo que o usuário escolher: destaques (números principais), seções com texto e tabelas, e as tabelas também em CSV anexo. '
@@ -2102,6 +2102,8 @@ function actionTools(cfg, http, persona) {
       },
     },
   ];
+  // cupom pessoal só para o gestor da loja (decisão de 08/11); jogos e sócio ficam só com o relatório por e-mail
+  return area === 'LOJA' ? tools : tools.filter((t) => t.name === 'enviar_relatorio');
 }
 
 export const _test = { saleCategory, couponCodes, reportHtml, reportCsv, randomCode, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };

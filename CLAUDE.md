@@ -199,6 +199,9 @@ async () => {
   jogosapigroup, socioapigroup) e, numa linha de execução depois do commit, enviam o e-mail pelo `emailService` (SMTP de
   `mail.*`) e, no cupom, criam SingleCodeCoupon + promoção só para o cliente e publicam. Destinatários de relatório só os de
   `flamengo.mcp.relatorio.destinatarios`; tetos em `flamengo.mcp.cupom.*`. ImpEx: `integracao-relatorio-cupom.impex`.
+  Cupom pessoal só do gestor da loja (`flamengo.mcp.cupom.areas=LOJA`; as personas de jogos e sócio não têm a ferramenta).
+  A importação de ImpEx numa linha de execução própria fecha a sessão (usuário volta a anônimo): chamar
+  `McpSupport.prepareSession()` depois de cada importação antes de buscar produto ou categoria.
 - Promoção por código (ImpEx de PromotionSourceRule): no `y_target_customers` o cliente vai pela **PK** (o motor compara
   `UserRAO.pk`), não pelo e-mail; categorias e produtos vão pelo código. Interceptor de **tipo novo** só passa a valer
   depois do reinício que vem após o Update (na subida do `ant all` o tipo ainda não existia).
