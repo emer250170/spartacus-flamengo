@@ -1,7 +1,14 @@
-import { Injectable, NgModule, Pipe, PipeTransform } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Injectable,
+  NgModule,
+  OnDestroy,
+  Pipe,
+  PipeTransform,
+} from '@angular/core';
 import { LanguageService } from '@spartacus/core';
-import { Observable } from 'rxjs';
-import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
+import { Observable, Subscription, asyncScheduler } from 'rxjs';
+import { distinctUntilChanged, map, observeOn, shareReplay, skip } from 'rxjs/operators';
 import { FLA_TEXTS, FlaLang } from './fla-texts';
 
 const TZ = 'America/Sao_Paulo';
@@ -18,12 +25,18 @@ export class FlaI18nService {
   readonly lang$: Observable<FlaLang>;
 
   constructor(languageService: LanguageService) {
-    this.lang$ = languageService.getActive().pipe(
+    const active$ = languageService.getActive().pipe(
       map((iso): FlaLang => (iso?.startsWith('pt') ? 'pt' : 'en')),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: false })
     );
-    this.lang$.subscribe((lang) => (this.lang = lang));
+    active$.subscribe((lang) => (this.lang = lang));
+    // Quem recarrega dados na troca de idioma (lang$) roda depois de o Spartacus trocar o idioma das
+    // chamadas à API (08/11: as experiências vinham ainda no idioma antigo e só traduziam com F5).
+    this.lang$ = active$.pipe(
+      observeOn(asyncScheduler),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
   }
 
   /** Texto traduzido, com {parâmetros} trocados */
@@ -97,15 +110,23 @@ export class FlaI18nService {
 
 /**
  * {{ 'md.title' | flaT }} ou {{ 'md.left.many' | flaT: { n: 3 } }}.
- * Impuro: acompanha a troca de idioma (os componentes OnPush pedem a
- * verificação quando o idioma muda).
+ * Impuro e marca a tela para verificar na troca de idioma: os componentes OnPush (header, rodapé,
+ * faixas da home) não eram verificados e só traduziam com F5 (08/11).
  */
 @Pipe({ name: 'flaT', pure: false })
-export class FlaTranslatePipe implements PipeTransform {
-  constructor(protected i18n: FlaI18nService) {}
+export class FlaTranslatePipe implements PipeTransform, OnDestroy {
+  protected sub: Subscription;
+
+  constructor(protected i18n: FlaI18nService, cdr: ChangeDetectorRef) {
+    this.sub = i18n.lang$.pipe(skip(1)).subscribe(() => cdr.markForCheck());
+  }
 
   transform(key: string, params?: Record<string, unknown>): string {
     return this.i18n.t(key, params);
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 }
 

@@ -247,6 +247,9 @@
   }
 
   .fla-store-home {
+    // 1px acima: o texto ficava 1px mais baixo que o das categorias (08/11)
+    position: relative;
+    top: -1px;
     display: inline-flex;
     align-items: center;
     margin-right: 9px;

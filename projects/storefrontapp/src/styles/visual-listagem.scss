@@ -195,6 +195,13 @@ fla-search-band {
   width: 100%;
 }
 
+// Fora da busca e do Estúdio, a faixa da busca e a barra do Estúdio ficam vazias, mas o slot (flex) dava a
+// cada uma um terço da largura e a trilha e o título iam para a direita (08/11): vazias, não ocupam espaço.
+cx-page-slot.BottomHeaderSlot > fla-search-band:empty,
+cx-page-slot.BottomHeaderSlot > fla-me-barra:empty {
+  display: none !important;
+}
+
 .fsb {
   background: #1b1b1b;
   color: #fff;

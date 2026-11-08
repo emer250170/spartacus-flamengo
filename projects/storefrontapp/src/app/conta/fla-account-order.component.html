@@ -38,6 +38,27 @@
     </div>
   </section>
 
+  <!-- Andamento de qualquer pedido (08/11): o do Mengo Estúdio continua no bloco próprio, abaixo -->
+  <section class="fao fao-card fao-tl" *ngIf="v.andamento as a" aria-labelledby="fao-tl-t">
+    <h2 id="fao-tl-t" class="fao-h3">{{ 'acc.od.tl.title' | flaT }}</h2>
+    <ol class="fao-steps">
+      <li *ngFor="let p of a.passos" [attr.data-estado]="p.estado">
+        <span class="fao-dot" aria-hidden="true"></span>
+        <span class="fao-step">
+          <strong
+            >{{ p.nome
+            }}<span class="cx-visually-hidden"> · {{ 'me.o.' + p.estado | flaT }}</span></strong
+          >
+          <span class="fao-muted" *ngIf="p.quando">{{ p.quando }}</span>
+          <span class="fao-muted" *ngIf="p.nota">{{ p.nota }}</span>
+        </span>
+      </li>
+    </ol>
+    <p class="fao-tl-ras" *ngIf="a.rastreio">
+      {{ 'acc.od.tl.rastreio' | flaT }} <strong class="fao-mono">{{ a.rastreio }}</strong>
+    </p>
+  </section>
+
   <!-- Mengo Estúdio (08/11, PR 4): andamento, rastreio, selo de autenticidade e cancelamento -->
   <div class="fao-me" *ngIf="v.me as me">
     <section class="fao fao-card" aria-labelledby="fao-me-and">

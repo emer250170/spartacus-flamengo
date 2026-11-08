@@ -914,6 +914,8 @@ fla-logo-label {
 
     a {
       color: #fff !important;
+      // mesma altura de linha do "Entrar / Cadastrar": textos da faixa no mesmo centro (08/11)
+      line-height: 20.8px;
       text-decoration: none !important;
 
       &:hover {
@@ -1032,7 +1034,8 @@ fla-logo-label {
     a {
       color: #fff !important;
       text-decoration: none !important;
-      padding: 6px 0 4px;
+      // recuo igual em cima e embaixo: o texto fica no centro do botão Ingressos, da busca e do carrinho (08/11)
+      padding: 5px 0;
 
       &:hover,
       &.fla-ativo {
