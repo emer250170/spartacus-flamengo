@@ -1543,9 +1543,33 @@ html:is(.fla-wide, .fla-estudio) cx-page-layout.LandingPage2Template {
 
 // Sem a faixa cinza da trilha e do título ("Início / Sócio-Torcedor Nação Maraca") embaixo do
 // header: no mockup a página começa na faixa escura, que já tem o título (07/11, Emerson)
-// (08/11: também no Mengo Estúdio, classe fla-estudio posta pela barra do Estúdio)
-html:is(.fla-wide, .fla-estudio) cx-page-slot.BottomHeaderSlot {
+html.fla-wide cx-page-slot.BottomHeaderSlot {
   display: none !important;
+}
+
+// Mengo Estúdio (08/11): no slot de baixo do header fica só a barra do Estúdio (fla-me-barra), parada na
+// troca entre início, drop, acervo e estampa; a faixa cinza "Início / Mengo Estúdio" e o resto do slot saem.
+// A área da página guarda a altura da tela enquanto a página nova carrega (o rodapé não sobe e desce).
+html.fla-estudio {
+  cx-page-slot.BottomHeaderSlot {
+    display: block !important;
+    width: 100%;
+    padding: 0 !important;
+    background: transparent !important;
+
+    > :not(fla-me-barra) {
+      display: none !important;
+    }
+  }
+
+  fla-me-barra {
+    display: block;
+    width: 100%;
+  }
+
+  main {
+    min-height: 100vh;
+  }
 }
 
 // Mengo Estúdio (08/11): o slot do Spartacus anima a margem; ao voltar do acervo para o início a barra
