@@ -196,6 +196,24 @@
     flex-wrap: nowrap !important;
   }
 
+  // telas de 992 a 1199 px: com o item Mengo Estúdio a faixa passava da tela e a página inteira rolava para o
+  // lado; menos espaço entre os itens mantém tudo numa linha, dentro das bordas do conteúdo
+  @media (max-width: 1199.98px) {
+    header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul > li {
+      padding: 0 4px !important;
+    }
+
+    header .fla-store-home {
+      margin-right: 4px;
+    }
+  }
+
+  @media (max-width: 1023.98px) {
+    header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav > ul > li {
+      padding: 0 2px !important;
+    }
+  }
+
   header cx-page-slot.NavigationBar cx-category-navigation,
   header cx-page-slot.NavigationBar cx-navigation-ui.flyout,
   header cx-page-slot.NavigationBar cx-navigation-ui.flyout > nav,
