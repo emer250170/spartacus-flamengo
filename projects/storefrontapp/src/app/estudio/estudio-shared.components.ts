@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, Input, Pipe, PipeTransform } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Pipe,
+  PipeTransform,
+  Renderer2,
+} from '@angular/core';
 import { FlaI18nService } from '../i18n/fla-i18n.service';
 import { ME_POSICAO, MeEstampa } from './estudio.service';
 
@@ -107,9 +118,37 @@ export class FlaMeCamisetaComponent {
   styleUrls: ['./estudio.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlaMeSubnavComponent {
+export class FlaMeSubnavComponent implements OnInit, OnDestroy {
+  /** Subnavs na tela (na troca de rota a nova pode nascer antes de a antiga sair) */
+  protected static abertas = 0;
+
   @Input() ativo: 'estampas' | 'acervo' | '' = 'estampas';
+
+  constructor(
+    protected renderer: Renderer2,
+    @Inject(DOCUMENT) protected document: Document
+  ) {}
+
+  /**
+   * Páginas do Estúdio (início, drop, acervo, estampa) começam na barra branca, como no mockup: o <html>
+   * ganha fla-estudio, que tira a faixa cinza "Início / Mengo Estúdio" e solta o layout da página do CMS
+   * (no início, a barra e o hero ficavam presos em 1140px e 30px abaixo das outras páginas). 08/11, Emerson.
+   */
+  ngOnInit(): void {
+    FlaMeSubnavComponent.abertas++;
+    this.renderer.addClass(this.document.documentElement, ESTUDIO_CLASS);
+  }
+
+  ngOnDestroy(): void {
+    FlaMeSubnavComponent.abertas = Math.max(0, FlaMeSubnavComponent.abertas - 1);
+    if (!FlaMeSubnavComponent.abertas) {
+      this.renderer.removeClass(this.document.documentElement, ESTUDIO_CLASS);
+    }
+  }
 }
+
+/** Classe no <html> das páginas com a barra do Estúdio (tema: sem a faixa cinza, layout de borda a borda) */
+export const ESTUDIO_CLASS = 'fla-estudio';
 
 /** Nome da linha pelo código: {{ e.linha | meLinha: c.linhas }} */
 @Pipe({ name: 'meLinha' })

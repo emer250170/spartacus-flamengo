@@ -1529,7 +1529,7 @@ html.fla-home cx-page-layout.LandingPage2Template {
 // Páginas com faixas de borda a borda (07/11, planos do sócio no visual do mockup): o componente
 // marca o <html> com fla-wide; o layout e o slot deixam de limitar a largura e cada faixa
 // centraliza o seu conteúdo em 1140px (os outros componentes do slot continuam aparecendo)
-html.fla-wide cx-page-layout.LandingPage2Template {
+html:is(.fla-wide, .fla-estudio) cx-page-layout.LandingPage2Template {
   max-width: none !important;
 
   > cx-page-slot.Section1 {
@@ -1543,7 +1543,8 @@ html.fla-wide cx-page-layout.LandingPage2Template {
 
 // Sem a faixa cinza da trilha e do título ("Início / Sócio-Torcedor Nação Maraca") embaixo do
 // header: no mockup a página começa na faixa escura, que já tem o título (07/11, Emerson)
-html.fla-wide cx-page-slot.BottomHeaderSlot {
+// (08/11: também no Mengo Estúdio, classe fla-estudio posta pela barra do Estúdio)
+html:is(.fla-wide, .fla-estudio) cx-page-slot.BottomHeaderSlot {
   display: none !important;
 }
 
