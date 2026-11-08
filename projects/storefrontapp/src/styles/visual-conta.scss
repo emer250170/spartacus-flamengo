@@ -2195,6 +2195,30 @@ html.fla-account[lang='en'] main cx-consent-management::after {
   }
 }
 
+// ---------- 992 a 1279 px (08/11) ----------
+// Com 64px de margem de cada lado (largura do site oficial, PR #270) o card do conteúdo ficou com 577px em
+// 1024: a tabela de Atendimento (624px) passava do card e a página rolava para o lado; a de pedidos saía 12px.
+// Menu mais estreito e células com menos recuo: tudo cabe no card de 992 a 1279px.
+@media (min-width: 992px) and (max-width: 1279.98px) {
+  html.fla-account main cx-page-layout.AccountPageTemplate {
+    grid-template-columns: 232px minmax(0, 1fr);
+    column-gap: 20px;
+  }
+
+  html.fla-account cx-customer-ticketing-list table th,
+  html.fla-account cx-customer-ticketing-list table td,
+  html.fla-account .foh-table th,
+  html.fla-account .foh-table td {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  // se um pedido trouxer texto longo, a tabela rola dentro do card em vez de passar dele
+  html.fla-account .foh-scroll {
+    overflow-x: auto;
+  }
+}
+
 // ---------- telas menores ----------
 @media (max-width: 991.98px) {
   .fab-in {
