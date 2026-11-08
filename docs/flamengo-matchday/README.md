@@ -1287,3 +1287,16 @@ jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória at
 - Aba Mengo Estúdio do pedido: seção nova "Devolução (camisetas sob demanda)" com esses campos; o JSON saiu da tela.
 - Instalação: `ant all`, HAC › Update (Update running system + Localize types), reiniciar antes de abrir o
   Backoffice (cache do tipo) e "Reset to Defaults" na tela do pedido.
+
+### Relatório por e-mail e cupom pessoal pelos gestores (08/11)
+
+Os três gestores (sócio, jogos e loja) pedem pelo Claude (MCP) e o **Commerce** executa, com o SMTP configurado em `mail.*`.
+
+| Parte | Como funciona |
+|---|---|
+| Relatório por e-mail | Tipo `FlaReportMail` (Backoffice: "Relatório por e-mail (Claude)"). O Claude monta o conteúdo com os dados da persona (destaques, seções com texto e tabelas); o `FlaReportMailInterceptor` confere os destinatários contra `flamengo.mcp.relatorio.destinatarios` (fora da lista, recusa) e, depois da gravação, envia em HTML com a moldura da Loja Flamengo e as tabelas em CSV anexo. Situação: ENVIANDO › ENVIADO ou ERRO. |
+| Cupom pessoal | Tipo `FlaCouponGrant` ("Cupom pessoal (Claude)"). O `FlaCouponGrantInterceptor` confere a área de quem pediu (grupo de API), o escopo (loja: produtos da loja, Mengo Estúdio, personalização, experiências, produtos ou categorias; jogos: ingressos, um jogo, estacionamento, alimentação; sócio: plano e produtos da loja), o teto (`flamengo.mcp.cupom.tetoPercentual`/`tetoValor`) e a validade. Depois da gravação, o `FlaCouponGrantService` cria o `SingleCodeCoupon` de uso único e a promoção `cupom_pessoal_<código>` só para o cliente (`y_target_customers`), publica no módulo de promoções e envia o código por e-mail. Situação: PUBLICANDO › ENVIADO ou ERRO. |
+| Acúmulo | Cupom percentual da loja acumula com o desconto de sócio na loja (prioridade 240, acima dos 220 do sócio). Cupom de ingresso não vale para sócio (a promoção exclui os grupos dos planos e o pedido é recusado se o cliente já for sócio). |
+| Chaves | `flamengo.mcp.relatorio.ativo`, `flamengo.mcp.relatorio.destinatarios`, `flamengo.mcp.cupom.ativo`, `flamengo.mcp.cupom.tetoPercentual` (30), `flamengo.mcp.cupom.tetoValor` (100), `flamengo.mcp.cupom.validadeDias` (30), `flamengo.mcp.cupom.validadeMaxDias` (180), `flamengo.mcp.loja.url`. |
+| Integração | `docs/flamengo-matchday/mcp/integracao-relatorio-cupom.impex`: objetos `FlamengoRelatorioEmail` e `FlamengoCupomCliente`, canal BASIC e leitura/criação nos três grupos de API. |
+

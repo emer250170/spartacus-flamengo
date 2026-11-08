@@ -1,0 +1,72 @@
+# MCP "Loja Flamengo" (08/11): relatório por e-mail e cupom pessoal, para os três gestores (loja, jogos, sócio).
+# Rodar à mão no HAC (base64 + ImportConfig, por causa do $START_USERRIGHTS), depois do ant all + Update que cria
+# os tipos FlaReportMail e FlaCouponGrant (PR do 08/11).
+#  - FlamengoRelatorioEmail: o gestor cria um FlaReportMail; o Commerce confere os destinatários
+#    (flamengo.mcp.relatorio.destinatarios) e envia o e-mail (FlaReportMailInterceptor)
+#  - FlamengoCupomCliente: o gestor cria um FlaCouponGrant; o Commerce confere área, escopo e teto, cria o cupom de uso
+#    único e a promoção só para o cliente, publica e envia o código por e-mail (FlaCouponGrantInterceptor)
+#  - canal de entrada BASIC para os dois (sem ele a OData responde 403)
+#  - permissões por tipo nos três grupos de API, só "+" (negação vence a permissão do papel no Backoffice)
+# A área de quem pede vem dos grupos de API do usuário: quem está no jogosapigroup só cria cupom de ingresso,
+# estacionamento e alimentação; no socioapigroup, de plano e produtos da loja; no lojaapigroup, da loja.
+
+INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
+; FlamengoRelatorioEmail ; INBOUND
+; FlamengoCupomCliente ; INBOUND
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
+; FlamengoRelatorioEmail ; FlaReportMail ; FlaReportMail ; true
+; FlamengoCupomCliente ; FlaCouponGrant ; FlaCouponGrant ; true
+; FlamengoCupomCliente ; Customer ; Customer ; false
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
+; FlamengoRelatorioEmail:FlaReportMail ; code ; FlaReportMail:code ;  ; true
+; FlamengoRelatorioEmail:FlaReportMail ; subject ; FlaReportMail:subject ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; body ; FlaReportMail:body ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; csv ; FlaReportMail:csv ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; csvName ; FlaReportMail:csvName ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; recipients ; FlaReportMail:recipients ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; area ; FlaReportMail:area ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; requestedBy ; FlaReportMail:requestedBy ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; status ; FlaReportMail:status ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; message ; FlaReportMail:message ;  ; false
+; FlamengoRelatorioEmail:FlaReportMail ; sentAt ; FlaReportMail:sentAt ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; code ; FlaCouponGrant:code ;  ; true
+; FlamengoCupomCliente:FlaCouponGrant ; customer ; FlaCouponGrant:customer ; FlamengoCupomCliente:Customer ; false
+; FlamengoCupomCliente:FlaCouponGrant ; area ; FlaCouponGrant:area ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; discountType ; FlaCouponGrant:discountType ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; amount ; FlaCouponGrant:amount ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; minimum ; FlaCouponGrant:minimum ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; scope ; FlaCouponGrant:scope ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; scopeDetail ; FlaCouponGrant:scopeDetail ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; validUntil ; FlaCouponGrant:validUntil ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; note ; FlaCouponGrant:note ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; ruleCode ; FlaCouponGrant:ruleCode ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; status ; FlaCouponGrant:status ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; message ; FlaCouponGrant:message ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; requestedBy ; FlaCouponGrant:requestedBy ;  ; false
+; FlamengoCupomCliente:FlaCouponGrant ; sentAt ; FlaCouponGrant:sentAt ;  ; false
+; FlamengoCupomCliente:Customer ; uid ; Customer:uid ;  ; true
+; FlamengoCupomCliente:Customer ; name ; Customer:name ;  ; false
+
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+; FlamengoRelatorioEmail ; BASIC
+; FlamengoCupomCliente ; BASIC
+
+$START_USERRIGHTS
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+UserGroup;lojaapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;FlaReportMail;+;;+;;
+;;;;FlaCouponGrant;+;;+;;
+;;;;Customer;+;;;;
+UserGroup;socioapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;FlaReportMail;+;;+;;
+;;;;FlaCouponGrant;+;;+;;
+;;;;Customer;+;;;;
+UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;FlaReportMail;+;;+;;
+;;;;FlaCouponGrant;+;;+;;
+;;;;Customer;+;;;;
+;;;;CouponRedemption;+;;;;
+;;;;AbstractOrder;+;;;;
+$END_USERRIGHTS

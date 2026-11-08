@@ -790,4 +790,42 @@
 		<property name="typeCode" value="Order"/>
 	</bean>
 
+	<!--
+		MCP (08/11): relatório por e-mail e cupom pessoal pedidos pelos gestores pelo Claude. Os tipos FlaReportMail e
+		FlaCouponGrant são criados pela Integration API; os interceptors conferem (área de quem pediu, destinatários
+		liberados, escopo e teto do cupom) e, depois da gravação, enviam o e-mail pelo Commerce (emailService).
+	-->
+	<bean id="mcpSupport" class="br.com.flamengo.matchday.mcp.McpSupport">
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="userService" ref="userService"/>
+		<property name="sessionService" ref="sessionService"/>
+		<property name="configurationService" ref="configurationService"/>
+		<property name="emailService" ref="emailService"/>
+	</bean>
+	<bean id="flaReportMailInterceptor" class="br.com.flamengo.matchday.mcp.FlaReportMailInterceptor">
+		<property name="mcpSupport" ref="mcpSupport"/>
+	</bean>
+	<bean id="flaReportMailInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="flaReportMailInterceptor"/>
+		<property name="typeCode" value="FlaReportMail"/>
+	</bean>
+	<bean id="flaCouponGrantService" class="br.com.flamengo.matchday.mcp.FlaCouponGrantService">
+		<property name="mcpSupport" ref="mcpSupport"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="flexibleSearchService" ref="flexibleSearchService"/>
+		<property name="catalogVersionService" ref="catalogVersionService"/>
+		<property name="importService" ref="importService"/>
+		<property name="mediaService" ref="mediaService"/>
+		<property name="enumerationService" ref="enumerationService"/>
+	</bean>
+	<bean id="flaCouponGrantInterceptor" class="br.com.flamengo.matchday.mcp.FlaCouponGrantInterceptor">
+		<property name="flaCouponGrantService" ref="flaCouponGrantService"/>
+		<property name="mcpSupport" ref="mcpSupport"/>
+	</bean>
+	<bean id="flaCouponGrantInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="flaCouponGrantInterceptor"/>
+		<property name="typeCode" value="FlaCouponGrant"/>
+	</bean>
+
 </beans>
