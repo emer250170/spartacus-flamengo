@@ -304,7 +304,8 @@ public class FlaCouponGrantService
 		conditions.add("{\"definitionId\":\"y_target_customers\",\"parameters\":{"
 				+ "\"customer_groups_operator\":{\"type\":\"Enum(de.hybris.platform.ruledefinitions.CollectionOperator)\",\"value\":\"CONTAINS_ANY\"},"
 				+ "\"customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":[]},"
-				+ "\"customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[\"" + customer.getUid().replace("\"", "") + "\"]},"
+				// o motor de regras compara o cliente pela PK (UserRAO.pk), não pelo e-mail
+				+ "\"customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[\"" + customer.getPk().getLongValueAsString() + "\"]},"
 				+ "\"excluded_customer_groups\":{\"type\":\"List(ItemType(UserGroup))\",\"value\":" + json(excludedGroups) + "},"
 				+ "\"excluded_customers\":{\"type\":\"List(ItemType(Customer))\",\"value\":[]}},\"children\":[]}");
 		conditions.add(scopeCondition(scopes, codes(get(grant, "scopeDetail"))));

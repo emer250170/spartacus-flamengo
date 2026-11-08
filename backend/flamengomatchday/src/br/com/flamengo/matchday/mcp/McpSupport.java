@@ -1,6 +1,7 @@
 package br.com.flamengo.matchday.mcp;
 
 import de.hybris.platform.acceleratorservices.email.EmailService;
+import de.hybris.platform.catalog.CatalogVersionService;
 import de.hybris.platform.acceleratorservices.model.email.EmailAddressModel;
 import de.hybris.platform.acceleratorservices.model.email.EmailAttachmentModel;
 import de.hybris.platform.acceleratorservices.model.email.EmailMessageModel;
@@ -9,6 +10,7 @@ import de.hybris.platform.core.Tenant;
 import de.hybris.platform.core.model.ItemModel;
 import de.hybris.platform.core.model.user.UserGroupModel;
 import de.hybris.platform.core.model.user.UserModel;
+import de.hybris.platform.search.restriction.SearchRestrictionService;
 import de.hybris.platform.servicelayer.config.ConfigurationService;
 import de.hybris.platform.servicelayer.model.ModelService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
@@ -61,6 +63,8 @@ public class McpSupport
 	private SessionService sessionService;
 	private ConfigurationService configurationService;
 	private EmailService emailService;
+	private SearchRestrictionService searchRestrictionService;
+	private CatalogVersionService catalogVersionService;
 
 	// ------------------------------------------------------------ quem pediu
 
@@ -289,6 +293,10 @@ public class McpSupport
 					public void executeWithoutResult()
 					{
 						userService.setCurrentUser(userService.getAdminUser());
+						// a linha nasce da chamada da API, sem catálogos na sessão: sem isso as restrições de produto e
+						// categoria (Frontend_Product, Backend_visibility) falham em "session.catalogversions"
+						searchRestrictionService.disableSearchRestrictions();
+						catalogVersionService.setSessionCatalogVersions(catalogVersionService.getAllCatalogVersions());
 						ItemModel item = null;
 						for (int i = 0; i < 60 && item == null; i++)
 						{
@@ -387,5 +395,15 @@ public class McpSupport
 	public void setEmailService(final EmailService emailService)
 	{
 		this.emailService = emailService;
+	}
+
+	public void setSearchRestrictionService(final SearchRestrictionService searchRestrictionService)
+	{
+		this.searchRestrictionService = searchRestrictionService;
+	}
+
+	public void setCatalogVersionService(final CatalogVersionService catalogVersionService)
+	{
+		this.catalogVersionService = catalogVersionService;
 	}
 }
