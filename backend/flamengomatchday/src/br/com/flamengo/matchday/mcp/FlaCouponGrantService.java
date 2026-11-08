@@ -65,6 +65,8 @@ public class FlaCouponGrantService
 
 	static final String TYPE = "FlaCouponGrant";
 	static final String CHAVE_ATIVO = "flamengo.mcp.cupom.ativo";
+	/** Áreas que podem criar cupom pessoal (LOJA, JOGOS, SOCIO, separadas por vírgula); padrão só LOJA (decisão de 08/11) */
+	static final String CHAVE_AREAS = "flamengo.mcp.cupom.areas";
 	private static final String CATALOG = "flamengoProductCatalog";
 	private static final String PROMOTION_GROUP = "electronicsPromoGrp";
 	private static final String RULE_GROUP = "couponPromotionRuleGroup";
@@ -121,6 +123,12 @@ public class FlaCouponGrantService
 		}
 		final de.hybris.platform.core.model.user.UserModel user = mcpSupport.currentUser();
 		final String area = mcpSupport.resolveArea(get(grant, "area"), user);
+		final List<String> areas = Arrays.asList(StringUtils.split(StringUtils.upperCase(mcpSupport.config(CHAVE_AREAS, "LOJA"), Locale.ROOT), ", "));
+		if (!areas.contains(area))
+		{
+			throw new IllegalArgumentException("O cupom pessoal pelo Claude é só do gestor da loja (" + CHAVE_AREAS + " = "
+					+ String.join(", ", areas) + ").");
+		}
 
 		final String code = StringUtils.upperCase(StringUtils.trimToEmpty(get(grant, "code")), Locale.ROOT);
 		if (!code.matches("FLA[A-Z0-9]{6,12}"))

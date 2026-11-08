@@ -9,6 +9,8 @@
 #  - permissões por tipo nos três grupos de API, só "+" (negação vence a permissão do papel no Backoffice)
 # A área de quem pede vem dos grupos de API do usuário: quem está no jogosapigroup só cria cupom de ingresso,
 # estacionamento e alimentação; no socioapigroup, de plano e produtos da loja; no lojaapigroup, da loja.
+# 08/11: cupom pessoal só do gestor da loja. O Commerce recusa as outras áreas (flamengo.mcp.cupom.areas=LOJA) e as
+# personas de jogos e sócio do MCP não têm a ferramenta; as permissões abaixo ficam (nunca usar "-" nos grupos de API).
 
 INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
 ; FlamengoRelatorioEmail ; INBOUND

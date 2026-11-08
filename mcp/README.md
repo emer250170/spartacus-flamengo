@@ -9,7 +9,7 @@ Um único arquivo (`flamengo-mcp.mjs`) que o Claude Desktop inicia sozinho. Quat
 | **Gestor de jogos** | `gestor.jogos` | Integration API (OData) | jogos (ler/criar/alterar/encerrar), vendas de ingressos por jogo e setor, ingressos vendidos (consultar, trocar poltrona ou quem vai usar, cancelar com reembolso, marcar entrada, observação) |
 | **Gestor da loja** | `gestor.loja` | Integration API (OData) + busca pública da loja | produtos (buscar, ficha com catálogo, preço e estoque por depósito), alterar preço e estoque, resumo de vendas por categoria, pedidos, promoções (só leitura), cupons (ler/alterar), experiências do sócio (vitrine, resgates, criar/alterar) |
 
-Os três gestores também pedem ao Commerce **relatório por e-mail** (`enviar_relatorio`) e **cupom pessoal enviado ao cliente** (`criar_cupom_cliente`, `cupons_enviados`), cada um só com os dados e o escopo da sua área (ver "Relatório por e-mail e cupom pessoal").
+Os três gestores também pedem ao Commerce **relatório por e-mail** (`enviar_relatorio`), cada um só com os dados da sua área. O **cupom pessoal enviado ao cliente** (`criar_cupom_cliente`, `cupons_enviados`) é só do gestor da loja (ver "Relatório por e-mail e cupom pessoal").
 
 ## Instalar (5 minutos)
 
@@ -67,12 +67,12 @@ Se o cadastro não oferecer cabeçalho: `MCP_TOKEN_NA_URL=true` no `flamengo-mcp
 
 ## Relatório por e-mail e cupom pessoal (08/11)
 
-Nas personas de gestor (sócio, jogos e loja). Quem envia o e-mail é o **SAP Commerce** (SMTP configurado em `mail.*`, remetente da Loja Flamengo); o MCP só pede.
+Relatório nas três personas de gestor (sócio, jogos e loja); cupom pessoal só na do gestor da loja (decisão de 08/11: jogos e sócio não criam cupom pelo Claude; no Commerce, `flamengo.mcp.cupom.areas=LOJA` recusa as outras áreas). Quem envia o e-mail é o **SAP Commerce** (SMTP configurado em `mail.*`, remetente da Loja Flamengo); o MCP só pede.
 
 | Ferramenta | O que faz | Regras do Commerce |
 |---|---|---|
 | `enviar_relatorio` | O Claude monta o relatório com o que o gestor pedir (destaques, seções com texto e tabelas) a partir dos dados das outras ferramentas; o Commerce envia em HTML com as tabelas em CSV anexo | só para os e-mails de `flamengo.mcp.relatorio.destinatarios`; cada gestor só tem os dados da sua área |
-| `criar_cupom_cliente` | Cupom de uso único, só na conta do cliente: % nos itens, R$ no pedido ou frete grátis, com escopo, compra mínima e validade; o Commerce cria a promoção, publica (até 2 min) e envia o código ao cliente | escopo pela área (loja: produtos da loja, Mengo Estúdio, personalização, experiências, produtos/categorias; jogos: ingressos, um jogo, estacionamento, alimentação; sócio: plano e produtos da loja); teto 30% / R$ 100 e validade até 180 dias (propriedades `flamengo.mcp.cupom.*`); cupom de ingresso não vale para sócio |
+| `criar_cupom_cliente` | Cupom de uso único, só na conta do cliente: % nos itens, R$ no pedido ou frete grátis, com escopo, compra mínima e validade; o Commerce cria a promoção, publica (até 2 min) e envia o código ao cliente | só o gestor da loja (`flamengo.mcp.cupom.areas`); escopo: produtos da loja, Mengo Estúdio, personalização, experiências, produtos ou categorias; teto 30% / R$ 100 e validade até 180 dias (propriedades `flamengo.mcp.cupom.*`) |
 | `cupons_enviados` | Cupons que o gestor criou: situação (publicando, enviado, erro) e se o cliente já usou | — |
 
 Objetos de integração em `docs/flamengo-matchday/mcp/integracao-relatorio-cupom.impex` (tipos `FlaReportMail` e `FlaCouponGrant` da extensão). No cupom da loja, o desconto acumula com o desconto de sócio na loja.
@@ -127,9 +127,9 @@ Objetos de integração em `docs/flamengo-matchday/mcp/integracao-relatorio-cupo
 - "Como está a vitrine de experiências? Quem resgatou o tour?" / "Cria a experiência Visita ao museu por 300 pontos ou R$ 60, 20 vagas" → o Commerce cria o produto `EXP-VISITA-AO-MUSEU` na loja (`experiencias`, `resgates_experiencias`, `criar_experiencia`, `atualizar_experiencia`). Objetos em `docs/flamengo-matchday/mcp/integracao-loja.impex`.
 - Mostre o bloqueio: "Suspende o torcedor21" → ele não tem essa ferramenta nem acesso.
 
-**5. Relatório e cupom (qualquer gestor)**
+**5. Relatório (qualquer gestor) e cupom (gestor da loja)**
 - "Me manda por e-mail o resumo de vendas de outubro, só ingressos e experiências, com os 5 mais vendidos" → o Claude puxa os dados, mostra o que vai no e-mail, você confirma e o relatório chega no seu e-mail (com CSV) (`enviar_relatorio`).
 - Gestor da loja: "Manda um cupom de 15% no Mengo Estúdio para o emerson.oliveira@sap.com, válido até o fim do mês, com uma mensagem de agradecimento" → resumo → confirmar → em até 2 minutos o cliente recebe o e-mail com o código; aplique no carrinho e mostre o desconto (`criar_cupom_cliente`, `cupons_enviados`).
-- Gestor de jogos: "R$ 30 no ingresso do jogo do Bahia para quem não é sócio" / gestor do sócio: "10% na mensalidade para o torcedor que pediu cancelamento".
+- Gestor de jogos ou do sócio pedindo cupom: o Claude responde que cupom pessoal é com o gestor da loja (não tem a ferramenta).
 
 Dicas: antes da demo, deixe o carrinho do torcedor vazio; para o cancelamento, use um torcedor sócio que você possa reativar (ou recompre o plano depois pela loja).
