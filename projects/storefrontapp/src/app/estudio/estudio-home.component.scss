@@ -308,3 +308,13 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* No desktop o hero e a faixa do acervo são painéis dentro do container de 1140 px (mesmas bordas do
+   conteúdo): respiro interno para o texto não encostar na borda do painel. */
+@media (min-width: 768px) {
+  .hero .hero-in,
+  .acervo .acervo-in {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
