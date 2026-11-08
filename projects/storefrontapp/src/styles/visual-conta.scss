@@ -1356,6 +1356,9 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
   }
 
   .fao-cols {
+    // largura de cartão (08/11: ficava mais estreito que os outros, centralizado pelo slot)
+    box-sizing: border-box;
+    width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
