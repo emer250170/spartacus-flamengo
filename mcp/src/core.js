@@ -2172,10 +2172,22 @@ function analysisTools(cfg, http, persona) {
       const frete = num(o.deliveryCost) ?? 0;
       const total = num(o.totalPrice) ?? 0;
       const linhas = itens.reduce((s, i) => s + i.total, 0);
-      const promocoes = (a.promocoes ?? []).map((p) => ({ codigo: p.codigo, nome: p.nome, desconto: num(p.desconto) ?? 0 }));
+      // parte do pedido que é da área (jogos: só ingresso, estacionamento e alimentação)
+      const areaLinhas = def.categorias ? itens.filter((i) => def.categorias.includes(i.categoria)).reduce((s, i) => s + i.total, 0) : linhas;
+      const parte = linhas > 0 ? areaLinhas / linhas : 1;
+      const areaCodes = new Set((def.categorias ? itens.filter((i) => def.categorias.includes(i.categoria)) : itens).map((i) => i.codigo));
+      const promocoes = (a.promocoes ?? []).map((p) => {
+        const total = num(p.desconto) ?? 0;
+        const noItem = (p.itens ?? []).reduce((s, x) => s + (num(x.desconto) ?? 0), 0);
+        // desconto no item conta se o item é da área; desconto no pedido, na proporção da área
+        const area = (p.itens ?? []).filter((x) => areaCodes.has(x.produto)).reduce((s, x) => s + (num(x.desconto) ?? 0), 0) + Math.max(0, total - noItem) * parte;
+        return { codigo: p.codigo, nome: p.nome, desconto: Math.round(area * 100) / 100, descontoNoPedido: total };
+      }).filter((p) => !def.categorias || p.desconto > 0);
+      const noTotal = Math.max(0, linhas + frete - total) * parte;
+      const descPromo = promocoes.reduce((s, p) => s + p.desconto, 0);
       return {
         pedido: o.code, data: toDate(o.date), cliente: o.user?.uid, situacaoCodigo: o.status?.code, situacao: ORDER_STATUS[o.status?.code] ?? o.status?.code ?? 'sem situação',
-        total, frete, descontos: Math.max(0, Math.round((linhas + frete - total) * 100) / 100), cupons: couponCodes(o.appliedCouponCodes), itens, a, promocoes,
+        total, frete, descontos: Math.round(Math.max(noTotal, descPromo) * 100) / 100, cupons: couponCodes(o.appliedCouponCodes), itens, a, promocoes,
       };
     });
     for (const o of [...list].sort((x, y) => (x.data?.getTime() ?? 0) - (y.data?.getTime() ?? 0))) if (o.cliente && !firstByUser[o.cliente]) firstByUser[o.cliente] = o.pedido;
@@ -2340,7 +2352,7 @@ function analysisTools(cfg, http, persona) {
             ...(multi ? { observacaoGrupos: 'Promoção, cupom, categoria e produto: um pedido pode estar em mais de um grupo, então as porcentagens de pedidos podem somar mais de 100%.' } : {}),
           } : {}),
           ...(a.listar ? { lista: [...base].sort((x, y) => (y.data?.getTime() ?? 0) - (x.data?.getTime() ?? 0)).slice(0, 30).map(showOrderAnalysis) } : {}),
-          observacao: `Receita = ${def.receita}. Perfil do cliente = plano de sócio de hoje, não o da data da compra. Antifraude: só os pedidos que passaram pela ClearSale têm resultado (a análise foi ligada em 07/11). Pagamentos "Simulado (demo)" são da carga e dos testes da demo.`,
+          observacao: `Receita = ${def.receita}. Descontos = promoções (no item e no pedido) e outros abatimentos${def.categorias ? "; só a parte dos itens da área" : ""}. Perfil do cliente = plano de sócio de hoje, não o da data da compra. Antifraude: só os pedidos que passaram pela ClearSale têm resultado (a análise foi ligada em 07/11). Pagamentos "Simulado (demo)" são da carga e dos testes da demo.`,
         };
       },
     },

@@ -205,7 +205,8 @@ async () => {
 - Análise de pedidos (MCP 1.4.0): objeto `FlamengoAnalisePedido` com atributo **virtual** `analise` (Integration API 2211:
   `IntegrationObjectVirtualAttributeDescriptor` + Script `model://flaAnalisePedido`, variável `itemModel`), um JSON com
   pagamento, entrega, cidade/UF, promoções, antifraude e plano atual. Dado novo para a API sem `ant all`: preferir atributo
-  virtual em objeto próprio (não pesar o `FlamengoPedido`). Mudou o Groovy: reimportar `integracao-analise-pedidos.impex`.
+  virtual em objeto próprio (não pesar o `FlamengoPedido`). Mudou o Groovy: reimportar `integracao-analise-pedidos.impex`
+  (o Commerce cria uma versão nova do Script e desativa a anterior).
 - Promoção por código (ImpEx de PromotionSourceRule): no `y_target_customers` o cliente vai pela **PK** (o motor compara
   `UserRAO.pk`), não pelo e-mail; categorias e produtos vão pelo código. Interceptor de **tipo novo** só passa a valer
   depois do reinício que vem após o Update (na subida do `ant all` o tipo ainda não existia).

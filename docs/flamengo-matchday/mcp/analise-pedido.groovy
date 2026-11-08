@@ -64,8 +64,17 @@ def promocoes = []
     q.addQueryParameter('c', p.code)
     def rule = fs.search(q).result.find { true }
     if (rule) nome = rule.getName(pt) ?: rule.getName()
-    def valor = (pr.actions ?: []).sum { a -> (a.hasProperty('amount') && a.amount != null) ? a.amount.doubleValue() : 0d } ?: 0d
-    promocoes << [codigo: p.code, nome: nome ?: (p.description ?: p.code), desconto: Math.round(valor * 100) / 100.0d]
+    def valor = 0d
+    def itens = [:].withDefault { 0d }
+    (pr.actions ?: []).each { a ->
+        def v = (a.hasProperty('amount') && a.amount != null) ? a.amount.doubleValue() : 0d
+        valor += v
+        // desconto no item (ingresso de sócio, % na loja): guarda o produto para o recorte por área
+        def prod = a.hasProperty('orderEntryProduct') ? a.orderEntryProduct?.code : null
+        if (prod) itens[prod] += v
+    }
+    promocoes << [codigo: p.code, nome: nome ?: (p.description ?: p.code), desconto: Math.round(valor * 100) / 100.0d,
+                  itens: itens.collect { k, v -> [produto: k, desconto: Math.round(v * 100) / 100.0d] }]
 }
 
 // ---- antifraude (ClearSale e verificação de fraude do Commerce)
