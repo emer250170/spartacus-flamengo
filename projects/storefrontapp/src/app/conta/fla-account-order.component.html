@@ -234,6 +234,16 @@
             'acc.od.code' | flaT: { code: l.code }
           }}</span>
           <span class="fao-details" *ngIf="l.details">{{ l.details }}</span>
+          <span
+            class="fao-voucher"
+            *ngFor="let r of lineVouchers(vouchers$ | async, l.code)"
+          >
+            {{ 'vc.code' | flaT }}
+            <strong class="fao-mono">{{ r.voucher }}</strong>
+            <span class="fla-badge" [attr.data-tone]="voucherTone(r)">{{
+              'vc.s.' + voucherKey(r) | flaT
+            }}</span>
+          </span>
         </span>
         <span class="fao-qty">{{ 'cd.qty' | flaT: { n: l.qty } }}</span>
         <span class="fao-price">

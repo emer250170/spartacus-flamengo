@@ -1,0 +1,104 @@
+<!-- Meus vouchers (08/11): vouchers de experiência, comprados ou resgatados com pontos, com a situação -->
+<div class="fmv" *ngIf="view$ | async as v">
+  <ng-container *ngIf="v.all.length; else vazio">
+    <div class="fmv-filtros" role="group" [attr.aria-label]="'vc.filter' | flaT">
+      <button
+        *ngFor="let f of v.filters"
+        type="button"
+        class="foh-chip"
+        [attr.aria-pressed]="v.filter === f.key"
+        (click)="choose(f.key)"
+      >
+        {{ 'vc.f.' + f.key | flaT }} ({{ f.n }})
+      </button>
+    </div>
+
+    <ul class="fmv-lista">
+      <li
+        *ngFor="let x of v.shown; trackBy: track"
+        class="fmv-item"
+        [class.is-off]="x.status !== 'valid'"
+        [class.is-cancelled]="x.status === 'cancelled'"
+      >
+        <span class="fmv-foto" aria-hidden="true">
+          <img *ngIf="x.image" [src]="x.image" alt="" loading="lazy" />
+        </span>
+        <div class="fmv-info">
+          <div class="fmv-topo">
+            <strong class="fmv-nome">{{ x.r.experienceName || x.r.experienceCode }}</strong>
+            <span class="fla-badge" [attr.data-tone]="x.tone">{{
+              'vc.s.' + x.status | flaT
+            }}</span>
+          </div>
+          <div class="fmv-codigo">
+            <span class="cx-visually-hidden">{{ 'vc.code' | flaT }}</span>
+            <code>{{ x.r.voucher }}</code>
+            <button
+              type="button"
+              class="fmv-copiar"
+              *ngIf="x.status === 'valid'"
+              (click)="copy(x.r.voucher)"
+            >
+              {{ (copied === x.r.voucher ? 'vc.copied' : 'vc.copy') | flaT }}
+            </button>
+          </div>
+          <dl class="fmv-dados">
+            <div>
+              <dt>{{ 'vc.origin' | flaT }}</dt>
+              <dd *ngIf="x.purchase; else resgate">
+                {{ 'vc.purchase' | flaT }}
+                <ng-container *ngIf="x.r.orderCode">
+                  ·
+                  <a
+                    [routerLink]="
+                      { cxRoute: 'orderDetails', params: { code: x.r.orderCode } }
+                        | cxUrl
+                    "
+                    >{{ 'vc.order' | flaT: { code: x.r.orderCode } }}</a
+                  >
+                </ng-container>
+              </dd>
+              <ng-template #resgate>
+                <dd>{{ 'vc.points' | flaT: { n: num(x.r.points) } }}</dd>
+              </ng-template>
+            </div>
+            <div>
+              <dt>{{ 'vc.date' | flaT }}</dt>
+              <dd>{{ day(x.r.date) }}</dd>
+            </div>
+            <div *ngIf="x.purchase && x.r.amount !== undefined">
+              <dt>{{ 'vc.paid' | flaT }}</dt>
+              <dd>{{ brl(x.r.amount) }}</dd>
+            </div>
+            <div *ngIf="x.r.usedAt">
+              <dt>{{ 'vc.usedAt' | flaT }}</dt>
+              <dd>{{ day(x.r.usedAt) }}</dd>
+            </div>
+            <div *ngIf="x.r.cancelledAt">
+              <dt>{{ 'vc.cancelledAt' | flaT }}</dt>
+              <dd>{{ day(x.r.cancelledAt) }}</dd>
+            </div>
+          </dl>
+        </div>
+      </li>
+    </ul>
+    <p class="fmv-vazio-filtro" *ngIf="!v.shown.length">
+      {{ 'vc.noneFilter' | flaT }}
+    </p>
+    <p class="fmv-nota">{{ 'vc.note' | flaT }}</p>
+  </ng-container>
+
+  <ng-template #vazio>
+    <div class="fmv-vazio">
+      <strong>{{ 'vc.empty' | flaT }}</strong>
+      <span>{{ 'vc.emptyText' | flaT }}</span>
+      <a
+        class="fmv-ver"
+        [routerLink]="
+          { cxRoute: 'category', params: { code: 'experiencias' } } | cxUrl
+        "
+        >{{ 'vc.see' | flaT }}</a
+      >
+    </div>
+  </ng-template>
+</div>

@@ -1084,6 +1084,13 @@ originais `electronics_Email_*` continuam no banco (modo `restaurar`).
   "Experiências" e, sem nada que vá ao estádio, "Como você recebe" diz "Entrega digital". Chave
   `flamengo.pedido.vouchers.ativo` (false = lista vazia, e-mail como antes). Sem o `ant all`, o modelo novo funciona e só
   não mostra o bloco.
+- **Meus vouchers e detalhe do pedido (08/11):** em Minha conta, "Meus vouchers" (`/my-account/vouchers`,
+  `FlaMyVouchersComponent`) lista os vouchers do torcedor, sócio ou não, comprados ou resgatados com pontos: experiência,
+  código (com "Copiar"), situação **Válido / Utilizado / Cancelado**, origem (pedido ou pontos), data, valor e datas de uso
+  ou cancelamento, com filtro por situação. No detalhe do pedido, a linha da experiência mostra o voucher e a situação.
+  Dados de `GET /users/current/sociopoints` (`redemptions`, que já vinha para qualquer cliente). Página, link e item do
+  menu do header (depois de "Meus pedidos") no CMS: `scripts/meus-vouchers-cms.groovy` (MODO conferir / aplicar /
+  remover), depois de publicar a loja.
 - **Montagem:** cada e-mail = `modelos/_base.vm` (cores, topo com escudo, listas de itens separadas em Ingressos /
   Dia de jogo / Loja, botão, caixas, rodapé) + o arquivo do e-mail. A lista (página, códigos, assunto, processo
   usado na prévia) está em `emails.json`. Os macros têm prefixo `fla` e são idênticos em todos (o Velocity guarda
