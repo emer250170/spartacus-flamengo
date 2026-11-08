@@ -1264,3 +1264,14 @@ jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória at
 - Backoffice: a devolução aparece (só leitura) na aba Mengo Estúdio do pedido; cada passo entra em Andamento dos
   pedidos.
 - Instalação: `ant all` e publicar a loja (sem Update).
+
+### Devolução em campos legíveis no Backoffice (08/11)
+
+- Dez atributos dinâmicos em `AbstractOrder` (`mengoDevMotivo`, `mengoDevSolucao`, `mengoDevEtapa`,
+  `mengoDevCodigoPostagem`, `mengoDevComentario`, `mengoDevSolicitadaEm`, `mengoDevEnviadaEm`, `mengoDevRecebidaEm`,
+  `mengoDevValor`, `mengoDevReimpressao`), só leitura, todos com `MengoDevolucaoCampoHandler` (propriedade `campo`):
+  leem o JSON de `mengoDevolucao` e devolvem texto em português (ex.: "Defeito na peça", "Reimpressão sem custo",
+  "Concluída", datas "dd/MM/aaaa HH:mm" de Brasília). Nada novo no banco: o JSON continua sendo a fonte.
+- Aba Mengo Estúdio do pedido: seção nova "Devolução (camisetas sob demanda)" com esses campos; o JSON saiu da tela.
+- Instalação: `ant all`, HAC › Update (Update running system + Localize types), reiniciar antes de abrir o
+  Backoffice (cache do tipo) e "Reset to Defaults" na tela do pedido.

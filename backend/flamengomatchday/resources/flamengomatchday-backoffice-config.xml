@@ -376,7 +376,19 @@
 				<editorArea:section name="estudio.pedido.situacao">
 					<editorArea:attribute qualifier="mengoSituacao"/>
 					<editorArea:attribute qualifier="mengoRastreio"/>
-					<editorArea:attribute qualifier="mengoDevolucao" readonly="true"/>
+				</editorArea:section>
+				<!-- Devolução em campos legíveis (08/11); o JSON (mengoDevolucao) fica só no modelo -->
+				<editorArea:section name="estudio.pedido.devolucao">
+					<editorArea:attribute qualifier="mengoDevMotivo" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevSolucao" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevEtapa" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevCodigoPostagem" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevComentario" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevSolicitadaEm" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevEnviadaEm" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevRecebidaEm" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevValor" readonly="true"/>
+					<editorArea:attribute qualifier="mengoDevReimpressao" readonly="true"/>
 				</editorArea:section>
 			</editorArea:tab>
 		</editorArea:editorArea>
