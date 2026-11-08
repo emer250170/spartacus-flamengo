@@ -292,11 +292,7 @@ public class McpSupport
 					@Override
 					public void executeWithoutResult()
 					{
-						userService.setCurrentUser(userService.getAdminUser());
-						// a linha nasce da chamada da API, sem catálogos na sessão: sem isso as restrições de produto e
-						// categoria (Frontend_Product, Backend_visibility) falham em "session.catalogversions"
-						searchRestrictionService.disableSearchRestrictions();
-						catalogVersionService.setSessionCatalogVersions(catalogVersionService.getAllCatalogVersions());
+						prepareSession();
 						ItemModel item = null;
 						for (int i = 0; i < 60 && item == null; i++)
 						{
@@ -323,6 +319,19 @@ public class McpSupport
 		}, "mcp-" + type + "-" + code);
 		thread.setDaemon(true);
 		thread.start();
+	}
+
+	/**
+	 * Sessão do processamento em segundo plano: administrador, sem restrições de busca e com todos os catálogos. A linha
+	 * nasce da chamada da API sem catálogos na sessão, e a importação de ImpEx fecha a sessão no fim (o usuário volta a
+	 * anônimo); sem isso as restrições de produto e categoria (Frontend_Product, Backend_visibility) falham em
+	 * "session.catalogversions". Chamar no início e depois de cada importação.
+	 */
+	public void prepareSession()
+	{
+		userService.setCurrentUser(userService.getAdminUser());
+		searchRestrictionService.disableSearchRestrictions();
+		catalogVersionService.setSessionCatalogVersions(catalogVersionService.getAllCatalogVersions());
 	}
 
 	/** Grava situação e mensagem do item (ENVIADO, ERRO...) */
