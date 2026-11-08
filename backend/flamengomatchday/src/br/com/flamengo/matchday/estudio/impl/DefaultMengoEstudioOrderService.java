@@ -13,6 +13,8 @@ import de.hybris.platform.core.model.order.AbstractOrderModel;
 import de.hybris.platform.core.model.order.OrderModel;
 import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.enumeration.EnumerationService;
+import de.hybris.platform.order.strategies.ordercloning.CloneAbstractOrderStrategy;
+import de.hybris.platform.servicelayer.keygenerator.KeyGenerator;
 import de.hybris.platform.servicelayer.model.ModelService;
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery;
 import de.hybris.platform.servicelayer.search.FlexibleSearchService;
@@ -28,6 +30,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +45,14 @@ public class DefaultMengoEstudioOrderService implements MengoEstudioOrderService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultMengoEstudioOrderService.class);
 	private static final String ENUM = "MengoPedidoSituacao";
+	/** Motivos da devolução e o texto da linha do tempo */
+	private static final Map<String, String> MOTIVOS = new LinkedHashMap<>();
+	static
+	{
+		MOTIVOS.put("DEFEITO", "Defeito na peça");
+		MOTIVOS.put("ERRO", "Erro de produção");
+		MOTIVOS.put("ARREPENDIMENTO", "Arrependimento");
+	}
 	private static final String RECUSA_PAGAMENTO = "Pagamento recusado pelo emissor do cartão. Nenhum valor foi cobrado e "
 			+ "nenhum pedido foi criado; seus itens continuam no carrinho. Confira os dados ou use outro cartão e tente de novo.";
 
@@ -49,6 +62,9 @@ public class DefaultMengoEstudioOrderService implements MengoEstudioOrderService
 	private ModelService modelService;
 	private FlexibleSearchService flexibleSearchService;
 	private EnumerationService enumerationService;
+	private CloneAbstractOrderStrategy cloneAbstractOrderStrategy;
+	private KeyGenerator orderCodeGenerator;
+	private final ObjectMapper mapper = new ObjectMapper();
 
 	@Override
 	public boolean temEstudio(final AbstractOrderModel order)
@@ -168,6 +184,9 @@ public class DefaultMengoEstudioOrderService implements MengoEstudioOrderService
 		m.put("rastreio", attr(order, "mengoRastreio"));
 		m.put("itens", mengoEstudioCartService.itens(order));
 		m.put("podeCancelar", Boolean.valueOf(mengoEstudioService.isActive() && RECEBIDO.equals(situacao)));
+		final Map<String, Object> dev = devolucao(order);
+		m.put("devolucao", dev);
+		m.put("podeDevolver", Boolean.valueOf(mengoEstudioService.isActive() && ENTREGUE.equals(situacao) && dev == null));
 		final double valor = valorEstudio(order);
 		m.put("valorEstudio", Double.valueOf(valor));
 		m.put("valorEstudioTexto", dinheiro(valor));
@@ -243,6 +262,234 @@ public class DefaultMengoEstudioOrderService implements MengoEstudioOrderService
 		}
 		LOG.info("Mengo Estúdio: pagamento do carrinho {} recusado pela simulação ({})", cart.getCode(), proximo);
 		return RECUSA_PAGAMENTO;
+	}
+
+	@Override
+	public Map<String, Object> devolucao(final AbstractOrderModel order)
+	{
+		final Object v = attr(order, "mengoDevolucao");
+		if (!(v instanceof String) || StringUtils.isBlank((String) v))
+		{
+			return null;
+		}
+		try
+		{
+			return mapper.readValue((String) v, new TypeReference<LinkedHashMap<String, Object>>()
+			{
+				// mapa
+			});
+		}
+		catch (final Exception e)
+		{
+			LOG.warn("Mengo Estúdio: devolução do pedido {} ilegível: {}", order.getCode(), e.getMessage());
+			return null;
+		}
+	}
+
+	@Override
+	public Map<String, Object> pedirDevolucao(final OrderModel order, final String motivo, final String solucao,
+			final String comentario, final String autor)
+	{
+		if (!mengoEstudioService.isActive() || !temEstudio(order))
+		{
+			throw new IllegalArgumentException("Este pedido não tem camiseta do Mengo Estúdio.");
+		}
+		if (devolucao(order) != null)
+		{
+			throw new IllegalArgumentException("A devolução deste pedido já foi pedida.");
+		}
+		if (!ENTREGUE.equals(situacao(order)))
+		{
+			throw new IllegalArgumentException("A devolução fica disponível depois da entrega.");
+		}
+		final String mot = StringUtils.upperCase(StringUtils.trimToEmpty(motivo));
+		if (!MOTIVOS.containsKey(mot))
+		{
+			throw new IllegalArgumentException("Escolha um motivo para continuar.");
+		}
+		String sol = StringUtils.upperCase(StringUtils.trimToEmpty(solucao));
+		if ("ARREPENDIMENTO".equals(mot))
+		{
+			sol = "REEMBOLSO";
+		}
+		if (!"REEMBOLSO".equals(sol) && !"REIMPRESSAO".equals(sol))
+		{
+			throw new IllegalArgumentException("Escolha entre reembolso e reimpressão.");
+		}
+		final long agora = mengoEstudioService.now();
+		final Map<String, Object> d = new LinkedHashMap<>();
+		d.put("motivo", mot);
+		d.put("solucao", sol);
+		d.put("comentario", StringUtils.left(StringUtils.trimToNull(comentario), 500));
+		d.put("etapa", "SOLICITADA");
+		d.put("codigoPostagem", "ME-DEV-" + order.getCode());
+		d.put("solicitadaEm", Long.valueOf(agora));
+		final double valor = valorEstudio(order);
+		d.put("valor", Double.valueOf(valor));
+		d.put("valorTexto", dinheiro(valor));
+		gravarDevolucao(order, d);
+		mudar(order, EM_DEVOLUCAO, "Devolução solicitada · " + StringUtils.lowerCase(MOTIVOS.get(mot)) + " · "
+				+ ("REIMPRESSAO".equals(sol) ? "reimpressão" : "reembolso") + ". Código de postagem " + d.get("codigoPostagem")
+				+ ".", autor);
+		return d;
+	}
+
+	@Override
+	public Map<String, Object> enviarDevolucao(final OrderModel order, final String autor)
+	{
+		final Map<String, Object> d = devolucao(order);
+		if (d == null || !"SOLICITADA".equals(d.get("etapa")))
+		{
+			throw new IllegalArgumentException("Não há devolução aguardando o envio da peça.");
+		}
+		d.put("etapa", "ENVIADA");
+		d.put("enviadaEm", Long.valueOf(mengoEstudioService.now()));
+		gravarDevolucao(order, d);
+		modelService.save(order);
+		return d;
+	}
+
+	@Override
+	public Map<String, Object> receberDevolucao(final OrderModel order, final String autor)
+	{
+		final Map<String, Object> d = devolucao(order);
+		if (d == null || "RESOLVIDA".equals(d.get("etapa")))
+		{
+			throw new IllegalArgumentException("Não há devolução aguardando a estamparia.");
+		}
+		final long agora = mengoEstudioService.now();
+		if (d.get("enviadaEm") == null)
+		{
+			d.put("enviadaEm", Long.valueOf(agora));
+		}
+		d.put("recebidaEm", Long.valueOf(agora));
+		d.put("etapa", "RESOLVIDA");
+		if ("REIMPRESSAO".equals(d.get("solucao")))
+		{
+			final OrderModel novo = reimpressao(order, d);
+			d.put("pedidoReimpressao", novo.getCode());
+			gravarDevolucao(order, d);
+			mudar(order, ENTREGUE, "Peça recebida pela estamparia. Reimpressão sem custo no pedido " + novo.getCode() + ".",
+					autor);
+		}
+		else
+		{
+			gravarDevolucao(order, d);
+			mudar(order, REEMBOLSADO, "Peça recebida pela estamparia. Reembolso de " + d.get("valorTexto")
+					+ " na mesma forma de pagamento (simulado; o prazo depende do banco).", autor);
+		}
+		return d;
+	}
+
+	@Override
+	public String avancar(final OrderModel order, final String autor)
+	{
+		final String sit = StringUtils.defaultString(situacao(order), RECEBIDO);
+		switch (sit)
+		{
+			case RECEBIDO:
+				mudar(order, EM_PRODUCAO, "A estamparia começou a produção.", autor);
+				return EM_PRODUCAO;
+			case EM_PRODUCAO:
+				mudar(order, ENVIADO, null, autor);
+				return ENVIADO;
+			case ENVIADO:
+				mudar(order, ENTREGUE, "Pedido entregue.", autor);
+				return ENTREGUE;
+			case EM_DEVOLUCAO:
+				final Map<String, Object> d = devolucao(order);
+				if (d != null && "SOLICITADA".equals(d.get("etapa")))
+				{
+					enviarDevolucao(order, autor);
+					return EM_DEVOLUCAO;
+				}
+				receberDevolucao(order, autor);
+				return situacao(order);
+			default:
+				return null;
+		}
+	}
+
+	@Override
+	public String proximoPasso(final AbstractOrderModel order)
+	{
+		final String sit = StringUtils.defaultString(situacao(order), RECEBIDO);
+		switch (sit)
+		{
+			case RECEBIDO:
+				return "Iniciar a produção";
+			case EM_PRODUCAO:
+				return "Enviar";
+			case ENVIADO:
+				return "Entregar";
+			case EM_DEVOLUCAO:
+				final Map<String, Object> d = devolucao(order);
+				return d != null && "SOLICITADA".equals(d.get("etapa")) ? "Torcedor postou a peça"
+						: "Estamparia recebeu a peça";
+			default:
+				return null;
+		}
+	}
+
+	/** Pedido novo sem custo com as mesmas camisetas do Estúdio (sem série nem rastreio: a estamparia produz de novo) */
+	protected OrderModel reimpressao(final OrderModel original, final Map<String, Object> d)
+	{
+		final String code = String.valueOf(orderCodeGenerator.generate());
+		final OrderModel novo = cloneAbstractOrderStrategy.clone(null, null, original, code, OrderModel.class,
+				de.hybris.platform.core.model.order.OrderEntryModel.class);
+		novo.setDate(new Date(mengoEstudioService.now()));
+		novo.setStatus(OrderStatus.CREATED);
+		novo.setVersionID(null);
+		novo.setOriginalVersion(null);
+		novo.setPaymentTransactions(new ArrayList<>());
+		novo.setConsignments(new java.util.HashSet<>());
+		novo.setAllPromotionResults(new java.util.HashSet<>());
+		modelService.setAttributeValue(novo, "mengoSituacao", null);
+		modelService.setAttributeValue(novo, "mengoRastreio", null);
+		modelService.setAttributeValue(novo, "mengoDevolucao", null);
+		final List<AbstractOrderEntryModel> entradas = new ArrayList<>();
+		int n = 0;
+		for (final AbstractOrderEntryModel e : novo.getEntries())
+		{
+			if (!mengoEstudioCartService.isEstudioEntry(e))
+			{
+				continue;
+			}
+			e.setEntryNumber(Integer.valueOf(n++));
+			e.setBasePrice(Double.valueOf(0));
+			e.setTotalPrice(Double.valueOf(0));
+			e.setDiscountValues(new ArrayList<>());
+			e.setCalculated(Boolean.TRUE);
+			modelService.setAttributeValue(e, "mengoNumeroSerie", null);
+			entradas.add(e);
+		}
+		novo.setEntries(entradas);
+		novo.setSubtotal(Double.valueOf(0));
+		novo.setTotalDiscounts(Double.valueOf(0));
+		novo.setTotalTax(Double.valueOf(0));
+		novo.setDeliveryCost(Double.valueOf(0));
+		novo.setPaymentCost(Double.valueOf(0));
+		novo.setTotalPrice(Double.valueOf(0));
+		novo.setGlobalDiscountValues(new ArrayList<>());
+		novo.setCalculated(Boolean.TRUE);
+		modelService.save(novo);
+		modelService.saveAll(entradas);
+		mudar(novo, RECEBIDO, "Reimpressão sem custo do pedido " + original.getCode() + " (devolução por "
+				+ StringUtils.lowerCase(MOTIVOS.get(String.valueOf(d.get("motivo")))) + ").", "estamparia (simulada)");
+		LOG.info("Mengo Estúdio: reimpressão {} do pedido {}", novo.getCode(), original.getCode());
+		return novo;
+	}
+
+	protected void gravarDevolucao(final OrderModel order, final Map<String, Object> d)
+	{
+		try
+		{
+			modelService.setAttributeValue(order, "mengoDevolucao", mapper.writeValueAsString(d));
+		}
+		catch (final Exception e)
+		{
+			throw new IllegalStateException("Devolução não gravada: " + e.getMessage(), e);
+		}
 	}
 
 	/** Linha do tempo, na ordem em que aconteceu */
@@ -349,5 +596,15 @@ public class DefaultMengoEstudioOrderService implements MengoEstudioOrderService
 	public void setEnumerationService(final EnumerationService enumerationService)
 	{
 		this.enumerationService = enumerationService;
+	}
+
+	public void setCloneAbstractOrderStrategy(final CloneAbstractOrderStrategy cloneAbstractOrderStrategy)
+	{
+		this.cloneAbstractOrderStrategy = cloneAbstractOrderStrategy;
+	}
+
+	public void setOrderCodeGenerator(final KeyGenerator orderCodeGenerator)
+	{
+		this.orderCodeGenerator = orderCodeGenerator;
 	}
 }

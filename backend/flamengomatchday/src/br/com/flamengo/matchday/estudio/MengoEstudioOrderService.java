@@ -24,6 +24,8 @@ public interface MengoEstudioOrderService
 	String ENVIADO = "ENVIADO";
 	String ENTREGUE = "ENTREGUE";
 	String CANCELADO = "CANCELADO";
+	String EM_DEVOLUCAO = "EM_DEVOLUCAO";
+	String REEMBOLSADO = "REEMBOLSADO";
 
 	/** O pedido (ou carrinho) tem camiseta do Estúdio */
 	boolean temEstudio(AbstractOrderModel order);
@@ -62,4 +64,33 @@ public interface MengoEstudioOrderService
 	 * RECUSAR_UMA_VEZ volta para APROVAR depois de usada.
 	 */
 	String recusaPagamento(AbstractOrderModel cart);
+
+	/**
+	 * Devolução da parte Mengo Estúdio (PR 5), gravada no pedido (mengoDevolucao, JSON): motivo (DEFEITO, ERRO,
+	 * ARREPENDIMENTO), solução (REEMBOLSO, REIMPRESSAO; arrependimento só reembolso), comentário, etapa (SOLICITADA,
+	 * ENVIADA, RESOLVIDA), código de postagem demonstrativo e as datas. null = sem devolução.
+	 */
+	java.util.Map<String, Object> devolucao(AbstractOrderModel order);
+
+	/** Pede a devolução (só pedido Entregue, uma vez): situação Em devolução */
+	java.util.Map<String, Object> pedirDevolucao(OrderModel order, String motivo, String solucao, String comentario,
+			String autor);
+
+	/** O torcedor informa que postou a peça */
+	java.util.Map<String, Object> enviarDevolucao(OrderModel order, String autor);
+
+	/**
+	 * A estamparia confirma o recebimento da peça: reembolso (situação Reembolsado, estorno simulado) ou reimpressão
+	 * (pedido novo sem custo, com as mesmas camisetas; o original volta a Entregue).
+	 */
+	java.util.Map<String, Object> receberDevolucao(OrderModel order, String autor);
+
+	/**
+	 * Próximo passo do pedido como faria a estamparia (painel da demo): Recebido → Em produção → Enviado → Entregue;
+	 * em devolução, peça postada → recebida. Devolve a situação nova ou null se não há próximo passo.
+	 */
+	String avancar(OrderModel order, String autor);
+
+	/** Texto do botão do próximo passo no painel da demo (null = nada a fazer) */
+	String proximoPasso(AbstractOrderModel order);
 }

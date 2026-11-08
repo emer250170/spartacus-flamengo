@@ -1,0 +1,105 @@
+<!-- Painel da demonstração do Mengo Estúdio (mockup E25): só para usuários de teste -->
+<ng-container *ngIf="vm$ | async as vm">
+  <main class="me-wrap pg dm">
+    <nav class="me-crumb" [attr.aria-label]="'me.crumbs' | flaT">
+      <a routerLink="/">{{ 'me.lojaOficial' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+      <a routerLink="/mengo-estudio">{{ 'me.nome' | flaT }}</a><span class="sep" aria-hidden="true">—</span>
+      <span class="atual" aria-current="page">{{ 'me.demo.titulo' | flaT }}</span>
+    </nav>
+    <div class="intro">
+      <h1 class="me-t">{{ 'me.demo.titulo' | flaT }}</h1>
+      <p>{{ 'me.demo.sub' | flaT }}</p>
+    </div>
+    <p class="dm-aviso">{{ 'me.demo.aviso' | flaT }}</p>
+
+    <div *ngIf="vm.estado === false" class="me-vazio" role="alert">
+      <strong>{{ vm.erro }}</strong>
+    </div>
+
+    <p class="dm-msg" *ngIf="mensagem" role="status">{{ mensagem }}</p>
+    <p class="dm-erro" *ngIf="erro" role="alert">{{ erro }}</p>
+
+    <div class="dm-grade" *ngIf="vm.estado && vm.estado as d" [attr.aria-busy]="ocupado">
+      <section class="dm-card" aria-labelledby="dm-rel">
+        <h2 id="dm-rel">{{ 'me.demo.relogio' | flaT }}</h2>
+        <p>{{ 'me.demo.agora' | flaT }} <strong>{{ hora(d.agora) }}</strong>
+          <span *ngIf="d.relogioMinutos"> {{ 'me.demo.adiantado' | flaT: { h: horas(d.relogioMinutos) } }}</span></p>
+        <div class="dm-ops">
+          <button type="button" class="dm-op" (click)="acao({ acao: 'relogio', minutos: 60 })">{{ 'me.demo.mais1h' | flaT }}</button>
+          <button type="button" class="dm-op" (click)="acao({ acao: 'relogio', minutos: 1440 })">{{ 'me.demo.mais1d' | flaT }}</button>
+          <button type="button" class="dm-op" (click)="acao({ acao: 'relogio', minutos: 10080 })">{{ 'me.demo.mais7d' | flaT }}</button>
+          <button type="button" class="dm-op" [attr.aria-pressed]="!d.relogioMinutos" (click)="acao({ acao: 'relogio', minutos: 0 })">{{ 'me.demo.horaReal' | flaT }}</button>
+        </div>
+        <p class="dm-nota">{{ 'me.demo.relogioNota' | flaT }}</p>
+      </section>
+
+      <section class="dm-card" aria-labelledby="dm-prazo">
+        <h2 id="dm-prazo">{{ 'me.demo.prazo' | flaT }}</h2>
+        <label class="dm-campo">{{ 'me.p.estampa' | flaT }}
+          <select [(ngModel)]="estampa" name="estampa">
+            <option *ngFor="let e of d.estampas; trackBy: tb" [value]="e.code">{{ e.nome }}</option>
+          </select>
+        </label>
+        <p *ngIf="escolhida(d) as e">{{ 'me.demo.situacao' | flaT }} <strong>{{ 'me.demo.sit.' + e.situacao | flaT }}</strong>
+          · {{ hora(e.fim) }}<span *ngIf="e.simulado"> ({{ 'me.demo.simulado' | flaT }})</span></p>
+        <div class="dm-ops">
+          <button type="button" class="dm-op" [attr.aria-pressed]="!escolhida(d)?.simulado" (click)="acao({ acao: 'prazo', estampa: estampa, modo: 'cadastrado' })">{{ 'me.demo.cadastrado' | flaT }}</button>
+          <button type="button" class="dm-op" (click)="acao({ acao: 'prazo', estampa: estampa, modo: '47h' })">{{ 'me.demo.47h' | flaT }}</button>
+          <button type="button" class="dm-op" (click)="acao({ acao: 'prazo', estampa: estampa, modo: 'encerrar' })">{{ 'me.demo.encerrar' | flaT }}</button>
+        </div>
+      </section>
+
+      <section class="dm-card" aria-labelledby="dm-pag">
+        <h2 id="dm-pag">{{ 'me.demo.pagamento' | flaT }}</h2>
+        <div class="dm-ops">
+          <button *ngFor="let v of ['APROVAR', 'RECUSAR_UMA_VEZ', 'RECUSAR']" type="button" class="dm-op" [attr.aria-pressed]="d.pagamento === v" (click)="acao({ acao: 'pagamento', valor: v })">{{ 'me.demo.pag.' + v | flaT }}</button>
+        </div>
+        <p class="dm-nota">{{ 'me.demo.pagNota' | flaT }}</p>
+      </section>
+
+      <section class="dm-card" aria-labelledby="dm-can">
+        <h2 id="dm-can">{{ 'me.demo.cancelamento' | flaT }}</h2>
+        <div class="dm-ops">
+          <button *ngFor="let v of ['ACEITO', 'RECUSADO', 'FALHA']" type="button" class="dm-op" [attr.aria-pressed]="d.cancelamento === v" (click)="acao({ acao: 'cancelamento', valor: v })">{{ 'me.demo.can.' + v | flaT }}</button>
+        </div>
+        <p class="dm-nota">{{ 'me.demo.canNota' | flaT }}</p>
+      </section>
+
+      <section class="dm-card dm-largo" aria-labelledby="dm-ped">
+        <h2 id="dm-ped">{{ 'me.demo.pedidos' | flaT }}</h2>
+        <p *ngIf="!d.pedidos.length" class="dm-nota">{{ 'me.demo.semPedidos' | flaT }}</p>
+        <table class="dm-tab" *ngIf="d.pedidos.length">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'me.demo.pedido' | flaT }}</th>
+              <th scope="col">{{ 'acc.od.status' | flaT }}</th>
+              <th scope="col">{{ 'me.o.acoes' | flaT }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of d.pedidos; trackBy: tb">
+              <td><a [routerLink]="['/my-account/order', p.code]">{{ p.code }}</a></td>
+              <td>{{ 'me.sit.' + p.situacao | flaT }}<span *ngIf="p.devolucao"> · {{ 'me.demo.dev.' + p.devolucao | flaT }}</span></td>
+              <td>
+                <button *ngIf="p.proximo; else fim" type="button" class="dm-op" (click)="acao({ acao: 'avancar', pedido: p.code })">{{ p.proximo }}</button>
+                <ng-template #fim><span class="dm-nota">{{ 'me.demo.concluido' | flaT }}</span></ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="dm-card" aria-labelledby="dm-av">
+        <h2 id="dm-av">{{ 'me.demo.avisos' | flaT }}</h2>
+        <p>{{ 'me.demo.avisosX' | flaT: { n: d.avisos, p: d.avisosPendentes } }}</p>
+        <button type="button" class="dm-op" [disabled]="!d.avisosPendentes" (click)="acao({ acao: 'avisos' })">{{ 'me.demo.relancar' | flaT }}</button>
+      </section>
+
+      <section class="dm-card" aria-labelledby="dm-res">
+        <h2 id="dm-res">{{ 'me.demo.restaurar' | flaT }}</h2>
+        <p class="dm-nota">{{ 'me.demo.restaurarX' | flaT }}</p>
+        <button type="button" class="me-btn" (click)="acao({ acao: 'restaurar' })">{{ 'me.demo.restaurarB' | flaT }}</button>
+      </section>
+    </div>
+  </main>
+</ng-container>

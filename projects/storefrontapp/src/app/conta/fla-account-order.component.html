@@ -105,6 +105,22 @@
         <span class="fao-muted" *ngIf="me.semCancelar && !resultado">{{
           me.semCancelar
         }}</span>
+        <!-- PR 5: devolução -->
+        <a
+          *ngIf="me.pedido.podeDevolver"
+          class="btn btn-secondary btn-block fao-me-cancel"
+          [routerLink]="['/mengo-estudio/devolucao', v.order.code]"
+          >{{ 'me.o.devolver' | flaT }}</a
+        >
+        <span class="fao-muted" *ngIf="me.pedido.podeDevolver">{{
+          'me.o.devolverDica' | flaT
+        }}</span>
+        <a
+          *ngIf="me.pedido.devolucao"
+          class="btn btn-secondary btn-block fao-me-cancel"
+          [routerLink]="['/mengo-estudio/devolucao', v.order.code]"
+          >{{ 'me.o.verDevolucao' | flaT }}</a
+        >
         <a class="fao-me-link" routerLink="/my-account/support-tickets">{{
           'me.o.falar' | flaT
         }}</a>

@@ -135,4 +135,10 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Painel da demonstração do Mengo Estúdio (08/11, PR 5): /users/{userId}/mengo-estudio/demo -->
+	<bean id="flamengoMengoEstudioDemoController" class="br.com.flamengo.matchday.occ.MengoEstudioDemoController">
+		<property name="mengoEstudioDemoService" ref="mengoEstudioDemoService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 </beans>
