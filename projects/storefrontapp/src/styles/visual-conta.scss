@@ -1361,7 +1361,8 @@ $fla-acc-body: 'html.fla-account main cx-page-layout.AccountPageTemplate > cx-pa
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+    // os dois cartões (Entrega e pagamento / Resumo) com a mesma altura (Emerson, 08/11)
+    align-items: stretch;
     gap: 20px;
   }
 
