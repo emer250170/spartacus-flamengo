@@ -2,13 +2,21 @@
 #set($order = $ctx.order)
 #flaLinkPedido($order.code $order.guid $order.guestCustomer)
 #set($temIngresso = false)
-#foreach($e in $order.entries)#if($e.product.code.startsWith("JOGO-"))#set($temIngresso = true)#end#end
+#set($temExperiencia = false)
+#set($soDigital = true)
+#foreach($e in $order.entries)
+#if($e.product.code.startsWith("JOGO-"))#set($temIngresso = true)#end
+#if($e.product.code.startsWith("EXP-"))#set($temExperiencia = true)#end
+#if(!$e.product.code.startsWith("EXP-") && !$e.product.code.startsWith("NACAO-"))#set($soDigital = false)#end
+#end
 #flaTopo("Pedido ${order.code}" "Recebemos o pedido nº ${order.code}. Total ${order.totalPriceWithTax.formattedValue}.")
 #flaEtiqueta("Pedido recebido")
 #flaTitulo("Valeu, ${ctx.displayName}!<br/>Seu pedido está com a gente.")
 #if($temIngresso)#set($frase = " Seus ingressos ficam no app e em <b style='color:${preto};'>Minha conta</b>, prontos para o dia do jogo.")#else#set($frase = "")#end
+#if($temExperiencia && $order.flaVouchers && $order.flaVouchers.size() > 0)#set($frase = "${frase} O voucher de cada experiência está logo abaixo.")#end
 #flaParagrafo("Recebemos o pedido <b style='color:${preto};'>nº ${order.code}</b>.${frase} Se o pagamento foi por Pix ou boleto, o pedido segue assim que o pagamento for confirmado.")
 #flaBotao("Ver meu pedido" $linkPedido)
+#flaVouchers($order.flaVouchers)
 #flaListaItens($order.entries)
 <tr><td class="miolo" style="padding:20px 40px 0 40px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -38,7 +46,10 @@
 #if($order.deliveryAddress.postalCode)#set($end = "${end} · CEP ${order.deliveryAddress.postalCode}")#end
 #if($como != "")#set($como = "${como}<br/><br/>${end}")#else#set($como = $end)#end
 #end
-#flaCaixa("Como você recebe" $order.deliveryMode.name $como)
+#set($nomeEntrega = $order.deliveryMode.name)
+## só plano e/ou experiência (nada no estádio): "Entrega digital", como na loja (PR #290)
+#if($soDigital && $order.deliveryMode.code.startsWith("matchday"))#set($nomeEntrega = "Entrega digital")#if($temExperiencia)#set($como = "Voucher da experiência neste e-mail")#end#end
+#flaCaixa("Como você recebe" $nomeEntrega $como)
 #end
 #flaEspaco()
 #flaRodape("E-mail automático da Loja Oficial do Flamengo sobre o seu pedido.")

@@ -29,6 +29,15 @@ import {
   MeSituacaoPedido,
 } from '../estudio/estudio.service';
 import { statusTone } from './conta-pages';
+import {
+  SocioPointsService,
+  SocioRedemption,
+} from '../socio/socio-points.service';
+import {
+  EXPERIENCE_PRODUCT_PREFIX,
+  VOUCHER_TONE,
+  voucherStatus,
+} from '../socio/fla-voucher';
 
 /** Caminho normal da parte Mengo Estúdio do pedido */
 const ME_FLUXO: MeSituacaoPedido[] = [
@@ -120,6 +129,42 @@ export class FlaAccountOrderComponent extends FlaOcBodyComponent {
   /** Pedido do Estúdio devolvido pelo cancelamento (vale enquanto for o mesmo pedido) */
   protected readonly meNovo$ = new BehaviorSubject<MePedido | null>(null);
 
+  protected readonly socioPoints = inject(SocioPointsService);
+
+  /**
+   * Vouchers das experiências do pedido (08/11), por produto (EXP-<código>): o número e a situação
+   * aparecem na linha do item, para sócio ou não. Só pedido com experiência consulta o servidor.
+   */
+  readonly vouchers$: Observable<Record<string, SocioRedemption[]>> =
+    this.order$.pipe(
+      map((o) =>
+        o?.code &&
+        (o.entries ?? []).some((e) =>
+          (e.product?.code ?? '').startsWith(EXPERIENCE_PRODUCT_PREFIX)
+        )
+          ? o.code
+          : undefined
+      ),
+      distinctUntilChanged(),
+      switchMap((code) =>
+        code
+          ? this.socioPoints.load().pipe(
+              map((p) => {
+                const out: Record<string, SocioRedemption[]> = {};
+                p.redemptions
+                  .filter((r) => r.orderCode === code && r.experienceCode)
+                  .forEach((r) => {
+                    const key = EXPERIENCE_PRODUCT_PREFIX + r.experienceCode;
+                    (out[key] = out[key] ?? []).push(r);
+                  });
+                return out;
+              })
+            )
+          : of({})
+      ),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
   readonly account$: Observable<AccountOrderView | null> = combineLatest([
     this.order$,
     this.view$,
@@ -151,6 +196,22 @@ export class FlaAccountOrderComponent extends FlaOcBodyComponent {
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true })
     );
+  }
+
+  /** Vouchers da linha (produto EXP-...) */
+  lineVouchers(
+    all: Record<string, SocioRedemption[]> | null,
+    code: string
+  ): SocioRedemption[] {
+    return all?.[code] ?? [];
+  }
+
+  voucherKey(r: SocioRedemption): string {
+    return voucherStatus(r);
+  }
+
+  voucherTone(r: SocioRedemption): string {
+    return VOUCHER_TONE[voucherStatus(r)];
   }
 
   /** Abre o "Cancelar pedido?" */

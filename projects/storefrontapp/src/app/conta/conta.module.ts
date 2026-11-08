@@ -29,6 +29,7 @@ import { FlaAccountMenuComponent } from './fla-account-menu.component';
 import { FlaAccountOrderComponent } from './fla-account-order.component';
 import { FlaEmailCurrentComponent } from './fla-email-current.component';
 import { FlaOrderHistoryComponent } from './fla-order-history.component';
+import { FlaMyVouchersComponent } from './fla-my-vouchers.component';
 import {
   FlaLoginHaveComponent,
   FlaLoginPerksComponent,
@@ -71,6 +72,7 @@ import {
     FlaLoginHaveComponent,
     FlaLoginPerksComponent,
     FlaOrderHistoryComponent,
+    FlaMyVouchersComponent,
     FlaAccountOrderComponent,
     FlaEmailCurrentComponent,
     FlaFaqComponent,
@@ -92,6 +94,11 @@ import {
       cmsComponents: {
         AccountOrderHistoryComponent: {
           component: FlaOrderHistoryComponent,
+          guards: [AuthGuard],
+        },
+        // 08/11: Meus vouchers (/my-account/vouchers, CMS: scripts/meus-vouchers-cms.groovy)
+        FlaMyVouchersComponent: {
+          component: FlaMyVouchersComponent,
           guards: [AuthGuard],
         },
       },

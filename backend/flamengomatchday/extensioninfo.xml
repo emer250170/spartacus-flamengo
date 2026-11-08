@@ -19,6 +19,9 @@
         <!-- 07/11: envio de e-mail com imagens embutidas (FlaEmailService estende o DefaultEmailService);
              já carregava antes desta extensão via b2bacceleratorservices -->
         <requires-extension name="acceleratorservices"/>
+        <!-- 08/11: vouchers das experiências no OrderData (flamengomatchday-beans.xml e FlaOrderVoucherPopulator);
+             já carregava antes desta extensão via acceleratorservices/OCC -->
+        <requires-extension name="commercefacades"/>
 
         <coremodule generated="true" manager="de.hybris.platform.jalo.extension.GenericManager" packageroot="br.com.flamengo.matchday"/>
 
