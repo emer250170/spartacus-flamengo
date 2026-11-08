@@ -78,12 +78,12 @@
 					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 					<virtual-sockets/>
 				</widget>
-				<!-- ao abrir a perspectiva, seleciona "Jogos" -->
+				<!-- ao abrir a perspectiva, seleciona "Relatórios" (08/11: página inicial; antes "Jogos") -->
 				<widget id="matchdayPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
 					<widget id="matchdayGamesSelector" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
 							slotId="cockpitWidgetChildrenInvisible" template="false">
-						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("matchday.tree.games", true)</setting>
+						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("matchday.tree.reports", true)</setting>
 						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 						<virtual-sockets/>
 					</widget>
@@ -417,12 +417,12 @@
 					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 					<virtual-sockets/>
 				</widget>
-				<!-- ao abrir a perspectiva, seleciona "Planos" -->
+				<!-- ao abrir a perspectiva, seleciona "Relatórios" (08/11: página inicial; antes "Planos") -->
 				<widget id="socioPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
 					<widget id="socioGamesSelector" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
 							slotId="cockpitWidgetChildrenInvisible" template="false">
-						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("socio.tree.plans", true)</setting>
+						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("socio.tree.reports", true)</setting>
 						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 						<virtual-sockets/>
 					</widget>
@@ -801,6 +801,19 @@
 					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 					<virtual-sockets/>
 				</widget>
+				<!-- clique em "Relatório de vendas" (08/11) -->
+				<widget id="lojaSalesReportSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
+						slotId="cockpitWidgetChildrenInvisible" template="false">
+					<widget id="lojaShowSalesReport" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
+							slotId="cockpitWidgetChildrenInvisible" template="false">
+						<setting key="expression" type="String">'lojaSalesReport'</setting>
+						<setting key="socketDataType_$T" type="String">java.lang.String</setting>
+						<virtual-sockets/>
+					</widget>
+					<setting key="expression" type="String">#root != null &amp;&amp; "loja.tree.salesReport".equals(#root.id)</setting>
+					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
+					<virtual-sockets/>
+				</widget>
 				<!-- clique em "Relatório" -->
 				<widget id="lojaExpReportSelection" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
@@ -827,12 +840,12 @@
 					<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 					<virtual-sockets/>
 				</widget>
-				<!-- ao abrir a perspectiva, seleciona "Produtos" -->
+				<!-- ao abrir a perspectiva, seleciona "Relatório de vendas" (08/11: página inicial; antes "Produtos") -->
 				<widget id="lojaPerspectiveChecker" widgetDefinitionId="com.hybris.cockpitng.conditionevaluator"
 						slotId="cockpitWidgetChildrenInvisible" template="false">
 					<widget id="lojaStartSelector" widgetDefinitionId="com.hybris.cockpitng.widgets.common.propextractor"
 							slotId="cockpitWidgetChildrenInvisible" template="false">
-						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("loja.tree.product", true)</setting>
+						<setting key="expression" type="String">new com.hybris.backoffice.navigation.TreeNodeSelector("loja.tree.salesReport", true)</setting>
 						<setting key="socketDataType_$T" type="String">java.lang.Object</setting>
 						<virtual-sockets/>
 					</widget>
@@ -938,6 +951,12 @@
 
 				<!-- Vouchers, resgates e compras -->
 				<widget id="lojaExpVouchers" widgetDefinitionId="br.com.flamengo.matchday.widgets.expvouchers"
+						slotId="perspectives" template="false">
+					<virtual-sockets/>
+				</widget>
+
+				<!-- Relatório de vendas da loja (08/11, página inicial) -->
+				<widget id="lojaSalesReport" widgetDefinitionId="br.com.flamengo.matchday.widgets.lojareport"
 						slotId="perspectives" template="false">
 					<virtual-sockets/>
 				</widget>
@@ -1190,6 +1209,10 @@
 	<widget-connection sourceWidgetId="lojaExplorerTree" outputId="dataSelected" targetWidgetId="lojaSpaceManagement" inputId="navigationTreeSelectedObject"/>
 	<widget-connection sourceWidgetId="lojaTreeSelection" outputId="true" targetWidgetId="lojaShowList" inputId="genericInput"/>
 	<widget-connection sourceWidgetId="lojaShowList" outputId="genericOutput" targetWidgetId="lojaContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="lojaExplorerTree" outputId="nodeSelected" targetWidgetId="lojaSalesReportSelection" inputId="input"/>
+	<widget-connection sourceWidgetId="lojaSalesReportSelection" outputId="true" targetWidgetId="lojaShowSalesReport" inputId="genericInput"/>
+	<widget-connection sourceWidgetId="lojaShowSalesReport" outputId="genericOutput" targetWidgetId="lojaContent" inputId="selectPerspectiveById"/>
+	<widget-connection sourceWidgetId="lojaSalesReportSelection" outputId="true" targetWidgetId="lojaSalesReport" inputId="refresh"/>
 	<widget-connection sourceWidgetId="lojaExplorerTree" outputId="nodeSelected" targetWidgetId="lojaExpReportSelection" inputId="input"/>
 	<widget-connection sourceWidgetId="lojaExpReportSelection" outputId="true" targetWidgetId="lojaShowExpReport" inputId="genericInput"/>
 	<widget-connection sourceWidgetId="lojaShowExpReport" outputId="genericOutput" targetWidgetId="lojaContent" inputId="selectPerspectiveById"/>
