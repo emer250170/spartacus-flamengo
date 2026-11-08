@@ -584,3 +584,423 @@
     }
   }
 }
+
+// destaque no modelo "campanha" (08/11, Mengo Estúdio e Manto Sagrado) ---------------------------------
+// Foto recortada sobre o fundo rubro-negro com luz de estádio, palavras vazadas atrás, carimbo e etiqueta.
+// Conteúdo e textos vêm do banner no CMS (ver HeroCampaign em fla-home.components.ts).
+.fhc {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 480px;
+  background: radial-gradient(ellipse 60% 90% at 74% 55%, #d70000 0%, #8a0000 26%, #2a0000 55%, #0d0d0d 82%);
+  color: #fff;
+
+  // listras diagonais (horizontais no Manto: as da camisa), só do lado da foto
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: repeating-linear-gradient(118deg, rgba(0, 0, 0, 0.28) 0 26px, transparent 26px 52px);
+    -webkit-mask-image: linear-gradient(90deg, transparent 35%, #000 75%);
+    mask-image: linear-gradient(90deg, transparent 35%, #000 75%);
+  }
+
+  // feixes de luz de estádio
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: conic-gradient(
+      from 200deg at 74% -10%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.1) 8deg,
+      transparent 16deg,
+      transparent 26deg,
+      rgba(255, 255, 255, 0.07) 32deg,
+      transparent 40deg
+    );
+    pointer-events: none;
+  }
+
+  &.is-horizontal::before {
+    background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0 46px, transparent 46px 92px);
+  }
+
+  &.is-horizontal .fhc-img {
+    bottom: 0;
+    height: 100%;
+    transform: translateX(-50%);
+  }
+
+  &.is-horizontal .fhc-word {
+    font-size: clamp(80px, 8.6vw, 128px);
+  }
+}
+
+.fhc-in {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  box-sizing: border-box;
+  max-width: var(--cx-page-width-max, 1140px);
+  min-height: 480px;
+  margin: 0 auto;
+}
+
+.fhc-txt {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 48px 0;
+}
+
+.fhc-kick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fhc-pill {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--fla-vermelho, #d70000);
+}
+
+.fhc.is-horizontal .fhc-pill {
+  background: var(--fla-vermelho, #d70000);
+  color: #fff;
+}
+
+.fhc-live,
+.fhc-hl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffd0d0;
+}
+
+.fhc-hl {
+  color: #e8e8e8;
+}
+
+.fhc-live i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff3b3b;
+  animation: fhcPulse 1.6s infinite;
+}
+
+@keyframes fhcPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 59, 59, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 59, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fhc-live i {
+    animation: none;
+  }
+}
+
+.fhc-t {
+  margin: 0;
+  color: #fff;
+  font-family: var(--fla-fonte-titulo);
+  font-size: clamp(44px, 4.4vw, 68px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  span {
+    color: #ff3b3b;
+  }
+}
+
+.fhc-lead {
+  max-width: 470px;
+  margin: 0;
+  color: #ececec;
+  font-size: 19px;
+  line-height: 1.45;
+}
+
+.fhc-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.fhc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 26px;
+  border-radius: 4px;
+  background: var(--fla-vermelho, #d70000);
+  box-shadow: 0 10px 30px rgba(215, 0, 0, 0.45);
+  color: #fff !important;
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: transform 0.15s;
+
+  &:hover {
+    background: var(--fla-vermelho-escuro, #b40000);
+    transform: translateY(-1px);
+  }
+}
+
+.fhc-btn2 {
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 22px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 4px;
+  color: #fff !important;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.fhc-note {
+  margin: 0;
+  color: #cfcfcf;
+  font-size: 14px;
+}
+
+.fhc-vis {
+  position: relative;
+  align-self: stretch;
+  min-height: 480px;
+
+  // a foto termina no corte de baixo: sombra para assentar
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    height: 60px;
+    background: linear-gradient(180deg, transparent, rgba(13, 13, 13, 0.55));
+    pointer-events: none;
+  }
+}
+
+.fhc-word {
+  position: absolute;
+  top: 50%;
+  right: -2%;
+  transform: translateY(-58%);
+  color: transparent;
+  font-family: var(--fla-fonte-titulo);
+  font-size: clamp(90px, 10vw, 150px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+  user-select: none;
+
+  &.is-b {
+    transform: translateY(42%);
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.12);
+  }
+}
+
+.fhc-img {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  z-index: 1;
+  width: auto;
+  height: 112%;
+  transform: translateX(-46%);
+  filter: drop-shadow(0 0 36px rgba(255, 40, 40, 0.55)) drop-shadow(0 24px 30px rgba(0, 0, 0, 0.6));
+}
+
+.fhc-seal {
+  position: absolute;
+  top: 16%;
+  left: 4%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  border: 2px solid #ff3b3b;
+  border-radius: 50%;
+  background: #111;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-12deg);
+
+  b {
+    display: block;
+    color: #ff3b3b;
+    font-size: 15px;
+  }
+}
+
+.fhc-tag {
+  position: absolute;
+  right: 2%;
+  bottom: 26%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  color: #111;
+  font-size: 12px;
+  line-height: 1.2;
+  transform: rotate(-5deg);
+
+  b {
+    color: var(--fla-vermelho, #d70000);
+    font-family: var(--fla-fonte-titulo);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .fhc-in {
+    padding-inline: 16px;
+  }
+
+  .fhc-word,
+  .fhc.is-horizontal .fhc-word {
+    font-size: 110px;
+  }
+}
+
+// celular: foto em cima, texto e botões embaixo (botões na largura toda)
+@media (max-width: 767.98px) {
+  .fhc {
+    background: radial-gradient(ellipse 120% 60% at 60% 22%, #d70000 0%, #8a0000 30%, #2a0000 60%, #0d0d0d 85%);
+
+    &::before {
+      -webkit-mask-image: linear-gradient(180deg, #000 10%, transparent 55%);
+      mask-image: linear-gradient(180deg, #000 10%, transparent 55%);
+    }
+  }
+
+  .fhc-in {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .fhc-vis {
+    order: -1;
+    min-height: 340px;
+    margin-inline: -16px;
+
+    &::after {
+      height: 90px;
+      background: linear-gradient(180deg, transparent, #0d0d0d);
+    }
+  }
+
+  .fhc-img {
+    bottom: -12%;
+    height: 118%;
+  }
+
+  .fhc.is-horizontal .fhc-img {
+    bottom: 0;
+    height: 100%;
+  }
+
+  .fhc-word,
+  .fhc.is-horizontal .fhc-word {
+    right: auto;
+    left: 50%;
+    font-size: 72px;
+    transform: translate(-50%, -80%);
+
+    &.is-b {
+      transform: translate(-50%, 30%);
+    }
+  }
+
+  .fhc-seal {
+    top: 20px;
+    left: 16px;
+    width: 84px;
+    height: 84px;
+    font-size: 10px;
+
+    b {
+      font-size: 12px;
+    }
+  }
+
+  .fhc-tag {
+    right: 16px;
+    bottom: 18%;
+  }
+
+  .fhc-txt {
+    padding: 8px 0 48px;
+  }
+
+  .fhc-t {
+    font-size: clamp(30px, 9vw, 40px);
+  }
+
+  .fhc-lead {
+    font-size: 17px;
+  }
+
+  .fhc-ctas {
+    width: 100%;
+  }
+
+  .fhc-btn,
+  .fhc-btn2 {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
