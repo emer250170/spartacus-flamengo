@@ -1833,6 +1833,138 @@ html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate {
   }
 }
 
+// Pix/boleto aguardando pagamento em TODAS as telas (08/11): Meu sócio-torcedor, detalhe do pedido e
+// confirmação no mesmo bloco preto do mockup (rótulo vermelho, título da loja, código em campo escuro,
+// "Copiar" vermelho, QR Code à direita) e na largura toda da coluna, como as caixas de baixo. Antes, na área
+// do sócio, ficava a caixa bege do item 7, mais estreita (880px) e centrada.
+html body fla-socio-payment-status {
+  display: block;
+
+  .spay.spay-status {
+    max-width: none;
+    margin: 0 0 20px;
+    padding: 28px;
+    border: 0 !important;
+    border-radius: 4px;
+    box-shadow: none !important;
+  }
+
+  .spay.spay-wait {
+    background: #111 !important;
+    color: #fff;
+
+    .spay-kind {
+      margin: 0 0 6px;
+      color: #ff5a5a !important;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .spay-title {
+      margin: 0 0 6px;
+      color: #fff !important;
+      font-family: var(--fla-fonte-titulo);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .spay-sub {
+      margin: 0 0 18px;
+      color: #d6d6d6 !important;
+      font-size: 16px;
+    }
+
+    .spay-code {
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      gap: 24px;
+      margin: 0 0 14px;
+    }
+
+    .spay-copy {
+      gap: 8px;
+
+      .spay-kind {
+        margin: 0;
+        color: #bdbdbd !important;
+        letter-spacing: 0.08em;
+      }
+
+      small {
+        color: #bdbdbd !important;
+        font-size: 13px;
+      }
+    }
+
+    .spay-codebox {
+      border: 1px solid #333 !important;
+      border-radius: 4px;
+      background: #1e1e1e !important;
+      color: #fff !important;
+    }
+
+    .spay-links .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 48px;
+      min-height: 0;
+      margin: 0;
+      padding: 0 22px;
+      border: 0 !important;
+      border-radius: 4px;
+      background: var(--fla-vermelho, #d70000) !important;
+      color: #fff !important;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none !important;
+      text-transform: none !important;
+
+      &:hover {
+        background: var(--fla-vermelho-escuro, #a80000) !important;
+      }
+    }
+
+    .spay-qr {
+      width: 150px;
+      height: 150px;
+      padding: 6px;
+      border: 0;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .spay-note {
+      margin: 0;
+      color: #d6d6d6 !important;
+      font-size: 15px;
+    }
+  }
+
+  // pago: caixa branca da loja
+  .spay.spay-status:not(.spay-wait) {
+    background: #fff !important;
+  }
+
+  @media (max-width: 767.98px) {
+    .spay.spay-status {
+      padding: 20px 16px;
+    }
+
+    .spay.spay-wait .spay-code {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+  }
+}
+
 .fla-oc-box {
   min-width: 0;
   padding: 28px;
