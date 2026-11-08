@@ -140,6 +140,11 @@ python3 backend/hac-deploy/gerar.py --auditar origin/flamengo --saida /tmp/audit
 Depois do `ant all`: se mudou `items.xml` ou ImpEx de `essentialdata`, fazer o
 Update no HAC (Platform › Update). Verificar no Backoffice/loja.
 
+Antes do PR, conferir a compilação das classes novas ou alteradas no próprio servidor (não grava nada):
+`python3 backend/hac-deploy/compilar.py <arquivos .java> --saida /tmp/compilar.groovy` e rodar pelo
+`<input type=file>` no HAC. Compila contra o que está instalado: classe que usa modelo de tipo novo só compila
+depois do `ant all` (ler e gravar esses atributos pelo nome, como em `br.com.flamengo.matchday.mcp`).
+
 - Update só com "Update running system" + "Localize types" (sem "Create essential data",
   sem dados de projeto e sem patches opcionais): nada da demo é reimportado. A ImpEx
   nova do PR é importada à parte (base64 + `ImportConfig`).
@@ -189,6 +194,11 @@ async () => {
 - Chave do Order = `code|versionID`; datas `/Date(ms)/`; `Accept-Language: pt`.
 - Configuração no servidor: `docs/flamengo-matchday/mcp/integracao-gestores.impex`, `integracao-ingressos.impex` e
   `integracao-loja.impex` (persona gestor da loja).
+- Relatório por e-mail e cupom pessoal dos gestores (PR do 08/11): tipos `FlaReportMail` e `FlaCouponGrant`, criados pela
+  OData; interceptors em `br.com.flamengo.matchday.mcp` conferem a área de quem pediu pelos grupos de API (lojaapigroup,
+  jogosapigroup, socioapigroup) e, numa linha de execução depois do commit, enviam o e-mail pelo `emailService` (SMTP de
+  `mail.*`) e, no cupom, criam SingleCodeCoupon + promoção só para o cliente e publicam. Destinatários de relatório só os de
+  `flamengo.mcp.relatorio.destinatarios`; tetos em `flamengo.mcp.cupom.*`. ImpEx: `integracao-relatorio-cupom.impex`.
 - MCP: código em `mcp/src` (`core.js` sem dependências + `server.mjs`), empacotado
   com esbuild num único `flamengo-mcp.mjs`. Escrita exige `confirmar=true`;
   certificado do servidor fixado por SHA-256. Detalhes em `mcp/README.md`.

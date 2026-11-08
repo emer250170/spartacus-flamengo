@@ -1753,5 +1753,162 @@
 			</attributes>
 		</itemtype>
 
+		<!-- MCP (08/11): relatório que o gestor pede pelo Claude e o Commerce envia por e-mail (FlaReportMailInterceptor) -->
+		<itemtype code="FlaReportMail" extends="GenericItem" autocreate="true" generate="true">
+			<description>Relatório enviado por e-mail a pedido de um gestor (MCP)</description>
+			<deployment table="flareportmails" typecode="25940"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código do pedido de envio</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="subject" type="java.lang.String">
+					<description>Assunto do e-mail</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="body" type="java.lang.String">
+					<description>Conteúdo do relatório (HTML)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="csv" type="java.lang.String">
+					<description>Tabelas em CSV, anexadas ao e-mail</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="csvName" type="java.lang.String">
+					<description>Nome do arquivo CSV anexo</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="recipients" type="java.lang.String">
+					<description>Destinatários (separados por vírgula; só os liberados em flamengo.mcp.relatorio.destinatarios)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="area" type="java.lang.String">
+					<description>Área de quem pediu: LOJA, JOGOS ou SOCIO</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="requestedBy" type="java.lang.String">
+					<description>Usuário que pediu</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="status" type="java.lang.String">
+					<description>ENVIANDO, ENVIADO ou ERRO</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="message" type="java.lang.String">
+					<description>Resultado do envio</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="sentAt" type="java.util.Date">
+					<description>Quando foi enviado</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="flaReportMailCodeIdx" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
+		<!-- MCP (08/11): cupom pessoal criado pelo gestor e enviado ao cliente (FlaCouponGrantInterceptor + FlaCouponGrantService) -->
+		<itemtype code="FlaCouponGrant" extends="GenericItem" autocreate="true" generate="true">
+			<description>Cupom pessoal enviado a um cliente: cupom de uso único + promoção só para ele</description>
+			<deployment table="flacoupongrants" typecode="25941"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código do cupom (o mesmo do SingleCodeCoupon)</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="customer" type="Customer">
+					<description>Cliente que recebe o cupom</description>
+					<modifiers optional="false"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="area" type="java.lang.String">
+					<description>Área de quem criou: LOJA, JOGOS ou SOCIO</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="discountType" type="java.lang.String">
+					<description>PERCENTUAL, VALOR ou FRETE</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="amount" type="java.lang.Double">
+					<description>% de desconto ou valor em R$</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="minimum" type="java.lang.Double">
+					<description>Valor mínimo do carrinho em R$ (vazio = sem mínimo)</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="scope" type="java.lang.String">
+					<description>Onde vale (separado por vírgula): LOJA, MENGO_ESTUDIO, PERSONALIZACAO, EXPERIENCIAS, PRODUTOS, CATEGORIAS, INGRESSOS, INGRESSOS_JOGO, ESTACIONAMENTO, ALIMENTACAO, PLANOS</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="scopeDetail" type="java.lang.String">
+					<description>Códigos de produto, categoria ou jogo (PRODUTOS, CATEGORIAS, INGRESSOS_JOGO)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="validUntil" type="java.util.Date">
+					<description>Válido até</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="note" type="java.lang.String">
+					<description>Mensagem do gestor ao cliente (vai no e-mail)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="ruleCode" type="java.lang.String">
+					<description>Promoção criada para o cupom</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="status" type="java.lang.String">
+					<description>PUBLICANDO, ENVIADO ou ERRO</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="message" type="java.lang.String">
+					<description>Resultado (publicação e envio)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="requestedBy" type="java.lang.String">
+					<description>Usuário que criou</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="sentAt" type="java.util.Date">
+					<description>Quando o e-mail foi enviado ao cliente</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="flaCouponGrantCodeIdx" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
 	</itemtypes>
 </items>

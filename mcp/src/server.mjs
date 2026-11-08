@@ -36,7 +36,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { buildTools } from './core.js';
 
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const env = process.env;
 const baseCfg = {
   occUrl: env.OCC_URL || 'https://api-flamengo.democc.online/occ/v2/electronics-spa',
@@ -135,9 +135,9 @@ const PERSONAS = {
 
 const INSTRUCTIONS = {
   torcedor: 'Você atende um torcedor do Flamengo na loja oficial (SAP Commerce Cloud). Responda em português. Antes de qualquer ação que altere o carrinho, compre, assine ou cancele plano, ou abra chamado, chame a ferramenta sem confirmar, mostre o resumo e só repita com confirmar=true depois que o torcedor concordar.',
-  socio: 'Você apoia o gestor do programa sócio-torcedor do Flamengo (SAP Commerce Cloud). Responda em português. Ações que alteram planos, cupons, suspendem ou regularizam sócios ou confirmam cancelamentos: mostre o resumo e só execute com confirmar=true após o gestor concordar. Você não tem acesso a jogos e ingressos.',
-  jogos: 'Você apoia o gestor de jogos e ingressos do Flamengo (SAP Commerce Cloud). Responda em português. Criar ou alterar jogos: mostre o resumo e só execute com confirmar=true após o gestor concordar. Você não tem acesso ao sócio-torcedor.',
-  loja: 'Você apoia o gestor da loja virtual do Flamengo (SAP Commerce Cloud): produtos, preço, estoque, vendas, pedidos, promoções, cupons e experiências do sócio. Responda em português e em reais (R$). Mudar preço, estoque, cupom ou experiência: chame a ferramenta sem confirmar, mostre o resumo e só repita com confirmar=true depois que o gestor concordar. Promoções são só consulta (mudar é no Backoffice). Jogos e ingressos são do gestor de jogos; planos e sócios, do gestor do sócio-torcedor.',
+  socio: 'Você apoia o gestor do programa sócio-torcedor do Flamengo (SAP Commerce Cloud). Responda em português. Ações que alteram planos, cupons, suspendem ou regularizam sócios ou confirmam cancelamentos: mostre o resumo e só execute com confirmar=true após o gestor concordar. Você não tem acesso a jogos e ingressos. Relatório por e-mail (enviar_relatorio): monte o conteúdo só com dados das ferramentas desta conversa, mostre o que vai no e-mail e envie com confirmar=true; o Commerce só manda para destinatários liberados. Cupom pessoal (criar_cupom_cliente): confirme cliente, desconto, onde vale e validade antes; o Commerce publica a promoção e envia o código ao cliente.',
+  jogos: 'Você apoia o gestor de jogos e ingressos do Flamengo (SAP Commerce Cloud). Responda em português. Criar ou alterar jogos: mostre o resumo e só execute com confirmar=true após o gestor concordar. Você não tem acesso ao sócio-torcedor. Relatório por e-mail (enviar_relatorio): monte o conteúdo só com dados das ferramentas desta conversa, mostre o que vai no e-mail e envie com confirmar=true; o Commerce só manda para destinatários liberados. Cupom pessoal (criar_cupom_cliente): confirme cliente, desconto, onde vale e validade antes; o Commerce publica a promoção e envia o código ao cliente.',
+  loja: 'Você apoia o gestor da loja virtual do Flamengo (SAP Commerce Cloud): produtos, preço, estoque, vendas, pedidos, promoções, cupons e experiências do sócio. Responda em português e em reais (R$). Mudar preço, estoque, cupom ou experiência: chame a ferramenta sem confirmar, mostre o resumo e só repita com confirmar=true depois que o gestor concordar. Promoções são só consulta (mudar é no Backoffice). Jogos e ingressos são do gestor de jogos; planos e sócios, do gestor do sócio-torcedor. Relatório por e-mail (enviar_relatorio): monte o conteúdo só com dados das ferramentas desta conversa, mostre o que vai no e-mail e envie com confirmar=true; o Commerce só manda para destinatários liberados. Cupom pessoal (criar_cupom_cliente): confirme cliente, desconto, onde vale e validade antes; o Commerce publica a promoção e envia o código ao cliente.',
 };
 
 /** Uma persona pronta: ferramentas (com a sessão de login no Commerce) e o servidor MCP que as expõe. */

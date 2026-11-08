@@ -124,9 +124,9 @@ function parseCancelMessage(text) {
 export function buildTools(ctx) {
   const { persona, cfg, http } = ctx;
   if (persona === 'torcedor') return torcedorTools(cfg, http);
-  if (persona === 'socio') return socioTools(cfg, http);
-  if (persona === 'jogos') return jogosTools(cfg, http);
-  if (persona === 'loja') return lojaTools(cfg, http);
+  if (persona === 'socio') return [...socioTools(cfg, http), ...actionTools(cfg, http, persona)];
+  if (persona === 'jogos') return [...jogosTools(cfg, http), ...actionTools(cfg, http, persona)];
+  if (persona === 'loja') return [...lojaTools(cfg, http), ...actionTools(cfg, http, persona)];
   throw new Error(`Persona desconhecida: ${persona} (use torcedor, socio, jogos ou loja)`);
 }
 
@@ -1869,4 +1869,239 @@ function lojaTools(cfg, http) {
   ];
 }
 
-export const _test = { saleCategory, couponCodes, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };
+// ================================================================ AÇÕES DOS GESTORES: relatório por e-mail e cupom pessoal
+
+/** Área de cada persona de gestor (o Commerce confere de novo pelos grupos de API do usuário) */
+const PERSONA_AREA = { loja: 'LOJA', jogos: 'JOGOS', socio: 'SOCIO' };
+/** Onde o cupom pode valer, por área (mesma lista do FlaCouponGrantService no Commerce) */
+const COUPON_SCOPES = {
+  LOJA: {
+    LOJA: 'produtos da loja (fora ingressos, planos, comida e estacionamento)',
+    MENGO_ESTUDIO: 'Mengo Estúdio',
+    PERSONALIZACAO: 'personalização de camisa (nome, número, patches)',
+    EXPERIENCIAS: 'experiências do sócio vendidas na loja',
+    PRODUTOS: 'produtos escolhidos (códigos em detalhe; vale para os tamanhos)',
+    CATEGORIAS: 'categorias escolhidas (códigos em detalhe)',
+  },
+  JOGOS: {
+    INGRESSOS: 'ingressos de todos os jogos',
+    INGRESSOS_JOGO: 'ingressos de um jogo (código JOGO-AAAAMMDD-ADV em detalhe)',
+    ESTACIONAMENTO: 'estacionamento do dia de jogo',
+    ALIMENTACAO: 'alimentação no estádio',
+  },
+  SOCIO: {
+    PLANOS: 'mensalidade do plano de sócio',
+    LOJA: 'produtos da loja (presente ao sócio)',
+  },
+};
+const COUPON_TYPES = { PERCENTUAL: '% de desconto nos itens do escopo', VALOR: 'R$ de desconto no pedido', FRETE: 'frete grátis' };
+const NO_AMBIGUOUS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function randomCode(prefix, size) {
+  const bytes = new Uint8Array(size);
+  globalThis.crypto.getRandomValues(bytes);
+  return prefix + Array.from(bytes, (b) => NO_AMBIGUOUS[b % NO_AMBIGUOUS.length]).join('');
+}
+
+const escHtml = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** Seções do relatório -> HTML do e-mail (tabelas com estilo em linha, que os clientes de e-mail respeitam) */
+function reportHtml({ periodo, destaques, secoes }) {
+  const parts = [];
+  if (periodo) parts.push(`<p style="margin:0 0 12px 0;color:#555">${escHtml(periodo)}</p>`);
+  if (destaques?.length) {
+    parts.push('<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:4px 0 12px 0"><tr>'
+      + destaques.slice(0, 4).map((d) => `<td style="padding:4px;width:${Math.floor(100 / Math.min(4, destaques.length))}%"><div style="border:1px solid #e3e3e3;border-radius:6px;padding:10px">`
+        + `<div style="font-size:11px;color:#666;text-transform:uppercase">${escHtml(d.rotulo)}</div><div style="font-size:18px;font-weight:bold;color:#c4161c">${escHtml(d.valor)}</div></div></td>`).join('')
+      + '</tr></table>');
+  }
+  for (const s of secoes ?? []) {
+    if (s.titulo) parts.push(`<h2 style="font-size:16px;margin:18px 0 6px 0;border-bottom:2px solid #c4161c;padding-bottom:4px">${escHtml(s.titulo)}</h2>`);
+    if (s.texto) parts.push(...String(s.texto).split(/\n{2,}/).map((p) => `<p style="margin:6px 0">${escHtml(p).replace(/\n/g, '<br>')}</p>`));
+    const t = s.tabela;
+    if (t?.colunas?.length) {
+      const num = (v) => /^\s*(R\$\s*)?-?[\d.]+(,\d+)?\s*%?\s*$/.test(String(v ?? ''));
+      parts.push('<table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:13px;margin:6px 0">'
+        + '<tr>' + t.colunas.map((c) => `<th style="text-align:left;background:#1a1a1a;color:#fff;padding:6px 8px">${escHtml(c)}</th>`).join('') + '</tr>'
+        + (t.linhas ?? []).map((l, i) => '<tr>' + t.colunas.map((_, j) => `<td style="padding:6px 8px;border-bottom:1px solid #e3e3e3;${i % 2 ? 'background:#fafafa;' : ''}${num(l[j]) ? 'text-align:right;white-space:nowrap' : ''}">${escHtml(l[j] ?? '')}</td>`).join('') + '</tr>').join('')
+        + '</table>');
+    }
+  }
+  return parts.join('');
+}
+
+/** Tabelas do relatório -> CSV (separador ;, como o Excel em português abre) */
+function reportCsv({ destaques, secoes }) {
+  const cell = (v) => { const s = String(v ?? ''); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const blocks = [];
+  if (destaques?.length) blocks.push(['Indicador;Valor', ...destaques.map((d) => `${cell(d.rotulo)};${cell(d.valor)}`)].join('\r\n'));
+  for (const s of secoes ?? []) {
+    const t = s.tabela;
+    if (!t?.colunas?.length) continue;
+    blocks.push([s.titulo ? cell(s.titulo) : null, t.colunas.map(cell).join(';'), ...(t.linhas ?? []).map((l) => t.colunas.map((_, j) => cell(l[j])).join(';'))].filter((x) => x != null).join('\r\n'));
+  }
+  return blocks.join('\r\n\r\n');
+}
+
+function actionTools(cfg, http, persona) {
+  const odata = odataClient(cfg, http);
+  const area = PERSONA_AREA[persona];
+  const scopes = COUPON_SCOPES[area];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const q = (s) => String(s ?? '').trim().replace(/'/g, "''");
+
+  async function waitFor(path, code, pending, seconds) {
+    for (let i = 0; i < seconds; i += 3) {
+      await sleep(3000);
+      const r = results(await odata('GET', path, { query: { $filter: `code eq '${q(code)}'`, ...(path.includes('Cupom') ? { $expand: 'customer' } : {}) } }))[0];
+      if (r && r.status !== pending) return r;
+    }
+    return results(await odata('GET', path, { query: { $filter: `code eq '${q(code)}'`, ...(path.includes('Cupom') ? { $expand: 'customer' } : {}) } }))[0] ?? null;
+  }
+
+  const sectionSchema = {
+    type: 'array',
+    description: 'Seções do relatório, na ordem: cada uma com título, texto (opcional) e tabela (opcional)',
+    items: {
+      type: 'object', additionalProperties: false,
+      properties: {
+        titulo: S.str('Título da seção'),
+        texto: S.str('Texto livre (análise, observações); parágrafos separados por linha em branco'),
+        tabela: {
+          type: 'object', additionalProperties: false,
+          properties: {
+            colunas: { type: 'array', items: { type: 'string' }, description: 'Cabeçalhos' },
+            linhas: { type: 'array', items: { type: 'array', items: { type: ['string', 'number'] } }, description: 'Linhas, na ordem das colunas (valores já formatados, ex. "R$ 1.234,50")' },
+          },
+          required: ['colunas', 'linhas'],
+        },
+      },
+    },
+  };
+
+  const showGrant = (g, uses) => {
+    const used = uses.filter((u) => String(u.couponCode).toUpperCase() === String(g.code).toUpperCase());
+    return {
+      cupom: g.code, cliente: g.customer?.name, email: g.customer?.uid, area: g.area,
+      desconto: g.discountType === 'PERCENTUAL' ? `${num(g.amount)}%` : g.discountType === 'VALOR' ? brl(num(g.amount)) : 'frete grátis',
+      ondeVale: String(g.scope ?? '').split(',').filter(Boolean).map((s) => scopes?.[s] ?? COUPON_SCOPES.LOJA[s] ?? COUPON_SCOPES.JOGOS[s] ?? COUPON_SCOPES.SOCIO[s] ?? s).join('; ') + (g.scopeDetail ? ` (${g.scopeDetail})` : ''),
+      ...(num(g.minimum) ? { compraMinima: brl(num(g.minimum)) } : {}),
+      validoAte: fmtDate(g.validUntil, false), situacao: { PUBLICANDO: 'publicando a promoção', ENVIADO: 'enviado ao cliente', ERRO: 'erro' }[g.status] ?? g.status,
+      resultado: g.message, criadoPor: g.requestedBy, enviadoEm: fmtDate(g.sentAt),
+      usado: used.length ? `sim, no pedido ${used.map((u) => u.order?.code).filter(Boolean).join(', ')} em ${fmtDate(used[0].creationtime)}` : 'não',
+    };
+  };
+
+  return [
+    {
+      name: 'enviar_relatorio',
+      description: 'Pede ao SAP Commerce para enviar um relatório por e-mail (remetente da Loja Flamengo), com o conteúdo que o usuário escolher: destaques (números principais), seções com texto e tabelas, e as tabelas também em CSV anexo. '
+        + 'Monte o conteúdo SÓ com dados obtidos pelas outras ferramentas desta conversa (não invente números) e mostre ao usuário o que vai no e-mail antes de confirmar. '
+        + 'Só destinatários liberados no servidor recebem (o Commerce recusa os outros).',
+      inputSchema: obj({
+        assunto: S.str('Assunto do e-mail, ex. "Vendas da loja · outubro de 2026"'),
+        destinatarios: { type: 'array', items: { type: 'string' }, description: 'E-mails de quem recebe' },
+        periodo: S.str('Período ou recorte, ex. "01/10/2026 a 31/10/2026" (opcional)'),
+        destaques: { type: 'array', description: 'Até 4 números em destaque no topo', items: { type: 'object', additionalProperties: false, properties: { rotulo: S.str('Ex. Receita'), valor: S.str('Ex. R$ 32.791,81') }, required: ['rotulo', 'valor'] } },
+        secoes: sectionSchema,
+        anexarCsv: S.bool('Anexar as tabelas em CSV (padrão: sim)'),
+        confirmar: S.confirm,
+      }, ['assunto', 'destinatarios', 'secoes']),
+      handler: async (a) => {
+        const to = [...new Set((a.destinatarios ?? []).map((e) => String(e).trim().toLowerCase()).filter(Boolean))];
+        if (!to.length) throw new UserError('Informe ao menos um destinatário.');
+        const tables = (a.secoes ?? []).filter((s) => s.tabela?.colunas?.length);
+        const c = needConfirm(a, {
+          assunto: a.assunto, para: to, periodo: a.periodo ?? null,
+          destaques: (a.destaques ?? []).map((d) => `${d.rotulo}: ${d.valor}`),
+          secoes: (a.secoes ?? []).map((s) => `${s.titulo ?? '(sem título)'}${s.tabela ? ` · tabela com ${s.tabela.linhas?.length ?? 0} linha(s)` : ''}`),
+          anexo: a.anexarCsv === false || !tables.length ? 'sem anexo' : 'CSV com as tabelas',
+        });
+        if (c) return c;
+        const code = randomCode('REL', 10);
+        const csv = a.anexarCsv === false ? null : reportCsv(a) || null;
+        await odata('POST', '/FlamengoRelatorioEmail/FlaReportMails', {
+          body: {
+            code, subject: a.assunto, recipients: to.join(', '), area, body: reportHtml(a),
+            ...(csv ? { csv, csvName: `${String(a.assunto).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'relatorio'}.csv` } : {}),
+          },
+        });
+        const r = await waitFor('/FlamengoRelatorioEmail/FlaReportMails', code, 'ENVIANDO', 30);
+        return {
+          executado: true, pedido: code,
+          situacao: r?.status === 'ENVIADO' ? 'enviado' : r?.status === 'ERRO' ? 'erro no envio' : 'enviando (o Commerce ainda não confirmou)',
+          resultado: r?.message ?? null, enviadoEm: fmtDate(r?.sentAt),
+        };
+      },
+    },
+    {
+      name: 'criar_cupom_cliente',
+      description: `Cria um cupom de desconto pessoal (uso único, só na conta do cliente) e o SAP Commerce envia o código por e-mail ao cliente. O Commerce cria a promoção e publica sozinho (leva até 2 minutos). `
+        + `Onde pode valer, para este gestor: ${Object.entries(scopes).map(([k, v]) => `${k} = ${v}`).join('; ')}. `
+        + 'Tipos: PERCENTUAL (% nos itens do escopo), VALOR (R$ no pedido com item do escopo), FRETE (frete grátis). O servidor tem teto de desconto e de validade.'
+        + (area === 'JOGOS' ? ' Cupom de ingresso não vale para sócio (ele já tem o desconto do plano no ingresso).' : ''),
+      inputSchema: obj({
+        email: S.str('E-mail da conta do cliente na loja'),
+        tipo: { type: 'string', enum: Object.keys(COUPON_TYPES), description: Object.entries(COUPON_TYPES).map(([k, v]) => `${k}: ${v}`).join('; ') },
+        valor: S.num('% (PERCENTUAL) ou R$ (VALOR); não usado em FRETE'),
+        escopo: { type: 'array', items: { type: 'string', enum: Object.keys(scopes) }, description: 'Onde vale (um ou mais)' },
+        detalhe: { type: 'array', items: { type: 'string' }, description: 'Códigos de produto, categoria ou jogo (para PRODUTOS, CATEGORIAS ou INGRESSOS_JOGO)' },
+        minimo: S.num('Compra mínima em R$ (opcional)'),
+        validade: S.str('Válido até (AAAA-MM-DD); padrão 30 dias'),
+        mensagem: S.str('Mensagem pessoal ao cliente no e-mail (opcional)'),
+        confirmar: S.confirm,
+      }, ['email', 'tipo', 'escopo']),
+      handler: async (a) => {
+        const email = String(a.email ?? '').trim().toLowerCase();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new UserError('E-mail do cliente inválido.');
+        const esc = [...new Set(a.escopo ?? [])];
+        if (!esc.length) throw new UserError('Informe onde o cupom vale (escopo).');
+        const bad = esc.filter((s) => !scopes[s]);
+        if (bad.length) throw new UserError(`Escopo fora da área deste gestor: ${bad.join(', ')}. Use: ${Object.keys(scopes).join(', ')}.`);
+        if (a.tipo !== 'FRETE' && !(a.valor > 0)) throw new UserError('Informe o valor do desconto.');
+        const what = a.tipo === 'PERCENTUAL' ? `${a.valor}% de desconto` : a.tipo === 'VALOR' ? `${brl(a.valor)} de desconto` : 'frete grátis';
+        const until = a.validade ? parseLocal(a.validade.length <= 10 ? a.validade + 'T23:59' : a.validade) : null;
+        const c = needConfirm(a, `Criar cupom pessoal de uso único para ${email}: ${what} em ${esc.map((s) => scopes[s]).join(' + ')}`
+          + (a.detalhe?.length ? ` (${a.detalhe.join(', ')})` : '') + (a.minimo ? `, compra mínima ${brl(a.minimo)}` : '')
+          + `, válido até ${until ? fmtDate(until, false) : '30 dias a partir de hoje'}. O Commerce publica a promoção e envia o código por e-mail ao cliente`
+          + (a.mensagem ? ` com a mensagem: "${a.mensagem}"` : '') + '.');
+        if (c) return c;
+        const code = randomCode('FLA', 8);
+        try {
+          await odata('POST', '/FlamengoCupomCliente/FlaCouponGrants', {
+            body: {
+              code, customer: { uid: email }, area, discountType: a.tipo, ...(a.tipo !== 'FRETE' ? { amount: String(a.valor) } : {}),
+              ...(a.minimo ? { minimum: String(a.minimo) } : {}), scope: esc.join(','), ...(a.detalhe?.length ? { scopeDetail: a.detalhe.join(',') } : {}),
+              ...(until ? { validUntil: odataDate(until) } : {}), ...(a.mensagem ? { note: a.mensagem } : {}),
+            },
+          });
+        } catch (e) {
+          if (/Customer|customer/.test(e.message) && /not|não|exist|found|encontr/i.test(e.message)) throw new UserError(`Não há conta na loja com o e-mail ${email}.`);
+          throw e;
+        }
+        const r = await waitFor('/FlamengoCupomCliente/FlaCouponGrants', code, 'PUBLICANDO', 45);
+        const uses = [];
+        return {
+          executado: true,
+          ...(r ? showGrant(r, uses) : { cupom: code }),
+          ...(r?.status === 'PUBLICANDO' ? { observacao: 'A promoção ainda está sendo publicada; o e-mail sai em seguida. Acompanhe com cupons_enviados.' } : {}),
+        };
+      },
+    },
+    {
+      name: 'cupons_enviados',
+      description: 'Cupons pessoais criados por este gestor e enviados a clientes: desconto, onde vale, validade, situação (publicando, enviado, erro) e se o cliente já usou.',
+      inputSchema: obj({ email: S.str('E-mail do cliente (opcional)'), cupom: S.str('Código do cupom (opcional)') }),
+      handler: async (a) => {
+        const grants = results(await odata('GET', '/FlamengoCupomCliente/FlaCouponGrants', { query: { $expand: 'customer', $top: 500 } }))
+          .filter((g) => g.area === area && (!a.email || g.customer?.uid === String(a.email).toLowerCase()) && (!a.cupom || g.code === String(a.cupom).toUpperCase()))
+          .sort((x, y) => (toDate(y.sentAt)?.getTime() ?? Infinity) - (toDate(x.sentAt)?.getTime() ?? Infinity));
+        let uses = [];
+        try { uses = results(await odata('GET', '/FlamengoCupomUso/CouponRedemptions', { query: { $top: 1000, $expand: 'order' } })); } catch { /* sem leitura de uso */ }
+        return { total: grants.length, cupons: grants.slice(0, 100).map((g) => showGrant(g, uses)) };
+      },
+    },
+  ];
+}
+
+export const _test = { saleCategory, couponCodes, reportHtml, reportCsv, randomCode, parseCancelMessage, parseLocal, fmtDate, brl, toDate, UserError };
