@@ -4,16 +4,18 @@ import {
   ChangeDetectorRef,
   Component,
   HostListener,
+  OnInit,
 } from '@angular/core';
 import { ImageGroup, Product, ProductScope } from '@spartacus/core';
 import {
+  BREAKPOINT,
   CurrentProductService,
   TAB_MODE,
   TabConfig,
   TabParagraphContainerComponent,
 } from '@spartacus/storefront';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, take } from 'rxjs/operators';
 
 interface Gallery {
   name: string;
@@ -223,10 +225,20 @@ export class FlaPdpGalleryComponent {
   }
 }
 
-/** Configuração das abas que sempre vira sanfona (a primeira aberta) */
+/**
+ * Configuração das abas: na página do produto vira sanfona (a primeira aberta); nos outros contêineres de
+ * abas (ex.: Meus pedidos: Todos os pedidos / Devoluções) fica a do Spartacus (08/11: antes valia para todos e
+ * as abas de Meus pedidos sumiam).
+ */
 class AccordionConfig$ extends BehaviorSubject<TabConfig> {
+  sanfona = true;
+
   override next(value: TabConfig): void {
-    super.next({ ...value, mode: TAB_MODE.ACCORDIAN, openTabs: [0] });
+    super.next(
+      this.sanfona
+        ? { ...value, mode: TAB_MODE.ACCORDIAN, openTabs: [0] }
+        : value
+    );
   }
 }
 
@@ -257,19 +269,33 @@ class AccordionConfig$ extends BehaviorSubject<TabConfig> {
 })
 export class FlaPdpTabsComponent
   extends TabParagraphContainerComponent
-  implements AfterViewInit
+  implements AfterViewInit, OnInit
 {
-  override tabConfig$: BehaviorSubject<TabConfig> = new AccordionConfig$({
+  override tabConfig$: AccordionConfig$ = new AccordionConfig$({
     openTabs: [0],
     mode: TAB_MODE.ACCORDIAN,
   });
+
+  override ngOnInit(): void {
+    super.ngOnInit();
+    // só o contêiner da página do produto (o que tem a descrição) vira "Sobre o produto"
+    this.componentData.data$.pipe(take(1)).subscribe((d) => {
+      const pdp = String(d?.components ?? '').includes(DETAILS_TAB);
+      if (!pdp) {
+        this.tabConfig$.sanfona = false;
+        this.tabConfig$.next({ openTabs: [0], breakpoint: BREAKPOINT.md });
+      }
+    });
+  }
 
   /** Sem sanfona (Emerson, 07/11): só a descrição, como seção "Sobre o produto" (o tema tira o +/–) */
   override ngAfterViewInit(): void {
     super.ngAfterViewInit();
     this.tabs$ = this.tabs$.pipe(
       map((tabs) =>
-        tabs.filter((t) => String(t.headerKey ?? '').includes(DETAILS_TAB))
+        tabs.some((t) => String(t.headerKey ?? '').includes(DETAILS_TAB))
+          ? tabs.filter((t) => String(t.headerKey ?? '').includes(DETAILS_TAB))
+          : tabs
       )
     );
   }

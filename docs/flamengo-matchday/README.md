@@ -1237,3 +1237,7 @@ jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória at
   a devolução; coluna e busca "Situação Mengo Estúdio" na lista de pedidos.
 - Instalação: `ant all`, reiniciar e publicar a loja (sem Update: o modelo já veio no PR 1). Backoffice: admin, F4 ›
   "Reset to Defaults" da cockpit-config para aparecer o menu novo.
+- A linha "default" de Simulações da demo vem no fim do `15-mengo-estudio.impex` (no servidor foi criada pelo HAC em
+  08/11; sem ela o pagamento recusado e as respostas ao cancelamento não podem ser ligados).
+- Ajuste junto (PR estudio-pedidos-ajustes): Meus pedidos estava vazio desde 07/11 porque a regra da página do produto
+  (só "Sobre o produto", em sanfona) valia para todo contêiner de abas; agora vale só para o da página do produto.
