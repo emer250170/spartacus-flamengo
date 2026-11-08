@@ -936,20 +936,27 @@ fla-logo-label {
       gap: 12px;
     }
 
+    // 08/11: "Olá", "Minha conta" e o selo do sócio na mesma letra (13px, maiúsculas, altura de linha dos
+    // links da faixa): antes "Minha conta" saía com 16px (o estilo do Spartacus vencia) e o selo com 12px,
+    // e os textos ficavam fora de linha. O botão sobe 1px: o menu do Spartacus o deixa 1px mais baixo.
     .cx-login-greet {
       font-size: 13px;
       font-weight: 700;
+      line-height: 20.8px;
       text-transform: uppercase;
       white-space: nowrap;
     }
 
     .HeaderLinks nav > ul > li > button {
+      position: relative;
+      top: -1px;
       padding: 0 !important;
       background: transparent !important;
       color: #fff !important;
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      line-height: 20.8px !important;
+      text-transform: uppercase !important;
       white-space: nowrap;
     }
 
@@ -980,7 +987,8 @@ fla-logo-label {
     display: none !important;
   }
   header .fla-sb-plan {
-    font-size: 12px !important;
+    font-size: 13px !important;
+    line-height: 20.8px !important;
   }
 
   header cx-page-slot.SiteContext {
