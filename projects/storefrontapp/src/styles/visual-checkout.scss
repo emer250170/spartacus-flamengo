@@ -169,8 +169,9 @@ html.fla-co-mode {
 .fla-co-title {
   margin: 0 0 20px !important;
   font-family: var(--fla-fonte-titulo) !important;
+  letter-spacing: 0.04em !important;
   font-size: 22px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   text-transform: uppercase;
 }
 
@@ -734,8 +735,9 @@ html.fla-co-mode cx-page-layout.LoginPageTemplate {
   h2 {
     margin: 0;
     font-family: var(--fla-fonte-titulo) !important;
+    letter-spacing: 0.04em !important;
     font-size: 18px !important;
-    font-weight: 800 !important;
+    font-weight: 600 !important;
     text-transform: uppercase;
   }
 }
@@ -1744,8 +1746,9 @@ html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate {
       margin: 0 0 6px;
       color: #fff !important;
       font-family: var(--fla-fonte-titulo);
+      letter-spacing: 0.04em;
       font-size: 22px;
-      font-weight: 800;
+      font-weight: 600;
       line-height: 1.15;
       text-transform: uppercase;
     }
@@ -1848,8 +1851,9 @@ html.fla-oc.fla-co-mode cx-page-layout.OrderConfirmationPageTemplate {
   h1 {
     margin: 0;
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 32px;
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1.15;
     text-transform: uppercase;
   }
@@ -1945,7 +1949,8 @@ a.fla-oc-btn {
 .fla-oc-h3 {
   margin: 0 0 10px !important;
   font-family: var(--fla-fonte-titulo) !important;
-  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  font-weight: 600 !important;
   text-transform: uppercase;
 }
 
@@ -1979,6 +1984,7 @@ a.fla-oc-btn {
 
   strong {
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 17px;
     text-transform: uppercase;
   }

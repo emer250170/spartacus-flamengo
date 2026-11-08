@@ -98,6 +98,7 @@
     font-size: 15px;
     strong {
       font-family: var(--fla-fonte-titulo);
+      letter-spacing: 0.04em;
       font-size: 26px;
       vertical-align: -2px;
     }
@@ -110,7 +111,8 @@
     .acervo {
       color: #111;
       font-family: var(--fla-fonte-titulo);
-      font-weight: 800;
+      letter-spacing: 0.04em;
+      font-weight: 600;
       font-size: 20px;
       text-decoration: none;
     }

@@ -229,7 +229,8 @@
 
   strong {
     font-family: var(--fla-fonte-titulo);
-    font-weight: 800;
+    letter-spacing: 0.04em;
+    font-weight: 600;
   }
 }
 
@@ -283,6 +284,7 @@
 
   strong {
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 30px;
     font-style: italic;
     line-height: 1.05;
@@ -369,8 +371,9 @@
 
   strong {
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 34px;
-    font-weight: 800;
+    font-weight: 600;
     text-transform: uppercase;
   }
 
@@ -422,8 +425,9 @@
     position: relative;
     z-index: 1;
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 24px;
-    font-weight: 800;
+    font-weight: 600;
     text-transform: uppercase;
   }
 
@@ -476,8 +480,9 @@
 
   strong {
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 26px;
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1.1;
     text-transform: uppercase;
   }

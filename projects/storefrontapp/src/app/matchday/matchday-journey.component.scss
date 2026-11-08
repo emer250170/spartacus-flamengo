@@ -1106,8 +1106,9 @@
 
 @mixin md-title($size) {
   font-family: var(--fla-fonte-titulo, inherit);
+  letter-spacing: 0.04em;
   font-size: $size;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.15;
   text-transform: uppercase;
 }

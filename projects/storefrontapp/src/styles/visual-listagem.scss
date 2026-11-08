@@ -40,8 +40,9 @@ $fla-listagem: 'cx-storefront:is(.ProductListPageTemplate, .ProductGridPageTempl
       margin: 0 !important;
       color: #fff !important;
       font-family: var(--fla-fonte-titulo) !important;
+      letter-spacing: 0.04em !important;
       font-size: 40px;
-      font-weight: 800 !important;
+      font-weight: 600 !important;
       text-transform: uppercase !important;
       text-align: left !important;
     }
@@ -254,8 +255,9 @@ fla-search-band {
   margin: 0 !important;
   color: #fff !important;
   font-family: var(--fla-fonte-titulo) !important;
+  letter-spacing: 0.04em !important;
   font-size: 44px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   line-height: 1.05;
   text-transform: uppercase;
   overflow-wrap: anywhere;
@@ -404,7 +406,8 @@ cx-product-grid-item .search-results-highlight {
 .fla-bv-h2 {
   margin: 0 !important;
   font-family: var(--fla-fonte-titulo) !important;
-  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  font-weight: 600 !important;
   text-transform: uppercase;
 }
 

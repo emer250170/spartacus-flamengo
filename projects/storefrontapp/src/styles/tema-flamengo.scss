@@ -37,6 +37,7 @@ html body, html body cx-storefront {
 
 h1, h2, h3:not(.cx-product-name), .cx-page-title, cx-carousel h2, .cx-section-title {
   font-family: var(--fla-fonte-titulo) !important;
+  letter-spacing: 0.04em !important;
   font-weight: 600 !important;
   text-transform: uppercase;
 }
@@ -257,6 +258,7 @@ html cx-page-layout.footer span, html cx-page-layout.footer p {
 }
 html cx-page-layout.footer h5 {
   font-family: var(--fla-fonte-titulo) !important;
+  letter-spacing: 0.04em !important;
   text-transform: uppercase;
 }
 html cx-page-layout.footer cx-footer-navigation,
@@ -308,6 +310,7 @@ html cx-page-layout.footer cx-footer-navigation {
     display: block;
     margin-bottom: 6px;
     font-family: var(--fla-fonte-titulo);
+    letter-spacing: 0.04em;
     font-size: 14px;
     text-transform: uppercase;
     color: #fff;
@@ -735,8 +738,9 @@ cx-facet-list.fla-filter-drawer {
 
       h4 {
         font-family: var(--fla-fonte-titulo, inherit);
+        letter-spacing: 0.04em;
         font-size: 26px;
-        font-weight: 800;
+        font-weight: 600;
         text-transform: uppercase;
         margin: 0;
       }
@@ -1270,8 +1274,9 @@ fla-cart-drawer.cx-sidebar-end {
   h2 {
     margin: 0;
     font-family: var(--fla-fonte-titulo) !important;
+    letter-spacing: 0.04em !important;
     font-size: 22px;
-    font-weight: 800 !important;
+    font-weight: 600 !important;
     text-transform: uppercase;
   }
 
