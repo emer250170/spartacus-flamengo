@@ -715,7 +715,7 @@ function socioTools(cfg, http) {
         onda: p.wave > 0 ? p.wave : 'venda geral', maxConvidados: p.maxGuests, mensalidadeConvidado: brl(p.guestPrice),
         vagas: p.slots ?? 'sem limite', sociosNaLoja: real.length, vagasRestantes: p.slots ? Math.max(0, p.slots - real.length) : null,
         planoNoCarrinho: pending.size, baseSimuladaDemo: p.demoBase, avisoPublicacao: p.statusMessage || null,
-        _members: real,
+        _members: real, _mensal: num(p.monthlyPrice) ?? 0,
       };
     });
   }
@@ -782,6 +782,75 @@ function socioTools(cfg, http) {
     return results(es).map((e) => ({ data: toDate(e.date), tipo: typeName[e.type?.code] ?? e.type?.code, plano: e.plan?.name ?? e.plan?.code ?? null, origem: e.origin, registradoPor: e.author, motivo: e.note, resultado: e.result }))
       .sort((a, b) => (a.data?.getTime() ?? 0) - (b.data?.getTime() ?? 0))
       .map((e) => ({ ...e, data: fmtDate(e.data) }));
+  }
+
+  /** Todas as páginas de uma lista OData (poucas chamadas, em vez de uma por torcedor) */
+  async function allPages(path, query = {}, page = 500) {
+    const out = [];
+    for (let skip = 0; ; skip += page) {
+      const r = results(await odata('GET', path, { query: { ...query, $top: page, $skip: skip } }));
+      out.push(...r);
+      if (r.length < page || out.length >= 20000) return out;
+    }
+  }
+
+  /**
+   * Situação de toda a base de sócios em lote: 3 consultas (planos com membros, torcedores com grupos, eventos),
+   * nunca uma por sócio. Suspenso = sócio no grupo socio-suspenso (mensalidade em atraso); aguardando = Pix/boleto
+   * de adesão sem confirmação.
+   */
+  async function memberBase() {
+    const [plans, customers, evs, contracts] = await Promise.all([
+      planList(),
+      allPages('/FlamengoTorcedor/Customers', { $expand: 'groups' }),
+      allPages('/FlamengoEventoSocio/SocioEvents', { $expand: 'type,plan,customer' }, 1000),
+      allPages('/FlamengoContrato/SocioContracts', { $expand: 'plan,nextPlan,customer' }).catch(() => []),
+    ]);
+    const priceByCode = new Map(plans.map((p) => [p.code, p._mensal]));
+    const contractByUid = new Map(contracts.filter((k) => k.customer?.uid).map((k) => [k.customer.uid, k]));
+    const byUid = new Map(customers.map((c) => [c.uid, c]));
+    const suspendedSet = new Set(customers.filter((c) => results(c.groups).some((g) => g.uid === SUSPENDED_GROUP)).map((c) => c.uid));
+    const evByUid = new Map();
+    for (const e of evs) {
+      const uid = e.customer?.uid;
+      if (!uid) continue;
+      if (!evByUid.has(uid)) evByUid.set(uid, []);
+      evByUid.get(uid).push({ data: toDate(e.date), tipo: e.type?.code, plano: e.plan?.name ?? e.plan?.code ?? null, planoCodigo: e.plan?.code ?? null, motivo: e.note, origem: e.origin });
+    }
+    for (const l of evByUid.values()) l.sort((a, b) => (a.data?.getTime() ?? 0) - (b.data?.getTime() ?? 0));
+    const now = Date.now();
+    const members = [];
+    for (const p of plans) for (const uid of p._members) {
+      const l = evByUid.get(uid) ?? [];
+      const suspenso = suspendedSet.has(uid);
+      const ultimaSusp = suspenso ? [...l].reverse().find((e) => e.tipo === 'SUSPENSAO') : null;
+      // receita esperada nos próximos 12 meses: renova sozinho = 12 mensalidades; renovação desligada = até o fim da
+      // vigência; mudança agendada = plano atual até o fim e o próximo depois
+      const k = contractByUid.get(uid);
+      const ativo = k && !k.endedAt && k.plan?.code === p.code;
+      const fim = ativo ? toDate(k.end) : null;
+      const mesesAteFim = fim ? Math.max(0, Math.min(12, (fim.getTime() - now) / (30.4375 * 86400000))) : 12;
+      const proximo = ativo && k.nextPlan?.code ? priceByCode.get(k.nextPlan.code) ?? p._mensal : p._mensal;
+      const anual = !fim ? 12 * p._mensal : k.autoRenew === false ? mesesAteFim * p._mensal : mesesAteFim * p._mensal + (12 - mesesAteFim) * proximo;
+      members.push({
+        nome: byUid.get(uid)?.name ?? uid, email: uid, plano: p.nome, planoCodigo: p.code, mensalidade: p._mensal, _anual: anual,
+        ...(fim ? { _fim: fim, _renova: k.autoRenew !== false } : {}),
+        situacao: suspenso ? 'suspenso (mensalidade em atraso)' : 'ativo', _suspenso: suspenso,
+        ...(suspenso ? { suspensoDesde: fmtDate(ultimaSusp?.data, false), diasSuspenso: ultimaSusp?.data ? Math.floor((now - ultimaSusp.data.getTime()) / 86400000) : null, motivo: ultimaSusp?.motivo ?? null } : {}),
+      });
+    }
+    // Pix/boleto de adesão sem confirmação (ainda não é sócio)
+    const aguardando = [];
+    for (const [uid, l] of evByUid) {
+      for (let i = l.length - 1; i >= 0; i--) {
+        if (l[i].tipo === 'PAGAMENTO_CONFIRMADO') break;
+        if (l[i].tipo === 'AGUARDANDO_PAGAMENTO') {
+          if (!members.some((m) => m.email === uid)) aguardando.push({ nome: byUid.get(uid)?.name ?? uid, email: uid, plano: l[i].plano, desde: fmtDate(l[i].data, false), dias: l[i].data ? Math.floor((now - l[i].data.getTime()) / 86400000) : null, pedido: l[i].motivo });
+          break;
+        }
+      }
+    }
+    return { plans, members, aguardando, customers, evByUid, contracts, priceByCode };
   }
 
   /** Cria Suspensão ou Regularização: o Commerce aplica na hora (SocioEventInterceptor) */
@@ -878,16 +947,148 @@ function socioTools(cfg, http) {
       name: 'planos',
       description: 'Planos de sócio-torcedor: situação (à venda/rascunho/fora da loja), mensalidade, descontos, onda, convidados, vagas e quantos sócios reais cada plano tem.',
       inputSchema: obj(),
-      handler: async () => ({ planos: (await planList()).map(({ _members, ...p }) => p) }),
+      handler: async () => ({ planos: (await planList()).map(({ _members, _mensal, ...p }) => p) }),
     },
     {
       name: 'socios_do_plano',
-      description: 'Lista os sócios (torcedores) de um plano.',
-      inputSchema: obj({ plano: S.str('Código do plano') }, ['plano']),
-      handler: async ({ plano }) => {
-        const p = (await planList()).find((x) => x.code === plano);
+      description: 'Lista os sócios de um plano com a situação de cada um (ativo ou suspenso por mensalidade em atraso), numa consulta só. Para contar ou listar inadimplentes da base toda use inadimplencia_socios.',
+      inputSchema: obj({ plano: S.str('Código do plano'), situacao: { type: 'string', enum: ['todos', 'ativos', 'suspensos'], description: 'Padrão: todos' } }, ['plano']),
+      handler: async ({ plano, situacao = 'todos' }) => {
+        const base = await memberBase();
+        const p = base.plans.find((x) => x.code === plano);
         if (!p) throw new UserError('Plano não encontrado.');
-        return { plano: p.nome, socios: p._members };
+        const ms = base.members.filter((m) => m.planoCodigo === plano && (situacao === 'todos' || (situacao === 'suspensos') === m._suspenso));
+        return { plano: p.nome, total: ms.length, socios: ms.map(({ _suspenso, _anual, _fim, _renova, planoCodigo, mensalidade, ...m }) => m) };
+      },
+    },
+    {
+      name: 'inadimplencia_socios',
+      description: 'Inadimplência e receita recorrente da base de sócios hoje, numa consulta só (sem olhar sócio por sócio): quantos sócios ativos e suspensos por mensalidade em atraso, % de inadimplência, receita mensal (mensalidades), receita em dia e receita em risco, receita anual esperada (próximos 12 meses, considerando renovação desligada e mudança de plano agendada) e quanto dela está em risco (total e por plano), há quanto tempo estão suspensos (faixas de dias) e a lista dos suspensos; também as adesões com Pix/boleto aguardando pagamento. Use para "quantos inadimplentes temos", "% de inadimplência por plano", "receita mensal e receita em risco", "quem está suspenso há mais de 30 dias".',
+      inputSchema: obj({
+        plano: S.str('Código do plano (opcional)'),
+        minDias: S.int('Só suspensos há pelo menos N dias (opcional)'),
+        listar: S.bool('Listar os suspensos (padrão sim, até 200)'),
+      }),
+      handler: async (a) => {
+        const base = await memberBase();
+        const ms = base.members.filter((m) => !a.plano || m.planoCodigo === a.plano);
+        const sus = ms.filter((m) => m._suspenso && (a.minDias == null || (m.diasSuspenso ?? 0) >= a.minDias));
+        const pct = (x, y) => (y ? `${(Math.round((x / y) * 1000) / 10).toString().replace('.', ',')}%` : null);
+        const faixa = (d) => (d == null ? 'sem data' : d <= 7 ? 'até 7 dias' : d <= 30 ? '8 a 30 dias' : d <= 60 ? '31 a 60 dias' : 'mais de 60 dias');
+        const faixas = {};
+        for (const m of ms.filter((x) => x._suspenso)) faixas[faixa(m.diasSuspenso)] = (faixas[faixa(m.diasSuspenso)] ?? 0) + 1;
+        const porPlano = base.plans.filter((p) => !a.plano || p.code === a.plano).map((p) => {
+          const pm = ms.filter((m) => m.planoCodigo === p.code);
+          const ps = pm.filter((m) => m._suspenso);
+          const mrr = pm.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+          const risco = ps.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+          const anual = pm.reduce((x, m) => x + m._anual, 0);
+          const anualRisco = ps.reduce((x, m) => x + m._anual, 0);
+          return { plano: p.nome, mensalidade: p.mensalidade, socios: pm.length, ativos: pm.length - ps.length, suspensos: ps.length, inadimplencia: pct(ps.length, pm.length),
+            receitaMensal: brl(mrr), receitaMensalEmDia: brl(mrr - risco), receitaEmRisco: brl(risco), pctReceitaEmRisco: pct(risco, mrr),
+            receitaAnualEsperada: brl(anual), receitaAnualEsperadaEmRisco: brl(anualRisco) };
+        }).filter((p) => p.socios > 0);
+        const aguard = base.aguardando.filter((x) => !a.plano || x.plano === base.plans.find((p) => p.code === a.plano)?.nome);
+        const totalSus = ms.filter((m) => m._suspenso);
+        const mrr = ms.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+        const risco = totalSus.reduce((x, m) => x + (m.mensalidade ?? 0), 0);
+        const mensalAguardando = aguard.reduce((x, g) => x + (num(String(base.plans.find((p) => p.nome === g.plano)?.mensalidade ?? '').replace(/[^\d,]/g, '').replace(',', '.')) ?? 0), 0);
+        return {
+          resumo: {
+            socios: ms.length, ativos: ms.length - totalSus.length, suspensosPorAtraso: totalSus.length, inadimplencia: pct(totalSus.length, ms.length),
+            receitaMensal: brl(mrr), receitaMensalEmDia: brl(mrr - risco), receitaEmRisco: brl(risco), pctReceitaEmRisco: pct(risco, mrr),
+            receitaAnualEsperada: brl(ms.reduce((x, m) => x + m._anual, 0)), receitaAnualEsperadaEmDia: brl(ms.filter((m) => !m._suspenso).reduce((x, m) => x + m._anual, 0)),
+            receitaAnualEsperadaEmRisco: brl(totalSus.reduce((x, m) => x + m._anual, 0)), pctReceitaAnualEmRisco: pct(totalSus.reduce((x, m) => x + m._anual, 0), ms.reduce((x, m) => x + m._anual, 0)),
+            vigenciasQueTerminamSemRenovarEm12Meses: ms.filter((m) => m._fim && !m._renova && m._fim.getTime() - Date.now() < 365 * 86400000).length,
+            tempoSuspenso: faixas,
+            adesoesAguardandoPagamento: aguard.length, receitaMensalDasAdesoesPendentes: brl(mensalAguardando),
+          },
+          porPlano,
+          ...(a.listar === false ? {} : {
+            suspensos: sus.sort((x, y) => (y.diasSuspenso ?? 0) - (x.diasSuspenso ?? 0)).slice(0, 200).map(({ _suspenso, _anual, _fim, _renova, planoCodigo, mensalidade, situacao, ...m }) => m),
+            aguardandoPagamento: aguard.slice(0, 100),
+          }),
+          observacao: 'Receita mensal = soma da mensalidade de tabela do plano de cada sócio da loja (não inclui a base simulada da demo nem descontos ou pagamento anual adiantado); receita em risco = a dos suspensos. Receita anual esperada = próximos 12 meses: 12 mensalidades de quem renova sozinho; até o fim da vigência de quem desligou a renovação; plano novo depois do fim de quem agendou mudança. Inadimplente = sócio com benefícios suspensos por mensalidade em atraso (perde a onda e os descontos, mantém a vaga). Adesão aguardando pagamento = Pix/boleto do plano ainda não pago (a pessoa ainda não é sócia). Consulta feita em lote: planos, torcedores e eventos de uma vez.',
+        };
+      },
+    },
+    {
+      name: 'evolucao_socios',
+      description: 'Evolução mês a mês da base de sócios (padrão: últimos 6 meses; ou um ano inteiro): no fim de cada mês, sócios, ativos, suspensos por atraso, % de inadimplência, receita mensal, receita em risco e receita anualizada; no mês, adesões, saídas (cancelamento ou fim de vigência), novas suspensões e regularizações. Calculada em lote com o histórico de eventos e contratos. Use para "inadimplência por mês", "como evoluiu a receita do sócio em 2026", "quantos entraram e saíram em outubro".',
+      inputSchema: obj({
+        meses: S.int('Últimos N meses, contando o atual (padrão 6, máximo 24)'),
+        ano: S.int('Um ano inteiro (ex. 2026), em vez de meses'),
+        plano: S.str('Código do plano (opcional)'),
+      }),
+      handler: async (a) => {
+        const base = await memberBase();
+        const now = new Date();
+        const ym = (d) => { const x = new Date(d.getTime() - 3 * 3600000); return [x.getUTCFullYear(), x.getUTCMonth()]; };
+        const [cy, cm] = ym(now);
+        const months = [];
+        if (a.ano) for (let m = 0; m < 12; m++) { if (a.ano < cy || m <= cm) months.push([a.ano, m]); }
+        else { const n = Math.min(24, Math.max(1, a.meses ?? 6)); for (let i = n - 1; i >= 0; i--) { const t = new Date(Date.UTC(cy, cm - i, 1)); months.push([t.getUTCFullYear(), t.getUTCMonth()]); } }
+        if (!months.length) throw new UserError('Nenhum mês no período pedido.');
+        const monthEnd = ([y, m]) => Math.min(now.getTime(), Date.UTC(y, m + 1, 1) + 3 * 3600000 - 1);
+        const monthStart = ([y, m]) => Date.UTC(y, m, 1) + 3 * 3600000;
+        const planByName = new Map(base.plans.map((p) => [p.nome, p.code]));
+        const price = (code) => base.priceByCode.get(code) ?? 0;
+
+        // intervalos de sócio (início, fim, plano) por torcedor: contrato gravado; senão eventos; senão (sócio hoje) desde o cadastro
+        const intervals = [];
+        const created = new Map(base.customers.map((c) => [c.uid, toDate(c.creationtime)]));
+        const currentPlan = new Map(base.members.map((m) => [m.email, m.planoCodigo]));
+        const kByUid = new Map(base.contracts.filter((k) => k.customer?.uid).map((k) => [k.customer.uid, k]));
+        const uids = new Set([...currentPlan.keys(), ...base.evByUid.keys(), ...kByUid.keys()]);
+        for (const uid of uids) {
+          const l = base.evByUid.get(uid) ?? [];
+          const k = kByUid.get(uid);
+          const startEv = l.find((e) => e.tipo === 'ADESAO' || (e.tipo === 'PAGAMENTO_CONFIRMADO' && e.planoCodigo));
+          const endEv = [...l].reverse().find((e) => e.tipo === 'CANCELAMENTO' || e.tipo === 'FIM_VIGENCIA');
+          let plan = currentPlan.get(uid) ?? k?.plan?.code ?? startEv?.planoCodigo ?? planByName.get(startEv?.plano);
+          let start = startEv?.data ?? (k ? toDate(k.start) : null);
+          let end = null;
+          if (!currentPlan.has(uid)) end = (k?.endedAt && toDate(k.endedAt)) || endEv?.data || null;
+          if (!start && currentPlan.has(uid)) start = created.get(uid) ?? null;
+          if (!start || !plan || (!currentPlan.has(uid) && !end)) continue;
+          // suspensões: pares Suspensão → Regularização (ou até hoje, se ainda suspenso)
+          const susp = [];
+          let open = null;
+          for (const e of l) {
+            if (e.tipo === 'SUSPENSAO' && !open) open = e.data;
+            if ((e.tipo === 'REGULARIZACAO' || e.tipo === 'CANCELAMENTO' || e.tipo === 'FIM_VIGENCIA') && open) { susp.push([open.getTime(), e.data.getTime()]); open = null; }
+          }
+          const hojeSuspenso = base.members.some((m) => m.email === uid && m._suspenso);
+          if (open) susp.push([open.getTime(), Infinity]);
+          else if (hojeSuspenso && !susp.some(([, f]) => f === Infinity)) susp.push([now.getTime() - 1, Infinity]);
+          intervals.push({ uid, plan, start: start.getTime(), end: end ? end.getTime() : Infinity, susp, evs: l });
+        }
+        const sel = intervals.filter((x) => !a.plano || x.plan === a.plano);
+        const pct = (x, y) => (y ? `${(Math.round((x / y) * 1000) / 10).toString().replace('.', ',')}%` : null);
+        const label = ([y, m]) => new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m, 15)));
+        const rows = months.map((mo) => {
+          const T = monthEnd(mo), S0 = monthStart(mo);
+          const ativosNoFim = sel.filter((x) => x.start <= T && x.end > T);
+          const susp = ativosNoFim.filter((x) => x.susp.some(([i, f]) => i <= T && f > T));
+          const mrr = ativosNoFim.reduce((s, x) => s + price(x.plan), 0);
+          const risco = susp.reduce((s, x) => s + price(x.plan), 0);
+          const inMonth = (d) => d && d.getTime() >= S0 && d.getTime() <= T;
+          return {
+            mes: label(mo) + (T === now.getTime() ? ' (até hoje)' : ''),
+            socios: ativosNoFim.length, ativos: ativosNoFim.length - susp.length, suspensos: susp.length, inadimplencia: pct(susp.length, ativosNoFim.length),
+            receitaMensal: brl(mrr), receitaEmRisco: brl(risco), pctReceitaEmRisco: pct(risco, mrr), receitaAnualizada: brl(mrr * 12), receitaAnualizadaEmRisco: brl(risco * 12),
+            adesoes: sel.filter((x) => x.start >= S0 && x.start <= T).length, saidas: sel.filter((x) => x.end >= S0 && x.end <= T).length,
+            novasSuspensoes: sel.reduce((s, x) => s + x.evs.filter((e) => e.tipo === 'SUSPENSAO' && inMonth(e.data)).length, 0),
+            regularizacoes: sel.reduce((s, x) => s + x.evs.filter((e) => e.tipo === 'REGULARIZACAO' && inMonth(e.data)).length, 0),
+          };
+        });
+        const semData = base.members.filter((m) => !sel.some((x) => x.uid === m.email) && (!a.plano || m.planoCodigo === a.plano)).length;
+        return {
+          ...(a.plano ? { plano: base.plans.find((p) => p.code === a.plano)?.nome ?? a.plano } : {}),
+          meses: rows,
+          observacao: 'Posição no fim de cada mês (mês atual: até hoje), com a mensalidade de tabela de hoje de cada plano e o plano atual de cada sócio. Início do sócio = adesão registrada ou início do contrato; sem nenhum dos dois, a data de cadastro do torcedor. Saída = cancelamento ou fim de vigência. Só sócios da loja (sem a base simulada da demo).'
+            + (semData ? ` ${semData} sócio(s) de hoje ficaram de fora por falta de data de início.` : ''),
+        };
       },
     },
     {
@@ -918,7 +1119,7 @@ function socioTools(cfg, http) {
         if (c) return c;
         await odata('PATCH', `/FlamengoPlano/SocioPlans('${enc(a.plano)}')`, { body });
         const after = (await planList()).find((x) => x.code === a.plano);
-        return { executado: true, plano: after && (({ _members, ...x }) => x)(after), observacao: 'O Commerce republica produto e promoções em segundo plano; a loja reflete em instantes.' };
+        return { executado: true, plano: after && (({ _members, _mensal, ...x }) => x)(after), observacao: 'O Commerce republica produto e promoções em segundo plano; a loja reflete em instantes.' };
       },
     },
     {
