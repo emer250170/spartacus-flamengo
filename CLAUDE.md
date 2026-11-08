@@ -86,7 +86,7 @@ O resto é o Spartacus padrão: não mexer sem necessidade.
     (`position: static; appearance: auto`);
   - o slot `SiteLogin` no desktop fica em coluna para o mini-carrinho caber na linha do logo.
 - **Alinhamento do header (regra):** no desktop o header não tem recuo; logo e carrinho ficam nas bordas
-  do container de 1140px, as mesmas do conteúdo (banner da home, fotos da listagem, produto, carrinho). Toda
+  do container (como no site oficial: tela menos 64px de cada lado a partir de 992px, até 1472px; 16px abaixo de 992px; variável `--cx-page-width-max`, calculada no tema), as mesmas do conteúdo (banner da home, fotos da listagem, produto, carrinho). Toda
   mudança de visual: medir na loja (logo × borda do conteúdo, carrinho × borda direita) em 1024, 1280, 1440 e
   1920px e nas páginas home, listagem, produto, carrinho, matchday, sócio e minha conta. Antes de dizer que
   algo está desalinhado, conferir se a loja publicada já tem o PR (o CSS no ar pode ser o antigo).
