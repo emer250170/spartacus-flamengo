@@ -33,6 +33,15 @@ const ORDER: Part[] = [
   'store',
 ];
 
+/** Itens que vão ao estádio: com eles o nome do modo continua "Ingresso digital e retirada no estádio" */
+const STADIUM: Part[] = ['ticket', 'parking', 'food', 'shirt', 'store'];
+
+/** Nome do modo quando o carrinho só tem plano e/ou experiência com voucher (nada no estádio) */
+const DIGITAL_NAME: Record<'pt' | 'en', string> = {
+  pt: 'Entrega digital',
+  en: 'Digital delivery',
+};
+
 const TEXTS: Record<
   'pt' | 'en',
   Record<Exclude<Part, 'food'> | 'foodSeat' | 'foodKiosk' | 'and', string>
@@ -139,9 +148,7 @@ export class MatchdayDeliveryTextInterceptor implements HttpInterceptor {
     if (Array.isArray(body.deliveryModes) && this.cartCodes.length) {
       body.deliveryModes
         .filter((m: any) => m?.code === MATCHDAY_MODE)
-        .forEach(
-          (m: any) => (m.description = this.describe(this.cartCodes, lang))
-        );
+        .forEach((m: any) => this.relabel(m, this.cartCodes, lang));
     }
     // carrinho ou pedido com o modo já escolhido
     if (
@@ -150,10 +157,22 @@ export class MatchdayDeliveryTextInterceptor implements HttpInterceptor {
     ) {
       const codes = body.entries.map((e: any) => e?.product?.code ?? '');
       if (codes.length) {
-        body.deliveryMode.description = this.describe(codes, lang);
+        this.relabel(body.deliveryMode, codes, lang);
       }
     }
     return body;
+  }
+
+  /**
+   * Descrição pelo carrinho e, sem nada que vá ao estádio (só plano e/ou experiência com voucher,
+   * 08/11), o nome "Entrega digital" no lugar de "Ingresso digital e retirada no estádio".
+   */
+  protected relabel(mode: any, codes: string[], lang: 'pt' | 'en'): void {
+    mode.description = this.describe(codes, lang);
+    const kinds = codes.filter((c) => !!c).map((c) => this.kindOf(c));
+    if (kinds.length && !kinds.some((k) => STADIUM.includes(k))) {
+      mode.name = DIGITAL_NAME[lang];
+    }
   }
 
   protected describe(codes: string[], lang: 'pt' | 'en'): string {

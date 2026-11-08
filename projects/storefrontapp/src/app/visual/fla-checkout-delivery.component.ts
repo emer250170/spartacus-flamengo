@@ -122,11 +122,35 @@ export class FlaCheckoutDeliveryComponent implements OnInit, OnDestroy {
         this.setMode(v.pickupStore ? 'pickup' : 'home', v, false);
       })
     );
+    this.subscription.add(this.clearStaleMode().subscribe({ error: () => undefined }));
     this.subscription.add(
       this.preferredStore.getPreferredStore$().subscribe((p) => {
         this.preferred = p?.name;
         this.cd.markForCheck();
       })
+    );
+  }
+
+  /**
+   * Forma de entrega que deixou de valer (08/11): o carrinho guarda a forma escolhida antes (ex.:
+   * frete de R$ 19,90 de um produto que saiu) mesmo quando ela não está mais entre as permitidas
+   * (carrinho só com experiência = só a entrega digital, R$ 0). O resumo desta tela mostrava esse
+   * frete. Aqui a forma é apagada; o carrinho recarrega sem frete e o torcedor escolhe no passo
+   * seguinte. Retirada na loja ("pickup") não vem na lista; sem lista (sem endereço ou erro), nada muda.
+   */
+  protected clearStaleMode(): Observable<unknown> {
+    return combineLatest([
+      this.deliveryModes.getSelectedDeliveryModeState().pipe(filter((st) => !st.loading)),
+      this.deliveryModes.getSupportedDeliveryModesState().pipe(filter((st) => !st.loading)),
+    ]).pipe(
+      take(1),
+      map(([selected, supported]) => {
+        const code = selected.data?.code;
+        const modes = supported.data ?? [];
+        return !!code && code !== 'pickup' && modes.length > 0 && !modes.some((m) => m.code === code);
+      }),
+      filter((stale) => stale),
+      switchMap(() => this.deliveryModes.clearCheckoutDeliveryMode())
     );
   }
 
