@@ -322,7 +322,8 @@ public class SummaryReportHtml
 
 	protected String money(final double value)
 	{
-		return (portuguese ? "R$ " : "R$") + amount.format(value);
+		// negativo (descontos do pedido, 08/11): "− R$ 66,00" no lugar de "R$ -66,00"
+		return (value < -0.004 ? "− " : "") + (portuguese ? "R$ " : "R$") + amount.format(Math.abs(value));
 	}
 
 	/** Eixo: "R$ 12 mil" / "R$ 1,5 mil" / "R$ 800" */
@@ -337,11 +338,13 @@ public class SummaryReportHtml
 		return (portuguese ? "R$ " : "R$") + integer.format(Math.round(value));
 	}
 
+	/** "0,3%"; negativo (descontos do pedido, 08/11): "− 0,3%" no lugar de "-0%" */
 	protected String percent(final double value)
 	{
+		final double abs = Math.abs(value);
 		final NumberFormat format = NumberFormat.getNumberInstance(locale);
-		format.setMaximumFractionDigits(value > 0 && value < 10 ? 1 : 0);
-		return format.format(value) + "%";
+		format.setMaximumFractionDigits(abs > 0 && abs < 10 ? 1 : 0);
+		return (value < -0.0001 ? "− " : "") + format.format(abs) + "%";
 	}
 
 	/** Passo do eixo (1, 2, 5 x 10^n) para ~4 linhas */
