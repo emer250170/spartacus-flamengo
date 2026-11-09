@@ -1,0 +1,43 @@
+<!-- 08/11: o pedido fecha quando todas as remessas terminaram, sem esperar as linhas que nunca têm remessa -->
+<scriptAction id='verifyOrderCompletion'>
+    <script type='groovy'><![CDATA[
+import de.hybris.platform.core.Registry
+import de.hybris.platform.basecommerce.enums.ConsignmentStatus
+import de.hybris.platform.core.enums.DeliveryStatus
+def ctx = Registry.applicationContext
+def log = org.slf4j.LoggerFactory.getLogger('flamengo-expedicao')
+// regra padrão do OMS (VerifyOrderCompletionAction): grava a situação de entrega, CANCELLED se tudo foi
+// cancelado, WAIT se alguma linha não foi alocada a uma remessa ou se um subprocesso de remessa não terminou
+def resultado = ctx.getBean('verifyOrderCompletionAction').execute(process)
+if (resultado != 'WAIT' || !ctx.getBean('configurationService').configuration.getBoolean('flamengo.loja.operacao.fecharSemRemessa', true)) {
+  return resultado
+}
+// A regra padrão espera também as linhas que nunca entram em remessa (personalização, comida, estacionamento,
+// plano, ingresso: flamengo.loja.operacao.semRemessa), e o pedido ficava "Em processamento" para sempre.
+// Aqui fecha quando todas as remessas terminaram, pelo menos uma foi enviada ou retirada, e as linhas que têm
+// remessa estão entregues. Linha sem nenhuma remessa não segura o pedido (como no passo completeOrder).
+def o = process.order
+ctx.getBean('modelService').refresh(o)
+def remessas = o.consignments ?: []
+def fim = [ConsignmentStatus.SHIPPED, ConsignmentStatus.PICKUP_COMPLETE, ConsignmentStatus.CANCELLED]
+def entregue = [ConsignmentStatus.SHIPPED, ConsignmentStatus.PICKUP_COMPLETE]
+if (remessas.isEmpty() || remessas.any { !(it.status in fim) } || !remessas.any { it.status in entregue }) {
+  return 'WAIT'
+}
+if ((process.consignmentProcesses ?: []).any { !it.done }) {
+  return 'WAIT'
+}
+def pendentes = o.entries.findAll { e -> e.consignmentEntries && (e.quantityPending ?: 0L) > 0L }
+if (pendentes) {
+  return 'WAIT'
+}
+o.deliveryStatus = DeliveryStatus.SHIPPED
+ctx.getBean('modelService').save(o)
+def semRemessa = o.entries.findAll { e -> !e.consignmentEntries }.collect { it.product?.code }
+log.info('Pedido ' + o.code + ': remessas finalizadas; linhas sem remessa ' + semRemessa + ' não seguram o pedido')
+return 'OK'
+]]></script>
+    <transition name='OK' to='finishOrder'/>
+    <transition name='WAIT' to='waitForOrderAction'/>
+    <transition name='CANCELLED' to='success'/>
+</scriptAction>
