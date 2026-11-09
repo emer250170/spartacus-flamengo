@@ -91,6 +91,11 @@ public class DefaultProductImageService implements ProductImageService
 		{
 			media.setFolder(folder);
 		}
+		if (media.getCatalogVersion() == null)
+		{
+			// Gestor da loja (08/11): a sessão dele não tem catálogo padrão e o Media exige catalogVersion.
+			media.setCatalogVersion(uploadCatalogVersion());
+		}
 		modelService.save(media);
 		mediaService.setDataForMedia(media, data);
 		LOG.info("Imagem {} gravada ({} x {} px, {} bytes)", media.getCode(), image.getWidth(), image.getHeight(), data.length);
@@ -578,6 +583,27 @@ public class DefaultProductImageService implements ProductImageService
 		query.addQueryParameter("cv", catalogVersion);
 		final List<MediaModel> result = flexibleSearchService.<MediaModel> search(query).getResult();
 		return result.isEmpty() ? null : result.get(0);
+	}
+
+	/**
+	 * Catálogo das imagens enviadas quando a sessão não define um (gestor da loja no assistente "Novo produto"):
+	 * {@code flamengo.produtos.imagem.catalogo}/{@code .versao}, com o catálogo do cadastro da loja como padrão.
+	 */
+	protected CatalogVersionModel uploadCatalogVersion()
+	{
+		final String catalog = config("flamengo.produtos.imagem.catalogo", config("flamengo.loja.cadastro.catalogo", "flamengoProductCatalog"));
+		final String version = config("flamengo.produtos.imagem.versao", config("flamengo.loja.cadastro.versao", "Online"));
+		final FlexibleSearchQuery query = new FlexibleSearchQuery("SELECT {cv.pk} FROM {CatalogVersion AS cv JOIN Catalog AS c "
+				+ "ON {cv.catalog}={c.pk}} WHERE {c.id}=?c AND {cv.version}=?v");
+		query.addQueryParameter("c", catalog);
+		query.addQueryParameter("v", version);
+		final List<CatalogVersionModel> result = flexibleSearchService.<CatalogVersionModel> search(query).getResult();
+		if (result.isEmpty())
+		{
+			LOG.warn("Catálogo {}:{} das imagens enviadas não encontrado", catalog, version);
+			return null;
+		}
+		return result.get(0);
 	}
 
 	protected String config(final String key, final String fallback)
