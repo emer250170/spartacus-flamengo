@@ -16,13 +16,16 @@
  *              passo e mostra os pedidos parados no waitForOrderAction. Não grava nada.
  *  'aplicar'   (commit=true): o mesmo, mais backup em /backup/order-process-v<versão>-antes-fechamento.xml e a
  *              gravação (o Commerce cria a versão nova e a ativa).
- *  'destravar' (commit=true): para o pedido PEDIDO parado no waitForOrderAction com as remessas terminadas, passa o
- *              processo para a versão ativa e dispara o OrderActionEvent (o passo novo decide).
+ *  'destravar' (commit=true): para o pedido PEDIDO com as remessas terminadas, passa o processo para a versão ativa e:
+ *              parado no waitForOrderAction -> dispara o OrderActionEvent com a escolha consignmentProcessEnded (sem
+ *              a escolha, o nó de espera vai para 'failed'); processo FAILED -> reinicia no verifyOrderCompletion.
  * Para voltar: ativar a versão anterior em Backoffice › Sistema › Processos de negócio › Definições de processo
  * dinâmicas (código order-process).
  */
 import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
 import de.hybris.platform.basecommerce.enums.ConsignmentStatus
+import de.hybris.platform.processengine.enums.ProcessState
+import de.hybris.platform.processengine.BusinessProcessEvent
 
 def ETAPA = 'conferir'
 def PEDIDO = '00057001'
@@ -113,14 +116,29 @@ if (ETAPA in ['conferir', 'aplicar']) {
 if (ETAPA == 'destravar') {
 	def p = ativa()
 	if (!p.content.contains(SA + " id='verifyOrderCompletion'")) falha('a versão ativa ainda não tem o passo novo: rode aplicar antes')
+	def o = fs.search(new FlexibleSearchQuery("SELECT {pk} FROM {Order} WHERE {code}=?c AND {versionID} IS NULL", [c: PEDIDO])).result[0]
+	if (o == null) falha('pedido ' + PEDIDO + ' não encontrado')
+	if (!o.consignments || !o.consignments.every { it.status in fim }) falha('remessas do pedido ainda em aberto: ' + o.consignments*.status)
 	def pr = parados().find { it.order.code == PEDIDO }
-	if (pr == null) falha('pedido ' + PEDIDO + ' não está parado no waitForOrderAction')
-	if (!pr.order.consignments || !pr.order.consignments.every { it.status in fim }) falha('remessas do pedido ainda em aberto: ' + descrever(pr))
-	out << 'antes: ' + descrever(pr)
-	pr.processDefinitionVersion = p.version
-	modelService.save(pr)
-	businessProcessService.triggerEvent(pr.code + '_OrderActionEvent')
-	out << "processo ${pr.code} passou para a v${p.version}; OrderActionEvent disparado (o pedido fecha em alguns segundos)"
+	if (pr != null) {
+		out << 'antes: ' + descrever(pr)
+		pr.processDefinitionVersion = p.version
+		modelService.save(pr)
+		// o nó waitForOrderAction escolhe o próximo passo pela escolha do evento; sem ela vai para 'failed'
+		businessProcessService.triggerEvent(BusinessProcessEvent.builder(pr.code + '_OrderActionEvent')
+				.withChoice('consignmentProcessEnded').build())
+		out << "processo ${pr.code} passou para a v${p.version}; OrderActionEvent (consignmentProcessEnded) disparado"
+	} else {
+		pr = fs.search(new FlexibleSearchQuery("SELECT {pk} FROM {OrderProcess} WHERE {order}=?o AND {processDefinitionName}='order-process'", [o: o])).result
+				.find { it.state == ProcessState.FAILED }
+		if (pr == null) falha('pedido ' + PEDIDO + ' não está parado no waitForOrderAction nem com o processo em FAILED')
+		out << 'antes: ' + descrever(pr) + ', processo ' + pr.state
+		pr.processDefinitionVersion = p.version
+		modelService.save(pr)
+		businessProcessService.restartProcess(pr, 'verifyOrderCompletion')
+		out << "processo ${pr.code} passou para a v${p.version} e reiniciou no verifyOrderCompletion"
+	}
+	out << 'o pedido fecha em alguns segundos (Completado no Backoffice, Enviado na loja)'
 }
 
 return out.join('\n')

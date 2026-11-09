@@ -805,7 +805,11 @@ os subprocessos de remessa acabaram e as linhas com remessa estão entregues; gr
 **Enviado**. Chave `flamengo.loja.operacao.fecharSemRemessa` (padrão `true`). Instalação pelo HAC, sem `ant all`:
 `scripts/order-process-fechamento.groovy` (gerado por `gerar-order-process-fechamento.py`), `ETAPA = 'conferir'`
 (commit false), depois `'aplicar'`; `'destravar'` passa um pedido já parado (variável `PEDIDO`) para a versão nova
-e dispara o `OrderActionEvent`. Para voltar, ativar a versão anterior da definição dinâmica `order-process`.
+e dispara o `OrderActionEvent` **com a escolha `consignmentProcessEnded`** (o nó `waitForOrderAction` escolhe o próximo
+passo pela escolha do evento; sem ela o processo vai para `failed`, como aconteceu com o 00057001 em 08/11); processo já
+em `FAILED` é reiniciado no `verifyOrderCompletion` (`businessProcessService.restartProcess`). Instalado em 08/11:
+order-process v10 (backup da v9 em `/backup/order-process-v9-antes-fechamento.xml`). Para voltar, ativar a versão
+anterior da definição dinâmica `order-process`.
 
 Processo do pedido: `scripts/order-process-operacao.xml` traz os passos novos. O instalador `scripts/order-process-operacao.groovy` é gerado por `gerar-order-process-operacao.py` a partir do `.xml` e do `.tpl`. Instalação, depois do `ant all` do PR:
 
