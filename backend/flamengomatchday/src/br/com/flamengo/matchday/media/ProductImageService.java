@@ -29,6 +29,20 @@ public interface ProductImageService
 	MediaModel createUpload(String prefix, String fileName, String mime, byte[] data);
 
 	/**
+	 * Igual a {@link #createUpload(String, String, String, byte[])}, aceitando também WebP quando {@code webp} (09/11: arte
+	 * das estampas do Mengo Estúdio, que a loja mostra direto). O Java do servidor não lê WebP: a imagem é conferida pelo
+	 * cabeçalho do arquivo e as medidas vêm dele. Não usar para fotos que viram outros tamanhos (jogo, experiência, produto).
+	 *
+	 * @throws IllegalArgumentException
+	 *            arquivo vazio, grande demais ou que não é imagem (JPG, PNG, GIF ou, com webp, WebP)
+	 */
+	default MediaModel createUpload(final String prefix, final String fileName, final String mime, final byte[] data,
+			final boolean webp)
+	{
+		return createUpload(prefix, fileName, mime, data);
+	}
+
+	/**
 	 * Copia a imagem para o produto: um conjunto de mídias (um tamanho por formato da loja) que vira a
 	 * imagem principal e a primeira da galeria. Sem imagem, tira do produto só o que esta cópia tinha
 	 * posto. Não salva o produto se nada mudou.

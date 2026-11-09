@@ -2257,9 +2257,21 @@
 								<wz:name>prefix</wz:name>
 								<wz:value>estampa</wz:value>
 							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>webp</wz:name>
+								<wz:value>true</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>ratio</wz:name>
+								<wz:value>18/25</wz:value>
+							</wz:editor-parameter>
+							<wz:editor-parameter>
+								<wz:name>hint</wz:name>
+								<wz:value>estudio.estampa.arte.hint</wz:value>
+							</wz:editor-parameter>
 						</wz:property>
 						<wz:property qualifier="position" type="java.lang.String"/>
-						<wz:property qualifier="wideArt" type="java.lang.Boolean"/>
+						<!-- 09/11: "Arte larga" saiu do assistente (a vitrine não usa o campo); continua na ficha da estampa -->
 						<wz:property qualifier="background" type="java.lang.String"/>
 					</wz:property-list>
 				</wz:content>
@@ -2296,6 +2308,18 @@
 						<editorArea:editor-parameter>
 							<editorArea:name>prefix</editorArea:name>
 							<editorArea:value>estampa</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>webp</editorArea:name>
+							<editorArea:value>true</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>ratio</editorArea:name>
+							<editorArea:value>18/25</editorArea:value>
+						</editorArea:editor-parameter>
+						<editorArea:editor-parameter>
+							<editorArea:name>hint</editorArea:name>
+							<editorArea:value>estudio.estampa.arte.hint</editorArea:value>
 						</editorArea:editor-parameter>
 					</editorArea:attribute>
 					<editorArea:attribute qualifier="position"/>

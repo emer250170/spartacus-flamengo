@@ -1264,6 +1264,12 @@ jogadores e atletas ficam sem arte e a loja mostra a ilustração provisória at
 - Backoffice do gestor da loja: menu Mengo Estúdio (Estampas com a situação calculada, Drops, Linhas, Avisos, Simulações
   da demo) e aba Mengo Estúdio no produto (modelo, tecido, tamanhos e medidas; vazio = propriedades). Depois de mudar
   o `flamengomatchday-backoffice-config.xml`: F4 › ☰ › Show cockpit-config.xml › Reset to Defaults (como admin).
+- Arte da estampa no Backoffice (09/11): o envio aceita PNG, JPG, GIF e **WebP** (parâmetro `webp=true` do editor
+  `br.com.flamengo.matchday.editor.image`; o Java do servidor não lê WebP, então `createUpload(..., webp)` confere o
+  cabeçalho RIFF/WEBP e tira as medidas dos blocos VP8X/VP8L/VP8). Moldura em pé (`ratio=18/25`), pré-visualização do
+  WebP pelo endereço da mídia e dica própria (`estudio.estampa.arte.hint`). Só a estampa aceita WebP: fotos de jogo,
+  experiência e produto viram outros tamanhos e continuam em JPG/PNG/GIF. "Arte larga" saiu do assistente (a vitrine
+  não usa o campo); continua na ficha.
 - Grupos de API do MCP (`lojaapigroup`, `socioapigroup`, `jogosapigroup`): só `+` ou vazio; `-` vence o papel e deixava
   o Backoffice do gestor só leitura (PR #253).
 
