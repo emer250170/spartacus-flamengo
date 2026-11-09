@@ -2179,6 +2179,7 @@
 	</context>
 	<context merge-by="type" parent="GenericItem" type="MengoEstampa" component="listview">
 		<list-view:list-view>
+			<list-view:column qualifier="code"/>
 			<list-view:column qualifier="name"/>
 			<list-view:column qualifier="linha"/>
 			<list-view:column qualifier="drop"/>
@@ -2191,6 +2192,7 @@
 	<context merge-by="type" parent="GenericItem" type="MengoEstampa" component="advanced-search">
 		<advanced-search:advanced-search>
 			<advanced-search:field-list>
+				<advanced-search:field name="code" selected="true"/>
 				<advanced-search:field name="name" selected="true"/>
 				<advanced-search:field name="linha" selected="true"/>
 				<advanced-search:field name="drop" selected="false"/>
@@ -2199,6 +2201,77 @@
 			</advanced-search:field-list>
 			<advanced-search:sort-field name="endDate" asc="true"/>
 		</advanced-search:advanced-search>
+	</context>
+	<!-- Busca rápida da lista de estampas pelo código ou pelo nome (sem isto só o nome era pesquisado) -->
+	<context type="MengoEstampa" component="simple-search" xmlns:simple-search="http://www.hybris.com/cockpitng/config/simplesearch">
+		<simple-search:simple-search>
+			<simple-search:field name="code"/>
+			<simple-search:field name="name"/>
+			<simple-search:sort-field name="code" asc="true"/>
+		</simple-search:simple-search>
+	</context>
+
+	<!-- Estampa nova: assistente em 3 passos (sem ele o Backoffice usava o genérico, só com o código e a
+	     data de criação, e a estampa ficava sem nome, drop, linha, prazo e arte, fora da loja) -->
+	<context type="MengoEstampa" component="create-wizard">
+		<wz:flow id="MengoEstampaWizard" title="create.title(ctx.TYPE_CODE)">
+			<wz:prepare id="mengoEstampaPrepare">
+				<wz:initialize property="newEstampa" type="ctx.TYPE_CODE"/>
+			</wz:prepare>
+
+			<wz:step id="mengoEstampaPasso1" label="estudio.estampa.wizard.passo1" sublabel="estudio.estampa.wizard.passo1.sub">
+				<wz:content id="mengoEstampaPasso1.content">
+					<wz:property-list id="mengoEstampaPasso1.campos" root="newEstampa">
+						<wz:property qualifier="code" type="java.lang.String"/>
+						<wz:property qualifier="name"/>
+						<wz:property qualifier="drop"/>
+						<wz:property qualifier="linha"/>
+						<wz:property qualifier="number" type="java.lang.Integer"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="mengoEstampaPasso1.navigation">
+					<wz:cancel/>
+					<wz:next visible="!#empty(newEstampa.code) AND newEstampa.drop != null AND newEstampa.linha != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="mengoEstampaPasso2" label="estudio.estampa.wizard.passo2" sublabel="estudio.estampa.wizard.passo2.sub">
+				<wz:content id="mengoEstampaPasso2.content">
+					<wz:property-list id="mengoEstampaPasso2.campos" root="newEstampa">
+						<wz:property qualifier="launchDate" type="java.util.Date"/>
+						<wz:property qualifier="endDate" type="java.util.Date"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="mengoEstampaPasso2.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:next visible="newEstampa.launchDate != null AND newEstampa.endDate != null"/>
+				</wz:navigation>
+			</wz:step>
+
+			<wz:step id="mengoEstampaPasso3" label="estudio.estampa.wizard.passo3" sublabel="estudio.estampa.wizard.passo3.sub">
+				<wz:content id="mengoEstampaPasso3.content">
+					<wz:property-list id="mengoEstampaPasso3.campos" root="newEstampa">
+						<wz:property qualifier="art" editor="br.com.flamengo.matchday.editor.image">
+							<wz:editor-parameter>
+								<wz:name>prefix</wz:name>
+								<wz:value>estampa</wz:value>
+							</wz:editor-parameter>
+						</wz:property>
+						<wz:property qualifier="position" type="java.lang.String"/>
+						<wz:property qualifier="wideArt" type="java.lang.Boolean"/>
+						<wz:property qualifier="background" type="java.lang.String"/>
+					</wz:property-list>
+				</wz:content>
+				<wz:navigation id="mengoEstampaPasso3.navigation">
+					<wz:cancel/>
+					<wz:back/>
+					<wz:done visible="!#empty(newEstampa.code) AND newEstampa.drop != null AND newEstampa.linha != null AND newEstampa.launchDate != null AND newEstampa.endDate != null">
+						<wz:save property="newEstampa"/>
+					</wz:done>
+				</wz:navigation>
+			</wz:step>
+		</wz:flow>
 	</context>
 	<context type="MengoEstampa" component="editor-area">
 		<editorArea:editorArea>
