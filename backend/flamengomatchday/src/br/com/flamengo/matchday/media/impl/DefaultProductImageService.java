@@ -65,6 +65,13 @@ public class DefaultProductImageService implements ProductImageService
 	@Override
 	public MediaModel createUpload(final String prefix, final String fileName, final String mime, final byte[] data)
 	{
+		return createUpload(prefix, fileName, mime, data, false);
+	}
+
+	@Override
+	public MediaModel createUpload(final String prefix, final String fileName, final String mime, final byte[] data,
+			final boolean webp)
+	{
 		if (data == null || data.length == 0)
 		{
 			throw new IllegalArgumentException("O arquivo está vazio.");
@@ -74,18 +81,24 @@ public class DefaultProductImageService implements ProductImageService
 			throw new IllegalArgumentException("A imagem tem mais de 5 MB. Reduza o arquivo e envie de novo.");
 		}
 		final BufferedImage image = read(data);
-		if (image == null)
+		// WebP (09/11): o ImageIO do servidor não lê; confere pelo cabeçalho e tira as medidas dele
+		final int[] webpSize = image == null && webp ? webpSize(data) : null;
+		if (image == null && webpSize == null)
 		{
-			throw new IllegalArgumentException("O arquivo não é uma imagem JPG, PNG ou GIF.");
+			throw new IllegalArgumentException(webp ? "O arquivo não é uma imagem JPG, PNG, GIF ou WebP."
+					: "O arquivo não é uma imagem JPG, PNG ou GIF.");
 		}
+		final int width = image != null ? image.getWidth() : webpSize[0];
+		final int height = image != null ? image.getHeight() : webpSize[1];
+		final String mimeType = webpSize != null ? "image/webp" : mime;
 		final MediaModel media = modelService.create(MediaModel.class);
 		final SimpleDateFormat stamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT);
 		stamp.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
 		media.setCode(StringUtils.defaultIfBlank(prefix, "imagem") + "-img-" + stamp.format(new Date()) + "-"
 				+ UUID.randomUUID().toString().substring(0, 8));
-		media.setRealFileName(StringUtils.defaultIfBlank(fileName, media.getCode() + extension(mime)));
-		media.setMime(StringUtils.defaultIfBlank(mime, "image/jpeg"));
-		media.setAltText(image.getWidth() + " x " + image.getHeight() + " px");
+		media.setRealFileName(StringUtils.defaultIfBlank(fileName, media.getCode() + extension(mimeType)));
+		media.setMime(StringUtils.defaultIfBlank(mimeType, "image/jpeg"));
+		media.setAltText(width + " x " + height + " px");
 		final MediaFolderModel folder = folder();
 		if (folder != null)
 		{
@@ -98,7 +111,7 @@ public class DefaultProductImageService implements ProductImageService
 		}
 		modelService.save(media);
 		mediaService.setDataForMedia(media, data);
-		LOG.info("Imagem {} gravada ({} x {} px, {} bytes)", media.getCode(), image.getWidth(), image.getHeight(), data.length);
+		LOG.info("Imagem {} gravada ({} x {} px, {} bytes)", media.getCode(), width, height, data.length);
 		return media;
 	}
 
@@ -512,8 +525,75 @@ public class DefaultProductImageService implements ProductImageService
 		}
 	}
 
+	/**
+	 * Largura e altura de um WebP pelo cabeçalho (RIFF....WEBP + bloco VP8X, VP8L ou VP8), ou null se não for WebP válido.
+	 * Formato: https://developers.google.com/speed/webp/docs/riff_container
+	 */
+	protected static int[] webpSize(final byte[] d)
+	{
+		if (d == null || d.length < 30 || !ascii(d, 0, "RIFF") || !ascii(d, 8, "WEBP"))
+		{
+			return null;
+		}
+		int w;
+		int h;
+		if (ascii(d, 12, "VP8X"))
+		{
+			// tela: 24 bits de largura-1 e 24 bits de altura-1, a partir do byte 24
+			w = 1 + (u8(d, 24) | u8(d, 25) << 8 | u8(d, 26) << 16);
+			h = 1 + (u8(d, 27) | u8(d, 28) << 8 | u8(d, 29) << 16);
+		}
+		else if (ascii(d, 12, "VP8L"))
+		{
+			// sem perda: assinatura 0x2f e 14 bits de largura-1 e de altura-1
+			if (u8(d, 20) != 0x2f)
+			{
+				return null;
+			}
+			final int b = u8(d, 21) | u8(d, 22) << 8 | u8(d, 23) << 16 | u8(d, 24) << 24;
+			w = 1 + (b & 0x3fff);
+			h = 1 + (b >>> 14 & 0x3fff);
+		}
+		else if (ascii(d, 12, "VP8 "))
+		{
+			// com perda: código de início 9d 01 2a e 14 bits de largura e de altura
+			if (u8(d, 23) != 0x9d || u8(d, 24) != 0x01 || u8(d, 25) != 0x2a)
+			{
+				return null;
+			}
+			w = (u8(d, 26) | u8(d, 27) << 8) & 0x3fff;
+			h = (u8(d, 28) | u8(d, 29) << 8) & 0x3fff;
+		}
+		else
+		{
+			return null;
+		}
+		return w > 0 && h > 0 ? new int[] { w, h } : null;
+	}
+
+	private static boolean ascii(final byte[] d, final int at, final String text)
+	{
+		for (int i = 0; i < text.length(); i++)
+		{
+			if (d[at + i] != (byte) text.charAt(i))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static int u8(final byte[] d, final int at)
+	{
+		return d[at] & 0xff;
+	}
+
 	protected static String extension(final String mime)
 	{
+		if ("image/webp".equalsIgnoreCase(mime))
+		{
+			return ".webp";
+		}
 		if ("image/png".equalsIgnoreCase(mime))
 		{
 			return ".png";

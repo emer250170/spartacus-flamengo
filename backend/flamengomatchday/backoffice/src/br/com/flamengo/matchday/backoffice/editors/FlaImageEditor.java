@@ -41,6 +41,8 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 	private static final Logger LOG = LoggerFactory.getLogger(FlaImageEditor.class);
 	/** Parâmetro "remove" do editor (false esconde o botão Remover), passado ao bloco durante a montagem */
 	private static final ThreadLocal<String> REMOVABLE = new ThreadLocal<>();
+	/** Parâmetro "webp" do editor (true aceita WebP: arte das estampas, 09/11), passado ao bloco durante a montagem */
+	private static final ThreadLocal<Boolean> WEBP = new ThreadLocal<>();
 
 	@Override
 	public void render(final Component parent, final EditorContext<Object> context, final EditorListener<Object> listener)
@@ -51,6 +53,7 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 		final Object hint = context.getParameter("hint");
 		final Object removable = context.getParameter("remove");
 		REMOVABLE.set(removable == null ? null : removable.toString());
+		WEBP.set(Boolean.valueOf("true".equals(String.valueOf(context.getParameter("webp")))));
 		try
 		{
 			build(parent, initial instanceof MediaModel ? (MediaModel) initial : null, context.isEditable(),
@@ -60,6 +63,7 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 		finally
 		{
 			REMOVABLE.remove();
+			WEBP.remove();
 		}
 	}
 
@@ -81,6 +85,9 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 			final String ratio, final String hintKey, final Consumer<MediaModel> onChange)
 	{
 		final boolean square = "1/1".equals(ratio);
+		// moldura em pé (ex.: "18/25", arte de estampa, 09/11): estreita como a quadrada e sem cortar a arte
+		final boolean portrait = portrait(ratio);
+		final boolean webp = Boolean.TRUE.equals(WEBP.get());
 		final String[] removable = { REMOVABLE.get() };
 		final Div box = new Div();
 		box.setSclass("fla-image-editor");
@@ -91,7 +98,7 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 		}
 		box.setStyle("display:flex;flex-direction:column;gap:6px;max-width:360px");
 		final Div frame = new Div();
-		frame.setStyle("width:" + (square ? "200px" : "320px") + ";max-width:100%;aspect-ratio:" + (ratio == null ? "16/9" : ratio)
+		frame.setStyle("width:" + (square || portrait ? "200px" : "320px") + ";max-width:100%;aspect-ratio:" + (ratio == null ? "16/9" : ratio)
 				+ ";border:1px solid #d9dde3;border-radius:8px;background:#f5f6f7;"
 				+ "display:flex;align-items:center;justify-content:center;overflow:hidden");
 		final Label info = new Label();
@@ -106,12 +113,21 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 		refresh[0] = () -> {
 			frame.getChildren().clear();
 			final MediaModel media = current[0];
-			final AImage preview = preview(media);
-			if (preview != null)
+			final AImage preview = webp(media) ? null : preview(media);
+			final String webpUrl = webp(media) ? imageService().url(media) : null;
+			if (preview != null || webpUrl != null)
 			{
+				// WebP pelo endereço da mídia: o navegador mostra, o Java do servidor não lê (09/11)
 				final Image image = new Image();
-				image.setContent(preview);
-				image.setStyle("width:100%;height:100%;object-fit:" + (square ? "contain" : "cover"));
+				if (preview != null)
+				{
+					image.setContent(preview);
+				}
+				else
+				{
+					image.setSrc(webpUrl);
+				}
+				image.setStyle("width:100%;height:100%;object-fit:" + (square || portrait ? "contain" : "cover"));
 				frame.appendChild(image);
 			}
 			else
@@ -130,7 +146,7 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 		{
 			final Div buttons = new Div();
 			buttons.setStyle("display:flex;gap:8px;flex-wrap:wrap");
-			upload.setUpload("true,maxsize=5120,accept=image/jpeg|image/png|image/gif");
+			upload.setUpload("true,maxsize=5120,accept=image/jpeg|image/png|image/gif" + (webp ? "|image/webp" : ""));
 			upload.addEventListener(Events.ON_UPLOAD, event -> {
 				final Media file = ((UploadEvent) event).getMedia();
 				if (file == null)
@@ -139,7 +155,8 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 				}
 				try
 				{
-					final MediaModel media = imageService().createUpload(prefix, file.getName(), file.getContentType(), bytes(file));
+					final MediaModel media = imageService().createUpload(prefix, file.getName(), file.getContentType(), bytes(file),
+							webp);
 					current[0] = media;
 					refresh[0].run();
 					onChange.accept(media);
@@ -172,6 +189,26 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 		refresh[0].run();
 		parent.appendChild(box);
 		return box;
+	}
+
+	/** Proporção em pé ("largura/altura" com largura menor), ex.: "18/25" */
+	protected static boolean portrait(final String ratio)
+	{
+		final String[] p = StringUtils.split(StringUtils.defaultString(ratio), '/');
+		try
+		{
+			return p.length == 2 && Double.parseDouble(p[0].trim()) < Double.parseDouble(p[1].trim());
+		}
+		catch (final NumberFormatException e)
+		{
+			return false;
+		}
+	}
+
+	protected static boolean webp(final MediaModel media)
+	{
+		return media != null && ("image/webp".equalsIgnoreCase(media.getMime())
+				|| StringUtils.endsWithIgnoreCase(media.getRealFileName(), ".webp"));
 	}
 
 	protected static AImage preview(final MediaModel media)
