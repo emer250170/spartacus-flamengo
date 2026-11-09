@@ -10,4 +10,7 @@
 		<property name="name" value="labels"/>
 	</bean>
 
+	<!-- Blocos próprios do assistente "Novo produto" (08/11): campos só para leitura, dicas e avisos do mockup -->
+	<bean id="flaCadastroBlocoRenderer" class="br.com.flamengo.matchday.backoffice.wizard.FlaCadastroBlocoRenderer"/>
+
 </beans>

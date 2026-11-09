@@ -84,6 +84,11 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 		final String[] removable = { REMOVABLE.get() };
 		final Div box = new Div();
 		box.setSclass("fla-image-editor");
+		if (square)
+		{
+			// foto de produto (assistente e aba "Cadastro"): visual do cadastro (08/11)
+			FlaCadastroEstilo.aplicar(box);
+		}
 		box.setStyle("display:flex;flex-direction:column;gap:6px;max-width:360px");
 		final Div frame = new Div();
 		frame.setStyle("width:" + (square ? "200px" : "320px") + ";max-width:100%;aspect-ratio:" + (ratio == null ? "16/9" : ratio)
@@ -161,6 +166,7 @@ public class FlaImageEditor extends AbstractCockpitEditorRenderer<Object>
 			final Label hint = new Label(hintKey != null ? text(hintKey, "JPG ou PNG, até 5 MB.")
 					: text("fla.image.hint", "Foto horizontal, 1200 x 675 px (16:9), JPG ou PNG, até 5 MB."));
 			hint.setStyle("font-size:11px;color:#6a7d8f");
+			hint.setSclass("fla-image-dica");
 			box.appendChild(hint);
 		}
 		refresh[0].run();

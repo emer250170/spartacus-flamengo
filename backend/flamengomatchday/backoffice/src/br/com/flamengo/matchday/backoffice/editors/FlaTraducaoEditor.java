@@ -44,7 +44,9 @@ public class FlaTraducaoEditor extends AbstractCockpitEditorRenderer<Object>
 				: context.getParameter("source").toString(), "nome");
 
 		final Div box = new Div();
+		box.setSclass("fla-traducao-box");
 		box.setStyle("display:flex;flex-direction:column;gap:4px;width:100%");
+		FlaCadastroEstilo.aplicar(box);
 		final Textbox textbox = new Textbox();
 		textbox.setWidth("100%");
 		if (rows > 1)
@@ -61,10 +63,11 @@ public class FlaTraducaoEditor extends AbstractCockpitEditorRenderer<Object>
 		if (context.isEditable() && traducao != null && traducao.disponivel())
 		{
 			final Button button = new Button(text("fla.traducao.botao", "Traduzir com IA"));
-			button.setSclass("fla-traducao-botao");
-			button.setStyle("align-self:flex-end;font-weight:600");
+			// link discreto acima do campo (08/11, mockup); no assistente fica na linha do rótulo
+			button.setSclass("fla-traducao-botao fla-ia-link");
+			button.setStyle("align-self:flex-end");
 			final Label dica = new Label();
-			dica.setStyle("font-size:12px;color:#556b82");
+			dica.setSclass("fla-traducao-dica");
 			button.addEventListener(Events.ON_CLICK, event -> {
 				final String original = origem(parent, context, source);
 				if (StringUtils.isBlank(original))
