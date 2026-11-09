@@ -1995,5 +1995,56 @@
 			</indexes>
 		</itemtype>
 
+		<!-- MCP (09/11): o gestor pede pelo Claude para a vitrine da loja (busca Solr) mostrar já os produtos novos ou
+		     alterados; o Commerce atualiza o índice (FlaSearchRefreshInterceptor) -->
+		<itemtype code="FlaSearchRefresh" extends="GenericItem" autocreate="true" generate="true">
+			<description>Atualização da vitrine (índice de busca da loja) pedida por um gestor (MCP)</description>
+			<deployment table="flasearchrefreshes" typecode="25942"/>
+			<attributes>
+				<attribute qualifier="code" type="java.lang.String">
+					<description>Código do pedido</description>
+					<modifiers optional="false" unique="true"/>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="products" type="java.lang.String">
+					<description>Códigos dos produtos (separados por vírgula); vazio = atualização geral (cronjob de update)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="area" type="java.lang.String">
+					<description>Área de quem pediu: LOJA, JOGOS ou SOCIO</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="requestedBy" type="java.lang.String">
+					<description>Usuário que pediu</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="status" type="java.lang.String">
+					<description>PROCESSANDO, CONCLUIDO ou ERRO</description>
+					<persistence type="property"/>
+				</attribute>
+				<attribute qualifier="message" type="java.lang.String">
+					<description>Resultado (o que foi atualizado e avisos)</description>
+					<persistence type="property">
+						<columntype>
+							<value>HYBRIS.LONG_STRING</value>
+						</columntype>
+					</persistence>
+				</attribute>
+				<attribute qualifier="finishedAt" type="java.util.Date">
+					<description>Quando terminou</description>
+					<persistence type="property"/>
+				</attribute>
+			</attributes>
+			<indexes>
+				<index name="flaSearchRefreshCodeIdx" unique="true">
+					<key attribute="code"/>
+				</index>
+			</indexes>
+		</itemtype>
+
 	</itemtypes>
 </items>

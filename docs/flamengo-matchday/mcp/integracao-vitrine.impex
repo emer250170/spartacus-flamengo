@@ -1,0 +1,36 @@
+# MCP "Loja Flamengo" (09/11): atualizar a vitrine (busca da loja, Solr) a pedido dos três gestores (loja, jogos, sócio).
+# Rodar à mão no HAC (base64 + ImportConfig, por causa do $START_USERRIGHTS), depois do ant all + Update que cria o
+# tipo FlaSearchRefresh e do reinício seguinte (interceptor de tipo novo só registra no reinício depois do Update).
+#  - FlamengoVitrine: o gestor cria um FlaSearchRefresh; o Commerce atualiza a busca só dos produtos pedidos ou, sem
+#    produtos, roda o cronjob de update do índice (FlaSearchRefreshInterceptor)
+#  - o item da integração se chama FlaVitrineRequest (conjunto OData FlaVitrineRequests), para o plural não depender do tipo
+#  - canal de entrada BASIC (sem ele a OData responde 403)
+#  - permissões por tipo nos três grupos de API, só "+" (negação vence a permissão do papel no Backoffice)
+
+INSERT_UPDATE IntegrationObject; code[unique = true]; integrationType(code)
+; FlamengoVitrine ; INBOUND
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]; type(code); root[default = false]
+; FlamengoVitrine ; FlaVitrineRequest ; FlaSearchRefresh ; true
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]; autoCreate[default = false]
+; FlamengoVitrine:FlaVitrineRequest ; code ; FlaSearchRefresh:code ;  ; true
+; FlamengoVitrine:FlaVitrineRequest ; products ; FlaSearchRefresh:products ;  ; false
+; FlamengoVitrine:FlaVitrineRequest ; area ; FlaSearchRefresh:area ;  ; false
+; FlamengoVitrine:FlaVitrineRequest ; requestedBy ; FlaSearchRefresh:requestedBy ;  ; false
+; FlamengoVitrine:FlaVitrineRequest ; status ; FlaSearchRefresh:status ;  ; false
+; FlamengoVitrine:FlaVitrineRequest ; message ; FlaSearchRefresh:message ;  ; false
+; FlamengoVitrine:FlaVitrineRequest ; finishedAt ; FlaSearchRefresh:finishedAt ;  ; false
+
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+; FlamengoVitrine ; BASIC
+
+$START_USERRIGHTS
+Type;UID;MemberOfGroups;Password;Target;read;change;create;remove;change_perm
+UserGroup;lojaapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;FlaSearchRefresh;+;;+;;
+UserGroup;socioapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;FlaSearchRefresh;+;;+;;
+UserGroup;jogosapigroup;integrationviewgroup,integrationcreategroup;;;;;;;
+;;;;FlaSearchRefresh;+;;+;;
+$END_USERRIGHTS

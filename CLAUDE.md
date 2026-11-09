@@ -205,6 +205,9 @@ async () => {
   Cupom pessoal só do gestor da loja (`flamengo.mcp.cupom.areas=LOJA`; as personas de jogos e sócio não têm a ferramenta).
   A importação de ImpEx numa linha de execução própria fecha a sessão (usuário volta a anônimo): chamar
   `McpSupport.prepareSession()` depois de cada importação antes de buscar produto ou categoria.
+- Atualizar a vitrine (MCP 1.6.0, 09/11): tipo `FlaSearchRefresh` criado pela OData (objeto `FlamengoVitrine`, item
+  `FlaVitrineRequest`); `FlaSearchRefreshInterceptor` atualiza a busca dos produtos pedidos (`ProductSearchIndexRefresher.updateNow`)
+  ou, sem produtos, roda o cronjob de update (`flamengo.mcp.vitrine.cronjob`). Os três gestores. ImpEx: `integracao-vitrine.impex`.
 - Análise de pedidos (MCP 1.4.0): objeto `FlamengoAnalisePedido` com atributo **virtual** `analise` (Integration API 2211:
   `IntegrationObjectVirtualAttributeDescriptor` + Script `model://flaAnalisePedido`, variável `itemModel`), um JSON com
   pagamento, entrega, cidade/UF, promoções, antifraude e plano atual. Dado novo para a API sem `ant all`: preferir atributo

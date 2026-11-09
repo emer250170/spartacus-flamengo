@@ -856,6 +856,16 @@
 		<property name="interceptor" ref="flaCouponGrantInterceptor"/>
 		<property name="typeCode" value="FlaCouponGrant"/>
 	</bean>
+	<!-- MCP (09/11): atualizar a vitrine (índice de busca da loja) a pedido de qualquer gestor -->
+	<bean id="flaSearchRefreshInterceptor" class="br.com.flamengo.matchday.mcp.FlaSearchRefreshInterceptor">
+		<property name="mcpSupport" ref="mcpSupport"/>
+		<property name="cronJobService" ref="cronJobService"/>
+		<property name="searchIndexRefresher" ref="flamengoProductSearchIndexRefresher"/>
+	</bean>
+	<bean id="flaSearchRefreshInterceptorMapping" class="de.hybris.platform.servicelayer.interceptor.impl.InterceptorMapping">
+		<property name="interceptor" ref="flaSearchRefreshInterceptor"/>
+		<property name="typeCode" value="FlaSearchRefresh"/>
+	</bean>
 
 	<!--
 		Cadastro simples da loja (08/11): assistente "Novo produto" e aba "Cadastro" do gestor da loja.

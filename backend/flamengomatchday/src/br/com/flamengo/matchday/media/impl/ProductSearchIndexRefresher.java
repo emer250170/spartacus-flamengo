@@ -157,11 +157,28 @@ public class ProductSearchIndexRefresher implements ApplicationContextAware, Dis
 	/** indexerService.updateTypeIndex(facetSearchConfig, indexedType "Product", [pk]) por reflexão */
 	protected void update(final PK pk) throws ReflectiveOperationException
 	{
+		updateNow(Collections.singletonList(pk));
+	}
+
+	/**
+	 * Atualiza agora, na linha de execução de quem chama, o índice da loja só destes produtos (PKs do catálogo Online;
+	 * nunca poltronas). Usado pela atualização da vitrine pedida pelo Claude (FlaSearchRefresh, 09/11). Quem chama já
+	 * deve estar numa sessão de administrador.
+	 */
+	public void updateNow(final List<PK> pks) throws ReflectiveOperationException
+	{
+		if (pks == null || pks.isEmpty())
+		{
+			return;
+		}
 		final String configName = StringUtils.defaultIfBlank(
 				configurationService.getConfiguration().getString("flamengo.produtos.imagem.reindexar.config"), "electronicsIndex");
 		final Object facetSearchConfig = facetSearchConfig(configName);
 		final Object indexedType = productIndexedType(facetSearchConfig, configName);
-		invokeIndexer("updateTypeIndex", facetSearchConfig, indexedType, Collections.singletonList(pk));
+		for (int i = 0; i < pks.size(); i += 200)
+		{
+			invokeIndexer("updateTypeIndex", facetSearchConfig, indexedType, new ArrayList<>(pks.subList(i, Math.min(pks.size(), i + 200))));
+		}
 	}
 
 	/**
