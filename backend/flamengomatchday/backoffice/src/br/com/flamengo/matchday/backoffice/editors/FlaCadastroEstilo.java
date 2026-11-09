@@ -24,7 +24,9 @@ public final class FlaCadastroEstilo
 
 	private static final String CSS = ""
 			// janela e cabeçalho de passos
+			+ ".fla-cad-janela .yw-wizard-breadcrumb-cnt,.fla-cad-janela .yw-wizard-breadcrumb *{word-break:normal}"
 			+ ".fla-cad-janela .yw-wizard-breadcrumb-container{display:flex;align-items:center;gap:10px}"
+			+ ".fla-cad-janela .yw-wizard-breadcrumb-label-container{white-space:nowrap;flex:0 0 auto}"
 			+ ".fla-cad-janela .yw-wizard-breadcrumb-indicator{width:24px;height:24px;min-width:24px;border-radius:50%;border:1px solid #758ca4;"
 			+ "color:#556b82;font-size:13px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:#fff}"
 			+ ".fla-cad-janela .yw-wizard-breadcrumb-active .yw-wizard-breadcrumb-indicator{background:#0070f2;border-color:#0070f2;color:#fff;font-weight:600}"
@@ -61,6 +63,7 @@ public final class FlaCadastroEstilo
 			+ ".fla-ia-link.z-button,.fla-ia-link{background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;"
 			+ "min-width:0;height:auto !important;line-height:18px;font-size:13px;font-weight:600;color:#0064d9 !important;cursor:pointer}"
 			+ ".fla-ia-link:hover{color:#0040b0 !important;text-decoration:underline}"
+			+ ".fla-ia-link:focus{outline:none}.fla-ia-link:focus-visible{outline:2px solid #0064d9;outline-offset:2px;border-radius:4px}"
 			+ ".fla-ia-link:before{content:'';display:inline-block;width:12px;height:12px;margin-right:4px;vertical-align:-1px;"
 			+ "background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M6 .5l1.3 3.2 3.2 1.3-3.2 1.3L6 9.5 4.7 6.3 1.5 5l3.2-1.3z' fill='%230064d9'/%3E%3C/svg%3E\") no-repeat center/12px}"
 			+ ".fla-cad-janela .fla-cad-conteudo .fla-traducao-box{position:static}"
