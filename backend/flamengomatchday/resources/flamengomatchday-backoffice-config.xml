@@ -2551,9 +2551,7 @@
 
 			<wz:step id="flaCadastroPasso3" label="fla.cadastro.passo3" sublabel="fla.cadastro.passo3.sub">
 				<wz:content id="flaCadastroPasso3.content">
-					<wz:property-list id="flaCadastroPasso3.campos1" root="newProduct">
-						<wz:property qualifier="flaPreco" type="java.lang.Double"/>
-					</wz:property-list>
+					<wz:property id="flaCadastroPasso3.campos1" qualifier="newProduct.flaPreco" type="java.lang.Double"/>
 					<wz:custom-view id="flaCadastroPasso3.bloco2" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
@@ -2575,9 +2573,7 @@
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>vazio</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:property-list id="flaCadastroPasso3.campos5" root="newProduct">
-						<wz:property qualifier="flaEstoque" type="java.lang.Integer"/>
-					</wz:property-list>
+					<wz:property id="flaCadastroPasso3.campos5" qualifier="newProduct.flaEstoque" type="java.lang.Integer"/>
 					<wz:custom-view id="flaCadastroPasso3.bloco6" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
