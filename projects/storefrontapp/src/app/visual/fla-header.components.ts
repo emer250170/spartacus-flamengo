@@ -33,10 +33,6 @@ const PORTAL = 'https://www.flamengo.com.br';
         >{{ 'hd.uruhub' | flaT
         }}<span class="cx-visually-hidden">{{ 'hd.newTab' | flaT }}</span></a
       >
-      <a [href]="portal" target="_blank" rel="noopener"
-        >{{ 'hd.tv' | flaT
-        }}<span class="cx-visually-hidden">{{ 'hd.newTab' | flaT }}</span></a
-      >
     </nav>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
