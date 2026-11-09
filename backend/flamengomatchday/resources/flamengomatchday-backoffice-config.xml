@@ -2477,7 +2477,7 @@
 
 			<wz:step id="flaCadastroPasso1" label="fla.cadastro.passo1" sublabel="fla.cadastro.passo1.sub">
 				<wz:content id="flaCadastroPasso1.content">
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso1.bloco1" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>1</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>campo</wz:value></wz:parameter>
@@ -2485,7 +2485,7 @@
 							<wz:parameter><wz:name>valor</wz:name><wz:value>catalogo</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:property-list root="newProduct">
+					<wz:property-list id="flaCadastroPasso1.campos2" root="newProduct">
 						<wz:property qualifier="code" type="java.lang.String"/>
 						<wz:property qualifier="flaNomePt" type="java.lang.String"/>
 						<wz:property qualifier="flaNomeEn" type="java.lang.String" editor="br.com.flamengo.matchday.editor.traducao">
@@ -2511,7 +2511,7 @@
 							</wz:editor-parameter>
 						</wz:property>
 					</wz:property-list>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso1.bloco3" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>1</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>aviso</wz:value></wz:parameter>
@@ -2527,13 +2527,13 @@
 
 			<wz:step id="flaCadastroPasso2" label="fla.cadastro.passo2" sublabel="fla.cadastro.passo2.sub">
 				<wz:content id="flaCadastroPasso2.content">
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso2.bloco1" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>2</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>marca</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:property-list root="newProduct">
+					<wz:property-list id="flaCadastroPasso2.campos2" root="newProduct">
 						<wz:property qualifier="flaCategoriaLoja" editor="br.com.flamengo.matchday.editor.categoria">
 							<wz:editor-parameter>
 								<wz:name>modo</wz:name>
@@ -2551,10 +2551,10 @@
 
 			<wz:step id="flaCadastroPasso3" label="fla.cadastro.passo3" sublabel="fla.cadastro.passo3.sub">
 				<wz:content id="flaCadastroPasso3.content">
-					<wz:property-list root="newProduct">
+					<wz:property-list id="flaCadastroPasso3.campos1" root="newProduct">
 						<wz:property qualifier="flaPreco" type="java.lang.Double"/>
 					</wz:property-list>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso3.bloco2" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>campo</wz:value></wz:parameter>
@@ -2562,23 +2562,23 @@
 							<wz:parameter><wz:name>valor</wz:name><wz:value>moeda</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso3.bloco3" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>dica</wz:value></wz:parameter>
 							<wz:parameter><wz:name>texto</wz:name><wz:value>fla.cadastro.dica.preco</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso3.bloco4" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>vazio</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:property-list root="newProduct">
+					<wz:property-list id="flaCadastroPasso3.campos5" root="newProduct">
 						<wz:property qualifier="flaEstoque" type="java.lang.Integer"/>
 					</wz:property-list>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso3.bloco6" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>campo</wz:value></wz:parameter>
@@ -2586,20 +2586,20 @@
 							<wz:parameter><wz:name>valor</wz:name><wz:value>deposito</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso3.bloco7" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>dica</wz:value></wz:parameter>
 							<wz:parameter><wz:name>texto</wz:name><wz:value>fla.cadastro.dica.estoque</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso3.bloco8" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>vazio</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso3.bloco9" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>3</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>aviso</wz:value></wz:parameter>
@@ -2616,13 +2616,13 @@
 
 			<wz:step id="flaCadastroPasso4" label="fla.cadastro.passo4" sublabel="fla.cadastro.passo4.sub">
 				<wz:content id="flaCadastroPasso4.content">
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso4.bloco1" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>4</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>marca</wz:value></wz:parameter>
 						</wz:renderer>
 					</wz:custom-view>
-					<wz:property-list root="newProduct">
+					<wz:property-list id="flaCadastroPasso4.campos2" root="newProduct">
 						<wz:property qualifier="flaFoto0" editor="br.com.flamengo.matchday.editor.image">
 							<wz:editor-parameter>
 								<wz:name>prefix</wz:name>
@@ -2680,7 +2680,7 @@
 							</wz:editor-parameter>
 						</wz:property>
 					</wz:property-list>
-					<wz:custom-view lang="zul">
+					<wz:custom-view id="flaCadastroPasso4.bloco3" lang="zul">
 						<wz:renderer spring-bean="flaCadastroBlocoRenderer">
 							<wz:parameter><wz:name>passo</wz:name><wz:value>4</wz:value></wz:parameter>
 							<wz:parameter><wz:name>tipo</wz:name><wz:value>aviso</wz:value></wz:parameter>
