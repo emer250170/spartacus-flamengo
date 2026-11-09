@@ -1141,6 +1141,19 @@ originais `electronics_Email_*` continuam no banco (modo `restaurar`).
   Dados de `GET /users/current/sociopoints` (`redemptions`, que já vinha para qualquer cliente). Página, link e item do
   menu do header (depois de "Meus pedidos") no CMS: `scripts/meus-vouchers-cms.groovy` (MODO conferir / aplicar /
   remover), depois de publicar a loja.
+- **Meus ingressos (09/11):** em Minha conta, "Meus ingressos" (`/my-account/ingressos`, `FlaMyTicketsComponent`) lista
+  os ingressos que o torcedor comprou, agrupados por jogo (próximos jogos primeiro, depois os que já aconteceram): jogo
+  (competição, data e hora, estádio, imagem), setor e poltrona, quem vai usar (você, convidado do sócio ou ingresso
+  adicional, com CPF mascarado `***.456.789-**`), código do ingresso, valor pago e desconto de sócio, pedido, datas de
+  compra, entrada e cancelamento (com reembolso), histórico (compra, trocas, cancelamento, entrada; sem as observações
+  internas do gestor) e filtro por situação **Válido / Aguardando pagamento / Utilizado / Cancelado**. Ingresso válido
+  tem **QR code ilustrativo** (`conta/fla-qr.ts`, gerador próprio sem dependência nova: modo byte, correção M,
+  versões 1 a 6) com o texto `FLA-INGRESSO | <ingresso> | <jogo> | <poltrona>`, sem dado pessoal; nenhuma catraca lê.
+  Só consulta: trocar ou cancelar continua com o gestor de jogos. Dados de `GET /users/current/matchdaytickets`
+  (`MatchdayTicketsController`, `MatchdayTicketService.forCustomer`), só os ingressos do cliente logado; com
+  `flamengo.matchday.ingressos.ativo=false` a lista vem vazia. Instalação: `ant all` e reinício (sem Update: o modelo
+  não muda), publicar a loja e rodar `scripts/meus-ingressos-cms.groovy` (página, link e item do menu do header,
+  depois de "Meus vouchers"; MODO conferir / aplicar / remover).
 - **Montagem:** cada e-mail = `modelos/_base.vm` (cores, topo com escudo, listas de itens separadas em Ingressos /
   Dia de jogo / Loja, botão, caixas, rodapé) + o arquivo do e-mail. A lista (página, códigos, assunto, processo
   usado na prévia) está em `emails.json`. Os macros têm prefixo `fla` e são idênticos em todos (o Velocity guarda

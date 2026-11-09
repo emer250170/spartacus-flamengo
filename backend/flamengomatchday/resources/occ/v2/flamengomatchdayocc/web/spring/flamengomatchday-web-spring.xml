@@ -73,6 +73,12 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Meus ingressos (Minha conta, 09/11): /users/current/matchdaytickets, só leitura -->
+	<bean id="flamengoMatchdayTicketsController" class="br.com.flamengo.matchday.occ.MatchdayTicketsController">
+		<property name="matchdayTicketService" ref="matchdayTicketService"/>
+		<property name="userService" ref="userService"/>
+	</bean>
+
 	<!-- Pagamento pela Adyen (05/11): /users/current/adyen/config, /carts/{cartId}/adyen/sessions e /order,
 	     /orders/{code}/adyen e o webhook /{baseSiteId}/adyen/notifications -->
 	<bean id="flamengoAdyenController" class="br.com.flamengo.matchday.occ.AdyenController">

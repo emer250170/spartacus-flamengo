@@ -9,6 +9,7 @@ const SEGMENT_KEYS: Record<string, string> = {
   'socio-torcedor': 'socio',
   orders: 'orders',
   vouchers: 'vouchers',
+  ingressos: 'mytickets',
   order: 'order',
   'return-request': 'return',
   wishlist: 'wishlist',
@@ -40,6 +41,7 @@ export const ACCOUNT_LEADS = [
   'socio',
   'orders',
   'vouchers',
+  'mytickets',
   'email',
   'addresses',
   'consents',
@@ -77,6 +79,8 @@ export const ACCOUNT_MENU: AccountMenuGroup[] = [
       { key: 'orders', url: '/my-account/orders' },
       // 08/11: vouchers de experiência (sócio ou não)
       { key: 'vouchers', url: '/my-account/vouchers' },
+      // 09/11: ingressos comprados, por jogo
+      { key: 'mytickets', url: '/my-account/ingressos' },
       { key: 'wishlist', url: '/my-account/wishlist' },
       { key: 'savedCarts', url: '/my-account/saved-carts' },
       { key: 'coupons', url: '/my-account/coupons' },

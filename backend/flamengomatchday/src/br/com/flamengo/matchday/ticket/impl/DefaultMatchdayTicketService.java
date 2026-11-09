@@ -35,6 +35,7 @@ import de.hybris.platform.variants.model.VariantProductModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -231,6 +232,22 @@ public class DefaultMatchdayTicketService implements MatchdayTicketService
 			q.addQueryParameter("c", code.trim());
 			final List<MatchdayTicketModel> r = flexibleSearchService.<MatchdayTicketModel> search(q).getResult();
 			return r.isEmpty() ? null : r.get(0);
+		});
+	}
+
+	@Override
+	public List<MatchdayTicketModel> forCustomer(final CustomerModel customer)
+	{
+		if (customer == null)
+		{
+			return Collections.emptyList();
+		}
+		return unrestricted(() -> {
+			final FlexibleSearchQuery q = new FlexibleSearchQuery(
+					"SELECT {t.pk} FROM {MatchdayTicket AS t LEFT JOIN MatchdayGame AS g ON {t.game}={g.pk}}"
+							+ " WHERE {t.customer}=?c ORDER BY {g.kickoff}, {t.sector}, {t.seatLabel}, {t.code}");
+			q.addQueryParameter("c", customer);
+			return flexibleSearchService.<MatchdayTicketModel> search(q).getResult();
 		});
 	}
 
