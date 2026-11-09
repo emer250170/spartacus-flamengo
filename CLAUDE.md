@@ -114,6 +114,7 @@ O resto é o Spartacus padrão: não mexer sem necessidade.
   (powertools, apparel, electronics) e a lista de produtos do Backoffice (Solr) segue os catálogos legíveis, não as restrições
   de busca. A leitura do `flamengoProductCatalog` vem do papel (`readPrincipals`); restrições de busca próprias do papel
   substituem as do `employeegroup` (PR #246).
+- Assistente (`wz:flow`) com vários `<wz:custom-view>`/`<wz:property-list>` no mesmo passo: dar `id` único a cada um. Sem `id`, o Backoffice junta os elementos na mesclagem da configuração (blocos repetidos e campos fora do lugar; PR #298). Mudou `*-backoffice-config.xml`: depois do `ant all`, como admin, F4 › menu › segundo "Reset to Defaults" (Reset UI Configuration), senão a configuração gravada antes continua valendo.
 - Rótulos de widget do Backoffice (`backoffice/resources/widgets/*/labels/*.properties`): nunca usar `\n` nos valores. O Backoffice transforma em quebra real e, se a linha seguinte tiver `{`, o leitor do ZK falha e o login inteiro dá erro 500 (PR #63).
 - Endpoints próprios na API de comércio (OCC v2): controller Spring em `br.com.flamengo.matchday.occ` e bean em
   `resources/occ/v2/flamengomatchdayocc/web/spring/flamengomatchday-web-spring.xml` (a `commercewebservices`
