@@ -77,6 +77,17 @@ Relatório nas três personas de gestor (sócio, jogos e loja); cupom pessoal s�
 
 Objetos de integração em `docs/flamengo-matchday/mcp/integracao-relatorio-cupom.impex` (tipos `FlaReportMail` e `FlaCouponGrant` da extensão). No cupom da loja, o desconto acumula com o desconto de sócio na loja.
 
+## Atualizar a vitrine (09/11, MCP 1.6.0)
+
+Os três gestores (loja, jogos e sócio) têm `atualizar_vitrine`: o Commerce atualiza a busca da loja (Solr) na hora, para produto novo ou alterado (preço, nome, foto) aparecer na busca e nas listagens sem esperar a próxima indexação. Quem atualiza é o **SAP Commerce**; o MCP só pede (o gestor não ganha acesso a cronjobs).
+
+| Como pedir | O que o Commerce faz |
+|---|---|
+| Com produtos (até 20 códigos) | Atualiza a busca só desses produtos (catálogo Online) e avisa o que impede cada um de aparecer: só no Staged (falta sincronizar), não aprovado, sem preço. Jogo pelo código do jogo (`JOGO-AAAAMMDD-ADV`); setor e poltrona são recusados (não ficam na busca). |
+| Sem produtos | Roda o `update-electronicsIndex-cronJob` (incremental, nunca o completo). Se ele já estiver rodando, espera terminar e roda de novo. |
+
+A ferramenta responde em até ~20 s; se ainda estiver atualizando, devolve o código `VIT…` para conferir com `pedido`. Nenhum dado de produto muda. Tipo `FlaSearchRefresh` da extensão (`FlaSearchRefreshInterceptor`); objeto de integração `FlamengoVitrine` (conjunto `FlaVitrineRequests`) em `docs/flamengo-matchday/mcp/integracao-vitrine.impex`; chaves `flamengo.mcp.vitrine.*`.
+
 ## Análise de pedidos (08/11)
 
 Ferramenta `analise_pedidos` nas três personas de gestor: totais e agrupamentos (até 2 de uma vez) com filtros nos mesmos campos.

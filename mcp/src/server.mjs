@@ -36,7 +36,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { buildTools } from './core.js';
 
-const VERSION = '1.5.1';
+const VERSION = '1.6.0';
 const env = process.env;
 const baseCfg = {
   occUrl: env.OCC_URL || 'https://api-flamengo.democc.online/occ/v2/electronics-spa',

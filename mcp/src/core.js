@@ -2322,9 +2322,49 @@ function actionTools(cfg, http, persona) {
         return { total: grants.length, cupons: grants.slice(0, 100).map((g) => showGrant(g, uses)) };
       },
     },
+    {
+      name: 'atualizar_vitrine',
+      description: 'Pede ao SAP Commerce para atualizar a vitrine da loja (índice de busca Solr), para produto novo ou alterado (preço, nome, foto, estoque) aparecer na hora na busca e nas listagens, sem esperar a próxima indexação. '
+        + 'Com produtos (códigos, até 20): atualiza só esses e avisa o que impede um produto de aparecer (só no Staged, não aprovado, sem preço). Para jogo, use o código do jogo (JOGO-AAAAMMDD-ADV), nunca setor ou poltrona. '
+        + 'Sem produtos: roda a atualização geral do índice (incremental: tudo que mudou desde a última). Prefira informar os produtos quando souber quais são. '
+        + 'Só atualiza a busca, não muda nenhum dado de produto. Para ver um pedido anterior, informe "pedido" (sem confirmar).',
+      inputSchema: obj({
+        produtos: { type: 'array', items: { type: 'string' }, description: 'Códigos dos produtos (opcional; sem eles, atualização geral)' },
+        pedido: S.str('Código de um pedido de atualização anterior (VIT...), só para ver a situação'),
+        confirmar: S.confirm,
+      }),
+      handler: async (a) => {
+        const show = (r) => ({
+          pedido: r.code, produtos: r.products ?? 'todos os alterados desde a última indexação',
+          situacao: { PROCESSANDO: 'atualizando', CONCLUIDO: 'concluído', ERRO: 'erro' }[r.status] ?? r.status,
+          resultado: r.message ?? null, pedidoPor: r.requestedBy ?? null, concluidoEm: fmtDate(r.finishedAt),
+        });
+        if (a.pedido) {
+          const r = results(await odata('GET', '/FlamengoVitrine/FlaVitrineRequests', { query: { $filter: `code eq '${q(String(a.pedido).toUpperCase())}'` } }))[0];
+          if (!r) throw new UserError(`Não há pedido de atualização ${a.pedido}.`);
+          return show(r);
+        }
+        const codes = [...new Set((a.produtos ?? []).map((c) => String(c).trim()).filter(Boolean))];
+        if (codes.length > 20) throw new UserError('No máximo 20 produtos por pedido; sem produtos, a atualização é geral.');
+        const c = needConfirm(a, codes.length
+          ? `Atualizar a vitrine (busca e listagens da loja) para ${codes.length} produto(s): ${codes.join(', ')}. Nenhum dado de produto muda.`
+          : 'Rodar a atualização geral do índice da loja (incremental: produtos criados ou alterados desde a última indexação). Leva de alguns segundos a 1 minuto; nenhum dado de produto muda.');
+        if (c) return c;
+        const code = randomCode('VIT', 8);
+        await odata('POST', '/FlamengoVitrine/FlaVitrineRequests', { body: { code, area, ...(codes.length ? { products: codes.join(', ') } : {}) } });
+        // espera curta (apps do claude.ai e do celular dão erro de tempo em chamada longa); o resto se acompanha com "pedido"
+        const r = await waitFor('/FlamengoVitrine/FlaVitrineRequests', code, 'PROCESSANDO', 18);
+        return {
+          executado: true,
+          ...(r ? show(r) : { pedido: code }),
+          ...(!r || r.status === 'PROCESSANDO' ? { observacao: `O Commerce ainda está atualizando. Não repita o pedido; confira em instantes com atualizar_vitrine e pedido=${code}.` } : {}),
+        };
+      },
+    },
   ];
-  // cupom pessoal só para o gestor da loja (decisão de 08/11); jogos e sócio ficam só com o relatório por e-mail
-  return area === 'LOJA' ? tools : tools.filter((t) => t.name === 'enviar_relatorio');
+  // cupom pessoal só para o gestor da loja (decisão de 08/11); jogos e sócio ficam com o relatório por e-mail e a
+  // atualização da vitrine (09/11, os três gestores)
+  return area === 'LOJA' ? tools : tools.filter((t) => t.name === 'enviar_relatorio' || t.name === 'atualizar_vitrine');
 }
 
 // ================================================================ ANÁLISE DE PEDIDOS (os três gestores, 08/11)
