@@ -128,6 +128,12 @@
 		<property name="userService" ref="userService"/>
 	</bean>
 
+	<!-- Produto apagado (08/11): sai da busca da loja logo depois de apagado (AfterSaveListener; o Commerce registra
+	     sozinho todo bean desse tipo). Chaves flamengo.produtos.busca.remover* -->
+	<bean id="flamengoProductSearchRemovalListener" class="br.com.flamengo.matchday.media.impl.ProductSearchRemovalListener">
+		<property name="searchIndexRefresher" ref="flamengoProductSearchIndexRefresher"/>
+	</bean>
+
 	<bean id="matchdayGameService" class="br.com.flamengo.matchday.game.impl.DefaultMatchdayGameService">
 		<property name="modelService" ref="modelService"/>
 		<property name="flexibleSearchService" ref="flexibleSearchService"/>

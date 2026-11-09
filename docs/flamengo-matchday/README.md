@@ -916,6 +916,22 @@ produto** ~10 s depois de gravar (nunca as poltronas, que não ficam na busca). 
 Cuidado ao reindexar à mão: `updateTypeIndex` com os produtos `JOGO-%` põe as poltronas na busca; filtrar só os
 códigos de jogo (`JOGO-AAAAMMDD-ADV`) e de experiência (`EXP-%`).
 
+### Produto apagado sai da busca (08/11)
+
+O índice da loja (electronicsIndex) é refeito por inteiro só de madrugada (`full-electronicsIndex-cronJob`); a
+atualização de minuto em minuto pega produtos alterados, não os apagados. Produto apagado durante o dia continuava
+na categoria e na busca, e a loja mostrava "Product with code '…' not found!" ao montar a listagem (aconteceu com
+as camisas de teste do assistente "Novo produto"). O Backoffice já tirava o produto da busca **dele**.
+
+Agora o `ProductSearchRemovalListener` (um `AfterSaveListener`: o Commerce o chama depois de gravar cada transação)
+separa as exclusões de produto (Product e subtipos, pelo código de tipo da PK) e o `ProductSearchIndexRefresher`
+tira esses produtos do índice da loja ~2 s depois, numa linha de execução própria (`deleteTypeIndex`, em lotes de
+200). Vale para Backoffice, Claude e HAC. Chaves `flamengo.produtos.busca.remover` (false = como antes),
+`.remover.config` (electronicsIndex) e `.remover.segundos`.
+
+Tirar à mão (antes do `ant all`, ou se algo escapar), no HAC: `indexerService.deleteTypeIndex(cfg, tipoProduct, [pk])`
+com `cfg = facetSearchConfigService.getConfiguration('electronicsIndex')`.
+
 ### Criar conta com CPF (07/11)
 
 - Loja (`src/app/cadastro/`): `FlaRegisterComponent` no lugar do `RegisterCustomerComponent` (mesmo formulário do
