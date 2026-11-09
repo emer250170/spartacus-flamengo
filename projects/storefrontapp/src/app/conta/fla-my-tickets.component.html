@@ -1,0 +1,234 @@
+<!-- Meus ingressos (09/11): ingressos comprados, por jogo, com poltrona, quem vai usar, situação e QR -->
+<div class="fmi" *ngIf="view$ | async as v">
+  <ng-container *ngIf="v.count; else vazio">
+    <div
+      class="fmv-filtros"
+      role="group"
+      [attr.aria-label]="'mi.filter' | flaT"
+    >
+      <button
+        *ngFor="let f of v.filters"
+        type="button"
+        class="foh-chip"
+        [attr.aria-pressed]="v.filter === f.key"
+        (click)="choose(f.key)"
+      >
+        {{ 'mi.f.' + f.key | flaT }} ({{ f.n }})
+      </button>
+    </div>
+
+    <section class="fmi-secao" *ngIf="v.upcoming.length">
+      <h2 class="fmi-h2">{{ 'mi.upcoming' | flaT }}</h2>
+      <ng-container *ngFor="let g of v.upcoming; trackBy: trackGroup">
+        <ng-container
+          *ngTemplateOutlet="jogo; context: { $implicit: g }"
+        ></ng-container>
+      </ng-container>
+    </section>
+
+    <section class="fmi-secao" *ngIf="v.past.length">
+      <h2 class="fmi-h2">{{ 'mi.past' | flaT }}</h2>
+      <ng-container *ngFor="let g of v.past; trackBy: trackGroup">
+        <ng-container
+          *ngTemplateOutlet="jogo; context: { $implicit: g }"
+        ></ng-container>
+      </ng-container>
+    </section>
+
+    <p class="fmv-vazio-filtro" *ngIf="!v.upcoming.length && !v.past.length">
+      {{ 'mi.noneFilter' | flaT }}
+    </p>
+    <p class="fmv-nota">{{ 'mi.note' | flaT }}</p>
+  </ng-container>
+
+  <!-- um jogo: cabeçalho e as poltronas -->
+  <ng-template #jogo let-g>
+    <article class="fmi-jogo" [class.is-past]="!g.upcoming">
+      <div class="fmi-cab">
+        <span class="fmi-foto" aria-hidden="true">
+          <img [src]="g.image" alt="" loading="lazy" />
+        </span>
+        <div class="fmi-cab-info">
+          <span class="fmi-comp" *ngIf="g.game?.competition">{{
+            g.game.competition
+          }}</span>
+          <h3 class="fmi-titulo">{{ title(g.game) }}</h3>
+          <span class="fmi-quando">
+            {{ kickoff(g.game?.kickoff) }}
+            <ng-container *ngIf="g.game?.venue">
+              · {{ g.game.venue }}</ng-container
+            >
+          </span>
+        </div>
+        <span class="fmi-qtd">{{
+          (g.total === 1 ? 'mi.count1' : 'mi.countN') | flaT: { n: g.total }
+        }}</span>
+      </div>
+
+      <ul class="fmi-lista">
+        <li
+          *ngFor="let t of g.tickets; trackBy: track"
+          class="fmi-ingresso"
+          [class.is-off]="t.status === 'CANCELADO' || t.status === 'UTILIZADO'"
+          [class.is-cancelled]="t.status === 'CANCELADO'"
+        >
+          <div class="fmi-linha">
+            <div class="fmi-poltrona">
+              <span class="fmi-setor">{{
+                'mi.sector' | flaT: { s: sector(t) }
+              }}</span>
+              <strong>{{ t.seatLabel }}</strong>
+            </div>
+            <span class="fla-badge" [attr.data-tone]="tone(t)">{{
+              'mi.s.' + t.status | flaT
+            }}</span>
+          </div>
+
+          <dl class="fmv-dados">
+            <div>
+              <dt>{{ 'mi.holder' | flaT }}</dt>
+              <dd>
+                {{ t.holder }}
+                <span class="fmi-tipo">{{
+                  (t.guest
+                    ? 'mi.h.guest'
+                    : t.holderIsBuyer
+                      ? 'mi.h.buyer'
+                      : 'mi.h.extra'
+                  ) | flaT
+                }}</span>
+              </dd>
+            </div>
+            <div *ngIf="t.holderCpf">
+              <dt>{{ 'mi.cpf' | flaT }}</dt>
+              <dd>{{ t.holderCpf }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'mi.ticket' | flaT }}</dt>
+              <dd>
+                <code class="fmi-cod">{{ t.code }}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'mi.paid' | flaT }}</dt>
+              <dd>
+                {{ brl(t.price) }}
+                <span class="fmi-tipo" *ngIf="t.memberDiscount">{{
+                  'mi.discount' | flaT: { v: brl(t.memberDiscount) }
+                }}</span>
+              </dd>
+            </div>
+            <div *ngIf="t.orderCode">
+              <dt>{{ 'mi.order' | flaT }}</dt>
+              <dd>
+                <a
+                  [routerLink]="
+                    { cxRoute: 'orderDetails', params: { code: t.orderCode } }
+                      | cxUrl
+                  "
+                  >{{ t.orderCode }}</a
+                >
+              </dd>
+            </div>
+            <div *ngIf="t.soldAt">
+              <dt>{{ 'mi.soldAt' | flaT }}</dt>
+              <dd>{{ day(t.soldAt) }}</dd>
+            </div>
+            <div *ngIf="t.usedAt">
+              <dt>{{ 'mi.usedAt' | flaT }}</dt>
+              <dd>{{ day(t.usedAt) }}</dd>
+            </div>
+            <div *ngIf="t.cancelledAt">
+              <dt>{{ 'mi.cancelledAt' | flaT }}</dt>
+              <dd>
+                {{ day(t.cancelledAt) }}
+                <span class="fmi-tipo" *ngIf="t.refundAmount">{{
+                  'mi.refund' | flaT: { v: brl(t.refundAmount) }
+                }}</span>
+              </dd>
+            </div>
+          </dl>
+
+          <p class="fmi-aviso" *ngIf="t.status === 'AGUARDANDO_PAGAMENTO'">
+            {{ 'mi.pendingText' | flaT }}
+          </p>
+
+          <div class="fmi-acoes">
+            <button
+              type="button"
+              class="fmv-copiar"
+              *ngIf="t.status === 'VALIDO'"
+              [attr.aria-expanded]="qrOpen === t.code"
+              [attr.aria-controls]="'fmi-qr-' + t.code"
+              (click)="toggleQr(t)"
+            >
+              {{ (qrOpen === t.code ? 'mi.qrHide' : 'mi.qrShow') | flaT }}
+            </button>
+            <details class="fmi-hist" *ngIf="t.history.length">
+              <summary>{{ 'mi.history' | flaT }}</summary>
+              <ol>
+                <li *ngFor="let e of t.history">
+                  <span class="fmi-hist-data">{{ day(e.date) }}</span>
+                  <span>
+                    {{ 'mi.e.' + e.type | flaT }}
+                    <ng-container
+                      *ngIf="
+                        e.type === 'TROCA_POLTRONA' ||
+                        e.type === 'TROCA_TITULAR'
+                      "
+                    >
+                      <ng-container *ngIf="e.from"
+                        >: {{ e.from }} →
+                      </ng-container>
+                      <ng-container *ngIf="!e.from && e.to">: </ng-container
+                      >{{ e.to }}
+                    </ng-container>
+                    <ng-container *ngIf="e.type === 'CANCELAMENTO' && e.amount">
+                      · {{ 'mi.refund' | flaT: { v: brl(e.amount) } }}
+                    </ng-container>
+                  </span>
+                </li>
+              </ol>
+            </details>
+          </div>
+
+          <div
+            class="fmi-qr"
+            *ngIf="qrOpen === t.code"
+            [id]="'fmi-qr-' + t.code"
+          >
+            <ng-container *ngIf="qr(t) as q">
+              <svg
+                [attr.viewBox]="'0 0 ' + q.size + ' ' + q.size"
+                shape-rendering="crispEdges"
+                role="img"
+                [attr.aria-label]="'mi.qrAria' | flaT: { code: t.code }"
+              >
+                <rect
+                  [attr.width]="q.size"
+                  [attr.height]="q.size"
+                  fill="#fff"
+                ></rect>
+                <path [attr.d]="q.d" fill="#111"></path>
+              </svg>
+            </ng-container>
+            <div class="fmi-qr-texto">
+              <strong>{{ title(g.game) }}</strong>
+              <span>{{ t.seatLabel }} · {{ t.holder }}</span>
+              <code class="fmi-cod">{{ t.code }}</code>
+              <small>{{ 'mi.qrNote' | flaT }}</small>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </article>
+  </ng-template>
+
+  <ng-template #vazio>
+    <div class="fmv-vazio">
+      <strong>{{ 'mi.empty' | flaT }}</strong>
+      <span>{{ 'mi.emptyText' | flaT }}</span>
+      <a class="fmv-ver" routerLink="/matchday">{{ 'mi.see' | flaT }}</a>
+    </div>
+  </ng-template>
+</div>

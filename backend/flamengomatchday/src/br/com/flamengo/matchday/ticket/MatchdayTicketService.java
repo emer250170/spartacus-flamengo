@@ -5,6 +5,7 @@ import br.com.flamengo.matchday.model.MatchdayTicketModel;
 import br.com.flamengo.matchday.model.SocioGuestModel;
 import de.hybris.platform.core.model.order.AbstractOrderModel;
 import de.hybris.platform.core.model.product.ProductModel;
+import de.hybris.platform.core.model.user.CustomerModel;
 import de.hybris.platform.servicelayer.interceptor.InterceptorContext;
 
 import java.util.Date;
@@ -61,6 +62,9 @@ public interface MatchdayTicketService
 	List<MatchdayTicketModel> search(String gameCode, String sector, String status, String text);
 
 	MatchdayTicketModel find(String code);
+
+	/** Ingressos de um comprador, do jogo mais próximo ao mais distante (Minha conta › Meus ingressos, 09/11) */
+	List<MatchdayTicketModel> forCustomer(CustomerModel customer);
 
 	/** Histórico do ingresso, mais novo primeiro */
 	List<MatchdayTicketEventModel> history(MatchdayTicketModel ticket);

@@ -3104,3 +3104,284 @@ html.fla-login cx-global-message .alert-danger {
     }
   }
 }
+
+// ---------- Meus ingressos (09/11): ingressos por jogo, poltrona, quem vai usar e QR ----------
+#{$fla-acc-body} {
+  .fmi {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .fmi-secao {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .fmi-h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .fmi-jogo {
+    border: 1px solid $fla-acc-line;
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+
+    &.is-past .fmi-foto img {
+      filter: grayscale(1);
+      opacity: 0.7;
+    }
+  }
+
+  .fmi-cab {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px;
+    background: $fla-acc-soft;
+    border-bottom: 1px solid $fla-acc-line;
+  }
+
+  .fmi-foto {
+    display: block;
+    width: 88px;
+    height: 66px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #ddd;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .fmi-cab-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .fmi-comp {
+    color: $fla-acc-red;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .fmi-titulo {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .fmi-quando {
+    color: $fla-acc-muted;
+    font-size: 14px;
+  }
+
+  .fmi-qtd {
+    color: $fla-acc-ink;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .fmi-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fmi-ingresso {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border-top: 1px solid #eee;
+
+    &:first-child {
+      border-top: 0;
+    }
+
+    &.is-off .fmi-poltrona strong {
+      color: $fla-acc-muted;
+    }
+
+    &.is-cancelled .fmi-poltrona strong {
+      text-decoration: line-through;
+    }
+  }
+
+  .fmi-linha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+  }
+
+  .fmi-poltrona {
+    display: flex;
+    flex-direction: column;
+
+    strong {
+      font-size: 22px;
+      line-height: 1.2;
+    }
+  }
+
+  .fmi-setor {
+    color: $fla-acc-muted;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .fmi-tipo {
+    color: $fla-acc-muted;
+    font-weight: 400;
+  }
+
+  .fmi-cod {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: $fla-acc-ink;
+  }
+
+  .fmi-aviso {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: #fff4e5;
+    color: #8a4b00;
+    font-size: 14px;
+  }
+
+  .fmi-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px 18px;
+  }
+
+  .fmi-hist {
+    font-size: 14px;
+
+    summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      color: $fla-acc-ink;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    summary:focus-visible {
+      outline: 3px solid $fla-acc-red;
+      outline-offset: 2px;
+    }
+
+    ol {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 10px;
+    }
+  }
+
+  .fmi-hist-data {
+    color: $fla-acc-muted;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fmi-qr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 22px;
+    padding: 16px;
+    border: 1px dashed $fla-acc-line;
+    border-radius: 6px;
+
+    svg {
+      display: block;
+      width: 168px;
+      max-width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+    }
+  }
+
+  .fmi-qr-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+
+    strong {
+      font-size: 17px;
+    }
+
+    small {
+      max-width: 34ch;
+      color: $fla-acc-muted;
+      font-size: 13px;
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  #{$fla-acc-body} {
+    .fmi-cab {
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .fmi-foto {
+      width: 64px;
+      height: 48px;
+    }
+
+    .fmi-qtd {
+      grid-column: 1 / -1;
+    }
+
+    .fmi-titulo {
+      font-size: 17px;
+    }
+
+    .fmi-ingresso {
+      padding: 16px 14px;
+    }
+
+    .fmi-qr {
+      flex-direction: column;
+      align-items: flex-start;
+
+      svg {
+        width: 200px;
+      }
+    }
+  }
+}
