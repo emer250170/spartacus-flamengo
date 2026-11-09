@@ -784,7 +784,7 @@ Chave `flamengo.loja.operacao.ativo`. Começa em `false`, e assim o pedido anda 
 | Confirmação | É a mudança do status do pedido para **Pagamento confirmado** (`PAYMENT_CAPTURED`), feita no Backoffice ou pela API. O `OrderPaymentStatusInterceptor` grava a data da confirmação e o processo segue. O botão da ficha do sócio e o evento `PAGAMENTO_CONFIRMADO` fazem a mesma mudança (`SocioPaymentService.confirmOrder`). No pedido com plano, o processo grava o evento na linha do tempo do sócio quando ele ainda não existe. |
 | Expedição | A remessa de retirada (item 12) continua igual. As linhas físicas com entrega em casa viram uma remessa do `warehouse_s` (`flamengo.loja.operacao.deposito`). Ficam de fora os produtos sem estoque nesse depósito e os prefixos de `flamengo.loja.operacao.semRemessa` (ingresso, experiência, plano, estacionamento, comida e personalização). O atendente `atendente.cd` separa, embala e envia no cockpit Atendimento do pedido › Consignações. |
 | Estoque | Ingresso, comida, estacionamento e experiência baixam ao fechar o pedido, como antes (`SeatHoldService.commitSale`), inclusive com Pix ou boleto aguardando. As linhas físicas de retirada (item 12) e de entrega em casa não baixam ali: o estoque delas é reservado pela remessa, que só nasce depois da análise de fraude e do pagamento. |
-| Fechamento | O estoque das linhas com remessa é controlado pela remessa, sem baixa dupla. Com remessa em aberto, o pedido fica **Em processamento** (`READY`) e só vira **Concluído** quando todas as remessas forem enviadas ou retiradas (`verifyOrderCompletion` → `finishOrder`). |
+| Fechamento | O estoque das linhas com remessa é controlado pela remessa, sem baixa dupla. Com remessa em aberto, o pedido fica **Em processamento** (`READY`) e só vira **Concluído** quando todas as remessas forem enviadas ou retiradas (`verifyOrderCompletion` → `finishOrder`). As linhas que nunca entram em remessa (`semRemessa`) não seguram o pedido (08/11, ver abaixo). |
 | Enviado na loja | Pedido Concluído cuja remessa de entrega em casa foi enviada aparece **Enviado** em Minha conta › Pedidos e no detalhe (`statusDisplay` = `shipped`, `ShippedOrderStatusDisplayHandler` no lugar do `dynamicAttributesOrderStatusDisplay`). No Backoffice o status continua Concluído. Pedido só de retirada, ingresso ou plano continua Concluído. |
 | Estorno no cancelamento | O pedido é cobrado no início (`takePayment`) e o cancelamento padrão do SAP (linha ou pedido, antes do envio) só recalcula o pedido. O `CancelRefundPaymentServiceAdapter` envolve os adaptadores de pagamento do cancelamento (`orderCancelPaymentServiceAdapter` e `OmsOrderCancelPaymentServiceAdapter`, pelo `CancelRefundAdapterPostProcessor`) e, depois do recálculo, lança um **Estorno** (`REFUND_FOLLOW_ON`) de (capturado − estornado) − novo total; pedido sem nada a entregar é estornado por inteiro. O provedor é o simulado (Mockup). No Backoffice, aba Administração do pedido › Transações de pagamento, com nomes legíveis ("Captura · R$ 969,86 · Aceito"). |
 | Cancelado esperando o pagamento | Mudar o status para Cancelado encerra o processo. |
@@ -795,6 +795,17 @@ Chave `flamengo.loja.operacao.ativo`. Começa em `false`, e assim o pedido anda 
 Na loja (PR #109), o checkout mostra cartão, Pix ou boleto também no carrinho sem plano, com o total do carrinho. A confirmação do pedido traz o QR Code ou a linha digitável e a frase "o pedido segue quando o clube confirmar o pagamento". O Finalizar pedido usa o endpoint do Pix e do boleto sempre que a forma escolhida for uma delas.
 
 No Claude (MCP, persona gestor do sócio), `confirmar_pagamento` vale para qualquer pedido: para um pedido sem plano, informe o código. A ferramenta grava o evento Pagamento confirmado, que muda o status do pedido para Pagamento confirmado pelo mesmo caminho do Backoffice.
+
+Fechamento sem as linhas sem remessa (08/11): o `VerifyOrderCompletionAction` do OMS espera todas as linhas alocadas
+a uma remessa. Personalização, comida, estacionamento, plano e ingresso nunca entram em remessa, e o pedido com
+camisa e personalização ficava **Em processamento** mesmo com a remessa enviada (pedido 00057001). O passo
+`verifyOrderCompletion` virou um `scriptAction` (`scripts/order-process-fechamento.xml`) que chama a regra padrão
+e, só quando ela manda esperar, fecha o pedido se todas as remessas terminaram (pelo menos uma enviada ou retirada),
+os subprocessos de remessa acabaram e as linhas com remessa estão entregues; grava a situação de entrega
+**Enviado**. Chave `flamengo.loja.operacao.fecharSemRemessa` (padrão `true`). Instalação pelo HAC, sem `ant all`:
+`scripts/order-process-fechamento.groovy` (gerado por `gerar-order-process-fechamento.py`), `ETAPA = 'conferir'`
+(commit false), depois `'aplicar'`; `'destravar'` passa um pedido já parado (variável `PEDIDO`) para a versão nova
+e dispara o `OrderActionEvent`. Para voltar, ativar a versão anterior da definição dinâmica `order-process`.
 
 Processo do pedido: `scripts/order-process-operacao.xml` traz os passos novos. O instalador `scripts/order-process-operacao.groovy` é gerado por `gerar-order-process-operacao.py` a partir do `.xml` e do `.tpl`. Instalação, depois do `ant all` do PR:
 
