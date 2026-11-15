@@ -22,6 +22,7 @@
           "projects/storefrontapp/src/favicon.ico",
           "projects/storefrontapp/src/assets",
           "projects/storefrontapp/src/manifest.json",
+          "projects/storefrontapp/src/robots.txt",
           {
             "glob": "**/*",
             "input": "feature-libs/smartedit/assets",
@@ -185,6 +186,7 @@
           "projects/storefrontapp/src/favicon.ico",
           "projects/storefrontapp/src/assets",
           "projects/storefrontapp/src/manifest.json",
+          "projects/storefrontapp/src/robots.txt",
           {
             "glob": "**/*",
             "input": "feature-libs/smartedit/assets",
