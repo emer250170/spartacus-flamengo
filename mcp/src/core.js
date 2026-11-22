@@ -1740,6 +1740,7 @@ function couponCodes(v) {
   return list.map((x) => (typeof x === 'string' ? x : x?.value ?? x?.string ?? null)).filter(Boolean);
 }
 
+const __ordersCache = new Map();
 function lojaTools(cfg, http) {
   const odata = odataClient(cfg, http);
   const q = (s) => String(s ?? '').trim().replace(/'/g, "''");
@@ -1784,8 +1785,22 @@ function lojaTools(cfg, http) {
   }
 
   // ---- pedidos
-  async function orders() {
-    const os = await all('/FlamengoPedido/Orders', { $expand: 'status,user,entries/product,appliedCouponCodes' });
+  // 16/11/2026: pedidos com filtro de data no Commerce (quando a ferramenta tem periodo) e memoria de 20 s, para a
+  // ferramenta nao baixar todos os pedidos da loja a cada pergunta. O filtro leva um dia de folga de cada lado (fuso).
+  async function orders(range) {
+    const iso = (d) => new Date(d).toISOString().slice(0, 10) + 'T00:00:00'; // por dia: perguntas seguidas caem na mesma memoria
+    const filtro = range?.inicio
+      ? `date ge datetime'${iso(range.inicio.getTime() - 864e5)}'` + (range.fim ? ` and date le datetime'${iso(range.fim.getTime() + 2 * 864e5)}'` : '')
+      : null;
+    const agora = Date.now();
+    const hit = [__ordersCache.get(filtro ?? '*'), __ordersCache.get('*')].find((h) => h && agora - h.t < 2e4);
+    if (hit) return hit.v;
+    const v = await ordersFromCommerce(filtro);
+    __ordersCache.set(filtro ?? '*', { t: Date.now(), v });
+    return v;
+  }
+  async function ordersFromCommerce(filtro) {
+    const os = await all('/FlamengoPedido/Orders', { $expand: 'status,user,entries/product,appliedCouponCodes', ...(filtro ? { $filter: filtro } : {}) });
     return os.filter((o) => o.versionID == null).map((o) => {
       const itens = results(o.entries).sort((a, b) => num(a.entryNumber) - num(b.entryNumber)).map((e) => ({
         codigo: e.product?.code, produto: e.product?.name ?? e.product?.code, quantidade: num(e.quantity) ?? 0,
@@ -1942,7 +1957,7 @@ function lojaTools(cfg, http) {
       inputSchema: obj({ dias: S.int('Últimos N dias (padrão 30)'), inicio: S.str('Início (AAAA-MM-DD), em vez de dias'), fim: S.str('Fim (AAAA-MM-DD), padrão hoje') }),
       handler: async (a) => {
         const p = period(a);
-        const all = (await orders()).filter((o) => o.data && o.data >= p.inicio && o.data <= p.fim);
+        const all = (await orders(p)).filter((o) => o.data && o.data >= p.inicio && o.data <= p.fim);
         const valid = all.filter((o) => !EXCLUDED_STATUS.has(o.situacaoCodigo));
         const sum = (xs, f) => xs.reduce((s, x) => s + (f(x) ?? 0), 0);
         const receita = sum(valid, (o) => o.total);
@@ -1981,7 +1996,7 @@ function lojaTools(cfg, http) {
       handler: async (a) => {
         const needle = String(a.texto ?? '').trim().toLowerCase();
         const since = a.dias ? new Date(Date.now() - a.dias * 86400000) : null;
-        const list = (await orders()).filter((o) => (!since || (o.data && o.data >= since)) && (!a.situacao || o.situacaoCodigo === a.situacao)
+        const list = (await orders(since ? { inicio: since } : void 0)).filter((o) => (!since || (o.data && o.data >= since)) && (!a.situacao || o.situacaoCodigo === a.situacao)
           && (!a.categoria || o.itens.some((i) => i.categoria === a.categoria))
           && (!needle || [o.pedido, o.email, o.torcedor, ...o.itens.flatMap((i) => [i.codigo, i.produto])].some((v) => String(v ?? '').toLowerCase().includes(needle))));
         return { total: list.length, valor: brl(list.reduce((s, o) => s + o.total, 0)), pedidos: list.slice(0, 50).map(showOrder), ...(list.length > 50 ? { observacao: 'Mostrando os 50 mais novos; use os filtros.' } : {}) };
